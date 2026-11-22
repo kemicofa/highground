@@ -3,7 +3,14 @@ local C = ns.CommandCatalog
 -- Retained standalone hosts have their own slash entry points.
 if not C then return end
 local A, L = C.Action, C.Link
+local function Guide(key, aliases)
+  local prefix = "commands.guide." .. key
+  return A("guide " .. key, nil, nil, { descriptionKey = prefix .. ".description", labelKey = prefix .. ".action", aliases = aliases })
+end
 C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
+  Guide("battlegrounds", { "checklist battlegrounds" }),
+  Guide("enemies", { "guide targeting", "checklist enemies", "checklist targeting" }),
+  Guide("objectives", { "checklist objectives" }),
   L("priority", "battlegrounds.commands.show_or_change_target_recommendations.8b6d11", "battlegrounds-settings", "battlegrounds.commands.target_recommendation_switch.b60fa3", { usage = "[on|off]" }),
   A("call", "battlegrounds.commands.prepare_a_kill_target_chat_message_press.fb2f68", "battlegrounds.commands.prepare_target_call.0b0611"),
   A("call", "battlegrounds.commands.choose_the_chat_channel_used_for_target.222597", "battlegrounds.commands.choose_call_channel.5cdf28", { id = "call-channel", usage = "s|i|raid|party|y",
@@ -20,15 +27,15 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   L("all", "battlegrounds.commands.toggle_participation_in_unrated_battlegrounds.4bff63", "battlegrounds-settings", "battlegrounds.commands.battleground_scope_controls.ca4a01"),
   A("kit", "battlegrounds.commands.print_tracked_cooldowns_for_your_target_or.0d757f", "battlegrounds.commands.show_target_cooldowns.7698c5", { cata = true }),
   L("exec", "battlegrounds.commands.set_the_execute_health_threshold.511f1c", "behavior", "battlegrounds.commands.execute_threshold.d8cefd", { usage = "PCT", cata = true }),
-  L("history", "battlegrounds.commands.review_saved_pvp_results_and_observed_objective.8f8151", "history", "highground.toursteps.open_match_history.2cef7d"),
+  C.Tool("history", "battlegrounds.commands.review_saved_pvp_results_and_observed_objective.8f8151", "history", "highground.toursteps.open_match_history.2cef7d"),
   L("bg test", "battlegrounds.commands.start_or_stop_battleground_enemy_rows_timers.3af8e3", "battlegrounds-previews", "battlegrounds.commands.battleground_panel_preview_controls.629df4"),
   A("bg test stop", "battlegrounds.commands.stop_the_battleground_panel_previews.be5439", "battlegrounds.commands.stop_battleground_previews.6dc499"),
   A("intel", "battlegrounds.commands.show_enemy_map_and_sharing_status.e17a40", "battlegrounds.commands.show_map_sharing_status.c2a4ec"),
-  L("intel on", "battlegrounds.commands.enable_or_disable_enemy_map_positions.31c9da", "battlegrounds-settings", "battlegrounds.commands.map_position_switch.b73ecc", { aliases = ns.Localization.Define({ ns.Locale:Get("battlegrounds.commands.intel_off.ed037e") }, { [1] = "battlegrounds.commands.intel_off.ed037e" }) }),
+  L("intel on", "battlegrounds.commands.enable_or_disable_enemy_map_positions.31c9da", "battlegrounds-settings", "battlegrounds.commands.map_position_switch.b73ecc", { aliases = { "intel off" } }),
   L("intel share", "battlegrounds.commands.enable_or_disable_sharing_map_positions_with.4056fd", "battlegrounds-settings", "battlegrounds.commands.map_sharing_switch.5fe210", { usage = "on|off" }),
   L("intel test", "battlegrounds.commands.start_or_stop_a_sample_world_map.637595", "battlegrounds-previews", "battlegrounds.commands.map_preview_controls.3421cb"),
   A("timers", "battlegrounds.commands.show_battleground_timer_status.fc994f", "battlegrounds.commands.show_timer_status.c641cd"),
-  L("timers on", "battlegrounds.commands.enable_or_disable_battleground_timers.b49b30", "battlegrounds-settings", "battlegrounds.commands.battleground_timer_switch.7e7220", { aliases = ns.Localization.Define({ ns.Locale:Get("battlegrounds.commands.timers_off.d96b0e") }, { [1] = "battlegrounds.commands.timers_off.d96b0e" }) }),
+  L("timers on", "battlegrounds.commands.enable_or_disable_battleground_timers.b49b30", "battlegrounds-settings", "battlegrounds.commands.battleground_timer_switch.7e7220", { aliases = { "timers off" } }),
   A("timers reset", "battlegrounds.commands.restore_battleground_panel_positions_and_spacing.f5c2d0", "battlegrounds.commands.reset_battleground_positions.ac9fc0", ns.Localization.Define({ confirm = ns.Locale:Get("battlegrounds.commands.reset_battleground_timer_and_objective_panel_positions.6b5219") }, { confirm = "battlegrounds.commands.reset_battleground_timer_and_objective_panel_positions.6b5219" })),
   A("reset", "battlegrounds.commands.restore_the_main_enemy_panel_position.7bc77f", "battlegrounds.commands.reset_enemy_panel_position.b858c0", ns.Localization.Define({ confirm = ns.Locale:Get("battlegrounds.commands.reset_the_main_enemy_panel_position.9565e3") }, { confirm = "battlegrounds.commands.reset_the_main_enemy_panel_position.9565e3" })),
   L("rows", "battlegrounds.commands.set_the_number_of_enemies_shown.14bfc4", "battlegrounds-appearance", "battlegrounds.commands.choose_enemy_row_count.af0eee", { usage = "N" }),
@@ -59,8 +66,8 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   L("go", "battlegrounds.commands.preview_the_kill_window_look_and_sound.5cbf9d", "battlegrounds-previews", "battlegrounds.commands.kill_window_preview_controls.ea4102"),
   A("burst", "battlegrounds.commands.print_recent_observed_burst_buffs.5aba24", "battlegrounds.commands.show_burst_diagnostics.92fca5", { cata = true }),
   L("burst test", "battlegrounds.commands.start_or_stop_a_burst_marker_sample.f102f2", "battlegrounds-previews", "battlegrounds.commands.burst_preview_controls.50f9f4", { cata = true }),
-  A("pressure", "battlegrounds.commands.print_teammate_pressure_status_and_observed_targeting.7c2bb5", "battlegrounds.commands.show_pressure_status.4c70ab", { cata = true, aliases = ns.Localization.Define({ ns.Locale:Get("battlegrounds.commands.pressure_status.cf2ce2") }, { [1] = "battlegrounds.commands.pressure_status.cf2ce2" }) }),
-  L("pressure on", "battlegrounds.commands.enable_or_disable_teammate_pressure_shields.495602", "battlegrounds-settings", "battlegrounds.commands.pressure_shield_switch.597a5c", { cata = true, aliases = ns.Localization.Define({ ns.Locale:Get("battlegrounds.commands.pressure_off.c284f8") }, { [1] = "battlegrounds.commands.pressure_off.c284f8" }) }),
+  A("pressure", "battlegrounds.commands.print_teammate_pressure_status_and_observed_targeting.7c2bb5", "battlegrounds.commands.show_pressure_status.4c70ab", { cata = true, aliases = { "pressure status" } }),
+  L("pressure on", "battlegrounds.commands.enable_or_disable_teammate_pressure_shields.495602", "battlegrounds-settings", "battlegrounds.commands.pressure_shield_switch.597a5c", { cata = true, aliases = { "pressure off" } }),
   A("pressure count", "battlegrounds.commands.set_the_maximum_number_of_teammates_with.f3bfe3", "battlegrounds.commands.choose_pressure_shield_count.0d7c56", { cata = true, usage = "N",
     fields = { ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.teammates.ca594f"), kind = "number", min = 1, max = 3, integer = true, default = "3" }, { label = "battlegrounds.commands.teammates.ca594f" }) } }),
   L("pressure test", "battlegrounds.commands.start_or_stop_the_pressure_shield_sample.3b064a", "battlegrounds-previews", "battlegrounds.commands.pressure_preview_controls.78eec5", { cata = true }),

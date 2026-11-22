@@ -26,7 +26,7 @@ local function OpenDetails(w)
     end
   else
     local scope = item.bounty.state == "public" and "public" or item.bounty.state == "personal" and "mine" or "guild"
-    if ns.Hub then ns.Hub.Open("bountyboard") else B.Board.Open() end
+    B.Board.Open()
     B.Board.SetTab(scope)
     for _, row in ipairs(B.BoardModel.Rows(scope)) do
       if B.Key(row.name) == B.Key(item.bounty.name) then B.Details.Open(row); break end

@@ -177,7 +177,8 @@ function O.MemberByID(id, memberId)
     or not C_Club.GetMemberInfo then return end
   if C_Club.AreMembersReady and U.read(C_Club.AreMembersReady, org.clubId) ~= true then return end
   local member = Member(U.read(C_Club.GetMemberInfo, org.clubId, memberId))
-  if member then
+  -- Guild lookups use the native guild rank cache, never community ID hints.
+  if member and org.kind ~= "guild" then
     memberIDs[id] = memberIDs[id] or {}
     memberIDs[id][member.name] = memberId
   end
@@ -244,13 +245,18 @@ function O.Open(id)
 end
 
 function O.Listen(fn) O.listeners[#O.listeners + 1] = fn end
+function O.IsGuildEvent(event)
+  return event == "GUILD_ROSTER_UPDATE" or event == "GUILD_RANKS_UPDATE" or event == "PLAYER_GUILD_UPDATE"
+end
 local function Changed(event, ...)
   -- The game also reports a nameplate/party unit's guild becoming available.
   -- Only our own guild change invalidates membership and starts synchronization.
   local unit = ...
   if event == "PLAYER_GUILD_UPDATE" and unit and unit ~= "player" then return end
-  if event ~= "CLUB_MEMBER_PRESENCE_UPDATED" and event ~= "CLUB_MEMBER_ROLE_UPDATED"
-    and event ~= "CLUB_SELF_MEMBER_ROLE_UPDATED" then wipe(memberIDs) end
+  if not O.IsGuildEvent(event) and event ~= "CLUB_MEMBER_PRESENCE_UPDATED" and event ~= "CLUB_MEMBER_ROLE_UPDATED"
+    and event ~= "CLUB_SELF_MEMBER_ROLE_UPDATED" then
+    if type(unit) == "number" then memberIDs["club:" .. unit] = nil else wipe(memberIDs) end
+  end
   if event == "GUILD_ROSTER_UPDATE" then G.ReadRoster()
   elseif event == "PLAYER_GUILD_UPDATE" or event == "PLAYER_ENTERING_WORLD" then G.Clear(); G.RequestRoster() end
   for _, fn in ipairs(O.listeners) do U.Guard("organizations", fn, event, ...) end

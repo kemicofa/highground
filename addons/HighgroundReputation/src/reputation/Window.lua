@@ -56,6 +56,60 @@ local function Rows(c, source)
   return filtered, state
 end
 
+-- Shared by the dedicated window, isolated guide samples and Highground's
+-- configuration page. Building preferences never opens or navigates reports.
+local function BuildSettings(f, source)
+  local W = source or W
+  local UI = W.UI
+  f.toggles = {}
+  for i, option in ipairs({ { "filter", ns.Locale:Get("reputation.window.hide_chat_from_blacklisted_players.549198") },
+    { "reply", ns.Locale:Get("reputation.window.reply_to_whispers_from_blacklisted_players.bc4674") },
+    { "tooltip", ns.Locale:Get("reputation.window.show_community_reasons_on_player_tooltips.879b94") } }) do
+    local key = option[1]
+    local toggle = K.Toggle(f.settingsBody, option[2], { width = 650, onChange = function(_, checked)
+      W.db.settings[key] = checked; W.Changed()
+    end })
+    toggle:SetPoint("TOPLEFT", 0, -(i - 1) * 48); f.toggles[key] = toggle
+  end
+  f.replyInterval = K.Select(f.settingsBody, { width = 380, label = ns.Locale:Get("reputation.window.automatic_reply_frequency.1db7de"), menu = true,
+    choices = W.REPLY_INTERVALS, onChange = function(_, value) W.db.settings.replyInterval = value; W.Changed() end })
+  f.replyInterval:SetPoint("TOPLEFT", 0, -174)
+  f.replyText = ns.Localization.BindWidget(K.Input(f.settingsBody, 650, ns.Locale:Get("reputation.window.automatic_reply_message_200_characters.6bf328")), { caption = "reputation.window.automatic_reply_message_200_characters.6bf328" })
+  f.replyText:SetPoint("TOPLEFT", 0, -238); f.replyText:SetMaxLetters(200)
+  f.replyText:SetScript("OnTextChanged", function(self)
+    if not self.refreshing then W.db.settings.replyText = self:GetText() end
+  end)
+  f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  f.resetReply = ns.Localization.BindWidget(K.Button(f.settingsBody, ns.Locale:Get("reputation.window.reset_message.91b174"), 150, 30, { onClick = function()
+    W.db.settings.replyText = nil; W.Changed()
+  end }), { [0] = "reputation.window.reset_message.91b174" })
+  f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
+  f.replyHelp = UI.Label(f.settingsBody, ns.Locale:Get("reputation.window.use_organization_for_the_guild_or_community.507da7"), 0, -278, 650)
+  f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)
+  ns.Localization.Bind(f.settingsHelp, "reputation.preferences.help")
+  f.replyHelp:SetWordWrap(true); f.settingsHelp:SetWordWrap(true)
+end
+UI.BuildSettings = BuildSettings
+
+local function RefreshSettings(f, width, source)
+  local W = source or W
+  for key, toggle in pairs(f.toggles) do toggle:SetChecked(W.db.settings[key] ~= false, true) end
+  f.replyInterval:SetValue(W.ReplyInterval(), true)
+  local replyText = type(W.db.settings.replyText) == "string" and W.db.settings.replyText or W.DEFAULT_REPLY
+  if f.replyText:GetText() ~= replyText then
+    f.replyText.refreshing = true; f.replyText:SetText(replyText); f.replyText.refreshing = nil
+  end
+  for _, toggle in pairs(f.toggles) do toggle:SetWidth(width) end
+  f.settingsBody:SetWidth(width); f.replyText:SetWidth(width)
+  f.replyInterval:SetWidth(width - 170)
+  f.replyHelp:SetWidth(width); f.settingsHelp:SetWidth(width)
+  f.replyHelp:SetHeight(f.replyHelp:GetStringHeight()); f.settingsHelp:SetHeight(f.settingsHelp:GetStringHeight())
+  local helpY = 278 + f.replyHelp:GetStringHeight() + 24
+  f.settingsHelp:ClearAllPoints(); f.settingsHelp:SetPoint("TOPLEFT", 0, -helpY)
+  f.settingsBody:SetHeight(helpY + f.settingsHelp:GetStringHeight() + 24)
+end
+UI.RefreshSettings = RefreshSettings
+
 function UI.Refresh(source)
   local W = source or W
   local UI = W.UI
@@ -156,20 +210,7 @@ function UI.Refresh(source)
   f.previous:SetShown(listing and pages > 1); f.next:SetShown(listing and pages > 1)
   f.previous:SetEnabled(listing and UI.page > 1); f.next:SetEnabled(listing and UI.page < pages)
   if not settings then return end
-  for key, toggle in pairs(f.toggles) do toggle:SetChecked(W.db.settings[key] ~= false, true) end
-  f.replyInterval:SetValue(W.ReplyInterval(), true)
-  local replyText = type(W.db.settings.replyText) == "string" and W.db.settings.replyText or W.DEFAULT_REPLY
-  if f.replyText:GetText() ~= replyText then
-    f.replyText.refreshing = true; f.replyText:SetText(replyText); f.replyText.refreshing = nil
-  end
-  local width = math.max(400, f.settings:GetWidth() - 16)
-  f.settingsBody:SetWidth(width); f.replyText:SetWidth(width)
-  for _, toggle in pairs(f.toggles) do toggle:SetWidth(width) end
-  f.replyInterval:SetWidth(width - 170)
-  f.replyHelp:SetWidth(width); f.settingsHelp:SetWidth(width)
-  local helpY = 278 + f.replyHelp:GetStringHeight() + 24
-  f.settingsHelp:ClearAllPoints(); f.settingsHelp:SetPoint("TOPLEFT", 0, -helpY)
-  f.settingsBody:SetHeight(helpY + f.settingsHelp:GetStringHeight() + 24)
+  RefreshSettings(f, math.max(400, f.settings:GetWidth() - 16), W)
 end
 
 function W.Build(source)
@@ -191,15 +232,15 @@ function W.Build(source)
   body:SetPoint("BOTTOMRIGHT")
   f.heading = UI.Label(body, "", 0, 0, 500, "text")
   T.SetRole(f.heading, "title")
-  f.browse = K.Button(body, ns.Locale:Get("reputation.window.all_organizations.b72720"), 166, 30, { onClick = function() UI.SetMode("organizations") end })
+  f.browse = ns.Localization.BindWidget(K.Button(body, ns.Locale:Get("reputation.window.all_organizations.b72720"), 166, 30, { onClick = function() UI.SetMode("organizations") end }), { [0] = "reputation.window.all_organizations.b72720" })
   f.browse:SetPoint("TOPLEFT", 0, 0)
   f.community = K.Select(body, { width = 380, menu = true, choices = {}, onChange = function(_, id)
     UI.SetMode("overview", id)
   end })
   f.community:SetPoint("LEFT", f.browse, "RIGHT", 10, 0)
-  f.manage = K.Button(body, ns.Locale:Get("reputation.window.guild_communities.b58440"), 210, 30, { onClick = function() W.OpenNative() end })
+  f.manage = ns.Localization.BindWidget(K.Button(body, ns.Locale:Get("reputation.window.guild_communities.b58440"), 210, 30, { onClick = function() W.OpenNative() end }), { [0] = "reputation.window.guild_communities.b58440" })
   f.manage:SetPoint("TOPRIGHT", 0, -96)
-  f.add = K.Button(body, ns.Locale:Get("reputation.menus.report_player.4fb75f"), 190, 30, { tone = "accent", onClick = function() W.OpenReport(nil, Current(W)) end })
+  f.add = ns.Localization.BindWidget(K.Button(body, ns.Locale:Get("reputation.menus.report_player.4fb75f"), 190, 30, { tone = "accent", onClick = function() W.OpenReport(nil, Current(W)) end }), { [0] = "reputation.menus.report_player.4fb75f" })
   f.add:SetPoint("TOPRIGHT", 0, -136)
   f.summary = UI.Label(body, "", 0, -40, 620); f.summary:SetWordWrap(false)
   f.pageTabs = K.TabGroup(body, { items = TABS, onSelect = function(_, key) return UI.SelectTab(key) end })
@@ -208,7 +249,7 @@ function W.Build(source)
   for _, tab in ipairs(TABS) do f.tabs[tab.key] = f.pageTabs.buttons[tab.key] end
   f.tabs.settings = f.workspaceTabs.buttons.settings
   UI.BuildOverview(f, W)
-  f.search = K.Input(body, 380, ns.Locale:Get("reputation.window.search_players_categories_or_organizations.395096"))
+  f.search = ns.Localization.BindWidget(K.Input(body, 380, ns.Locale:Get("reputation.window.search_players_categories_or_organizations.395096")), { caption = "reputation.window.search_players_categories_or_organizations.395096" })
   f.search:SetPoint("TOPLEFT", 0, -140)
   f.search:SetScript("OnTextChanged", function() UI.page = 1; UI.Refresh() end)
   f.rows = {}
@@ -218,7 +259,7 @@ function W.Build(source)
     row.bg = T.Fill(row, "BACKGROUND", "surface"); row.bg:SetAllPoints()
     row.title = UI.Label(row, "", 10, -5, 550, "text"); row.title:SetWordWrap(false)
     row.hint = UI.Label(row, "", 10, -26, 550); row.hint:SetWordWrap(false)
-    row.action = K.Button(row, ns.Locale:Get("reputation.window.details.4dade5"), 110, 30); row.action:SetPoint("RIGHT", -8, 0)
+    row.action = ns.Localization.BindWidget(K.Button(row, ns.Locale:Get("reputation.window.details.4dade5"), 110, 30), { [0] = "reputation.window.details.4dade5" }); row.action:SetPoint("RIGHT", -8, 0)
     row:EnableMouse(true)
     K.Tooltip(row, function() return row.detail and { row.title:GetText(), row.detail } end)
     f.rows[i] = row
@@ -228,37 +269,13 @@ function W.Build(source)
   f.settings:SetPoint("TOPLEFT", 0, -84); f.settings:SetPoint("BOTTOMRIGHT", -26, 80)
   f.settingsBody = CreateFrame("Frame", nil, f.settings)
   f.settingsBody:SetSize(660, 600); f.settings:SetScrollChild(f.settingsBody)
-  f.toggles = {}
-  for i, option in ipairs({ { "filter", ns.Locale:Get("reputation.window.hide_chat_from_blacklisted_players.549198") },
-    { "reply", ns.Locale:Get("reputation.window.reply_to_whispers_from_blacklisted_players.bc4674") },
-    { "tooltip", ns.Locale:Get("reputation.window.show_community_reasons_on_player_tooltips.879b94") } }) do
-    local key = option[1]
-    local toggle = K.Toggle(f.settingsBody, option[2], { width = 650, onChange = function(_, checked)
-      W.db.settings[key] = checked; W.Changed()
-    end })
-    toggle:SetPoint("TOPLEFT", 0, -(i - 1) * 48); f.toggles[key] = toggle
-  end
-  f.replyInterval = K.Select(f.settingsBody, { width = 380, label = ns.Locale:Get("reputation.window.automatic_reply_frequency.1db7de"), menu = true,
-    choices = W.REPLY_INTERVALS, onChange = function(_, value) W.db.settings.replyInterval = value; W.Changed() end })
-  f.replyInterval:SetPoint("TOPLEFT", 0, -174)
-  f.replyText = K.Input(f.settingsBody, 650, ns.Locale:Get("reputation.window.automatic_reply_message_200_characters.6bf328"))
-  f.replyText:SetPoint("TOPLEFT", 0, -238); f.replyText:SetMaxLetters(200)
-  f.replyText:SetScript("OnTextChanged", function(self)
-    if not self.refreshing then W.db.settings.replyText = self:GetText() end
-  end)
-  f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
-  f.resetReply = K.Button(f.settingsBody, ns.Locale:Get("reputation.window.reset_message.91b174"), 150, 30, { onClick = function()
-    W.db.settings.replyText = nil; W.Changed()
-  end })
-  f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
-  f.replyHelp = UI.Label(f.settingsBody, ns.Locale:Get("reputation.window.use_organization_for_the_guild_or_community.507da7"), 0, -278, 650)
-  f.settingsHelp = UI.Label(f.settingsBody, ns.Locale:Get("reputation.window.these_are_personal_display_and_chat_preferences.ba8ca7"), 0, -374, 650)
+  BuildSettings(f, W)
   f.status = UI.Label(body, "", 0, -548, 720)
   f.status:SetWordWrap(true)
   f.status:ClearAllPoints(); f.status:SetPoint("BOTTOMLEFT", 0, 48); f.status:SetPoint("RIGHT", 0, 0)
-  f.previous = K.Button(f, ns.Locale:Get("reputation.window.previous.50f942"), 100, 28, { onClick = function() UI.GoPage(-1) end })
+  f.previous = ns.Localization.BindWidget(K.Button(f, ns.Locale:Get("reputation.window.previous.50f942"), 100, 28, { onClick = function() UI.GoPage(-1) end }), { [0] = "reputation.window.previous.50f942" })
   f.previous:SetPoint("BOTTOMLEFT", 18, 18)
-  f.next = K.Button(f, ns.Locale:Get("highground.coach.next.bc9819"), 80, 28, { onClick = function() UI.GoPage(1) end })
+  f.next = ns.Localization.BindWidget(K.Button(f, ns.Locale:Get("highground.coach.next.bc9819"), 80, 28, { onClick = function() UI.GoPage(1) end }), { [0] = "highground.coach.next.bc9819" })
   f.next:SetPoint("LEFT", f.previous, "RIGHT", 8, 0)
   f.page = UI.Label(f, "", 224, -696, 130); f.page:ClearAllPoints(); f.page:SetPoint("BOTTOMLEFT", 224, 22)
   f:SetScript("OnShow", function() UI.Refresh() end)
@@ -299,7 +316,7 @@ function W.Command(text)
   elseif command == "status" then W.Say(W.Status(Current()))
   elseif command == "on" or command == "off" then W.db.settings.filter = command == "on"; W.Changed(); W.Say(ns.Locale:Format("reputation.window.chat_filtering_command.201fe1", { command = command }))
   elseif command == "help" then W.Say(ns.Locale:Get("reputation.window.hgrep_or_hg_reputation_communities_manage_report.08ecaf"))
-  elseif command == "" then if ns.Hub then ns.Hub.Open("reputation") else W.Open() end
+  elseif command == "" then W.Open()
   else W.Say(ns.Locale:Get("reputation.window.unknown_reputation_command_use_hgrep_help_or.8201d5")) end
 end
-W.Listen(function() if UI.window and UI.window:IsShown() then UI.Refresh() end end)
+W.Listen(function() if UI.window and UI.window:IsVisible() then UI.Refresh() end end)

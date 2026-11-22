@@ -20,9 +20,9 @@ local function Hub(section) return function() if ns.Hub then ns.Hub.Open(section
 Mini.ITEMS = {
   { text = "Highground", run = Hub("home") },
   ns.Localization.Define({ text = ns.Locale:Get("highground.hub.addons.f32c2d"), run = Hub("addons") }, { text = "highground.hub.addons.f32c2d" }),
-  ns.Localization.Define({ text = ns.Locale:Get("highground.modules.macros.899bd6"), run = Hub("macros") }, { text = "highground.modules.macros.899bd6" }),
-  ns.Localization.Define({ text = ns.Locale:Get("highground.hub.bounty_board.f37f61"), run = Hub("bountyboard") }, { text = "highground.hub.bounty_board.f37f61" }),
-  ns.Localization.Define({ text = ns.Locale:Get("highground.modules.reputation.5f2160"), run = Hub("reputation") }, { text = "highground.modules.reputation.5f2160" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.modules.macros.899bd6"), run = function() ns.Options.OpenTool("macros") end }, { text = "highground.modules.macros.899bd6" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.hub.bounty_board.f37f61"), run = function() ns.Options.OpenTool("bountyboard") end }, { text = "highground.hub.bounty_board.f37f61" }),
+  ns.Localization.Define({ text = ns.Locale:Get("highground.modules.reputation.5f2160"), run = function() ns.Options.OpenTool("reputation") end }, { text = "highground.modules.reputation.5f2160" }),
   ns.Localization.Define({ text = ns.Locale:Get("highground.minimap.help_and_commands.37209b"), run = Hub("tools") }, { text = "highground.minimap.help_and_commands.37209b" }),
 }
 

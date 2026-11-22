@@ -33,10 +33,10 @@ local function Build()
     self.review:Refresh()
   end
   function w:RefreshReview()
-    if not self.snap then self.review:SetText(""); return end
+    if not self.snap then P.SetReviewText(self.review, {}); return end
     self.rows = self.receipt or P.Review(self.snap, self.showChanges and P.Snapshot() or nil)
     self.reviewTitle:SetText(self.receiptTitle or (self.showChanges and (ns.Locale:Format("highground.profilereview.value1_changes_when_applied.e1b3cc", { value1 = #self.rows })) or ns.Locale:Get("highground.profilereview.everything_included.6adb07")))
-    self.review:SetText(P.ReviewText(self.rows))
+    P.SetReviewText(self.review, { self.rows })
     self.details:SetText(self.showChanges and ns.Locale:Get("highground.profilereview.all_settings.0f803e") or ns.Locale:Get("highground.profilereview.changes_when_applied.315ff2"))
     self:LayoutReview()
   end
@@ -86,7 +86,7 @@ function Share.Review(text, source, label)
   w.name:SetText(label or ns.Locale:Get("highground.profilereview.shared_setup.cbfeaa"))
   local from = ns.Locale:Format("highground.profilereview.shared_by_value2.e02e44", { value2 = ns.Core.DisplayName(source, true) })
   w.summary:SetText(ns.Locale:Format("highground.profilereview.from_waiting_for_the_profile_keep_this.4a512c", { from = from }))
-  ns.Localization.Bind(w.reviewTitle, "highground.profilereview.profile_contents.8fe675"); w.review:SetText("")
+  ns.Localization.Bind(w.reviewTitle, "highground.profilereview.profile_contents.8fe675"); P.SetReviewText(w.review, {})
   Share.Progress(ns.Locale:Get("highground.profilereview.requesting_profile.868ad7")); w:Show(); w:LayoutReview()
   if not text then return end
   local snap, err = P.ParseString(text)

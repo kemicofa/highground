@@ -14,7 +14,7 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
         local name = (forever and "Enemy Bright" or "Enemy") .. "-OtherRealm"
         local target = F.target(s, name, entry == "context" and "Player-9-Enemy" or nil)
         if entry == "button" then
-          if s.ns.Hub then s.ns.Hub.Open("reputation") else W.Open() end
+          if s.ns.Hub then s.ns.Options.OpenTool("reputation") else W.Open() end
           F.click(s, W.UI.window.add)
           W.UI.report.name:SetText(name)
         else

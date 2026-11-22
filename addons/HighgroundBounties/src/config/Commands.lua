@@ -5,10 +5,10 @@ if not C then return end
 local A, L = C.Action, C.Link
 local function Name() return { { label = ns.Locale:Get("bounties.commands.player_name_or_target.6b1bab"), default = "target" } } end
 C.Register("bounties", "highground.modules.bounties.eba0bf", {
-  L("bounty", "bounties.commands.open_or_close_the_bounty_board.4b3051", "bountyboard", "highground.modules.open_bounty_board.69b5a7", { aliases = ns.Localization.Define({ ns.Locale:Get("bounties.commands.bounty_board.047a9a") }, { [1] = "bounties.commands.bounty_board.047a9a" }) }),
-  A("bounty shared", "bounties.commands.open_shared_realm_faction_bounties.a77741", "bounties.commands.open_shared_bounties.dbb58f", { aliases = ns.Localization.Define({ ns.Locale:Get("bounties.commands.bounty_shared_board.433f54") }, { [1] = "bounties.commands.bounty_shared_board.433f54" }) }),
-  L("bounty add", "bounties.commands.create_a_personal_bounty_optionally_with_gold.2e500f", "bountyboard", "bounties.commands.create_a_bounty.de852e", { usage = "[GOLD] NAME [; note]" }),
-  L("bounty shared add", "bounties.commands.publish_a_shared_pledge_with_an_expiry.84d8df", "bountyboard", "bounties.commands.create_a_shared_bounty.36ee9b", { usage = "GOLD DURATION NAME [; note]" }),
+  C.Tool("bounty", "bounties.commands.open_or_close_the_bounty_board.4b3051", "bountyboard", "highground.modules.open_bounty_board.69b5a7", { aliases = { "bounty board" } }),
+  A("bounty shared", "bounties.commands.open_shared_realm_faction_bounties.a77741", "bounties.commands.open_shared_bounties.dbb58f", { aliases = { "bounty shared board" } }),
+  C.Tool("bounty add", "bounties.commands.create_a_personal_bounty_optionally_with_gold.2e500f", "bountyboard", "bounties.commands.create_a_bounty.de852e", { usage = "[GOLD] NAME [; note]" }),
+  C.Tool("bounty shared add", "bounties.commands.publish_a_shared_pledge_with_an_expiry.84d8df", "bountyboard", "bounties.commands.create_a_shared_bounty.36ee9b", { usage = "GOLD DURATION NAME [; note]" }),
   L("bounty shared receive", "bounties.commands.enable_or_disable_receiving_shared_bounties.81dd5a", "bounty", "bounties.commands.shared_bounty_receiving.243c41", { usage = "on|off" }),
   L("bounty shared publish", "bounties.commands.enable_or_disable_publishing_shared_bounties.94c901", "bounty", "bounties.commands.shared_bounty_publishing.2b1c5d", { usage = "on|off" }),
   L("bounty shared threshold", "bounties.commands.set_the_minimum_shared_bounty_gold_value.56080d", "bounty", "bounties.commands.shared_bounty_alert_threshold.915e6a", { usage = "GOLD" }),
@@ -22,7 +22,7 @@ C.Register("bounties", "highground.modules.bounties.eba0bf", {
   A("bounty reject", "bounties.commands.officers_reject_a_pending_bounty_submission.d78b6b", "bounties.commands.reject_bounty_submission.b60e34", ns.Localization.Define({ usage = "NAME", fields = Name(), confirm = ns.Locale:Get("bounties.commands.reject_this_bounty_submission.cf8ced") }, { confirm = "bounties.commands.reject_this_bounty_submission.cf8ced" })),
   A("bounty shared claim", "bounties.commands.report_a_shared_bounty_kill.f7912b", "bounties.commands.report_shared_bounty_kill.981424", { usage = "NAME", fields = Name() }),
   A("bounty shared withdraw", "bounties.commands.withdraw_your_shared_bounty_contribution.22ccaf", "bounties.commands.withdraw_shared_contribution.004beb", ns.Localization.Define({ usage = "NAME", fields = Name(), confirm = ns.Locale:Get("bounties.commands.withdraw_your_shared_contribution.c919b0") }, { confirm = "bounties.commands.withdraw_your_shared_contribution.c919b0" })),
-  A("bounty claims", "bounties.commands.review_kill_claims_and_record_approval_or.f73f4c", "bounties.commands.review_claims_and_payments.261ea5", { aliases = ns.Localization.Define({ ns.Locale:Get("bounties.commands.bounty_shared_claims.4ab1cc") }, { [1] = "bounties.commands.bounty_shared_claims.4ab1cc" }) }),
+  A("bounty claims", "bounties.commands.review_kill_claims_and_record_approval_or.f73f4c", "bounties.commands.review_claims_and_payments.261ea5", { aliases = { "bounty shared claims" } }),
   A("bounty gold", "bounties.commands.inspect_account_gold_and_funding_settings.66b5c0", "bounties.commands.open_gold_and_funding.3acd41"),
   A("bounty suggestions", "bounties.commands.review_attackers_death_reports_and_bounty_drafts.0e2626", "bounties.commands.open_bounty_suggestions.cb7504"),
   L("bounty test", "bounties.commands.start_a_named_sample_scene_or_stop.c90c0c", "bounties-previews", "bounties.commands.bounty_preview_controls.7666b1", { usage = "[FEATURE|stop]" }),
@@ -38,7 +38,7 @@ C.Register("bounties", "highground.modules.bounties.eba0bf", {
   A("bounty list", "bounties.commands.print_current_bounties_in_chat.31f7d0", "bounties.commands.print_bounty_list.7f367e"),
   A("bounty sync", "bounties.commands.request_current_guild_bounties.6cda4c", "bounties.commands.request_guild_bounties.c3d630"),
   A("bounty shared sync", "bounties.commands.request_shared_realm_faction_bounties.3ea9cd", "bounties.commands.request_shared_bounties.3b7f15"),
-  L("bounty on", "bounties.commands.enable_or_disable_bounty_alerts.2ebb59", "bounty", "bounties.commands.bounty_alert_switch.e09f01", { aliases = ns.Localization.Define({ ns.Locale:Get("bounties.commands.bounty_off.36e49a") }, { [1] = "bounties.commands.bounty_off.36e49a" }) }),
+  L("bounty on", "bounties.commands.enable_or_disable_bounty_alerts.2ebb59", "bounty", "bounties.commands.bounty_alert_switch.e09f01", { aliases = { "bounty off" } }),
 }, {
   ns.Localization.Define({ cmd = "bounty test", label = ns.Locale:Get("bounties.commands.wanted_poster.7eedfa"), desc = ns.Locale:Get("bounties.commands.toggle_a_live_style_bounty_sighting_with.ab1ac9") }, { label = "bounties.commands.wanted_poster.7eedfa", desc = "bounties.commands.toggle_a_live_style_bounty_sighting_with.ab1ac9" }),
   ns.Localization.Define({ kind = "open", cmd = "bounty", label = ns.Locale:Get("highground.hub.bounty_board.f37f61"), desc = ns.Locale:Get("bounties.commands.open_or_close_the_bounty_board.63d142") }, { label = "highground.hub.bounty_board.f37f61", desc = "bounties.commands.open_or_close_the_bounty_board.63d142" }),

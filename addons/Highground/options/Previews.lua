@@ -1,7 +1,7 @@
 local _, ns = ...
 local O, Core, Kit, Theme = ns.Options, ns.Core, ns.Kit, ns.Theme
 local pages = {}
-local guides = { battlegrounds = { "enemies", "battlegrounds", "map", "callouts" }, arena = { "arena" },
+local guides = { battlegrounds = { "battlegrounds", "map", "callouts" }, arena = { "arena" },
   nearby = { "nearby" }, bounties = { "bounty_post", "bounty_hunt" }, reputation = { "reputation" }, macros = { "macros" } }
 local contexts = { battlegrounds = "bg", arena = "arena", nearby = "world" }
 local function Allowed()
@@ -14,7 +14,10 @@ local function Build(page, owner)
   for _, key in ipairs(guides[owner]) do
     local step = ns.Onboarding.Find(key)
     if step and ns.Onboarding.Available(step) then
-      page.guides[#page.guides + 1] = O.Link(page, ns.Locale:Format("highground.previews.step_label_guide.6cd8ec", { step_label = step.label }), function() ns.Onboarding.Start(key) end)
+      local function Label() return ns.Locale:Format("guide.link", { guide = ns.Onboarding.Text(step, "label") }) end
+      local button = O.Link(page, Label(), function() ns.Onboarding.Start(key) end)
+      button:HookScript("OnShow", function() button:SetText(Label()) end)
+      page.guides[#page.guides + 1] = button
     end
   end
   if contexts[owner] then
@@ -102,6 +105,7 @@ for _, module in ipairs(ns.Modules.list) do
   pages[#pages + 1] = page
 end
 function O.RefreshPreviews()
+  if O.AppearancePreview then O.AppearancePreview.Refresh() end
   for _, page in ipairs(pages) do
     if page.frame:IsVisible() and page.RefreshPreviews then page.RefreshPreviews() end
   end

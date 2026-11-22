@@ -36,10 +36,13 @@ function Bounty.Where()
   return inside and "instance" or "world"
 end
 
-function Bounty.PlaySound()
-  if not (Core.On("sound") and Core.O("bountySound")) then return end
+function Bounty.Sound()
   -- New files need a client restart before PlaySoundFile finds them.
   if ns.BOUNTY_SOUND_FALLBACK or not PlaySoundFile(Bounty.SOUND, "Master") then Util.AlertSound() end
+end
+
+function Bounty.PlaySound()
+  if Core.On("sound") and Core.O("bountySound") then Bounty.Sound() end
 end
 
 -- Explicit previews show local visuals even when live alerts are filtered.

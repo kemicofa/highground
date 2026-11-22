@@ -28,7 +28,15 @@ function P.CanStart()
   return true
 end
 
+local function StopAppearance(module)
+  local appearance = ns.Options.AppearancePreview
+  if appearance and appearance.session and (not module or appearance.session.scene.module == module) then
+    appearance.Stop()
+  end
+end
+
 local function StopBattlegrounds()
+  StopAppearance("battlegrounds")
   if not P.Active("bg test") then return end
   Core.StopTest()
   ns.Timers.previewing = nil
@@ -42,6 +50,7 @@ local function StopBattlegrounds()
 end
 
 local function StartBattlegrounds()
+  StopAppearance()
   if not Core.testMode then Core.StartTest() end
   if not ns.Timers.previewing then ns.BattlegroundsPreview.Start() end
   P.managed = true
@@ -68,6 +77,7 @@ end
 
 function P.AnyActive()
   if InGuide() then return true end
+  if ns.Options.AppearancePreview and ns.Options.AppearancePreview.session then return true end
   for _, def in ipairs(ns.CommandCatalog.previews) do
     if not def.kind and ns.OptionAvailable(def) and P.Active(def.cmd) then return true end
   end
@@ -77,6 +87,7 @@ end
 function P.AllActive() return P.all == true and P.AnyActive() end
 
 function P.StopAll()
+  StopAppearance()
   if ns.Onboarding and ns.Onboarding.exploring then ns.Onboarding.StopExploring() end
   if ns.Setup.placement then ns.Setup.EndPlacement(false) end
   for _, def in ipairs(ns.CommandCatalog.previews) do
@@ -89,6 +100,7 @@ end
 function P.StartAll()
   local allowed, problem = P.CanStart()
   if not allowed then return false, problem end
+  StopAppearance()
   local count = 0
   for _, def in ipairs(ns.CommandCatalog.previews) do
     if not def.kind and ns.OptionAvailable(def) and ns.Modules.Active(def.module) then

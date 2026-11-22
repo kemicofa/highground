@@ -205,9 +205,9 @@ function C.ReputationSteps()
       requireAction = advance ~= nil, advance = advance, hint = hint }
   end
   return {
-    ns.Localization.Define(Step("organization", ns.Locale:Get("highground.coachrecords.choose_your_guild_or_community.30ffee"), ns.Locale:Get("highground.coachrecords.organizations_lists_your_native_guild_and_communities.c0ae4c"),
+    ns.Localization.Define(Step("organization", ns.Locale:Get("highground.coachrecords.choose_your_guild_or_community.30ffee"), ns.Locale:Get("guide.reputation.window"),
       function() Open("organizations"); P.Disable() end, function() return U.window.rows[1].action end,
-      function() return U.mode == "overview" end, ns.Locale:Get("highground.coachrecords.click_open_this_sample_never_sends_reports.e73433")), { title = "highground.coachrecords.choose_your_guild_or_community.30ffee", text = "highground.coachrecords.organizations_lists_your_native_guild_and_communities.c0ae4c" }),
+      function() return U.mode == "overview" end, ns.Locale:Get("highground.coachrecords.click_open_this_sample_never_sends_reports.e73433")), { title = "highground.coachrecords.choose_your_guild_or_community.30ffee", text = "guide.reputation.window" }),
     ns.Localization.Define(Step("participation", ns.Locale:Get("highground.coachrecords.choose_when_to_participate.9f3f08"), ns.Locale:Get("highground.coachrecords.overview_keeps_participation_controls_together_this_sample.6c5705"),
       function() Open("overview"); P.Disable() end, function() return U.window.disable end,
       function() return P.Joined(P.Get()) end, ns.Locale:Get("highground.coachrecords.click_enable_on_this_account.1f09c9")), { title = "highground.coachrecords.choose_when_to_participate.9f3f08", text = "highground.coachrecords.overview_keeps_participation_controls_together_this_sample.6c5705" }),

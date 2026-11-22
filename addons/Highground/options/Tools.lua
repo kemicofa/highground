@@ -47,8 +47,8 @@ local function Form(row)
     form.cancel:SetPoint("RIGHT", form.apply, "LEFT", -12, 0)
   end
   form.row = row
-  form:SetTitle(row.ui.label)
-  form.note:SetText(row[2] .. (row.confirm and "\n\n" .. row.confirm or ""))
+  form:SetTitle(C.Label(row))
+  form.note:SetText(C.Description(row) .. (row.confirm and "\n\n" .. row.confirm or ""))
   form.note:SetHeight(form.note:GetStringHeight())
   form.status:SetText("")
   form.apply:SetText(row.confirm and ns.Locale:Get("highground.tools.confirm.04a212") or ns.Locale:Get("highground.profiles.apply.cfea41"))
@@ -85,6 +85,7 @@ function O.OpenCommand(row)
     if row.owner ~= "shared" then ns.Modules.Require(row.owner) end
     return
   end
+  if row.ui.tool then return O.OpenTool(row.ui.tool) end
   if row.ui.page then return ns.Hub.Open(row.ui.page) end
   if row.fields or row.confirm then return Form(row) end
   return Run(row)
@@ -102,12 +103,16 @@ local function Build(page, owner)
       end
       for _, row in ipairs(group.commands) do
         if ns.OptionAvailable(row) then
-          local tooltip = { { row[1], "gold", true }, row[2] }
-          if #(row.aliases or {}) > 0 then tooltip[#tooltip + 1] = ns.Locale:Format("highground.tools.also_hg_value2.5bdb3e", { value2 = table.concat(row.aliases, ", /hg ") }) end
-          tooltip[#tooltip + 1] = row.ui.label
+          local function tooltip()
+            local lines = { { row[1], "gold", true }, C.Description(row) }
+            if #(row.aliases or {}) > 0 then lines[#lines + 1] = ns.Locale:Format("highground.tools.also_hg_value2.5bdb3e", { value2 = table.concat(row.aliases, ", /hg ") }) end
+            lines[#lines + 1] = C.Label(row)
+            return lines
+          end
           local action = row.confirm and ns.Locale:Get("highground.tools.review.ce9d6d") or (row.ui.page or row.fields) and ns.Locale:Get("shared.actionrow.open.cf9b77") or ns.Locale:Get("highground.tools.run.b1b392")
-          local frame = Kit.ActionRow(page.child, { label = row[1], detail = row[2], action = action,
+          local frame = Kit.ActionRow(page.child, { label = row[1], detail = C.Description(row), action = action,
             role = "code", color = "gold", tooltip = tooltip, onClick = function() O.OpenCommand(row) end })
+          if row.descriptionKey then ns.Localization.Bind(frame.detail, row.descriptionKey) end
           local item = { frame = frame, code = frame.label, description = frame.detail, button = frame.button, definition = row }
           entries[#entries + 1] = item
           page.commandRows[#page.commandRows + 1] = item

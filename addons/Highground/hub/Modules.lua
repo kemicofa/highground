@@ -3,12 +3,12 @@ local M, Hub, Kit, Theme = ns.Modules, ns.Hub, ns.Kit, ns.Theme
 local pages = {}
 
 local actions = {
-  battlegrounds = { ns.Localization.Define({ "behavior", ns.Locale:Get("highground.modules.targeting.c4ac40") }, { [2] = "highground.modules.targeting.c4ac40" }), ns.Localization.Define({ "history", ns.Locale:Get("highground.hub.match_history.b65b77") }, { [2] = "highground.hub.match_history.b65b77" }) },
-  arena = { ns.Localization.Define({ "history", ns.Locale:Get("highground.hub.match_history.b65b77") }, { [2] = "highground.hub.match_history.b65b77" }) },
-  nearby = { ns.Localization.Define({ "journal", ns.Locale:Get("highground.hub.enemy_journal.1dbc52") }, { [2] = "highground.hub.enemy_journal.1dbc52" }) },
-  bounties = { ns.Localization.Define({ "bountyboard", ns.Locale:Get("highground.modules.open_bounty_board.69b5a7") }, { [2] = "highground.modules.open_bounty_board.69b5a7" }) },
-  reputation = { ns.Localization.Define({ "reputation", ns.Locale:Get("highground.modules.open_reputation.bdc1fb") }, { [2] = "highground.modules.open_reputation.bdc1fb" }) },
-  macros = { ns.Localization.Define({ "macros", ns.Locale:Get("highground.modules.open_macros.56744c") }, { [2] = "highground.modules.open_macros.56744c" }) },
+  battlegrounds = { ns.Localization.Define({ "behavior" }, { [2] = "highground.modules.targeting.c4ac40" }), { "history", tool = true } },
+  arena = { { "history", tool = true } },
+  nearby = { { "journal", tool = true } },
+  bounties = { { "bountyboard", tool = true } },
+  reputation = { { "reputation", tool = true } },
+  macros = { { "macros", tool = true } },
 }
 for _, module in ipairs(M.list) do
   local pages, links = ns.Options.addonPages[module.key], actions[module.key]
@@ -80,9 +80,11 @@ function Hub.BuildModules(key)
     end
   end
   for _, action in ipairs(actions[key]) do
-    local button = Kit.Button(scroll.body, action[2], 290, 34, { onClick = function()
-      Hub.Show(action[1])
+    local button = Kit.Button(scroll.body, action.tool and ns.Options.ToolLabel(action[1]) or action[2], 290, 34, { onClick = function()
+      if action.tool then ns.Options.OpenTool(action[1]) else Hub.Show(action[1]) end
     end })
+    button.tool = action.tool and action[1]
+    if button.tool then ns.Options.BindToolLabel(button, button.tool) end
     button:SetPoint("TOPLEFT", 20, -y)
     p.actions[#p.actions + 1] = button
     y = y + 46
@@ -127,7 +129,7 @@ function Hub.BuildModules(key)
     end
     for _, button in ipairs(p.actions) do
       button:SetPoint("TOPLEFT", 20, -offset)
-      button:SetEnabled(M.Active(key))
+      button:SetEnabled(M.Active(key) and (not button.tool or ns.Options.ToolAvailable(button.tool)))
       offset = offset + 46
     end
     scroll.body:SetHeight(offset); scroll:Refresh()

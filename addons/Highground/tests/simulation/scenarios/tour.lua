@@ -25,9 +25,10 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
     sim:advance(3)
     if game == "forever" then click(sim.ns.Community.win.later); sim:advance(3) end
     assert(O.win:IsVisible() and not O.Coach.running)
-    for _, key in ipairs({ "enemies", "macros", "bounties", "battlegrounds", "nearby", "arena", "reputation" }) do
+    for _, key in ipairs({ "macros", "bounties", "battlegrounds", "nearby", "arena", "reputation" }) do
       assert(O.win.cards[key].start:IsVisible(), key .. " has a direct guide button")
     end
+    assert(not O.win.cards.enemies:IsVisible() and not O.win.cards.objectives:IsVisible(), "battleground topics stay under their addon")
     assert(not O.win.cards.map:IsVisible(), "extra guides start collapsed")
     click(O.win.more); assert(O.win.cards.map:IsVisible())
     click(O.win.cards.macros.start); equal(O.Coach.key, "macros")
@@ -45,6 +46,79 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
     again:command("guide"); assert(again.ns.Onboarding.Done("macros"))
   end)
 
+  test(game .. " Battlegrounds groups targeting and objectives with independent progress", function()
+    local sim = make({}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+    local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach
+    sim.ns.Core.SetFontScale(1)
+    local before = snapshot(sim)
+    sim.env.UIParent:SetSize(1280, 720)
+    for _, scale in ipairs({ 1, 1.5 }) do
+      sim.ns.Core.SetFontScale(scale)
+      for _, embedded in ipairs({ false, true }) do
+        if embedded then sim.ns.Hub.Open("addons") else sim:command("guide") end
+        O.Go("welcome")
+        equal(#O.Guides(false), 6, "one directory entry per subaddon")
+        click(O.win.cards.battlegrounds.start)
+        equal(O.PathGroup().key, "battlegrounds")
+        assert(not C.running and not O.exploring, "choosing a topic starts no samples")
+        assert(O.win.pathLogo.texture:find("Battlegrounds.tga", 1, true))
+        for _, key in ipairs({ "enemies", "objectives" }) do
+          local card, view = O.win.cards[key], sim.bounds(O.win.scroll.view)
+          assert(card:IsVisible() and card.summary:IsVisible())
+          local button = sim.bounds(card.start)
+          assert(button[2] >= view[2] and button[2] + button[4] <= view[2] + view[4], "both walkthroughs can be started without scrolling")
+        end
+        click(O.win.more)
+        assert(not O.PathGroup() and O.win.cards.battlegrounds:IsVisible() and O.win.cards.macros:IsVisible(), "All addons exits either path picker")
+      end
+    end
+    sim:command("guide battlegrounds")
+    click(O.win.cards.enemies.start); equal(C.key, "enemies")
+    equal(C.target, sim.ns.Core.rows[1], "targeting still uses the real enemy panel")
+    click(C.win.back); assert(not C.running and O.PathGroup().key == "battlegrounds")
+    click(O.win.cards.enemies.start); C.Go(2); O.Return()
+    sim:command("checklist targeting"); equal(C.index, 2, "legacy alias resumes targeting"); O.Return()
+    click(O.win.cards.objectives.start); equal(C.key, "objectives")
+    equal(C.steps[1].id, "resurrection"); equal(C.target, sim.ns.Timers.resWin.rows[1])
+    C.Go(3); O.Return()
+    equal(O.win.cards.enemies.start.text, "Resume"); equal(O.win.cards.objectives.start.text, "Resume")
+    sim:command("guide enemies"); equal(C.index, 2)
+    C.Go(#C.steps); C.Step(1)
+    assert(O.Done("enemies") and not O.Done("battlegrounds"), "targeting alone does not complete the addon")
+    sim:command("checklist objectives"); equal(C.index, 3)
+    C.Go(#C.steps); C.Step(1); assert(O.Done("battlegrounds"))
+    click(O.win.cards.objectives.start); equal(C.index, 1, "completed objectives replay from the start")
+    click(C.win.done)
+    assert(not sim.ns.Setup.placement and not sim.ns.Core.testMode and not sim.ns.Timers.previewing)
+    click(O.win.more)
+    sim.ns.Hub.Open("battlegrounds-previews")
+    click(sim.ns.Options.byKey["battlegrounds-previews"].guides[1])
+    assert(O.PathGroup().key == "battlegrounds" and not C.running, "the addon's preview page opens the grouped guide")
+    O.Dismiss()
+    sim.ns.Core.SetFontScale(1)
+    assert(snapshot(sim) == before, "browsing and replaying preserve preferences")
+    equal(#sim.sent, 0); equal(#sim.chat, 0); sim:assertHealthy()
+  end)
+
+  test(game .. " old battleground progress migrates only to objectives and survives reload", function()
+    local sim = make({ onboarding = { version = 2, current = "battlegrounds", steps = { battlegrounds = true },
+      samples = { battlegrounds = "capture", targeting = "priority" } } })
+    local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach
+    sim:command("guide")
+    equal(O.Current().key, "objectives"); equal(O.PathGroup().key, "battlegrounds")
+    assert(O.Done("objectives") and not O.Done("enemies") and not O.Done("battlegrounds"))
+    sim:command("guide objectives"); equal(C.steps[C.index].id, "capture"); O.Return()
+    sim:command("guide targeting"); equal(C.steps[C.index].id, "priority"); O.Return()
+    sim:command("guide battlegrounds"); O.Dismiss()
+    local again = make(sim.env.HighgroundDB)
+    O, C = again.ns.Onboarding, again.ns.Onboarding.Coach
+    again:command("guide")
+    equal(O.Current().key, "battlegrounds", "new group selection is not migrated again")
+    again:command("guide objectives"); equal(C.steps[C.index].id, "capture"); O.Return()
+    again:command("guide enemies"); equal(C.steps[C.index].id, "priority"); O.Return()
+    sim:assertHealthy(); again:assertHealthy()
+  end)
+
   test(game .. " every chapter action has a working return path", function()
     local sim = make({})
     local O = sim.ns.Onboarding
@@ -55,7 +129,7 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
         O.Go(step.key); O.Explore(action)
         local guided = action.preview or action.map or action.bounties or action.demo or action.native or action.quickCalls
         if action.paths then
-          assert(O.win:IsVisible() and O.PathGroup() == step and not O.exploring, "bounty entry offers both paths")
+          assert(O.win:IsVisible() and O.PathGroup() == step and not O.exploring, "addon entry offers both paths")
         else
           assert(O.exploring and (guided and O.Coach.running or O.dock:IsVisible()), step.key .. " action opens")
         end
@@ -66,6 +140,12 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
         if action.page then
           equal(sim.ns.Hub.current, action.page)
           if action.group then assert(sim.ns.Options.byKey[action.page].SelectGroup(action.group)) end
+        end
+        if action.tool then
+          local w = sim.ns.Kit.Windows.Active()
+          assert(w and w:IsVisible() and w ~= sim.ns.Hub.win, "guide action launches the working window")
+          equal(w:GetParent(), sim.env.UIParent, "guide tools stay separate from configuration")
+          assert(not sim.ns.Hub.win:IsVisible(), "configuration hides while using the tool")
         end
         if not action.paths then click(guided and O.Coach.win.done or O.dock.back) end
         equal(sim.ns.Hub.current, "addons"); equal(O.Current().key, step.key)
@@ -117,9 +197,10 @@ end)
 
 test("fresh offer never replaces a tool the player opened", function()
   local sim = new("cata")
-  sim.ns.Hub.Open("macros"); sim:advance(3)
+  sim.ns.Options.OpenTool("macros"); sim:advance(3)
   assert(not sim.ns.Onboarding.win)
-  assert(sim.ns.Hub.win:IsVisible()); equal(sim.ns.Hub.current, "macros")
+  assert(sim.ns.Macros.Window.win:IsVisible())
+  equal(sim.ns.Macros.Window.win:GetParent(), sim.env.UIParent, "tool stays separate")
 end)
 
 test("legacy and damaged progress is recoverable without an upgrade popup", function()
@@ -127,7 +208,7 @@ test("legacy and damaged progress is recoverable without an upgrade popup", func
       { version = 2, current = "removed-chapter", steps = false }, "broken" }) do
     local sim = new("cata", { onboarding = state })
     sim:advance(3); assert(not sim.ns.Onboarding.win)
-    sim:command("guide"); equal(sim.ns.Onboarding.Current().key, "enemies")
+    sim:command("guide"); equal(sim.ns.Onboarding.Current().key, "welcome")
     assert(type(sim.ns.Onboarding.State().steps) == "table")
   end
 end)
@@ -152,7 +233,7 @@ end)
 test("disabled panels can be learned and combat guards remain clear", function()
   local sim = new("cata", { nearby = false, killorder = false, timers = false, flags = false })
   local O = sim.ns.Onboarding
-  for _, key in ipairs({ "nearby", "enemies", "battlegrounds", "callouts" }) do
+  for _, key in ipairs({ "nearby", "enemies", "objectives", "callouts" }) do
     O.Start(key); assert(O.Coach.running, key .. " sample opens while disabled"); O.Return()
   end
   equal(sim.ns.Core.On("nearby"), false); equal(sim.ns.Core.On("killorder"), false)

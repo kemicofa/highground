@@ -57,7 +57,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         for _, alias in ipairs(row.aliases or {}) do
           local verb = alias:match("^%S+"); heads[verb] = true; assert(s.ns.Commands[verb], "Removed alias: " .. alias)
         end
-        assert(row.ui and row.ui.label and (row.ui.page or row.ui.command ~= nil), "Missing UI: " .. row.command)
+        assert(row.ui and row.ui.label and (row.ui.page or row.ui.tool or row.ui.command ~= nil), "Missing UI: " .. row.command)
         if row.owner ~= "shared" then t.equal(C.Owner(row.command), row.owner, "dispatch owner") end
       end
     end
@@ -75,6 +75,34 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     t.equal(C.Owner("cap invalid"), "battlegrounds", "invalid args cannot bypass owner")
     s:assertHealthy()
   end)
+  t.test(client .. " battleground guide commands and controls reach the same grouped walkthroughs", function()
+    local s = make(client)
+    local O, C, catalog = s.ns.Onboarding, s.ns.Onboarding.Coach, s.ns.CommandCatalog
+    for _, owner in ipairs({ "battlegrounds", false }) do
+      click(control(s, "guide battlegrounds", owner))
+      assert(O.PathGroup().key == "battlegrounds" and not C.running)
+      for _, key in ipairs({ "enemies", "objectives" }) do
+        click(control(s, "guide " .. key, owner))
+        t.equal(C.key, key); C.Go(2); O.Return()
+        for _, command in ipairs(catalog.byId["guide " .. key].aliases) do
+          t.equal(catalog.Owner(command), "battlegrounds")
+          s:command(command); t.equal(C.key, key); t.equal(C.index, 2); O.Return()
+        end
+      end
+    end
+    s:command("checklist battlegrounds")
+    assert(O.PathGroup().key == "battlegrounds" and not C.running)
+    s:setCombat(true); s:command("guide objectives")
+    assert(not C.running and not s.ns.Setup.placement, "commands keep the guide's combat guard")
+    s:assertHealthy()
+    local off = make(client, { battlegrounds = true })
+    for _, command in ipairs({ "guide battlegrounds", "checklist battlegrounds", "guide enemies", "guide targeting", "checklist enemies", "checklist targeting", "guide objectives", "checklist objectives" }) do
+      off:command(command)
+      t.equal(off.ns.Hub.current, "module-battlegrounds", "every route directs disabled modules to their settings")
+      assert(not off.ns.Onboarding.Coach.running and not off.ns.Core.testMode)
+    end
+    off:assertHealthy()
+  end)
   t.test(client .. " local and global pages share definitions, controls and destinations", function()
     local s = make(client)
     local C, O, H = s.ns.CommandCatalog, s.ns.Options, s.ns.Hub
@@ -91,6 +119,13 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       end
     end
     local dispatch, recorded = s.env.SlashCmdList.HIGHGROUND, {}
+    local windows = {
+      macros = function() return s.ns.Macros.Window.win end,
+      reputation = function() return s.ns.Reputation.UI.window end,
+      bountyboard = function() return s.ns.Bounty.Board.win end,
+      journal = function() return s.ns.EnemyJournal.win end,
+      history = function() return s.ns.MatchHistory.win end,
+    }
     s.env.SlashCmdList.HIGHGROUND = function(message) recorded[#recorded + 1] = message end
     H.Open("tools"); t.equal(#recorded, 0, "browsing cannot execute an action")
     for _, item in ipairs(O.tools.commandRows) do
@@ -107,7 +142,12 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       end
       t.equal(#recorded, count, "hover does not execute commands")
       click(item.button)
-      if row.ui.page then
+      if row.ui.tool then
+        local window = assert(windows[row.ui.tool]())
+        assert(window:IsVisible() and not H.win:IsVisible(), "command control opens the separate tool")
+        t.equal(window:GetParent(), s.env.UIParent, "command control never embeds the tool")
+        t.equal(H.current, "tools", "tool launch preserves configuration navigation")
+      elseif row.ui.page then
         t.equal(H.current, row.ui.page, "actual UI destination: " .. row.command)
         assert(H.activeFrame:IsVisible(), "destination renders")
       else

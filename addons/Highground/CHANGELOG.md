@@ -6,6 +6,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 - Translate addon-owned UI, command help, guides and preview copy into all ten non-English WoW locales. Keep English as the default, update bound controls when changing languages, and preserve macro bodies, command syntax and saved/gameplay data. Native terminology and in-client script/font review remain pending for the translated release.
 
+- Make profile reviews easier to read with red `-` / green `+` diff lines, readable panel anchors and offsets, and colors that follow the selected theme. Saved and imported receipts retain their values when recolored; the Saved setups example demonstrates a moved panel.
+- Group enemy rows and targeting with objectives and flag carriers under one Battlegrounds guide. Preserve saved progress and direct guide shortcuts; keep shared addon controls and preferences separate.
 - Rework Profiles with a stable **Default**, visible automatic switching and sharing, complete contents for new copies, and before/after reviews that remain visible after saving. Choose a starting preset, restore a saved copy, or review replacing it with current settings; try the updated Saved setups guide.
 - Combine Addons and the Feature guide into one Addons directory. Add Visit beside each walkthrough button and mark subaddon sidebar sections with their crest and an accent stripe. Keep addon switches, reload status, installation advice and saved guide progress together.
 - Group feature switches, appearance, alert categories, previews and guide links under their owning addon. Panel cogwheels open the matching section; shared theme, fonts and master controls remain in Shared preferences.

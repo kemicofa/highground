@@ -16,6 +16,98 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       dofile("../../tools/wowsim/geometry.lua")(s)
     end)
   end
+  test(client .. " Nearby measures wrapped help before showing its first settings page", function()
+    local s = make()
+    s.ns.Core.SetFontScale(1.5)
+    s.ns.Hub.Open("nearby")
+    local page = s.ns.Options.byKey.nearby
+    equal(page.hint:GetHeight(), page.hint:GetStringHeight(), "wrapped help gets its full height immediately")
+    local hint, scroll = s.bounds(page.hint), s.bounds(page.scroll)
+    assert(hint[2] + hint[4] <= scroll[2], "the settings body clears the complete help text")
+    s:assertHealthy()
+  end)
+
+  test(client .. " Nearby settings finish their first layout without another navigation", function()
+    local s = make()
+    local O, H = s.ns.Options, s.ns.Hub
+    local page = O.byKey.nearby
+    s.ns.Core.SetFontScale(1.5)
+    H.Open("battlegrounds-settings")
+    local destination
+    for _, b in ipairs(H.win.nav) do if b.section.key == "nearby" then destination = b end end
+    click(destination.groupButton); s:advance(0.3)
+    local settled = false
+    -- Native text can still have its previous measurement during OnShow.
+    -- Resolve it on the next frame, without another click or resize event.
+    local titleHeight, hintHeight = page.title.GetStringHeight, page.hint.GetStringHeight
+    page.title.GetStringHeight = function(self) return settled and titleHeight(self) or 0 end
+    page.hint.GetStringHeight = function(self) return settled and hintHeight(self) or 0 end
+    click(destination)
+    settled = true
+    s:advance(0.02)
+    equal(H.current, "nearby", "first click selects Nearby")
+    equal(page.title:GetHeight(), page.title:GetStringHeight(), "title resolves on the first visit")
+    equal(page.hint:GetHeight(), page.hint:GetStringHeight(), "hint resolves on the first visit")
+    local hint, scroll = s.bounds(page.hint), s.bounds(page.scroll)
+    assert(hint[2] + hint[4] <= scroll[2], "all settings start below the resolved header")
+    assert(page.child:IsVisible() and page.openTool:IsVisible(), "detailed Nearby controls are visible")
+    s:assertHealthy()
+  end)
+
+  test(client .. " settings settle once and cancel work when switching or closing", function()
+    local s = make()
+    local O, H = s.ns.Options, s.ns.Hub
+    local page, other = O.byKey.nearby, O.byKey.bounty
+    local calls, refresh = 0, page.RefreshBehavior
+    page.RefreshBehavior = function() calls = calls + 1; refresh() end
+    H.Open("nearby")
+    calls = 0
+    for _ = 1, 4 do page.frame:GetScript("OnSizeChanged")(page.frame) end
+    s:advance(0.02)
+    equal(calls, 1, "resize burst finishes with one refresh")
+    s:advance(1)
+    equal(calls, 1, "visible settings do not keep refreshing while idle")
+    H.Open("bounty"); H.Open("nearby"); H.Open("bounty")
+    calls = 0; s:advance(0.02)
+    equal(calls, 0, "a superseded page never refreshes in the background")
+    assert(other.child:IsVisible() and not page.child:IsVisible(), "only the selected addon is visible")
+    H.Back(); calls = 0; H.win:Hide(); s:advance(0.02)
+    equal(calls, 0, "closing cancels the pending layout")
+    H.Open(); calls = 0; s:advance(0.02)
+    equal(calls, 1, "reopening finishes the selected page")
+    local count = #s.frames
+    for _ = 1, 3 do H.Open("bounty"); H.Open("nearby"); s:advance(0.02) end
+    equal(#s.frames, count, "page switches reuse controls and layout callbacks")
+    s:assertHealthy()
+  end)
+
+  test(client .. " settings refresh their scroll extent without losing a valid offset", function()
+    local s = make()
+    local O, H = s.ns.Options, s.ns.Hub
+    local page = O.byKey.nearby
+    H.H = 440 -- A shorter viewport exercises actual scrolling on Nearby.
+    s.ns.Core.SetFontScale(1.5)
+    local extent
+    -- The renderer's scroll-child rectangle is distinct from Lua dimensions.
+    page.scroll.UpdateScrollChildRect = function()
+      extent = { page.content:GetWidth(), page.content:GetHeight() }
+    end
+    H.Open("nearby")
+    page.scroll:SetVerticalScroll(60)
+    s:advance(0.02)
+    assert(extent and extent[2] > page.scroll:GetHeight() + 60, "the full Nearby body is scrollable")
+    equal(extent[1], page.content:GetWidth(), "scroll viewport receives the settled width")
+    equal(extent[2], page.content:GetHeight(), "scroll viewport receives the settled height")
+    equal(page.scroll:GetVerticalScroll(), 60, "valid position survives settling")
+    H.Open("arena-settings"); H.Back(); s:advance(0.02)
+    equal(page.scroll:GetVerticalScroll(), 60, "Back preserves the Nearby reading position")
+    page.scroll:SetVerticalScroll(100000)
+    page.LayoutHeader(); s:advance(0.02)
+    equal(page.scroll:GetVerticalScroll(), math.max(0, page.content:GetHeight() - page.scroll:GetHeight()),
+      "an obsolete scroll offset cannot leave a blank viewport")
+    s:assertHealthy()
+  end)
+
   test(client .. " addon destinations own their controls and reuse pages", function()
     local s = make()
     local O, H = s.ns.Options, s.ns.Hub

@@ -130,6 +130,10 @@ local function client(flavor, points, disabledCooldowns)
     "features/battlegrounds/ui/Appearance.lua", "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/core/Cooldowns.lua", "core/Targeting.lua", "features/battlegrounds/core/Features.lua", "options/State.lua",
     "ui/SniperColors.lua", "options/Controls.lua", "options/AddonPages.lua", "options/General.lua", "options/SniperColors.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
     "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/ProfileSummary.lua", "options/Profiles.lua", "options/ProfileAssignments.lua", "options/Root.lua" }) do
+    if path == "options/Appearance.lua" then
+      -- Preview sessions need the full addon and are covered in simulations.
+      ns.Options.AddAppearancePreview = function(page) page.RefreshPreview = noop end
+    end
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.NormalizePointSettings(s.db.points)
@@ -137,7 +141,9 @@ local function client(flavor, points, disabledCooldowns)
     cooldown = env.CooldownBonus, kit = env.KitFor, cdLeft = env.CdLeft }
   s.ns = ns
   s.input, s.set = input, set
-  for _, page in ipairs(s.ui.pages) do page.frame:Show() end
+  -- Reputation's shared preference widgets need its runtime; full-addon
+  -- simulations cover those controls and their standalone window together.
+  for _, page in ipairs(s.ui.pages) do if page.key ~= "reputation-settings" then page.frame:Show() end end
   s.ui.panel:Show()
   function s:find(kind, text)
     for _, f in ipairs(self.frames) do if f.kind == kind and f.text == text then return f end end

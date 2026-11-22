@@ -217,7 +217,7 @@ return function(addon)
       assert(not p.guild:IsShown() and p.unknown:IsShown() and not p.icon:IsShown())
       equal(p.metrics[2].value:GetText(), "0", "changing enemies clears the previous kill count")
       assert(p.notes:GetText():find("No notes yet", 1, true))
-      if sim.ns.Hub then sim.ns.Hub.Open("journal"); assert(p:IsVisible()); w:Refresh() end
+      if sim.ns.Hub then sim.ns.Options.OpenTool("journal"); assert(p:IsVisible()); w:Refresh() end
       sim:assertHealthy()
     end)
 

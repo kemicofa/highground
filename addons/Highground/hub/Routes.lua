@@ -6,6 +6,13 @@ local Core, Theme, Kit, Hub = ns.Core, ns.Theme, ns.Kit, ns.Hub
 local aliases = { checklist = "addons", ["feature guide"] = "addons",
   ["panels and features"] = "general", ["help and previews"] = "tools", ["general"] = "general",
   ["nearby settings"] = "nearby", ["bounty settings"] = "bounty", ["nearby enemies"] = "nearby", ["guild bounties"] = "bounty" }
+-- Saved sections and /hg config links from before workspaces opened separately.
+local workspaces = { macros = "macros-settings", reputation = "reputation-settings", bountyboard = "bounty",
+  journal = "nearby", history = "battlegrounds-settings" }
+local labels = { ["macro builder"] = "macros", ["player reputation"] = "reputation", ["bounty board"] = "bountyboard",
+  ["enemy journal"] = "journal", ["match history"] = "history" }
+for key, target in pairs(workspaces) do aliases[key] = target end
+for label, key in pairs(labels) do aliases[label] = workspaces[key] end
 local function Find(w, key)
   key = type(key) == "string" and (aliases[key:lower()] or key) or key
   local want = type(key) == "string" and key:lower()
@@ -88,6 +95,7 @@ function Hub.BuildRoutes(w)
     end
   end
   router:Register("checklist", { redirect = "addons" })
+  for key, target in pairs(workspaces) do Register(router, key, { redirect = target }) end
   router:On("change", Changed)
   w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 80, Theme.Size("control"), { onClick = function() Hub.Back() end }), "highground.coachview.back.b52b36")
   w.forward = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.routes.forward.ba4e72"), 100, Theme.Size("control"), { onClick = function() Hub.Forward() end }), "highground.routes.forward.ba4e72")

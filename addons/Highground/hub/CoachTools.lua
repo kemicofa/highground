@@ -30,8 +30,8 @@ function C.MacroSteps()
     function() return Win.win.open end, ns.Locale:Get("highground.coachtools.click_open_wow_macros_or_continue_to.2d0cfe")), { title = "highground.coachtools.open_wow_s_macro_window.42985e", text = "highground.coachtools.this_button_opens_the_game_s_own.386d0c", hint = "highground.coachtools.click_open_wow_macros_or_continue_to.2d0cfe" })
   open.event = "OnClick"
   return {
-    ns.Localization.Define(MacroStep("class", ns.Locale:Get("highground.coachtools.start_with_for_my_class.13d241"), ns.Locale:Get("highground.coachtools.these_are_the_real_presets_for_your.68a13f"),
-      Catalog, function() return Win.win.tabs.class end), { title = "highground.coachtools.start_with_for_my_class.13d241", text = "highground.coachtools.these_are_the_real_presets_for_your.68a13f" }),
+    ns.Localization.Define(MacroStep("class", ns.Locale:Get("highground.coachtools.start_with_for_my_class.13d241"), ns.Locale:Get("guide.macros.window"),
+      Catalog, function() return Win.win.tabs.class end), { title = "highground.coachtools.start_with_for_my_class.13d241", text = "guide.macros.window" }),
     ns.Localization.Define(MacroStep("preset", ns.Locale:Get("highground.coachtools.choose_an_ability_you_know.23be1f"), ns.Locale:Get("highground.coachtools.read_the_preset_s_purpose_ready_to.84c1f3"),
       Catalog, function() local r = Card(); return r and r.name or Win.win.empty end), { title = "highground.coachtools.choose_an_ability_you_know.23be1f", text = "highground.coachtools.read_the_preset_s_purpose_ready_to.84c1f3" }),
     ns.Localization.Define(MacroStep("target", ns.Locale:Get("highground.coachtools.choose_who_receives_the_ability.4cec27"), ns.Locale:Get("highground.coachtools.open_the_target_menu_focus_keeps_a.cc40a3"),

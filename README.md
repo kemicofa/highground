@@ -1,5 +1,13 @@
 # Highground
 
+[![CI and release](https://github.com/kemicofa/highground/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/kemicofa/highground/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/kemicofa/highground)](https://github.com/kemicofa/highground/releases/latest)
+[![GitHub downloads](https://img.shields.io/github/downloads/kemicofa/highground/total)](https://github.com/kemicofa/highground/releases)
+[![GitHub stars](https://img.shields.io/github/stars/kemicofa/highground)](https://github.com/kemicofa/highground/stargazers)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+[![Highground Horde animated stream banner](assets/stream-banner/horde/Highground-Twitch-Banner-Horde-960.gif)](https://www.curseforge.com/projects/1749115)
+
 Highground is the only supported distribution. It includes battleground tools, arenas and duels, bounties, nearby enemies, player reputation and macros for Retail, WoW Forever and Cataclysm Classic. On WoW Forever, the Arena panel handles duels.
 
 | Included feature | What it does |

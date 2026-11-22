@@ -103,6 +103,9 @@ local function Features()
     local maximum = math.max(0, page.child:GetHeight() - page.scroll:GetHeight())
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
+  local preview = Step("preview", ns.Locale:Get("appearance.preview.guide_title"),
+    ns.Locale:Get("appearance.preview.guide_text"),
+    appearanceKey, function() return Appearance().preview end, ns.Locale:Get("appearance.preview.guide_hint"))
   local language = ns.Localization.Define(Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
     function() return ns.Options.general.language.select end), { title = "locale.guide.title", text = "locale.guide.text" })
   language.enter = function()
@@ -120,7 +123,7 @@ local function Features()
     ns.Localization.Define(Step("switch", bg and ns.Locale:Get("highground.coachpreferences.keep_the_panels_you_want.abbf0b") or ns.Locale:Get("highground.coachpreferences.choose_shared_preferences.f69dd0"),
       bg and ns.Locale:Get("highground.coachpreferences.checked_means_enabled_all_available_feature_switches.16b69f") or ns.Locale:Get("highground.coachpreferences.checked_means_enabled_this_switch_shows_the.de650b"), settingsKey,
       function() return Box(bg and "killorder" or "minimap") end), { title = bg and "highground.coachpreferences.keep_the_panels_you_want.abbf0b" or "highground.coachpreferences.choose_shared_preferences.f69dd0", text = bg and "highground.coachpreferences.checked_means_enabled_all_available_feature_switches.16b69f" or "highground.coachpreferences.checked_means_enabled_this_switch_shows_the.de650b" }),
-    appearance, theme, details, language,
+    appearance, preview, theme, details, language,
   }
 end
 local function Alerts()
@@ -158,6 +161,10 @@ local function Alerts()
         for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
       end,
       context = function() return bg and ns.Hub.win or ns.Alerts.win end, hint = ns.Locale:Get("highground.coachpreferences.changes_here_save_immediately.a4d86e") },
+    { id = "sample", title = ns.Locale:Get("alerts.sample.guide_title"),
+      text = ns.Locale:Get("alerts.sample.guide_text"),
+      enter = Open, target = function() return ns.Alerts.win.rows[1].play end,
+      context = Context, hint = ns.Locale:Get("alerts.sample.guide_hint") },
   }
 end
 local function Profiles()
@@ -175,8 +182,8 @@ local function Profiles()
     ns.Localization.Define(ProfileStep("contents", ns.Locale:Get("highground.coachpreferences.read_everything_included.2b3918"), ns.Locale:Get("highground.coachpreferences.scroll_through_the_complete_saved_setup_including.6c690f"), function() return P().profileScroll end, Create), { title = "highground.coachpreferences.read_everything_included.2b3918", text = "highground.coachpreferences.scroll_through_the_complete_saved_setup_including.6c690f" }),
     ns.Localization.Define(ProfileStep("save", ns.Locale:Get("highground.coachpreferences.create_when_you_are_ready.b065bf"), ns.Locale:Get("highground.coachpreferences.create_and_use_profile_saves_the_reviewed.4e4458"), function() return P().profileButtons.Save end, Create,
       ns.Locale:Get("highground.coachpreferences.optional_this_button_saves_a_real_profile.532ebc")), { title = "highground.coachpreferences.create_when_you_are_ready.b065bf", text = "highground.coachpreferences.create_and_use_profile_saves_the_reviewed.4e4458", hint = "highground.coachpreferences.optional_this_button_saves_a_real_profile.532ebc" }),
-    ns.Localization.Define(ProfileStep("changes", ns.Locale:Get("highground.coachpreferences.see_exactly_what_an_update_changes.9dc8f6"), ns.Locale:Get("highground.coachpreferences.this_example_shows_three_differences_as_before.0cd5d4"), function() return P().profileScroll end,
-      function() Open(); P().BeginReviewExample() end, ns.Locale:Get("highground.coachpreferences.example_only_no_settings_or_saved_profiles.e8a2a2")), { title = "highground.coachpreferences.see_exactly_what_an_update_changes.9dc8f6", text = "highground.coachpreferences.this_example_shows_three_differences_as_before.0cd5d4", hint = "highground.coachpreferences.example_only_no_settings_or_saved_profiles.e8a2a2" }),
+    ns.Localization.Define(ProfileStep("changes", ns.Locale:Get("highground.coachpreferences.see_exactly_what_an_update_changes.9dc8f6"), ns.Locale:Get("profiles.guide.diff"), function() return P().profileScroll end,
+      function() Open(); P().BeginReviewExample() end, ns.Locale:Get("highground.coachpreferences.example_only_no_settings_or_saved_profiles.e8a2a2")), { title = "highground.coachpreferences.see_exactly_what_an_update_changes.9dc8f6", text = "profiles.guide.diff", hint = "highground.coachpreferences.example_only_no_settings_or_saved_profiles.e8a2a2" }),
     ns.Localization.Define(ProfileStep("load", ns.Locale:Get("highground.coachpreferences.select_review_then_use.02a7ff"), ns.Locale:Get("highground.coachpreferences.selecting_a_saved_profile_does_not_apply.f06ca0"), function() return P().listScroll end,
       function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end), { title = "highground.coachpreferences.select_review_then_use.02a7ff", text = "highground.coachpreferences.selecting_a_saved_profile_does_not_apply.f06ca0" }),
     ns.Localization.Define(ProfileStep("switching", ns.Locale:Get("highground.coachpreferences.choose_when_profiles_load.b8e8bf"), ns.Locale:Get("highground.coachpreferences.automatic_switching_is_always_visible_choose_profiles.c592fe"), function() return P().assignments end, Open,

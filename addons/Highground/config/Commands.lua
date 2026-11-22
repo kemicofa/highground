@@ -6,15 +6,22 @@ ns.CommandCatalog = C
 
 function C.Action(command, description, label, options)
   local row = options or {}
-  row.command, row[2] = command, description
+  row.command = command
   row[1] = "/hg" .. (command ~= "" and " " .. command or "") .. (row.usage and " " .. row.usage or "")
-  ns.Localization.Define(row, { [2] = description })
-  row.ui = ns.Localization.Define({ command = command }, { label = label })
+  ns.Localization.Define(row, { [2] = row.descriptionKey or description })
+  row.ui = ns.Localization.Define({ command = command }, { label = row.labelKey or label })
   return row
 end
+function C.Description(row) return row.descriptionKey and ns.Locale:Get(row.descriptionKey) or row[2] end
+function C.Label(row) return row.labelKey and ns.Locale:Get(row.labelKey) or row.ui.label end
 function C.Link(command, description, page, label, options)
   local row = C.Action(command, description, label, options)
-  row.ui = ns.Localization.Define({ page = page }, { label = label })
+  row.ui.command, row.ui.page = nil, page
+  return row
+end
+function C.Tool(command, description, tool, label, options)
+  local row = C.Action(command, description, label, options)
+  row.ui.command, row.ui.tool = nil, tool
   return row
 end
 function C.Register(owner, label, rows, previews)
@@ -48,11 +55,11 @@ end
 
 local A, L = C.Action, C.Link
 C.Register("shared", "Highground", {
-  A("", "highground.commands.open_or_close_the_highground_window.d7cf31", "highground.commands.open_close_highground.2b34cd"),
+  A("", "commands.configuration.toggle", "highground.commands.open_close_highground.2b34cd"),
   A("help", "highground.commands.list_available_commands_and_your_detected_specialization.e61f2e", "highground.commands.print_command_help.1cacbc"),
   A("test", "highground.commands.toggle_available_previews_across_enabled_addons_keeping.877f4c", "highground.commands.toggle_all_addon_previews.27a82f", { aliases = { "test all" } }),
   A("test stop", "highground.commands.stop_all_addon_previews_including_samples_started.eb3aae", "highground.commands.stop_all_previews.317d8b"),
-  L("config", "highground.commands.open_a_highground_page_config_blizzard_opens.9b5757", "home", "highground.commands.browse_highground.def826", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
+  L("config", "commands.configuration.open", "home", "highground.commands.browse_highground.def826", { usage = "[PAGE|blizzard]", aliases = { "options" } }),
   A("config blizzard", "highground.commands.open_the_native_blizzard_addon_settings_panel.883cf3", "highground.commands.open_blizzard_settings.2c91f1"),
   L("setup", "highground.commands.choose_playstyle_presets_and_place_panels.7f827e", "setup", "highground.commands.open_playstyle_presets.c74b26"),
   L("guide", "highground.commands.browse_addons_or_start_and_resume_a.950156", "addons", "highground.commands.open_addons_and_guides.d3ec2d", { usage = "[FEATURE]", aliases = { "checklist" } }),

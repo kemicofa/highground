@@ -14,6 +14,25 @@ local function Describe(w, mode)
 end
 local alertOwners = { "battlegrounds", "nearby", "bounties" }
 
+function A.SoundButton(parent, def)
+  local button
+  local function Play(variant)
+    local ok, problem = A.PlaySample(def.key, variant)
+    if not ok then ns.Util.Say(problem) end
+  end
+  button = Kit.Button(parent, ns.Locale:Get("alerts.sample.play"), 130, 30, { onClick = function()
+    if def.key == "stealth" then
+      Kit.Dropdown.Open(button, { { text = ns.Locale:Get("alerts.sample.enter"), value = "enter" },
+        { text = ns.Locale:Get("alerts.sample.exit"), value = "exit" } }, function(item) Play(item.value) end)
+    else Play() end
+  end })
+  ns.Localization.Bind(button, "alerts.sample.play")
+  button.label:SetPoint("LEFT", 8, 0); button.label:SetPoint("RIGHT", -8, 0); button.label:SetWordWrap(false)
+  Kit.Tooltip(button, function() return { ns.Locale:Format("alerts.sample.tooltip", { action = def.label }),
+    { ns.Locale:Get("alerts.sample.description"), "textMuted", true } } end)
+  return button
+end
+
 local function LayoutLinks(w)
   local width = (w.body:GetWidth() - 24) / #alertOwners
   for i, owner in ipairs(alertOwners) do
@@ -79,17 +98,19 @@ function A.Open(embedded)
         local y = (ns.Modules and 82 or 0) + (i - 1) * 42
         local row = { key = def.key }
         local label = Theme.Text(w.body, "body", "text")
-        label:SetPoint("TOPLEFT", 0, -y - 4); label:SetWidth(200)
-        label:SetJustifyH("LEFT"); ns.Localization.BindField(label, def, "label")
-        for j, channel in ipairs({ "text", "sound" }) do
+        label:SetPoint("TOPLEFT", 0, -y - 4); label:SetPoint("TOPRIGHT", -380, -y - 4)
+        label:SetJustifyH("LEFT"); label:SetWordWrap(true); ns.Localization.BindField(label, def, "label")
+        for _, channel in ipairs({ "text", "sound" }) do
           local key = channel
-          row[key] = Kit.Toggle(w.body, key == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = 110, onChange = function(_, on)
+          row[key] = Kit.Toggle(w.body, key == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = key == "text" and 90 or 104, onChange = function(_, on)
             local settings = A.Settings()
             settings.channels[def.key] = settings.channels[def.key] or {}
             settings.channels[def.key][key] = on
           end })
-          row[key]:SetPoint("TOPLEFT", 228 + (j - 1) * 130, -y)
+          row[key]:SetPoint("TOPRIGHT", key == "text" and -270 or -150, -y)
         end
+        row.play = A.SoundButton(w.body, def)
+        row.play:SetPoint("TOPRIGHT", 0, -y)
         w.rows[#w.rows + 1] = row
       end
     end

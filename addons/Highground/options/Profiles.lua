@@ -112,8 +112,8 @@ local function ReviewAction(c, save)
   if save then ok, message = Profiles.SaveImported(c:GetText(), c.name:GetText())
   else ok, message = Profiles.ImportText(c:GetText()) end
   if ok and rows then
-    c.review:SetText((save and ns.Locale:Get("highground.profiles.saved.c0ae8f") or Profiles.pending and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or ns.Locale:Get("highground.profiles.applied.a3e4a5"))
-      .. (before and (ns.Locale:Format("highground.profiles.value2_changes.331b56", { value2 = #rows })) or ns.Locale:Get("highground.profiles.everything_included.0b651e")) .. "\n\n" .. Profiles.ReviewText(rows))
+    Profiles.SetReviewText(c.review, { (save and ns.Locale:Get("highground.profiles.saved.c0ae8f") or Profiles.pending and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or ns.Locale:Get("highground.profiles.applied.a3e4a5"))
+      .. (before and (ns.Locale:Format("highground.profiles.value2_changes.331b56", { value2 = #rows })) or ns.Locale:Get("highground.profiles.everything_included.0b651e")), rows })
   end
   c:SetStatus(message, ok and "success" or "error")
   return ok
@@ -187,13 +187,15 @@ function Profiles.UpdateImportReview()
   local previous = name and Core.db.profiles and Core.db.profiles[name]
   local rows, err
   if snap then rows, err = Profiles.Review(snap, previous) end
-  local text = rows and ((previous and (ns.Locale:Format("highground.profiles.update_name_value4_changes.24885c", { name = name, value4 = #rows })) or ns.Locale:Get("highground.profiles.save_a_new_copy_everything_included.1f3989"))
-    .. "\n\n" .. Profiles.ReviewText(rows)) or err or problem
+  local sections = rows and { previous and ns.Locale:Format("shared.copy.update_name_count_changes.fd9ef8", { name = name, count = #rows }) or ns.Locale:Get("highground.profiles.save_a_new_copy_everything_included.1f3989"), rows }
+    or { err or problem }
   if rows then
     local applied = Profiles.Review(snap, Profiles.Snapshot())
-    text = ns.Locale:Format("highground.profiles.text_apply_to_current_settings_value3_changes.0e90f0", { text = text, value3 = #applied, value5 = Profiles.ReviewText(applied), Options_PROFILE_EXCLUSIONS = Options.PROFILE_EXCLUSIONS })
+    sections[#sections + 1] = ns.Locale:Format("shared.copy.apply_to_current_settings_count_changes.61699a", { count = #applied })
+    sections[#sections + 1] = applied
+    sections[#sections + 1] = Options.PROFILE_EXCLUSIONS
   end
-  share.review:SetText(text); share.review:Scroll(0)
+  Profiles.SetReviewText(share.review, sections); share.review:Scroll(0)
   share.actions.save:SetText(previous and ns.Locale:Get("highground.profiles.update_profile.837b6d") or ns.Locale:Get("highground.profiles.save_as_profile.f6c289"))
   share:LayoutProfileShare()
 end

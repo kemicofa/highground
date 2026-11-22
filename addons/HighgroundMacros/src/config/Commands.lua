@@ -3,7 +3,7 @@ local C = ns.CommandCatalog
 -- Retained standalone hosts have their own slash entry points.
 if not C then return end
 C.Register("macros", "highground.modules.macros.899bd6", {
-  C.Link("macros", "macros.commands.open_the_macro_browser_and_builder.2b1169", "macros", "highground.modules.open_macros.56744c"),
+  C.Tool("macros", "macros.commands.open_the_macro_browser_and_builder.2b1169", "macros", "highground.modules.open_macros.56744c"),
   C.Action("macros pvp", "macros.commands.browse_pvp_macros_for_your_class.7021ed", "macros.commands.browse_pvp_macros.96977e"),
   C.Action("macros pve", "macros.commands.browse_pve_macros_for_your_class.9e6674", "macros.commands.browse_pve_macros.5a03bd"),
   C.Action("macros build", "macros.commands.build_a_macro_with_labeled_controls.a84b52", "macros.commands.build_a_macro.f5d6d7"),

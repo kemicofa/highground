@@ -156,13 +156,13 @@ test(client .. " dialog and hub entrances cancel cleanly and never multiply fade
   Hub.Open("home")
   assert(M.IsPlaying(Hub.win) and not M.IsPlaying(Hub.content), "initial hub entrance is not multiplied")
   sim:advance(0.3)
-  Hub.Show("macros")
+  Hub.Show("macros-settings")
   assert(M.IsPlaying(Hub.content), "page change has a content transition")
-  local macros = sim.ns.Macros.Window.win
-  assert(not M.IsPlaying(macros) and macros:GetAlpha() == 1, "borrowed window does not add an entrance")
+  local settings = sim.ns.Options.byKey["macros-settings"].frame
+  assert(not M.IsPlaying(settings) and settings:GetAlpha() == 1, "settings page does not add an entrance")
   sim:advance(0.04)
   local alpha = Hub.content:GetAlpha()
-  Hub.Show("macros")
+  Hub.Show("macros-settings")
   near(Hub.content:GetAlpha(), alpha, "same page refresh does not restart the transition")
   Hub.win:Hide()
   assert(not M.IsPlaying(Hub.content) and Hub.content:GetAlpha() == 1, "closing cancels the page transition")

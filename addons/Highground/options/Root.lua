@@ -277,7 +277,7 @@ function p.RefreshProfiles(force)
   p.reviewTitle:SetText(problem and ns.Locale:Get("highground.root.cannot_review_profile.4e9b91") or (p.receipt and not p.showAll and p.receipt.title)
     or (full and (creating and ns.Locale:Get("highground.profilereview.everything_included.6adb07") or ns.Locale:Get("highground.profilereview.profile_contents.8fe675")))
     or (#p.reviewRows .. (active and ns.Locale:Get("highground.root.changes_to_save.d23b8a") or ns.Locale:Get("highground.root.changes_to_apply.a321f7"))))
-  p.profileScroll:SetText(problem or P.ReviewText(p.reviewRows) .. (full and ("\n\n" .. O.PROFILE_EXCLUSIONS) or ""))
+  P.SetReviewText(p.profileScroll, problem and { problem } or { p.reviewRows, full and O.PROFILE_EXCLUSIONS or nil })
   p.profileButtons.Details:SetShown(not creating)
   p.profileButtons.Details:SetText(p.showAll and ns.Locale:Get("highground.root.show_changes.130b03") or ns.Locale:Get("highground.profilereview.all_settings.0f803e"))
   p.profileButtons.Save:SetShown(creating or active); p.profileButtons.Load:SetShown(not creating and not active)
@@ -293,7 +293,7 @@ function p.RefreshProfiles(force)
     ns.Localization.Bind(p.detailTitle, "highground.root.example_profile.79fb41")
     p.reviewRows = p.showAll and P.Review(p.example.after) or p.example.rows
     p.reviewTitle:SetText(p.showAll and ns.Locale:Get("highground.root.example_contents.2db730") or (ns.Locale:Format("highground.root.example_value2_changes.33c8fc", { value2 = #p.example.rows })))
-    p.profileScroll:SetText(P.ReviewText(p.reviewRows))
+    P.SetReviewText(p.profileScroll, { p.reviewRows })
     for _, key in ipairs({ "Save", "Load", "Copy", "Update", "Delete" }) do p.profileButtons[key]:SetEnabled(false) end
   else p.profileButtons.Copy:SetEnabled(true); p.profileButtons.Update:SetEnabled(true) end
   O.openHub:SetShown(not (ns.Hub and p:GetParent() == ns.Hub.content))
@@ -306,7 +306,8 @@ function p.BeginReviewExample()
   local before, after = P.Snapshot(), P.Snapshot()
   after.setup.features.sniper = not after.setup.features.sniper
   after.setup.alerts.mode = after.setup.alerts.mode == "objectives" and "essential" or "objectives"
-  after.setup.style.fontScale = after.setup.style.fontScale == 1.1 and 1 or 1.1
+  before.setup.positions.point = { "TOPLEFT", "TOPLEFT", 20, -160 }
+  after.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
   p.example = { after = after, rows = P.Review(after, before) }
   p.showAll = false; p.RefreshProfiles(); p.profileScroll:Scroll(0)
 end

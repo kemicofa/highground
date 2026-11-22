@@ -19,6 +19,18 @@ local function start(saved, locale, inject)
           ["locale.title"] = "Langue", ["locale.sample"] = "Exemple : les préférences de langue s'appliquent à Highground.",
           ["preferences.title"] = "Highground : Préférences partagées",
           ["locale.name.frFR"] = "Français",
+          ["appearance.preview.start"] = "Afficher un aperçu",
+          ["appearance.preview.stop"] = "Fermer cet aperçu",
+          ["appearance.preview.marker_title"] = "MARQUEUR DE CIBLE",
+          ["appearance.preview.bounty_title"] = "MARQUEURS DE PRIME",
+          ["appearance.preview.ready"] = "Choisissez un exemple pour voir immédiatement les effets de vos réglages. Les modifications sont enregistrées automatiquement et les positions de vos panneaux sont conservées lorsque vous fermez cet aperçu.",
+          ["appearance.preview.scene.marker"] = "Marqueur de cible",
+          ["appearance.preview.guide_title"] = "Voir les effets de vos réglages",
+          ["appearance.preview.guide_summary"] = "Essayez les panneaux pendant vos réglages.",
+          ["alerts.sample.play"] = "Écouter",
+          ["alerts.sample.exit"] = "Sortie de camouflage",
+          ["alerts.sample.tooltip"] = "{action} : exemple sonore",
+          ["alerts.sample.guide_summary"] = "Écoutez les sons de vos alertes.",
         }))
       end
     end
@@ -81,6 +93,42 @@ local unsupported = start({ locale = "auto" }, "unsupported")
 assert(unsupported.ns.Locale:GetLocale() == "enUS" and unsupported.ns.Core.db.locale == "auto")
 
 if addon == "Highground" then
+  local options, previews = ns.Options, ns.Options.AppearancePreview
+  ns.Hub.Open("appearance")
+  local appearance = options.appearance
+  for _, choice in ipairs(appearance.previewChoice.choices) do
+    assert(choice.label == l:Get("appearance.preview.scene." .. choice.key), "every dynamic sample key resolves")
+  end
+  assert(appearance.preview:GetText() == "Afficher un aperçu", "saved selection reaches preview controls")
+  appearance.previewChoice:SetValue("marker"); appearance.preview:Click()
+  assert(previews.marker.header.title:GetText() == "MARQUEUR DE CIBLE")
+  assert(ns.Localization.SetPreference("enUS"))
+  assert(appearance.preview:GetText() == "Stop preview" and previews.marker.header.title:GetText() == "TARGET MARKER",
+    "existing sample and action bindings follow language changes")
+  assert(ns.Localization.SetPreference("frFR"))
+  s:command("test stop")
+  assert(not previews.session and appearance.preview:GetText() == "Afficher un aperçu")
+  ns.Core.SetFontScale(1.5)
+  appearance.RefreshPreview()
+  local button, picker, scroll = s.bounds(appearance.preview), s.bounds(appearance.previewChoice), s.bounds(appearance.scroll)
+  assert(picker[1] + picker[3] <= button[1] and button[2] + button[4] <= scroll[2],
+    "translated preview action and wrapped instructions fit above the scroll area")
+  assert(appearance.preview.label:GetStringWidth() <= appearance.preview:GetWidth() - 12)
+  ns.Hub.Open("bounties-appearance")
+  local bountyAppearance = options.byKey["bounties-appearance"]
+  bountyAppearance.previewChoice:SetValue("bountymarkers"); bountyAppearance.preview:Click()
+  assert(previews.bountyMarkers.header.title:GetText() == "MARQUEURS DE PRIME")
+  s:command("test stop")
+  ns.Hub.Open("alerts")
+  local play = ns.Alerts.win.rows[1].play
+  assert(play:GetText() == "Écouter")
+  local sounds = #s.sounds
+  play:Click(); ns.Kit.Dropdown.Accept(2)
+  assert(#s.sounds == sounds + 1 and s.sounds[#s.sounds]:find("stealth-exit.ogg", 1, true),
+    "localized menu still selects the stable exit action")
+  assert(ns.Localization.SetPreference("enUS"))
+  assert(play:GetText() == "Play sound", "sound button is bound to the active language")
+  assert(ns.Localization.SetPreference("auto")); p.Refresh()
   local profiles = ns.Options.Profiles
   local snapshot = profiles.Snapshot()
   assert(snapshot.locale == nil and snapshot.options.locale == nil
@@ -93,8 +141,14 @@ if addon == "Highground" then
   s.env.UIParent:SetSize(1280, 720)
   ns.Core.SetFontScale(1.5)
   o.Start("features")
+  assert(o.win.cards.features.summary:GetText() == "Essayez les panneaux pendant vos réglages.",
+    "guide summaries resolve after SavedVariables and bind their language")
+  assert(o.win.cards.alerts.summary:GetText() == "Écoutez les sons de vos alertes.")
   local language
-  for i, step in ipairs(c.steps) do if step.id == "language" then language = i end end
+  for i, step in ipairs(c.steps) do
+    if step.id == "language" then language = i end
+    if step.id == "preview" then assert(step.title == "Voir les effets de vos réglages") end
+  end
   assert(language, "Appearance guide includes the real language control")
   c.Go(language); c.Update()
   assert(c.target == p.select and c.target:IsVisible())
@@ -113,6 +167,12 @@ if addon == "Highground" then
   assert(not ns.PreviewTests.AnyActive() and not ns.Nearby.test and not ns.Bounty.Preview.state,
     "shared previews release all sample providers")
   assert(saved.locale == before, "previews preserve the language preference")
+end
+if ns.Alerts and ns.Alerts.SoundButton then
+  local play = ns.Alerts.SoundButton(s.env.UIParent, { key = "stealth", label = "Stealth" })
+  assert(play:GetText() == "Écouter", "shared sound controls use the host locale")
+  assert(ns.Localization.SetPreference("enUS"))
+  assert(play:GetText() == "Play sound", "shared controls retain English fallback and live bindings")
 end
 for _, sim in ipairs({ s, restored, auto, alias, corrupt, unsupported }) do sim:assertHealthy() end
 print(addon .. " " .. build .. ": locale selection, fallback, restoration, fonts and preview passed")

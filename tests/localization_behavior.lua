@@ -23,7 +23,7 @@ local bodies, protocol = macroBodies(), ns.Protocols.Encode(nil, 200)
 local evidence = B.Kills.Pack(nil)
 local buttons = {}
 for _, group in ipairs(ns.CommandCatalog.groups) do
-  for _, row in ipairs(group.commands) do buttons[row.id] = row[1] end
+  for _, row in ipairs(group.commands) do buttons[row.id] = row[1] .. "\n" .. table.concat(row.aliases or {}, "\n") end
 end
 ns.Hub.Open("general")
 local header = ns.Options.general.title
@@ -51,7 +51,7 @@ for _, def in ipairs(ns.LocaleDefinitions) do
     end
   end
   for _, group in ipairs(ns.CommandCatalog.groups) do
-    for _, row in ipairs(group.commands) do assert(row[1] == buttons[row.id], "command syntax never changes") end
+    for _, row in ipairs(group.commands) do assert(row[1] .. "\n" .. table.concat(row.aliases or {}, "\n") == buttons[row.id], "command syntax and aliases never change") end
   end
   local row = { name = "Example-Realm", personal = { name = "Example-Realm", by = B.Me() } }
   assert(B.BoardActions.PrimaryKey(row) == "highground.coachbountysamples.edit_reward.0854ae")

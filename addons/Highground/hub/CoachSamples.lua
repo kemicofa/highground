@@ -67,7 +67,7 @@ end
 function C.PanelSteps(context, chapter)
   if context == "world" then return C.NearbySteps() end
   if context == "arena" then return Arena() end
-  if chapter == "battlegrounds" then return Objectives() end
+  if chapter == "objectives" then return Objectives() end
   return Placement()
 end
 

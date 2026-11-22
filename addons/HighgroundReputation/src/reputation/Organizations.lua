@@ -80,7 +80,9 @@ function W.Reconcile(scopeOnly)
   -- still authorize each access against live membership and permissions.
   if not scopeOnly or scopeChanged then
     for _, c in pairs(W.communities) do
-      local role = O.Role(c.id)
+      -- Empty report storage has no private notes to revoke. Reads and sends
+      -- still authorize live; nonempty storage keeps the full demotion sweep.
+      local role = next(c.reports) ~= nil and O.Role(c.id)
       -- Loading/unavailable native data is not a confirmed demotion.
       if role and not O.ModeratorRole(role) then
         for id, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[id] = nil; W.caseCache[c] = nil end end

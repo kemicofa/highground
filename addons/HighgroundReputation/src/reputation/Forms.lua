@@ -80,7 +80,7 @@ function UI.RefreshDialogs(source)
   local W = source or W
   local UI = W.UI
   local f = UI.report
-  if f then
+  if f and f:IsVisible() then
     local id, previous = f.community:GetValue()
     for _, choice in ipairs(f.community.choices) do if choice.key == id then previous = choice end end
     local choices, found = UI.CommunityChoices(nil, true), false
@@ -174,6 +174,9 @@ function W.OpenReport(target, community, source)
       W.Discover(c.id, true); ReportRole(f, W)
     end })
     f.resume:SetPoint("BOTTOMLEFT", 18, 18)
+    -- A suspended editor keeps its draft, but rechecks native access when
+    -- it returns instead of rebuilding hidden controls on every event.
+    f:HookScript("OnShow", function() UI.RefreshDialogs() end)
   end
   local f = UI.report
   local c, err = community or W.Get()

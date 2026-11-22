@@ -163,6 +163,7 @@ end
 
 for _, owner in ipairs({ "battlegrounds", "arena", "macros" }) do
   local page = Options.FeaturePage(Options.addonPages[owner].settings, owner)
+  Options.ToolLink(page, owner == "macros" and "macros" or "history")
   Options.AddAlertControls(page, owner)
   if owner == "battlegrounds" then
     page.review = Options.Link(page, ns.Locale:Get("highground.general.use_these_features.f07edd"), function()

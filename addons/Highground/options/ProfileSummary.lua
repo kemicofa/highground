@@ -1,6 +1,15 @@
 local _, ns = ...
 local Core, P, O = ns.Core, ns.Options.Profiles, ns.Options
 local A = ns.UIConfig.appearance
+local L = ns.Locale
+local function Message(key, values) return { message = key, values = values } end
+local function Label(value)
+  if type(value) ~= "table" then return value end
+  if not value.values then return L:Get(value.message) end
+  local values = {}
+  for key, item in pairs(value.values) do values[key] = type(item) == "table" and Label(item) or item end
+  return L:Format(value.message, values)
+end
 
 -- Reviews run on visible UI changes and explicit actions, never on gameplay
 -- ticks. Resolve effective values before comparing sparse saved overrides.
@@ -25,16 +34,25 @@ local function Choice(choices, key)
   for _, def in ipairs(choices or {}) do if def.key == key then return def.label end end
   return key
 end
+local anchors = { TOPLEFT = "profiles.anchor.top_left", TOP = "profiles.anchor.top", TOPRIGHT = "profiles.anchor.top_right",
+  LEFT = "profiles.anchor.left", CENTER = "profiles.anchor.center", RIGHT = "profiles.anchor.right",
+  BOTTOMLEFT = "profiles.anchor.bottom_left", BOTTOM = "profiles.anchor.bottom", BOTTOMRIGHT = "profiles.anchor.bottom_right" }
+local function Offset(value, negative, positive, zero)
+  return value == 0 and L:Get(zero) or L:Format(value < 0 and negative or positive, { value = O.Format(math.abs(value)) })
+end
 local function Format(value)
-  if value == nil then return ns.Locale:Get("highground.appearance.default.808d7d") end
-  if type(value) == "boolean" then return value and ns.Locale:Get("highground.profileassignments.on.e0049a") or ns.Locale:Get("highground.profileassignments.off.e3de5a") end
+  if value == nil then return L:Get("profiles.review.default") end
+  if type(value) == "boolean" then return L:Get(value and "profiles.review.on" or "profiles.review.off") end
   if type(value) == "number" then return O.Format(value) end
   if type(value) == "table" then
-    return ns.Locale:Format("highground.profilesummary.value1_value2_x_value3_y_value4.543d87", { value1 = string.format("%s", value[1]), value2 = string.format("%s", value[2]), value3 = string.format("%s", O.Format(value[3])), value4 = string.format("%s", O.Format(value[4])) })
+    if value.message then return Label(value) end
+    return L:Format("profiles.position", { panelAnchor = L:Get(anchors[value[1]]), screenAnchor = L:Get(anchors[value[2]]),
+      horizontal = Offset(value[3], "profiles.offset.left", "profiles.offset.right", "profiles.offset.horizontal_zero"),
+      vertical = Offset(value[4], "profiles.offset.down", "profiles.offset.up", "profiles.offset.vertical_zero") })
   end
   return (tostring(value):gsub("|", "||"))
 end
-local preferences = ns.Localization.Define(ns.Localization.Define({
+local preferences = {
   rows = ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), scale = ns.Locale:Get("highground.profilesummary.interface_scale.0e06dc"), compact = ns.Locale:Get("highground.profilesummary.compact_battleground_layout.c91cde"), bgAlpha = ns.Locale:Get("highground.appearance.background_opacity.f12e36"),
   panelTransparency = ns.Locale:Get("highground.profilesummary.transparent_panels.d7f0cc"), pressureCount = ns.Locale:Get("highground.profilesummary.pressure_marker_limit.4edd00"), sniperPlacement = ns.Locale:Get("highground.profilesummary.target_marker_placement.74f6db"),
   sniperStyle = ns.Locale:Get("highground.profilesummary.target_marker_style.7b7cfe"), sniperPadding = ns.Locale:Get("highground.profilesummary.target_marker_padding.9d8501"), sniperX = ns.Locale:Get("highground.profilesummary.target_marker_horizontal_offset.1ea78a"),
@@ -43,11 +61,12 @@ local preferences = ns.Localization.Define(ns.Localization.Define({
   markIcon = ns.Locale:Get("highground.profilesummary.raid_marker.808884"), markMode = ns.Locale:Get("highground.profilesummary.marker_type.ab63a3"), pingType = ns.Locale:Get("highground.profilesummary.ping_type.36f939"), sniperScale = ns.Locale:Get("highground.profilesummary.target_marker_size.a57020"),
   sniperSound = ns.Locale:Get("highground.profilesummary.target_lock_sound.d66b25"), minimapAngle = ns.Locale:Get("highground.profilesummary.minimap_button_angle.ca1744"), theme = ns.Locale:Get("highground.appearance.theme.a797e3"), reducedMotion = ns.Locale:Get("highground.appearance.reduced_motion.789804"),
   locked = ns.Locale:Get("highground.profilesummary.lock_panel_positions.b7b489"),
-}, { theme = "highground.appearance.theme.a797e3" }), { rows = "highground.appearance.enemy_rows.26dea1", scale = "highground.profilesummary.interface_scale.0e06dc", compact = "highground.profilesummary.compact_battleground_layout.c91cde", bgAlpha = "highground.appearance.background_opacity.f12e36", panelTransparency = "highground.profilesummary.transparent_panels.d7f0cc", pressureCount = "highground.profilesummary.pressure_marker_limit.4edd00", sniperPlacement = "highground.profilesummary.target_marker_placement.74f6db", sniperStyle = "highground.profilesummary.target_marker_style.7b7cfe", sniperPadding = "highground.profilesummary.target_marker_padding.9d8501", sniperX = "highground.profilesummary.target_marker_horizontal_offset.1ea78a", sniperY = "highground.profilesummary.target_marker_vertical_offset.5540a5", sniperColor = "highground.profilesummary.target_marker_color.7fd8bb", sniperRingColor = "highground.profilesummary.target_marker_ring_color.bdfadd", sniperSkullColor = "highground.profilesummary.target_marker_skull_color.daaf63", sniperAimColor = "highground.profilesummary.target_marker_aiming_color.f0053f", callChannel = "highground.profilesummary.callout_channel.326f1d", markIcon = "highground.profilesummary.raid_marker.808884", markMode = "highground.profilesummary.marker_type.ab63a3", pingType = "highground.profilesummary.ping_type.36f939", sniperScale = "highground.profilesummary.target_marker_size.a57020", sniperSound = "highground.profilesummary.target_lock_sound.d66b25", minimapAngle = "highground.profilesummary.minimap_button_angle.ca1744", reducedMotion = "highground.appearance.reduced_motion.789804", locked = "highground.profilesummary.lock_panel_positions.b7b489" })
-local modes = ns.Localization.Define(ns.Localization.Define({ essential = ns.Locale:Get("shared.alerts.essentials.06580f"), everything = ns.Locale:Get("shared.alerts.everything.4a66d1"), critical = ns.Locale:Get("highground.profilesummary.critical_only.e1206b"), objectives = ns.Locale:Get("shared.battlegrounds.objectives.24d505"), quiet = ns.Locale:Get("highground.profilesummary.text_only.9ccbd0") }, { essential = "shared.alerts.essentials.06580f", everything = "shared.alerts.everything.4a66d1", objectives = "shared.battlegrounds.objectives.24d505" }), { critical = "highground.profilesummary.critical_only.e1206b", quiet = "highground.profilesummary.text_only.9ccbd0" })
-local positions = ns.Localization.Define(ns.Localization.Define({ point = ns.Locale:Get("highground.profilesummary.enemy_panel.2b40aa"), timersPoint = ns.Locale:Get("highground.profilesummary.resurrection_timers.b06ac8"), basesPoint = ns.Locale:Get("shared.battlegrounds.objectives.24d505"), flagsPoint = ns.Locale:Get("highground.profilesummary.flag_carriers.287119"),
-  arenaPoint = ns.Locale:Get("highground.toursteps.arena_duels.53e5be"), nearbyPoint = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df"), quickCallsPoint = ns.Locale:Get("highground.toursteps.quick_callouts.faac74") }, { basesPoint = "shared.battlegrounds.objectives.24d505" }), { point = "highground.profilesummary.enemy_panel.2b40aa", timersPoint = "highground.profilesummary.resurrection_timers.b06ac8", flagsPoint = "highground.profilesummary.flag_carriers.287119", arenaPoint = "highground.toursteps.arena_duels.53e5be", nearbyPoint = "highground.profilesummary.nearby_enemies.85f5df", quickCallsPoint = "highground.toursteps.quick_callouts.faac74" })
-local styleLabels = ns.Localization.Define(ns.Localization.Define({ font = ns.Locale:Get("highground.appearance.font.b97c4d"), bar = ns.Locale:Get("highground.appearance.bar_texture.5592a1"), barColor = ns.Locale:Get("highground.profilesummary.bar_colors.945fb9"), borderColor = ns.Locale:Get("highground.appearance.border_color.06186d"), healthStyle = ns.Locale:Get("highground.profilesummary.health_display.2dcbdf") }, { font = "highground.appearance.font.b97c4d" }), { bar = "highground.appearance.bar_texture.5592a1", barColor = "highground.profilesummary.bar_colors.945fb9", borderColor = "highground.appearance.border_color.06186d", healthStyle = "highground.profilesummary.health_display.2dcbdf" })
+}
+local modes = { essential = ns.Locale:Get("shared.alerts.essentials.06580f"), everything = ns.Locale:Get("shared.alerts.everything.4a66d1"), critical = ns.Locale:Get("highground.profilesummary.critical_only.e1206b"), objectives = ns.Locale:Get("profiles.panel.objectives"), quiet = ns.Locale:Get("highground.profilesummary.text_only.9ccbd0") }
+local positions = { point = "profiles.panel.enemies", timersPoint = "profiles.panel.timers", basesPoint = "profiles.panel.objectives",
+  flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena", nearbyPoint = "profiles.panel.nearby",
+  quickCallsPoint = "profiles.panel.callouts" }
+local styleLabels = { font = ns.Locale:Get("highground.appearance.font.b97c4d"), bar = ns.Locale:Get("highground.appearance.bar_texture.5592a1"), barColor = ns.Locale:Get("highground.profilesummary.bar_colors.945fb9"), borderColor = ns.Locale:Get("highground.appearance.border_color.06186d"), healthStyle = ns.Locale:Get("highground.profilesummary.health_display.2dcbdf") }
 local styleChoices = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
 
 -- One ordered catalogue of effective settings. Partial/legacy profiles list
@@ -58,7 +77,8 @@ local function Entries(snap)
   local out = {}
   local function Add(group, id, label, value, display)
     if display == nil then display = value end
-    out[#out + 1] = { group = group, id = id, label = label, value = value, text = Format(display) }
+    out[#out + 1] = { group = group, id = id, label = Label(label), labelSource = label,
+      value = value, display = display, text = Format(display) }
   end
   local setup = p.setup
   if setup then
@@ -75,8 +95,8 @@ local function Entries(snap)
     Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts.mode", ns.Locale:Get("highground.profilesummary.alert_level.4222a5"), alert.mode or "everything", modes[alert.mode or "everything"])
     for _, def in ipairs(ns.Alerts.categories) do
       local channels = (alert.channels or {})[def.key] or {}
-      Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts." .. def.key .. ".text", ns.Locale:Format("highground.profilesummary.def_label_text.c7ab33", { def_label = def.label }), channels.text ~= false)
-      Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts." .. def.key .. ".sound", ns.Locale:Format("highground.profilesummary.def_label_sound.a90cf2", { def_label = def.label }), channels.sound ~= false)
+      Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts." .. def.key .. ".text", Message("profiles.label.text", { label = def.label }), channels.text ~= false)
+      Add(ns.Locale:Get("highground.hub.alerts.d0efe0"), "alerts." .. def.key .. ".sound", Message("profiles.label.sound", { label = def.label }), channels.sound ~= false)
     end
     local s = setup.style
     for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle" }) do
@@ -103,12 +123,15 @@ local function Entries(snap)
       for _, def in ipairs(A.metrics) do
         if layout ~= "compact" or not def.normalOnly or (s.compact or {})[def.key] ~= nil then
           local value = (s[layout] or {})[def.key] or Core.MetricDefault(def.key, layout == "compact")
-          Add(ns.Locale:Get("highground.profilesummary.layout.972ad8"), "style." .. layout .. "." .. def.key, Words(def.module) .. " · " .. def.label .. " (" .. layout .. ")", value)
+          Add(ns.Locale:Get("highground.profilesummary.layout.972ad8"), "style." .. layout .. "." .. def.key,
+            Message("profiles.label.layout", { panel = Words(def.module), setting = def.label,
+              layout = Message(layout == "normal" and "profiles.layout.normal" or "profiles.layout.compact") }), value)
         end
       end
     end
     for _, key in ipairs(Core.POSITION_KEYS) do
-      Add(ns.Locale:Get("highground.profilesummary.panel_positions.337fe2"), "positions." .. key, positions[key] or Words(key), setup.positions[key], setup.positions[key] == nil and ns.Locale:Get("highground.profilesummary.default_position.82714b") or nil)
+      Add(ns.Locale:Get("profiles.review.positions"), "positions." .. key, positions[key] and Message(positions[key]) or Words(key), setup.positions[key],
+        setup.positions[key] == nil and Message("profiles.position.default") or nil)
     end
     for key in P.SortedPairs(Core.SavedDefs) do
       if key ~= "hubSection" and not featureKeys[key] then
@@ -162,7 +185,8 @@ local function Entries(snap)
     local base = Core.BaseProfile(id)
     for _, stat in ipairs({ "k", "i" }) do
       Add(ns.Locale:Get("highground.profilesummary.specialization_ratings.701f44"), "specs." .. id .. "." .. stat,
-        ns.Util.ClassName(info.class) .. " · " .. info.name .. " · " .. (stat == "k" and ns.Locale:Get("highground.profilesummary.killability.7d81d0") or ns.Locale:Get("highground.profilesummary.impact.62036a")),
+        Message("profiles.label.rating", { class = ns.Util.ClassName(info.class), spec = info.name,
+          rating = Message(stat == "k" and "profiles.rating.killability" or "profiles.rating.impact") }),
         Value((p.specRatings[id] or {})[stat], base[stat]))
     end
   end
@@ -181,6 +205,8 @@ function P.Review(snap, before)
     local old = byID[row.id]
     if not old or not P.ValuesEqual(old.value, row.value) then
       row.before = old and old.text or ns.Locale:Get("highground.profilesummary.not_included.bfca33")
+      row.added = not old
+      row.previous = old
       changes[#changes + 1] = row
     end
     byID[row.id] = nil
@@ -188,7 +214,8 @@ function P.Review(snap, before)
   -- Per-spell overrides not in this client's catalogue can be removed too.
   for _, old in ipairs(previous) do
     if byID[old.id] and (old.id:match("^burst%.") or old.id:match("^cooldowns%.")) and snap.setup then
-      changes[#changes + 1] = { group = old.group, id = old.id, label = old.label, before = old.text, text = ns.Locale:Get("highground.appearance.default.808d7d") }
+      changes[#changes + 1] = { group = old.group, id = old.id, label = old.label, labelSource = old.labelSource,
+        before = old.text, previous = old, text = Format(nil) }
     end
   end
   return changes
@@ -196,13 +223,51 @@ end
 
 function P.ReviewText(rows, empty)
   local parts, group = {}, nil
+  local function DiffLine(value, prefix, color)
+    return ns.Theme.Hex(color) .. prefix .. value:gsub("\n", "\n" .. prefix) .. "|r"
+  end
+  if rows and rows[1] and rows[1].before then
+    parts[#parts + 1] = DiffLine(L:Get("profiles.review.previous"), "- ", "danger")
+      .. "    " .. DiffLine(L:Get("profiles.review.new"), "+ ", "success") .. "\n"
+  end
   for _, row in ipairs(rows or {}) do
     if row.group ~= group then
       if group then parts[#parts + 1] = "" end
-      parts[#parts + 1] = ns.Theme.TipHex("accent") .. row.group .. "|r"
+      parts[#parts + 1] = ns.Theme.Hex("accent") .. (row.group == "Panel positions" and L:Get("profiles.review.positions") or row.group) .. "|r"
       group = row.group
     end
-    parts[#parts + 1] = row.label .. ": " .. (row.before and (row.before .. " → ") or "") .. row.text
+    local label, value = Label(row.labelSource or row.label), Format(row.display)
+    if row.before then
+      local before = row.previous and Format(row.previous.display) or row.before
+      parts[#parts + 1] = label .. "\n" .. (row.added and "" or (DiffLine(before, "  - ", "danger") .. "\n"))
+        .. DiffLine(value, "  + ", "success") .. "\n"
+    elseif row.id:match("^positions%.") then
+      parts[#parts + 1] = label .. "\n  " .. value:gsub("\n", "\n  ") .. "\n"
+    else
+      parts[#parts + 1] = label .. ": " .. value
+    end
   end
-  return #parts > 0 and table.concat(parts, "\n") or empty or ns.Locale:Get("highground.profilesummary.no_differences_in_the_included_settings.3c28f8")
+  return #parts > 0 and table.concat(parts, "\n") or empty or L:Get("profiles.review.empty")
+end
+
+-- Retain only the current review sections, so a theme change can recolor
+-- receipts without rebuilding snapshots or changing the reviewed values.
+local function Render(area)
+  local parts = {}
+  for _, section in ipairs(area.profileReviewSections) do
+    parts[#parts + 1] = type(section) == "table" and P.ReviewText(section) or section
+  end
+  area:SetText(table.concat(parts, "\n\n"))
+end
+function P.SetReviewText(area, sections)
+  area.profileReviewSections = sections
+  if not area.profileReviewBound then
+    area.profileReviewBound = true
+    area:HookScript("OnShow", function() Render(area) end)
+    ns.Theme.OnChange(function() if area:IsVisible() then Render(area) end end)
+    -- A bound display target redraws the cached sections on a language change.
+    area.profileReviewLocale = { SetText = function() if area:IsVisible() then Render(area) end end }
+    ns.Localization.Bind(area.profileReviewLocale, "profiles.review.previous")
+  end
+  Render(area)
 end

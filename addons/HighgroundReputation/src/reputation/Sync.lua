@@ -154,8 +154,8 @@ function W.Tick()
   if now >= (W.nextStatus or 0) then
     W.nextStatus = now + 2
     if W.UI then
-      if W.UI.report and W.UI.report:IsShown() then W.UI.RefreshDialogs() end
-      if W.UI.window and W.UI.window:IsShown() then W.UI.Refresh() end
+      if W.UI.report and W.UI.report:IsVisible() then W.UI.RefreshDialogs() end
+      if W.UI.window and W.UI.window:IsVisible() then W.UI.Refresh() end
     end
   end
   if now >= (W.nextSync or 0) then

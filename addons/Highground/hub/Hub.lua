@@ -5,11 +5,10 @@ local Hub = {}
 ns.Hub = Hub
 
 ---------------------------------------------------------------------------
--- Highground hub: one window for everything, opened by /hg, /hg config and
--- the minimap button. It draws nothing twice: the settings pages, the
--- profiles page, the macros window and the bounty board are borrowed
--- (reparented into the hub while shown, handed back afterwards), so the
--- Blizzard Options > AddOns > Highground panel keeps working unchanged.
+-- Highground configuration, opened by /hg, /hg config and the minimap
+-- button. Settings, profiles and the guide are borrowed while shown, so
+-- Blizzard Options > AddOns > Highground keeps working. Addon workspaces
+-- open separately through the buttons on their configuration pages.
 -- Not secure: opens and works in combat.
 ---------------------------------------------------------------------------
 Hub.W, Hub.H, Hub.NAV_W = 960, 700, 190
@@ -26,7 +25,6 @@ local LAYOUT = {
   ns.Localization.Define({ key = "battlegrounds-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
   ns.Localization.Define({ key = "battlegrounds-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
   ns.Localization.Define({ key = "battlegrounds-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
-  ns.Localization.Define({ key = "history", label = ns.Locale:Get("highground.hub.match_history.b65b77"), cmd = "history" }, { label = "highground.hub.match_history.b65b77" }),
   { key = "timers" },
   { key = "behavior" }, { key = "priority" }, { key = "objectives" }, { key = "live" },
   { key = "cooldowns" }, { key = "tracking" }, { key = "burst" }, { key = "specs" }, { key = "multipliers" },
@@ -42,26 +40,22 @@ local LAYOUT = {
   ns.Localization.Define({ key = "nearby-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
   ns.Localization.Define({ key = "nearby-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
   ns.Localization.Define({ key = "nearby-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
-  ns.Localization.Define({ key = "journal", label = ns.Locale:Get("highground.hub.enemy_journal.1dbc52"), cmd = "journal" }, { label = "highground.hub.enemy_journal.1dbc52" }),
   ns.Localization.Define({ group = "Bounties", module = "bounties", collapsed = true }, { groupLabel = "highground.modules.bounties.eba0bf" }),
   ns.Localization.Define({ key = "module-bounties", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
   ns.Localization.Define({ key = "bounty", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
   ns.Localization.Define({ key = "bounties-appearance", label = ns.Locale:Get("highground.hub.appearance.41def7") }, { label = "highground.hub.appearance.41def7" }),
   ns.Localization.Define({ key = "bounties-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
   ns.Localization.Define({ key = "bounties-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
-  ns.Localization.Define({ key = "bountyboard", label = ns.Locale:Get("highground.hub.bounty_board.f37f61"), cmd = "bounty" }, { label = "highground.hub.bounty_board.f37f61" }),
   ns.Localization.Define({ group = "Reputation", module = "reputation", collapsed = true }, { groupLabel = "highground.modules.reputation.5f2160" }),
   ns.Localization.Define({ key = "module-reputation", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
   ns.Localization.Define({ key = "reputation-settings", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
   ns.Localization.Define({ key = "reputation-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
   ns.Localization.Define({ key = "reputation-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
-  ns.Localization.Define({ key = "reputation", label = ns.Locale:Get("highground.hub.player_reputation.f7fbeb"), cmd = "reputation" }, { label = "highground.hub.player_reputation.f7fbeb" }),
   ns.Localization.Define({ group = "Macros", module = "macros", collapsed = true }, { groupLabel = "highground.modules.macros.899bd6" }),
   ns.Localization.Define({ key = "module-macros", label = ns.Locale:Get("highground.hub.overview_and_enable.6d2675") }, { label = "highground.hub.overview_and_enable.6d2675" }),
   ns.Localization.Define({ key = "macros-settings", label = ns.Locale:Get("highground.hub.settings.c7f73b") }, { label = "highground.hub.settings.c7f73b" }),
   ns.Localization.Define({ key = "macros-previews", label = ns.Locale:Get("highground.hub.previews_and_guide.e53405") }, { label = "highground.hub.previews_and_guide.e53405" }),
   ns.Localization.Define({ key = "macros-commands", label = ns.Locale:Get("highground.hub.commands.45e5f3") }, { label = "highground.hub.commands.45e5f3" }),
-  ns.Localization.Define({ key = "macros", label = ns.Locale:Get("highground.hub.macro_builder.2132d0"), cmd = "macros" }, { label = "highground.hub.macro_builder.2132d0" }),
   ns.Localization.Define({ group = "Shared preferences", collapsed = true }, { groupLabel = "shared.options.shared_preferences.74ed51" }),
   ns.Localization.Define({ key = "general", label = ns.Locale:Get("highground.hub.general.9239ee") }, { label = "highground.hub.general.9239ee" }),
   ns.Localization.Define({ key = "appearance", label = ns.Locale:Get("highground.hub.shared_appearance.78b3c9") }, { label = "highground.hub.shared_appearance.78b3c9" }),
@@ -81,17 +75,7 @@ local OWN = {
   home = function() return Hub.home end,
   setup = function() return ns.Setup.Open(true) end,
   alerts = function() return ns.Alerts.Open(true) end,
-  history = function() return ns.MatchHistory.Open(true) end,
-  journal = function() return ns.EnemyJournal and ns.EnemyJournal.Open(true) end,
   profiles = function() return ns.Options.panel end,
-  bountyboard = function() return ns.Bounty and ns.Bounty.Board and ns.Bounty.Board.Build() end,
-  reputation = function() return ns.Reputation and ns.Reputation.Open(true) end,
-  ["reputation-settings"] = function()
-    local frame = ns.Reputation and ns.Reputation.Open(true)
-    if frame then ns.Reputation.UI.SetMode("settings") end
-    return frame
-  end,
-  macros = function() return ns.Macros and ns.Macros.Window and ns.Macros.Window.Build() end,
 }
 for _, def in ipairs(ns.Modules.list) do
   OWN["module-" .. def.key] = function() return Hub.BuildModules(def.key) end

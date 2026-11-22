@@ -53,7 +53,9 @@ end
 
 function Bounty.Announce(b, where, preview, unit)
   local from = b.state == "personal" and "yours" or (ns.Locale:Format("shared.alerts.from_value2.498fa1", { value2 = Core.DisplayName(b.by or "?") }))
-  if b.state == "public" then from = #b.contributions .. (b.imported and ns.Locale:Get("shared.alerts.contributors_imported_offer_funds_unverified.75cdbd") or ns.Locale:Get("shared.alerts.contributors_funds_reported_available.d5cfb7")) end
+  if b.state == "public" then
+    from = Bounty.Contributions(#b.contributions, ns.Locale:Get(b.imported and "bounty.contribution.imported" or "bounty.contribution.funds"))
+  end
   local text = ns.Locale:Format("shared.alerts.bounty_value1_value2_from.d1b19d", { value1 = string.format("%s", Core.DisplayName(b.name)), value2 = string.format("%s", b.gold > 0 and (Gold(b) .. ", ") or ""), from = string.format("%s", from) })
   if preview then text = ns.Locale:Format("shared.alerts.preview_text.e2eadc", { text = text }) end
   if not preview and ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(b.name) then return end
@@ -73,7 +75,8 @@ function Bounty.Announce(b, where, preview, unit)
 end
 
 function Bounty.AnnounceShared(b, preview)
-  local text = ns.Locale:Format("shared.alerts.value1_shared_bounty_value3_value5_with_funds.d4180b", { value1 = (preview and ns.Locale:Get("shared.alerts.preview.da0c76") or ""), value3 = Core.DisplayName(b.name), value5 = Util.Gold(b.gold), value7 = #b.contributions })
+  local text = ns.Locale:Format("bounty.shared.alert", { preview = preview and ns.Locale:Get("shared.alerts.preview.da0c76") or "",
+    name = Core.DisplayName(b.name), gold = Util.Gold(b.gold), contributions = Bounty.Contributions(#b.contributions) })
   if preview then Say(text); Bounty.PreviewSound(); Bounty.Matches.Show(b, true)
   else Util.Notify("bounty", "public:" .. Bounty.Key(b.name), text, Bounty.PlaySound, function() Say(text) end) end
 end

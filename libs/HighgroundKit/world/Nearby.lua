@@ -213,7 +213,8 @@ function Nearby.Build()
           if GetTime() - e.last >= 2 then lines[#lines + 1] = { ns.Locale:Get("shared.nearby.the_player_may_have_moved_away.7cd55b"), "textMuted" } end
         end
         if b then
-          local from = b.state == "public" and (ns.Locale:Format("shared.nearby.from_value2_contributions_funds_reported_available.23393a", { value2 = #b.contributions }))
+          local from = b.state == "public" and ns.Locale:Format("shared.nearby.from_value2.285e3d",
+              { value2 = ns.Bounty.Contributions(#b.contributions, ns.Locale:Get("bounty.contribution.funds")) })
             or (ns.Locale:Format("shared.nearby.from_value2.285e3d", { value2 = Core.DisplayName(b.by or "?") }))
           lines[#lines + 1] = { ns.Locale:Format("shared.nearby.bounty_value2_from.f1e227", { value2 = ns.Bounty.GoldText(b), from = from }), "bounty" }
         end

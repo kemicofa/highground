@@ -23,7 +23,8 @@ local function TooltipLine(tip)
   if b then
     if b.state == "public" then
       ns.Theme.TipLine(tip, ns.Locale:Format("shared.driver.shared_bounty_value2_with_funds_reported_available.821b9d", { value2 = Bounty.GoldText(b) }), "gold")
-      ns.Theme.TipLine(tip, ns.Locale:Format("shared.driver.value1_contributions_value3_pledged.e2aced", { value1 = #b.contributions, value3 = ns.Util.Gold(b.pledgedGold) }), "textMuted")
+      ns.Theme.TipLine(tip, Bounty.Contributions(#b.contributions,
+        ns.Locale:Format("bounty.contribution.pledged", { gold = ns.Util.Gold(b.pledgedGold) })), "textMuted")
     else ns.Theme.TipLine(tip, ns.Locale:Format("shared.driver.bounty_value2_from_value4.19669f", { value2 = Bounty.GoldText(b), value4 = Core.DisplayName(b.by or "?") }), "gold") end
   end
 end

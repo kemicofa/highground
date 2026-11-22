@@ -23,6 +23,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Cut bounty CPU and memory churn around many players: nameplate, kill-order row, Nearby and roster checks skip players without a bounty, and closed notification scans wait for bounty changes. Answer bursts of guild and community sync requests once, without re-announcing funding to every audience, and expire saved bounties from organizations you have left.
 - Ask for a second click before rejecting a kill report in **Claims & payments**; another action, another claim or closing the window cancels it.
 - Stop repeated "No player named … is currently playing" messages from bounty sharing. Claim reviews, status checks and mega-bounty decisions now retry only while the other player seems online, back off and stop once acknowledged; notices for players just whispered by an addon message are hidden.
+- Keep accented and non-Latin letters whole when bounty notes and death-report zones reach their length limit.
 - Ignore guild and community bounty messages that carry chat escape codes, control characters or oversized names, and forget old mega-bounty decisions that no saved reward still uses, so a full store cannot block new decisions.
 
 ## [2.50.0] - 2026-11-22

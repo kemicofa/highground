@@ -4992,4 +4992,13 @@ assert(ns.Locale:Register("esMX", {
   ["macros.save.unchanged.character"] = "Coincide con {name} en tus macros de personaje. Edítala para guardar los cambios.",
   ["macros.save.unchanged.general"] = "Coincide con {name} en tus macros generales. Edítala para guardar los cambios.",
   ["macros.card.differs"] = "Guardada con otro texto",
+  ["reputation.role.owner"] = "Propietario",
+  ["reputation.role.guild_master"] = "Maestro de hermandad",
+  ["reputation.role.leader"] = "Líder",
+  ["reputation.role.moderator"] = "Moderador",
+  ["reputation.role.officer"] = "Oficial",
+  ["reputation.role.member"] = "Miembro",
+  ["reputation.role.unavailable"] = "Rol no disponible",
+  ["reputation.member.online"] = "{role} · En línea",
+  ["reputation.member.offline"] = "{role} · Desconectado",
 }))

@@ -9,6 +9,21 @@ local HELP = ns.Localization.Define({
   members = ns.Locale:Get("reputation.window.your_native_roster_membership_and_roles_are.d41b12"),
   history = ns.Locale:Get("reputation.window.previous_decisions_including_dismissed_proposals_and_revok.a31834"),
 }, { blacklist = "reputation.window.approved_decisions_these_entries_affect_your_chat.e2b355", members = "reputation.window.your_native_roster_membership_and_roles_are.d41b12", history = "reputation.window.previous_decisions_including_dismissed_proposals_and_revok.a31834" })
+-- Native role labels for the Members tab; guilds name their own ranks.
+-- Guide samples supply display labels, which are shown unchanged.
+local ROLE_KEYS = {
+  community = { owner = "reputation.role.owner", leader = "reputation.role.leader",
+    moderator = "reputation.role.moderator", member = "reputation.role.member" },
+  guild = { owner = "reputation.role.guild_master", leader = "reputation.role.leader",
+    moderator = "reputation.role.officer", member = "reputation.role.member" },
+}
+local function MemberHint(role, online, kind)
+  local key = (ROLE_KEYS[kind] or ROLE_KEYS.community)[role]
+  local label = key and ns.Locale:Get(key) or type(role) == "string" and role or ns.Locale:Get("reputation.role.unavailable")
+  return ns.Locale:Format(online and "reputation.member.online" or "reputation.member.offline", { role = label })
+end
+UI.MemberHint = MemberHint
+
 local function Current(source)
   local W = source or W
   return W.Get()
@@ -33,9 +48,10 @@ local function Rows(c, source)
   elseif UI.mode == "members" then
     local members
     members, state = O.Members(c.id)
+    local org = O.Get(c.id)
     for _, member in ipairs(members) do
-      rows[#rows + 1] = { name = ns.Core.DisplayName(member.name), hint = (member.role or ns.Locale:Get("reputation.window.role_unavailable.48f5d9"))
-        .. (member.online and ns.Locale:Get("reputation.window.online.e29e74") or ns.Locale:Get("reputation.window.offline.a79382")), action = ns.Locale:Get("reputation.window.view_in_wow.26263e"), run = function() W.OpenNative(c) end }
+      rows[#rows + 1] = { name = ns.Core.DisplayName(member.name), hint = MemberHint(member.role, member.online, org and org.kind),
+        action = ns.Locale:Get("reputation.window.view_in_wow.26263e"), run = function() W.OpenNative(c) end }
     end
   elseif c and UI.mode ~= "settings" then
     for _, row in ipairs(W.Rows(c, UI.mode)) do

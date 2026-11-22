@@ -4992,4 +4992,13 @@ assert(ns.Locale:Register("deDE", {
   ["macros.save.unchanged.character"] = "Entspricht {name} in deinen charakterspezifischen Makros. Bearbeite es, um Änderungen zu speichern.",
   ["macros.save.unchanged.general"] = "Entspricht {name} in deinen allgemeinen Makros. Bearbeite es, um Änderungen zu speichern.",
   ["macros.card.differs"] = "Mit anderem Text gespeichert",
+  ["reputation.role.owner"] = "Besitzer",
+  ["reputation.role.guild_master"] = "Gildenmeister",
+  ["reputation.role.leader"] = "Leiter",
+  ["reputation.role.moderator"] = "Moderator",
+  ["reputation.role.officer"] = "Offizier",
+  ["reputation.role.member"] = "Mitglied",
+  ["reputation.role.unavailable"] = "Rolle nicht verfügbar",
+  ["reputation.member.online"] = "{role} · Online",
+  ["reputation.member.offline"] = "{role} · Offline",
 }))

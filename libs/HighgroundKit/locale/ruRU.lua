@@ -4992,4 +4992,13 @@ assert(ns.Locale:Register("ruRU", {
   ["macros.save.unchanged.character"] = "Совпадает с {name} в ваших макросах персонажа. Измените текст, чтобы сохранить изменения.",
   ["macros.save.unchanged.general"] = "Совпадает с {name} в ваших общих макросах. Измените текст, чтобы сохранить изменения.",
   ["macros.card.differs"] = "Сохранено с другим текстом",
+  ["reputation.role.owner"] = "Владелец",
+  ["reputation.role.guild_master"] = "Глава гильдии",
+  ["reputation.role.leader"] = "Лидер",
+  ["reputation.role.moderator"] = "Модератор",
+  ["reputation.role.officer"] = "Офицер",
+  ["reputation.role.member"] = "Участник",
+  ["reputation.role.unavailable"] = "Роль недоступна",
+  ["reputation.member.online"] = "{role} · В сети",
+  ["reputation.member.offline"] = "{role} · Не в сети",
 }))

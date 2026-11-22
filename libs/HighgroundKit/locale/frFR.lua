@@ -4992,4 +4992,13 @@ assert(ns.Locale:Register("frFR", {
   ["macros.save.unchanged.character"] = "Identique à {name} dans vos macros de personnage. Modifiez-la pour enregistrer des changements.",
   ["macros.save.unchanged.general"] = "Identique à {name} dans vos macros générales. Modifiez-la pour enregistrer des changements.",
   ["macros.card.differs"] = "Enregistrée avec un autre texte",
+  ["reputation.role.owner"] = "Propriétaire",
+  ["reputation.role.guild_master"] = "Maître de guilde",
+  ["reputation.role.leader"] = "Responsable",
+  ["reputation.role.moderator"] = "Modérateur",
+  ["reputation.role.officer"] = "Officier",
+  ["reputation.role.member"] = "Membre",
+  ["reputation.role.unavailable"] = "Rôle indisponible",
+  ["reputation.member.online"] = "{role} · En ligne",
+  ["reputation.member.offline"] = "{role} · Hors ligne",
 }))

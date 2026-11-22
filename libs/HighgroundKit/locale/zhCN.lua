@@ -4992,4 +4992,13 @@ assert(ns.Locale:Register("zhCN", {
   ["macros.save.unchanged.character"] = "与你的角色专用宏中的{name}相同。修改后才能保存。",
   ["macros.save.unchanged.general"] = "与你的通用宏中的{name}相同。修改后才能保存。",
   ["macros.card.differs"] = "已用其他内容保存",
+  ["reputation.role.owner"] = "所有者",
+  ["reputation.role.guild_master"] = "公会会长",
+  ["reputation.role.leader"] = "负责人",
+  ["reputation.role.moderator"] = "管理员",
+  ["reputation.role.officer"] = "官员",
+  ["reputation.role.member"] = "成员",
+  ["reputation.role.unavailable"] = "角色不可用",
+  ["reputation.member.online"] = "{role} · 在线",
+  ["reputation.member.offline"] = "{role} · 离线",
 }))

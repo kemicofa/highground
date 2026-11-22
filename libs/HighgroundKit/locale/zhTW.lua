@@ -4992,4 +4992,13 @@ assert(ns.Locale:Register("zhTW", {
   ["macros.save.unchanged.character"] = "與你的角色專用巨集中的{name}相同。修改後才能儲存。",
   ["macros.save.unchanged.general"] = "與你的共用巨集中的{name}相同。修改後才能儲存。",
   ["macros.card.differs"] = "已用其他內容儲存",
+  ["reputation.role.owner"] = "擁有者",
+  ["reputation.role.guild_master"] = "公會會長",
+  ["reputation.role.leader"] = "負責人",
+  ["reputation.role.moderator"] = "管理員",
+  ["reputation.role.officer"] = "幹部",
+  ["reputation.role.member"] = "成員",
+  ["reputation.role.unavailable"] = "角色不可用",
+  ["reputation.member.online"] = "{role} · 線上",
+  ["reputation.member.offline"] = "{role} · 離線",
 }))

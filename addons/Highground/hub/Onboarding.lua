@@ -229,7 +229,10 @@ ns.Util.Events({
     if IsInInstance() and (O.exploring or O.win and O.win:IsVisible()) then O.Dismiss() end
     ScheduleOffer()
   end,
-  PLAYER_REGEN_ENABLED = ScheduleOffer,
+  PLAYER_REGEN_ENABLED = function()
+    if O.win and O.win:IsVisible() then O.win:Refresh() end
+    ScheduleOffer()
+  end,
   PLAYER_REGEN_DISABLED = function()
     -- Stop owned samples before live combat. Resuming is explicit.
     if O.exploring == "preview" or O.exploring == "bounties" or O.exploring == "map" or O.exploring == "calls" or O.exploring == "native"

@@ -46,6 +46,7 @@ test("Home grows its blocks with large text instead of clipping, and reuses them
     equal(home.scroll.bar:IsShown(), home.scroll.range > 0, "scrolling appears only when needed")
   end
   equal(home.scroll.range, 0, "ordinary text fits without scrolling")
+  assert(math.abs(sim.bounds(home.card)[3] - sim.bounds(sim.ns.Hub.content)[3]) < 0.5, "cards use the full width when nothing scrolls")
   sim.ns.Localization.SetPreference("deDE")
   for _, text in ipairs({ home.state, home.guideHint, home.help }) do
     assert(text:GetStringHeight() <= text:GetHeight() + 0.01, "translated Home copy is measured again")

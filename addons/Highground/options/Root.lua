@@ -130,6 +130,8 @@ end))
 -- leaving the page or hiding the button cancels the pending confirmation.
 local deletePrompt
 p.profileButtons.Delete = p.footer:Add(WrapLabel(Kit.ConfirmButton(p.footer, T("delete"), { confirm = T("confirm_delete"),
+  -- A confirmation belongs to the profile it was armed for.
+  subject = function() return p.selected end,
   onArm = function()
     deletePrompt = T("delete_confirm", { name = p.selected })
     Status(deletePrompt); p.LayoutProfiles()
@@ -247,8 +249,11 @@ function p.RefreshProfiles(force)
   p.activeState = state
   p.lastRevision, p.lastActive, p.lastPending = state.revision, Core.db.activeProfile, P.pending
   p.current:SetText((state.label or T("current")) .. " - " .. (state.status or T("automatic_save")))
+  local before = p.selected
   p.selected = Core.db.profiles[p.selected] and p.selected or Core.db.activeProfile or "Default"
   if not Core.db.profiles[p.selected] then p.selected = "Default" end
+  -- Removing or renaming the selection elsewhere (such as a command) cancels its pending delete.
+  if p.selected ~= before then p.profileButtons.Delete:Disarm() end
   p.profileChoices = { { key = "Default", label = "Default" } }
   for name in P.SortedPairs(Core.db.profiles) do if name ~= "Default" then p.profileChoices[#p.profileChoices + 1] = { key = name, label = name } end end
   p.savedProfiles.choices = p.profileChoices

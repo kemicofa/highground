@@ -1,11 +1,5 @@
 # Development
 
-Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
-
-Highground owns the full shared-feature regression coverage. Retained standalone suites focus on host loading, coexistence, saved-data isolation, command/UI routing and host-specific behavior; they also keep feature coverage that has no Highground equivalent. Do not add a standalone wrapper for an unchanged shared scenario already covered by Highground unless it exercises a distinct compatibility path.
-
-Arena display/spec inference, flag-carrier display, stealth, nearby history, and bounty causes/details/gold/hunts/portraits/posters/sightings run through Highground only. Standalone duel commands, nearby controls, bounty guides/live previews, network interoperability, data scope, UI state/navigation and panel controls still have host-specific runs. Unique Bounties and Reputation suites remain in their owning folders; running only Highground does not replace `bash tests/run.sh --jobs 4` for repository-wide validation.
-
 [Documentation](README.md) · [Highground overview](../README.md)
 
 Highground uses Lua 5.1 (LuaJIT in tests) and the repository's shared HighgroundKit library. It has no external Lua dependencies. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.
@@ -134,13 +128,53 @@ Rules between modules:
 
 - **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
-- **Bounty events.** `libs/bounty/State.lua` owns personal, guild and community entries. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
+- **Bounty events.** `libs/bounty/State.lua` owns personal, guild and community entries. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`, `portrait`, `scope`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
 - **Sharing layers.** `Comms.Send` returns whether the game accepted a message. `Network` owns bounded queues, fragmentation, assembly and retries; features own audiences, payload validation and reconciliation. `bounty/PublicWire.lua` adapts bounty routing to it, `PublicMessages.lua` owns payload fields, versions and dispatch, and `PublicTransport.lua` owns channel discovery and scheduling. Append positional wire fields instead of reordering them. `Chat.Draft`, `Chat.LinkFilter` and `Chat.InstallLinks` provide chat API compatibility for profiles and bounties; import reviews stay with each feature. See [networking](../../../docs/networking.md).
 - **Honor credit.** `Honor.Name(message)` parses a named victim from localized honor chat, without choosing a target or assuming a killing blow. Nearby history resolves the name against known encounters; bounties apply their own identity and claim rules. Mute preferences belong to the history model and remain usable without the journal UI or new encounter recording.
 - **Hub borrowing.** The hub reparents configuration pages, profiles and the feature guide while shown, then hands them back. Addon workspaces (macros, Reputation, bounties, journal and match history) stay parented to `UIParent`; `Options.ToolLink` and `Options.OpenTool` launch their ordinary windows. Old workspace routes redirect to their settings pages. While a configuration page is borrowed, its `frame.close` is hidden and dragging is off. `Hub.Release(frame)` still lets embedded setup and guide dialogs open independently. Blizzard's panel uses the same settings pages, including Reputation preferences built from its shared settings controls without creating its browser.
 - **UI routing.** `Hub.Navigate(target)` and `Hub.RegisterRoute(name, definition)` connect components to the hub's router. Existing `Hub.Open`/`Hub.Show` callers also use it. Features expose their own routers through `Kit.AttachNavigation`; the hub delegates Back/Forward to the active feature. `Kit.Windows.router` coordinates ordinary dialogs across addon copies. Guards run before entry; `capture` preserves per-visit drafts. Bounded history lasts for the session. See [UI routing](router.md) for the API and adoption map.
 - **Secure frames.** Click targets (rows, card, carriers, arena, nearby, key buttons) are secure. Their attributes, size, position and visibility change only out of combat; changes asked for in combat wait for `PLAYER_REGEN_ENABLED`. Battleground windows hide through `Timers.SecureHide` (fades out in combat) and show through `Timers.SecureShow` (waits for the end of combat). Kit controls are plain frames and work in combat.
 - **Battleground rules** are resolved configuration. Runtime code must not change them.
+
+## Services
+
+Other shared services worth knowing before adding a feature:
+
+| Namespace | Source | Use |
+| --- | --- | --- |
+| `ns.Modules` | `core/Modules.lua` | Module switch snapshot taken at load: `Installed`, `Selected`, `Active(key)`, `Require(key)` (opens the module's page instead of running a disabled module's command), `SetEnabled`, `Reload`. Changes apply after reload. |
+| `ns.PreviewTests` | `commands/Previews.lua` | The preview catalog shared by `/hg test` and **Help and commands**: `StartAll`, `StopAll`, `Active`, `CanStart` |
+| `Options` | `options/Controls.lua`, `options/Register.lua` | Settings building blocks (`Get`, `Set`, `Wire`, `Toggle`, `Stepper`, `Section`, `Row`, `RefreshPage`) and page registration by key in `ns.OptionsConfig.pages` (`Register`, `Open`, `OpenPage`) |
+| `ns.PanelControls` | [libs/ui/PanelControls.lua](../../../libs/HighgroundKit/ui/PanelControls.lua) | Lock/unlock, cogwheel menus and panel opacity for HUD windows (`Locked`, `Toggle`, `Refresh`); `Core.SetPanelsLocked` |
+| `ns.Stealth`, `ns.PvPStealth` | [libs/core/Stealth.lua](../../../libs/HighgroundKit/core/Stealth.lua), [libs/pvp/Stealth.lua](../../../libs/HighgroundKit/pvp/Stealth.lua) | Stealth entry/exit from readable auras and casts (Nearby, battlegrounds, arenas); Cata adds exact combat-log removals |
+| `ns.PlayerDeaths` | [libs/world/Deaths.lua](../../../libs/HighgroundKit/world/Deaths.lua) | `Listen(fn)`: your death, reported once and only when a hostile player caused it. Nearby history and bounty suggestions share it. |
+| `ns.Scope` | [libs/core/Scope.lua](../../../libs/HighgroundKit/core/Scope.lua) | Character, faction, realm/ruleset and account boundaries and scoped stores; see [data scopes](data-scopes.md) |
+
+### Bounty modules
+
+`ns.Bounty` lives in [libs/HighgroundKit/bounty/](../../../libs/HighgroundKit/bounty/). Its main parts:
+
+| Part | Files | Holds |
+| --- | --- | --- |
+| Entries | `State.lua`, `Driver.lua`, `Alerts.lua`, `Marks.lua`, `Sightings.lua` | Personal, guild and community entries and their events; game-event wiring; sighting alerts and nameplate coins |
+| Organizations | `Organizations.lua`, `Sync.lua`, `OrganizationSync.lua` | Per-organization data over the [organization service](../../../docs/organizations.md); guild (`HighgroundB`) and community sync |
+| Shared board | `Public*.lua` | Shared contributions in `HighgroundBountyData`, wire schemas, transport and channel discovery, claims |
+| Pots | `Pot*.lua` | A pot is a view over live offers for one target, never another payable reward; contributions adopt the original's terms |
+| Claims and kills | `Ledger.lua`, `Kills.lua`, `Proof.lua`, `Terms.lua` | Claim reports (never proof of a kill or payment), kill evidence and proof posters, hunt terms |
+| Gold | `Gold.lua`, `Funding.lua`, `GoldView.lua`, `GoldTooltip.lua` | Account gold per realm or ruleset and reserved obligations |
+| Suggestions | `Suggestions.lua`, `SuggestionSync.lua`, `SuggestionView.lua` | Death-report suggestions and their guild messages |
+| Sharing | `Share.lua`, `Import.lua`, `Exchange*.lua` | Chat links, export codes and Discord posts, reviewed imports |
+| Views | `Board*.lua`, `Form*.lua`, `Wanted.lua`, `Poster.lua`, `Portraits.lua`, `Details.lua`, `Navigation.lua`, `Widgets.lua` | The board, creation form, wanted posters and portraits |
+| Previews | `Preview*.lua` | `/hg bounty test` and `/hg bounty guide` samples; they never touch live stores |
+| Boundaries | `Scope.lua` | Scoped storage and wire envelopes (game, region, realm, Forever ruleset) |
+
+## Addon pages
+
+`options/AddonPages.lua` gives each module one set of pages: Settings, Previews and guide, Commands and, except for Macros and Reputation, Appearance. Their keys are `<module>-settings`, `-previews`, `-commands` and `-appearance`; Nearby, Bounties and Reputation keep their older settings keys `nearby`, `bounty` and `reputation-settings`. The hub, Home, help shortcuts and panel cogwheels all route through this map. Each feature switch has one control, on its owner's page. Enemy stealth alerts stay on the shared Alerts page because several addons use them.
+
+Appearance and preview pages build their controls on first use. `options/Previews.lua` calls the existing preview commands and sample renderers; its Start/Stop buttons show the current sample state.
+
+Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts`, `style.normal` and `style.compact`. The style normalizer fills missing values from the older shared Battlegrounds values, on load and for imported profiles. A control for one addon's panel must not resize another addon's panel, and reset buttons name what they reset.
 
 ## Shared utilities
 
@@ -150,8 +184,11 @@ Rules between modules:
 | --- | --- |
 | `Util.Say(text[, kind])` | Shared chat format: coloured addon label, then text. `kind`: `"bounty"`, `"error"`, `"warning"` |
 | `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err`. Allocation-free: arguments wait in reused per-depth slots, so nested guards are safe |
-| `Util.Events(handlers[, name])` | Event frame; each handler runs through `Util.Guard`; unknown events are skipped |
-| `Util.Every(seconds, fn[, name])` | Guarded native ticker; returns `:Stop()` / `:Start()`; OnUpdate fallback only for zero intervals or clients without tickers |
+| `Util.RunGuarded(stage, fn)` | Allocation-free guard for argument-free callbacks on hot paths; use `Guard` when arguments or results matter |
+| `Util.RecordError(stage, err)`, `Util.ClearErrors()` | Record a failure in `HighgroundDB.errors` (shown by `/hg err`); clear them |
+| `Util.ModuleEnabled(module)` | False for a disabled Highground module or a standalone host on standby |
+| `Util.Events(handlers[, name, module])` | Event frame; each handler runs through `Util.Guard`. A handler can be `{ fn = f, unit = "player" }` for unit events. Unknown events are skipped; a disabled `module` registers nothing |
+| `Util.Every(seconds, fn[, name, module])` | Guarded native ticker; returns `:Stop()` / `:Start()`. OnUpdate fallback only for zero intervals or clients without tickers; a disabled `module` never schedules |
 | `PvPEvents.Listen(handlers, stage, live[, module])`, `PvPEvents.Every(seconds, fn, stage, live[, module, idle])` | Battleground/arena/duel work: events register and tickers run only while `live()` passes; dispatch allocates nothing per event. Call `PvPEvents.Refresh()` after changing what `live()` reads; a one-second check runs in PvP instances and duels |
 | `PvPEvents.Call(stage, fn, ...)` | `Util.Guard` for hot paths: up to six arguments, returns success and the first result without packing tables |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
@@ -160,6 +197,8 @@ Rules between modules:
 | `Util.Trim(s)`, `Util.Split(s[, sep])` | Trim spaces; split on one character (default `,`) into trimmed pieces, empty ones dropped |
 | `Util.Plural(n, word)` | `"1 error"`, `"2 errors"`; an upper-case word takes `S` (`"2 ERRORS"`) |
 | `Util.Ago(seconds)` | `"now"` (under 3 s), `"42s"`, `"7m"` |
+| `Util.Clock(seconds[, opts])` | `"1:15"`; `opts.round` gives `"42s"` under a minute |
+| `Util.Prefix([kind])`, `Util.ColorCode(token, fallback)` | The coloured addon label used by `Say`; a `\|cffRRGGBB` code for a theme token |
 | `Util.ClassName(class)`, `Util.SortClasses(list)` | A class token's name in the game's language; sort tokens by it |
 | `Util.SpellName(id)`, `Util.SpellTexture(spell)`, `Util.SpellID(name)` | Spell data on every client (`C_Spell` or the old globals); `SpellID` gives your highest known rank. nil when unknown or secret |
 | `Util.HealthFraction(unit)` | Health from 0 to 1, or nil (unknown, secret or no maximum) |
@@ -212,7 +251,7 @@ The state audit covers these shared boundaries:
 | Selectors and toggles | Renamed/removed choices, disabled or hidden menu owners, native enabled state and theme repaint; the same shared UI suite |
 | Native organizations | `Organizations.List()` and `Members(id)` return a second readiness result; reputation distinguishes a pending roster from a failed search; Reputation's `states_test.lua` exercises the shared browser in both hosts |
 | Bounty board selection | Returning to a departed organization resolves a live selection consistently in the model and control; preview choices use the same contract |
-| Screenshot capture | Per-attempt deadlines, unsupported API, cancellation, failure and retry; `tests/bounty_hunts.lua` in all three bounty clients plus `tests/async_test.lua` |
+| Screenshot capture | Per-attempt deadlines, unsupported API, cancellation, failure and retry; `tests/bounty_hunts.lua` (run by Highground's `hunts_test.lua` on Cata, Retail and Forever) plus `tests/async_test.lua` |
 | Profile transfers | `Profiles.Chat.receiving` and `.sending` use `Async` to retain success, failure and cancellation. Only the current receiving attempt may report a timeout; transfer success still requires separate import validation in the review. Covered by the `profileshare` simulations |
 | Deferred spell ranks | `Macros.Ranks.upgrade` uses `Host.Async`; its request names the scope (`learned` or `all`) and blocker (`combat` or `cursor`). New observations merge queued moves before applying, and retired timers cannot flush a replacement. Covered by the `macroranks` simulations |
 | Claim reviews | `Public.CLAIM_NEXT` is the one lifecycle (`claimed` → `approved` → `paid`, or `claimed` → `rejected`) for shared and organization claims; remote receipts may skip approval. Covered by `tests/public_claims_test.lua` and the bounty network suites |
@@ -257,7 +296,7 @@ A file can use another module at load time only if it loads earlier. Otherwise l
 - Colours are theme tokens ([design system](design-system.md)).
 - Chat output through `Util.Say`, errors through `Util.Guard`.
 - **400 lines** per maintained text file, aim for under 300. Split at functions and features. TOC manifests are exempt: they list one loaded file per line.
-- Comments and docs: short and plain.
+- Comments and docs: short and plain. Markdown files count toward the line limit. `python3 scripts/check_links.py` checks relative links and anchors, and `tests/test_docs.py` requires every guide to be linked from [docs/README.md](../../../docs/README.md) or [this index](README.md).
 - When a command changes, update its owning addon's `src/config/Commands.lua` (shared Highground commands use `config/Commands.lua`). Catalog rows supply the addon Commands page, combined Help and commands page, `/hg help`, UI actions and dispatch ownership. `Action` runs the existing handler; labeled `fields` collect arguments. `Link` must reach the actual equivalent control or editor, including all supported values. Aliases and inverse forms can share a control. Keep capability restrictions and destructive-action confirmations explicit.
 - Keep command references to one compact row per entry: syntax, a brief description and a small action button. Show full descriptions and aliases on hover, and open argument fields or confirmations only when requested. Large text must preserve the single-row layout without overlapping controls.
 - Regenerate [commands](commands.md) from this directory with `luajit ../../tools/command_docs.lua > docs/commands.md`. `tests/docs_test.lua` checks exact agreement. `tests/command_catalog_test.lua` checks loaded handlers, current nested parsers, client/module gates, page/button wiring, form validation and widget reuse on Cata, Retail and Forever. Add behavioral coverage for new delegated parsers or dispatch patterns; structural inspection is not a complete Lua parser or proof that a linked control performs the right operation. `tests/commands_display_test.lua`, `commands_settings_test.lua` and `commands_diagnostics_test.lua` run each argument mode through `/hg` (saved values, invalid input, combat and reloads); their `tests/support/commands.lua` runner fails on chat text that WoW would read as an escape code, so print literal pipes in syntax as `||`.
@@ -273,54 +312,19 @@ bash tests/run.sh
 
 The runner executes each addon's validator and Lua tests from its folder, then discovers the repository's `tests/test_*.py` suites. Those cover addon metadata, packaging, layout, publishing, release checks and theme integration. Highground's tests include manifest/XML checks, globals, colour literals, line limits, Lua 5.1 compilation, unit tests and [simulations](simulations.md). Simulations do not certify real in-client secure actions.
 
+Highground's suites own shared-feature coverage. The deprecated standalone hosts keep tests for host loading, coexistence, saved-data isolation, command/UI routing and host-only behavior; Bounties and Reputation also keep feature suites with no Highground equivalent. Don't add a standalone wrapper for a shared scenario Highground already covers. Running only Highground's tests does not replace the full run.
+
 For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). Use `bash tests/run.sh --addons-only HighgroundMacros` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
 
 For line coverage, run `bash tests/run.sh --addons-only --coverage --jobs 2` (optionally with addon names). Each Lua suite runs under `tools/coverage.lua` without the JIT compiler, roughly 10–20 times slower. The runner then writes `coverage/coverage.txt` and `coverage.json`: runtime modules ranked by uncovered lines, and uncalled functions by size. Modules no suite loads count as uncovered. Coverage pauses while a test stops the collector, so allocation budgets still hold. A full run takes about an hour at two workers; `coverage/timings.json` records suite durations so the next run starts the slowest suites first.
 
 Use `bash tests/run.sh --jobs 4` to run up to four Lua suites at once. Validators run first; repository Python tests run once after the Lua suites pass. Each Lua suite has its own process and its output stays together. Parallel runs split Highground simulations by the groups reported by `luajit tests/simulation_test.lua --list-groups` from the addon folder. The default `--jobs 1` retains the single-process simulation suite for debugging. CI uses four workers per addon job.
 
-The simulator clock indexes frames that have received an `OnUpdate` handler instead of scanning every decorative region on every step. It retains creation order, live visibility checks, timer ordering and the same 50 ms steps. Simulator scheduling tests cover handlers added or removed during callbacks, new frames, nested advances and bounded subscription bookkeeping.
+Run one addon's validator alone with `python3 tests/validate.py` from its folder: manifests, XML, unloaded modules, globals, the 400-line limit and Lua 5.1 compilation (the shared checks live in `tools/lint/lint.py`). The simulator advances in 50 ms steps and only visits frames with an `OnUpdate` handler.
 
-### Memory and interaction profiling
+### Profiling
 
-Run `luajit ../../tools/performance.lua cata` (or `retail`) from `addons/Highground/`. The [profiler](../../../tools/performance.lua) loads the actual TOC, opens common pages and measures object creation, CPU time and temporary Lua allocations. Heap and timing figures include the simulator's implementation of widgets; use them for comparisons, then verify memory and frame times in WoW with the same saved data and interactions.
-
-The memory audit against `5d7331d` found four avoidable costs:
-
-- Scoring controls were built at login, and visiting Cooldowns constructed every collapsed spell override. Both now build on first use and reuse their controls. Page edits refresh their own controls; hidden pages refresh on opening.
-- Each rounded button allocated 115 frames/regions, mostly individual texture bands for curved fills, outlines and glow. Shared corner artwork reduces this to 55, with the existing band renderer retained for custom radii. Regenerate the 2 KiB atlas with `python3 tools/control_corners.py`; the existing media packaging globs include it in every UI addon.
-- Panel-scale and other appearance controls called the full theme/font/layout refresh. Each setter now applies its affected properties. Themes, profile application and reset still apply the complete style; protected layout updates still defer during combat.
-- The profile footer copied tables by serializing and parsing them, then serialized both profiles again to compare them. Bounded table copies and comparisons now handle this locally, with polling limited to twice per second while visible.
-
-Cata simulator comparison, default saved data, same navigation sequence:
-
-| Measurement | Before | After |
-| --- | ---: | ---: |
-| Startup UI objects | 40,380 | 12,372 |
-| Objects added by first Cooldowns visit | 10,273 | 784 |
-| Objects added by first Macros visit | 8,828 | 4,568 |
-| Objects added by first Bounties visit | 4,631 | 2,411 |
-| Temporary allocations for ten panel-scale changes | ~186 MiB | ~5 KiB |
-
-`tests/performance_test.lua` enforces startup budgets, reuse, local refreshes, combat deferral and profile polling behavior. The shared component tests enforce the per-button budget and preserve corner masks during repainting. These tests avoid timing thresholds that vary between machines. In-game validation should include repeated settings/navigation clicks, enlarged text, theme changes and combat, using the complete updated addon package including the new texture.
-
-The follow-up idle audit uses `luajit ../../tools/performance_idle.lua cata` (or `retail`). It covers a closed hub, Home, Bounties, the feature guide, `/hg bg test`, a guided panel example, and closing everything afterwards. It disables JIT, settles animations, then measures 30 seconds per case, including retained heap after collection. Collection is diagnostic tooling only; the addon does not force collection.
-
-The simulator's own per-step health checks and absent-fixture lookups no longer allocate. On Cata this lowered every `performance_idle.lua` case by about 240 KiB per 30 simulated seconds (closed UI: 334 → 92 KiB); compare totals only with runs on the same simulator version. Budgets that wrap addon calls directly are unaffected.
-
-- Background intervals previously used 23 independent per-frame handlers even with the UI closed. Native tickers now wake callbacks at their requested intervals, with reusable error wrappers and cancellable preview handles. At the simulator's 20 FPS, that removes 13,800 idle OnUpdate calls per 30 seconds; the required periodic scans and network work still run.
-- Bounties rebuilt all tab models and card geometry twice per second. Changes still refresh immediately; age/expiry-only refreshes now poll every five seconds while visible. Hidden parents prevent background repainting, except during deliberate window preparation.
-- Guide spotlight geometry is reused until the target, scroll clipping, viewport, context, motion preference or coach size changes. Repeated `SetEnabled` calls no longer repaint unchanged buttons or interrupt pressed feedback.
-
-With an empty existing saved table and maps closed, the simulator allocated approximately 1.19 MiB → 0.47 MiB during 30 seconds of closed-UI idle, 31.6 MiB → 3.72 MiB on the bounty board, 5.01 MiB → 0.58 MiB in the battleground enemy preview (then `/hg test`, now `/hg bg test`), and 9.1 MiB → 3.44 MiB in a guided panel example. These are temporary allocations including simulated widget methods, not WoW's memory meter. No extra widgets or growing retained heap appeared during these stationary cases. After exiting the previews, per-frame callbacks returned to zero. `/hg bg test` intentionally keeps the normal scoring/render loop active until stopped.
-
-The [design system's runtime defaults](design-system.md#runtime-cost) apply these savings to reused controls. Token/custom colours, class HUD colours, text, native fonts and grid geometry skip unchanged writes. `Kit.Place` shares the geometry check with custom layouts. Regression checks run through Highground's and retained legacy hosts' manifests, including palette changes, fractional native coordinates, external geometry/font/text changes, restricted text and hidden controls.
-
-For sustained preview growth, run `luajit ../../tools/performance_tick.lua cata 30` (or `retail`). It attributes 30 seconds of allocations to the real tick stages, then observes 30 virtual minutes with normal automatic collection, followed by a diagnostic collection. Scoring now reuses each enemy's current explanation and bounded sorting/cooldown buffers instead of constructing them four times per second. Cooldowns are still filtered on each call so settings, spec discoveries and expiry apply immediately. On Cata, scoring allocations fell from approximately 964 KiB to 36 KiB per 30 seconds. The 30-minute checks on both clients created no new UI objects; collection reclaimed about 33 MiB, leaving roughly 127 KiB above the warmed baseline. Rising heap before collection alone does not establish a retained leak. Simulator collector scheduling and native-widget costs differ from WoW: validate the actual memory and CPU trend in-game after loading the updated code.
-
-For per-event costs in a live battleground, run `luajit ../../tools/performance_events.lua cata 1000` (or `retail`). It joins a simulated battleground with 15 visible enemies in combat, dispatches each native event to every registered frame and reports bytes allocated per event, then the live tick's allocation and widget calls per render. Against `c8c1455`, guarded handlers no longer pack arguments and results, so `CHAT_MSG_ADDON` fell from 913 to 1 byte per event, Cata's combat log from 4,513 to 161, `UNIT_AURA` from 1,569 to 105 and `NAME_PLATE_UNIT_ADDED` from 5,179 to 1,467. Teammate `UNIT_TARGET` events no longer rescan enemy focus. The 30-second live tick fell from 4,291 to 3,478 KiB on Cata and from 4,673 to 3,963 KiB on Retail; most of the remainder belongs to bounty sightings, organization lookups and nearby tracking. Scoring builds readable reasons only through `Core.Explain(e)`. The profiler's last section runs 40 enemies for a minute with 20 `UNIT_TARGET` and 20 `NAME_PLATE_UNIT_ADDED` events per second and attributes allocation to the outermost guarded callbacks: total allocation fell from 31,023 to 18,296 KiB on Cata and from 27,890 to 20,793 KiB on Retail. Enemy focus markers fell from 6,870 to 266 KiB on Cata and from 1,031 KiB to none on Retail. `Core.Render` fell from 5,074 to 3,075 KiB; the rest is the per-row bounty mark lookup. The panel subtitle is written only when the battleground, Blitz, row counts or roster status change (previously four rebuilds a second) and is left alone while the error notice shows. `Core.DisplayName` keeps up to 512 answers per player realm and client rule, never keyed by secret values: 4,000 repeated lookups fell from 628 KiB to none (`tests/names_test.lua`). These measurements stop the collector, so repeated identical strings count once; in WoW, formatted text created per tick is new garbage after each collection.
-
-Asset audit: the seven shipped guide logos are 512×512 uncompressed 32-bit TGA files (7 MiB of pixel data), drawn at up to 120×120 UI units. The shared crest adds another 1 MiB at 512×512; the minimap icon is 128×128 (64 KiB). The 1254×1254 original/transparent PNGs under `assets/addon-logos/` are source artwork and are not packaged. A 256×256 export for the logos/crest would cut their pixel data by 75% while keeping roughly 2× the guide display resolution; confirm appearance at enlarged UI scales before replacing them. This pixel budget is separate from measured Lua allocations.
+`tests/performance_test.lua` enforces startup budgets, control reuse, local refreshes, combat deferral and profile polling; `python3 scripts/check_performance.py` runs it with Reputation's budgets. The simulator profilers and the in-game `/hg perf` capture are listed under [performance review](../../../docs/performance.md#profilers). Profiler figures include simulated widgets: use them to compare changes, then check memory and frame times in WoW with the same saved data and interactions.
 
 ### Before release
 

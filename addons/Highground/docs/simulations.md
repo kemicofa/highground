@@ -1,7 +1,5 @@
 # Full-addon simulations
 
-Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
-
 [Documentation](README.md) · [Development](development.md)
 
 The simulator runs the real addon under LuaJIT with a controlled WoW API boundary. It loads the selected client's TOC in order, loads XML script references and pin templates, sends `ADDON_LOADED` and `PLAYER_LOGIN`, and then runs the requested situations. Roster, scoring, event handlers, settings, windows, map providers and packet handling are the production modules.
@@ -102,11 +100,21 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `comms` | Addon-message prefix registration, wire formats and routing to the correct module |
 | `theme` | Theme API reads, repainting, saved and late-registered themes, Kit controls, dialogs, dropdown and copy box |
 | `accessibility` | Composited text and control contrast for every palette, class-name ink, focus and selection shapes, reduced motion in combat and after reload |
+| `themes` | Every shipped theme sets every token; Highground, Class Colors, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
+| `classrows` | Class-coloured row surfaces for enemies, arena and Nearby, custom class colours, neutral presets, repaint while idle and combat bindings |
+| `roworder` | Optional priority sorting, its saved preference, deferred secure reorders in combat, new matches and row limits |
+| `nearbycount` | The live **NEARBY: N** count: visible enemies, restricted identities and combat-log-only sightings |
+| `bountysuggestions` | Death-report suggestions in Highground, using the shared suite in `HighgroundBounties/tests/suggestions/` |
+| `headers` | `Kit.Header` alignment inside and outside dialogs, text actions, macro metadata and the profile header |
+| `windows` | `Kit.Windows`: one foreground tool, nested child dialogs, review return paths and standalone kit instances |
+| `panelcogs` | HUD cog access and fades, reduced motion, invisible-but-shown secure windows and header controls at enlarged text |
+| `navigation` | Sidebar group expansion: intermediate states, following sections, row fades, chevrons and input only on revealed rows |
+| `router` | Hub routing: Home shortcut, Back/Forward history, component mounting and combat |
 | `motion` | Motion tokens and fallbacks, the shared driver, retargeting and reversals, stale hides, entrances and reduced motion |
 | `motioncues` | Pooled transition records, easings, interrupted, hidden and reduced fades, protected frames in combat and deferred hides, progress and native Flash, Pop, Slide and Pulse cues |
-| `themes` | Every shipped theme sets every token; Highground, Ember, Parchment and Azeroth re-skin every open window, also in combat, without resizing; `/hg theme`, the Appearance picker, reloads |
+| `effects` | Glints, glows and hover halos, resizing during animation, and modern and legacy gradient APIs |
 
-`luajit tests/guide_modules_test.lua` exercises Addons switches and **Visit** on Cata, Retail and Forever, including disabled modules, saved guide progress, Back navigation, legacy checklist routes, combat and large text. `luajit tests/guide_localization_test.lua` checks saved language, fallback, long labels, live bindings and untranslated command syntax in the grouped Battlegrounds guides and command catalog. `luajit tests/modules_test.lua` covers the **How addons work** walkthrough and installation notices. The player-facing demonstration is `/hg guide addons`; `/hg test` continues to preview battleground panels.
+`luajit tests/guide_modules_test.lua` exercises Addons switches and **Visit** on Cata, Retail and Forever, including disabled modules, saved guide progress, Back navigation, legacy checklist routes, combat and large text. `luajit tests/guide_localization_test.lua` checks saved language, fallback, long labels, live bindings and untranslated command syntax in the grouped Battlegrounds guides and command catalog. `luajit tests/modules_test.lua` covers the **How addons work** walkthrough and installation notices. The player-facing demonstration is `/hg guide addons`.
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
 

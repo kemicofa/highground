@@ -122,7 +122,8 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   assert(timerRow and timerRow:IsShown() and flagRow:IsShown(), "timer and flag rows shown")
   local timerTag = timerRow.tag.wbToken
   assert(timerTag == "factionA" or timerTag == "factionH", "timer tag in a faction token")
-  equal(flagRow.tag.wbToken, "factionA", "our flag row in the Alliance token")
+  local function Crest() return (flagRow.faction:IsShown() and flagRow.faction or flagRow.icon).texture end
+  equal(Crest(), sim.ns.Timers.FACTION_ICON.A, "our flag row shows the Alliance crest")
 
   sim:setCombat(true)
   assert(T.Use("bgtest"), "switch in combat")
@@ -130,11 +131,11 @@ test("theme switch repaints timer, flag and arena rows, also in combat", functio
   near(timerRow.tag.textColor[1], want[1], "timer tag repainted")
   near(timerRow.place.textColor[1], 0.7, "timer place repainted")
   near(timerRow.bar.statusColor[1], want[1], "timer bar repainted")
-  near(flagRow.tag.textColor[1], 0.1, "flag tag repainted")
+  equal(Crest(), sim.ns.Timers.FACTION_ICON.A, "the crest does not follow the theme")
   sim:advance(0.5)
   sim:setCombat(false)
   assert(T.Use("highground"), "back")
-  near(flagRow.tag.textColor[1], T.Rgb("factionA")[1], "flag tag back to the base theme")
+  equal(Crest(), sim.ns.Timers.FACTION_ICON.A, "crest unchanged after the theme switch")
   sim:leave()
 
   sim:joinArena()

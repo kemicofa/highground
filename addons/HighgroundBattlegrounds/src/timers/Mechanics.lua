@@ -48,7 +48,7 @@ local function Add(key, text, tag, value, maximum, owner)
   local row = rowPool:Add()
   row.text, row.detail = text, detail
   row.time, row.frac = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac
-  row.color = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted")
+  row.color, row.team = owner and T.TeamColor(owner) or ns.Theme.Rgb("textMuted"), owner
   T.Tag(row, tag or "STATUS")
 end
 

@@ -12,6 +12,19 @@ function Timers.TeamColor(team)
   return Timers.FACTION_COLOR[team] or Timers.FACTION_COLOR[Timers.Other(Timers.MyTeam())]
 end
 
+-- Team crests: the side a team plays in this match (cross-faction games
+-- included), not the character's faction.
+Timers.FACTION_ICON = { A = "Interface\\Icons\\PVPCurrency-Honor-Alliance", H = "Interface\\Icons\\PVPCurrency-Honor-Horde" }
+function Timers.FactionIcon(tex, team)
+  local path = Timers.FACTION_ICON[team]
+  if path then
+    tex:SetTexture(path)
+    tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+  end
+  tex:SetShown(path ~= nil)
+  return path ~= nil
+end
+
 -- "|cffRRGGBB" of a theme colour (live table or token name).
 function Timers.Hex(c)
   return Theme.Hex(type(c) == "string" and c or Theme.Token(c) or "text")

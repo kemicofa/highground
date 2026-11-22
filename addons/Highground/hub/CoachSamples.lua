@@ -40,7 +40,7 @@ local function Objectives()
       text = ns.Locale:Get("highground.coachsamples.win_estimates_the_result_from_the_current.0c4942") },
     { id = "carrier", title = ns.Locale:Get("highground.coachsamples.find_the_enemy_flag_carrier.a2d424"), target = function() return ns.Flags.frows[2] end, event = "OnEnter",
       feature = "flags", settingLabel = ns.Locale:Get("highground.coachsamples.enable_flag_carrier_panel_in_game.91a521"),
-      text = ns.Locale:Get("highground.coachsamples.enemy_marks_vexa_the_opposing_carrier_ally.6e2441") },
+      text = ns.Locale:Get("highground.coachsamples.the_crest_on_each_carrier_s_class.0bc6ea") },
   }
 end
 

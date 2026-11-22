@@ -14,18 +14,18 @@ local SAMPLE_CARRIERS = { mine = { "Aldric", "PALADIN", 0.82, "x2  0:41" }, thei
 
 local function ResurrectionRows(me, them)
   return {
-    Timers.Tag({ color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.stables.4f2cd9"), left = 12, total = 30 }, "YOU"),
-    Timers.Tag({ color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.farm.c3215b"), left = 12, total = 30 }, "OURS"),
-    Timers.Tag({ color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.blacksmith.191a40"), left = 23, total = 30, est = true }, "THEIRS"),
+    Timers.Tag({ team = me, color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.stables.4f2cd9"), left = 12, total = 30 }, "YOU"),
+    Timers.Tag({ team = me, color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.farm.c3215b"), left = 12, total = 30 }, "OURS"),
+    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.blacksmith.191a40"), left = 23, total = 30, est = true }, "THEIRS"),
   }
 end
 
 local function ObjectiveRows(me, them)
   local name = { A = "Alliance", H = "Horde" }
   return {
-    Timers.Tag({ color = Timers.TeamColor(me), frac = 0.72, time = "3:10", text = name[me] .. "  1500-1180" }, "WIN"),
-    Timers.Tag({ color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
-    Timers.Tag({ color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 }, "CAPPING"),
+    Timers.Tag({ team = me, color = Timers.TeamColor(me), frac = 0.72, time = "3:10", text = name[me] .. "  1500-1180" }, "WIN"),
+    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
+    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 }, "CAPPING"),
   }, Timers.Hex(Timers.TeamColor(me)) .. "1080|r  " .. Timers.Hex(Timers.TeamColor(them)) .. "940|r"
 end
 
@@ -37,9 +37,8 @@ local function ShowCarriers(me, them)
   for _, r in ipairs(Flags.frows) do
     local s = SAMPLE_CARRIERS[r.side]
     r.team = r.side == "mine" and me or them
-    r.tag:SetText(r.side == "mine" and ns.Locale:Get("battlegrounds.window.ally.f5802d") or ns.Locale:Get("battlegrounds.window.enemy.c6abbe"))
-    Theme.Paint(r.tag, Timers.TeamColor(r.team))
     Kit.ClassIcon(r.icon, s[2])
+    Flags.Crest(r, true)
     local color = ns.Util.ClassColor(s[2])
     ns.Hud.PaintEnemy(r.classBg, color); ns.Hud.PaintClass(r.name, color)
     r.name:SetText(s[1])

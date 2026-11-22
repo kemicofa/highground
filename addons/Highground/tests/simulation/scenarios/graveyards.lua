@@ -58,7 +58,10 @@ for _, mapID in ipairs({ 1339, 1460 }) do
     equal(h.y, 0.73959668, "fallback Horde Y from client data")
     equal(rowFor(sim, "Horde Base Graveyard").tag.text, "YOU", "single Horde destination is unambiguous")
     equal(rowFor(sim, "Horde Base Graveyard").time.text, "--", "no fabricated resurrection clock")
-    equal(rowFor(sim, "Alliance Base Graveyard").tag.text, "THEIRS", "other faction remains separate")
+    local theirs = rowFor(sim, "Alliance Base Graveyard")
+    equal(theirs.tag:GetText(), "", "the crest replaces THEIRS")
+    equal(theirs.faction.texture, sim.ns.Timers.FACTION_ICON.A, "other faction remains separate")
+    equal(rowFor(sim, "Horde Base Graveyard").faction.texture, sim.ns.Timers.FACTION_ICON.H, "YOU keeps its tag beside the crest")
     assertPins(sim, a, h)
     sim:event("CHAT_MSG_ADDON", "HighgroundT", "2:" .. mapID .. ":W,H,5000,8500,7,Warsong Lumber Mill",
       "INSTANCE_CHAT", "Friend-Realm")

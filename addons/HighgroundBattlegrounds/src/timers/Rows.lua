@@ -163,7 +163,7 @@ function Timers.Rows(now)
     local ours = g.team == me
     local row = pool:Add()
     Timers.Tag(row, g == myG and "YOU" or ours and "OURS" or "THEIRS")
-    row.color = Timers.TeamColor(g.team)
+    row.color, row.team = Timers.TeamColor(g.team), g.team
     row.left, row.total, row.est = it.nw and it.nw - now, Timers.WavePeriod(), it.est or g.conf == "cap"
     local name = Timers.GYName(g)
     row.text = name ~= "" and name or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c")
@@ -174,7 +174,7 @@ function Timers.Rows(now)
   end
   if #out == 0 then
     local row = pool:Add()
-    Timers.Tag(row, "RES").color = Timers.TeamColor(me)
+    Timers.Tag(row, "RES").color, row.team = Timers.TeamColor(me), me
     row.text = ns.Locale:Get("battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a")
   end
   return out

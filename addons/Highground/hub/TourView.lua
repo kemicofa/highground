@@ -90,9 +90,10 @@ local function GuideCard(w, step)
     GuideTooltip(card.enable, step, nil, "Saves your preference for normal play immediately.")
   end
   function card:MeasureActions()
-    local sample = O.State().samples and O.State().samples[step.key]
+    local status = O.GuideStatus(step.key)
     local moduleOff = step.module and ns.Modules and not ns.Modules.Active(step.module)
-    self.start:SetText(moduleOff and "Addon settings" or step.paths and O.Text(step.actions[1], "label") or sample and sample ~= "done" and "Resume" or O.Done(step.key) and "Replay" or "Start")
+    self.start:SetText(moduleOff and "Addon settings" or step.paths and O.Text(step.actions[1], "label")
+      or status == "started" and "Resume" or status == "completed" and "Replay" or "Start")
     Fit(self.start, 88); self.start:SetHeight(math.max(28, self.start.label:GetStringHeight() + 10))
     if self.visit then
       Fit(self.visit, 64); self.visit:SetHeight(self.start:GetHeight())

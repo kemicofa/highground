@@ -1,13 +1,12 @@
 {
   "releases": {
-    "Highground": "3.0.0"
+    "Highground": "3.0.1"
   },
   "changes": [
-    "Highground now speaks German, Spanish, French, Italian, Korean, Brazilian Portuguese, Russian and Simplified and Traditional Chinese. Choose one under Shared preferences → General → Language (`/hg config general`).",
-    "Addons is one directory with each addon's switch, settings and walkthroughs, and every addon has its own sidebar section. Profiles now compare against a fixed built-in Default.",
-    "Highground uses less CPU and memory in battlegrounds, arenas, large guilds and busy raids, and Reputation's chat filter no longer stalls chat in large guilds.",
-    "Withdrawing a bounty reward, rejecting a kill report or undoing a macro change asks for a second click, and bounty sharing no longer causes repeated \"No player named … is currently playing\" messages.",
-    "Reputation gets an organization directory, Overview and Preferences with readable roles. On WoW Forever, capture tracking credits teammates, and discovery uses a channel per ruleset."
+    "Create Bounty no longer uses CPU and memory on every frame while open, which made addon memory climb quickly. Long sessions also no longer build up battleground, Nearby and bounty alert records.",
+    "Bounty pages no longer pin the bounty board in place or draw a second shadow: drag a page's header to move the board.",
+    "Players with different addon languages who blacklist each other no longer send Reputation auto-replies back and forth endlessly. Replies always start with the English [Highground Reputation] prefix.",
+    "All ten translations were reviewed again against English. Battleground timer tags are translated, and battleground and spell names come from your game client."
   ],
-  "notice": "Fully quit and restart WoW after updating: this release adds new files that /reload cannot load. On WoW Forever, everyone needs this update to find each other on the new discovery channels."
+  "notice": ""
 }

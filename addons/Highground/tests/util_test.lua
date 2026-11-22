@@ -74,6 +74,33 @@ ok = Util.Guard("early", function() error("x", 0) end)
 equal(ok, false, "Guard works before saved variables load")
 equal(Util.GuardStats.early.errors, 1, "early failure counted")
 ns.Core = { db = db }
+-- Nested guards with nil gaps and failures keep each level's arguments.
+local trail = {}
+ok, a, b = Util.Guard("outer", function(x, gap, y)
+  local innerOk = Util.Guard("inner", function(p, q) trail[#trail + 1] = tostring(p) .. tostring(q); error("inner", 0) end, "p", nil)
+  local deepOk, deep = Util.Guard("inner", function(...) return select("#", ...) end, nil, nil, 3)
+  trail[#trail + 1] = tostring(innerOk) .. ":" .. tostring(deep) .. ":" .. tostring(deepOk)
+  return x .. tostring(gap) .. y, select("#", x, gap, y)
+end, "x", nil, "y")
+equal(ok, true, "outer guard survives an inner failure")
+equal(a, "xnily", "outer arguments survive nested guards")
+equal(b, 3, "nil gaps keep the argument count")
+equal(trail[1], "pnil", "inner guard receives its own arguments")
+equal(trail[2], "false:3:true", "nested results and counts are independent")
+equal(db.errors["inner: inner"].count, 1, "inner failure recorded")
+ok, a = Util.Guard("after", function(...) return select("#", ...) end, 1)
+equal(a, 1, "released slots do not leak earlier arguments")
+-- Guards on every event: no argument or result tables after warm-up.
+local function Add(x, y) return x + y end
+Util.Guard("warm", Add, 1, 2)
+if jit then jit.off() end -- trace compilation is counted as allocation
+collectgarbage("collect"); collectgarbage("stop")
+local before = collectgarbage("count")
+for i = 1, 200 do Util.Guard("hot", Add, i, 1) end
+local grown = collectgarbage("count") - before
+collectgarbage("restart")
+if jit then jit.on() end
+assert(grown < 1, "Guard allocates per call: " .. grown .. " KiB")
 local ran = 0
 ok, a = Util.RunGuarded("void", function() ran = ran + 1; return "ignored" end)
 equal(ok, true, "RunGuarded reports success")

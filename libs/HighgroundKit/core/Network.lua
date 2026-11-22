@@ -203,8 +203,8 @@ function Transport:Flush()
   end
   local text = item.text
   if not item.raw then
-    text = table.concat({ "1", item.id, item.part, item.count,
-      item.text:sub((item.part - 1) * PART_SIZE + 1, item.part * PART_SIZE) }, ":")
+    text = "1:" .. item.id .. ":" .. item.part .. ":" .. item.count .. ":"
+      .. item.text:sub((item.part - 1) * PART_SIZE + 1, item.part * PART_SIZE)
   end
   local accepted = ns.Comms.Send(self.prefix, text, route.channel, target and tostring(target))
   if accepted then

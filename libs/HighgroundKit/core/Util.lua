@@ -2,11 +2,8 @@ local _, ns = ...
 
 -- Helpers shared by every subsystem. No load-time dependencies, so it loads
 -- first and isolated test fixtures can load it alone. ns.Core and ns.Theme
--- are looked up per call.
---
--- Secret-value naming: Util.secret(v) tests, Util.plain(v) is a boolean,
--- Util.value(v) returns v or nil. Modules usually alias
--- `Plain = ns.Util.value`, so a local named Plain returns a value.
+-- are looked up per call. Secret values: Util.secret(v) tests, Util.plain(v)
+-- is a boolean, Util.value(v) returns v or nil (modules alias it as Plain).
 local Util = {}
 ns.Util = Util
 
@@ -41,11 +38,7 @@ end
 -- "A" or "H": the battleground faction (from core), else the character's.
 function Util.MyTeam()
   local f = ns.GetAllyFaction and ns.GetAllyFaction()
-  if f == 1 then
-    return "A"
-  elseif f == 0 then
-    return "H"
-  end
+  if f == 1 or f == 0 then return f == 1 and "A" or "H" end
   return UnitFactionGroup("player") == "Alliance" and "A" or "H"
 end
 
@@ -63,11 +56,8 @@ function Util.ClassColor(class)
   local high, low = math.max(c.r, c.g, c.b), math.min(c.r, c.g, c.b)
   if high == low then return c end -- Priest white and neutral fallbacks
   local saturation = math.min(1.6, high / (high - low))
-  local color = {
-    r = math.max(0, high - (high - c.r) * saturation),
-    g = math.max(0, high - (high - c.g) * saturation),
-    b = math.max(0, high - (high - c.b) * saturation),
-  }
+  local color = { r = math.max(0, high - (high - c.r) * saturation),
+    g = math.max(0, high - (high - c.g) * saturation), b = math.max(0, high - (high - c.b) * saturation) }
   classColors[class] = { r = c.r, g = c.g, b = c.b, color = color }
   return color
 end
@@ -119,6 +109,11 @@ function Util.Clock(seconds, opts)
   return string.format("%d:%02d", math.floor(seconds / 60), math.floor(seconds % 60))
 end
 
+-- Strip the separators used by addon messages: , ; : |
+function Util.Clean(s)
+  return (tostring(s or ""):gsub("[,;:|]", ""))
+end
+
 -- Seconds since something: "now", "42s", "7m".
 function Util.Ago(seconds)
   if seconds < 3 then return "now" end
@@ -149,11 +144,41 @@ function Util.SpellID(name)
   return Util.value((select(7, Util.call(GetSpellInfo, name))))
 end
 
+-- Numbered unit tokens ("raid1".."raid40"), built once per prefix and count.
+local unitTokens = {}
+function Util.UnitTokens(prefix, count)
+  local lists = unitTokens[prefix] or {}
+  unitTokens[prefix] = lists
+  if not lists[count] then
+    lists[count] = {}
+    for i = 1, count do lists[count][i] = prefix .. i end
+  end
+  return lists[count]
+end
+
 -- Health of a unit from 0 to 1, or nil (unknown, secret or no maximum).
 function Util.HealthFraction(unit)
   local hp, max = Util.read(UnitHealth, unit), Util.read(UnitHealthMax, unit)
   if type(hp) ~= "number" or type(max) ~= "number" or max <= 0 then return nil end
   return hp / max
+end
+
+-- Subzone, else zone, else "".
+function Util.ZoneName()
+  local zone = Util.read(GetSubZoneText) or ""
+  if zone == "" then zone = Util.read(GetZoneText) or "" end
+  return zone
+end
+
+-- "1,234g" (digit grouping when the client provides BreakUpLargeNumbers).
+function Util.Gold(n)
+  n = tonumber(n) or 0
+  return (BreakUpLargeNumbers and BreakUpLargeNumbers(n) or tostring(n)) .. "g"
+end
+
+-- Play the raid warning sound. Callers decide whether sound is enabled.
+function Util.AlertSound()
+  Util.call(PlaySound, SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
 end
 
 ---------------------------------------------------------------------------
@@ -192,9 +217,8 @@ function Util.Prefix(kind)
   return Util.ColorCode(k.token, k.hex) .. k.label .. "|r"
 end
 
--- Print one chat line: prefix, a space, then text. kind is nil, "bounty",
--- "error" or "warning"; error and warning colour the text too.
--- Returns the printed line.
+-- Print and return one chat line: prefix, a space, then text. kind is nil,
+-- "bounty", "error" or "warning"; error and warning colour the text too.
 function Util.Say(text, kind)
   local k = Util.SAY_KINDS[kind or "default"] or Util.SAY_KINDS.default
   text = tostring(text)
@@ -215,10 +239,6 @@ local function Trace(e)
   return tostring(e) .. "\n" .. (debugstack and debugstack(2, 6, 0) or "")
 end
 
-local function Pack(...)
-  return { n = select("#", ...), ... }
-end
-
 -- Store a failure in HighgroundDB.errors (read after /reload and by /hg err):
 -- errors["stage: first line"] = { count, first = "HH:MM:SS", trace }.
 -- The first new key also sets Core.lastError. No saved table yet: stats only.
@@ -226,11 +246,8 @@ function Util.RecordError(stage, err)
   stage = tostring(stage or "?")
   local line = tostring(err):match("^[^\n]*")
   local key = stage .. ": " .. line
-  local stats = Util.GuardStats[stage]
-  if not stats then
-    stats = { errors = 0 }
-    Util.GuardStats[stage] = stats
-  end
+  local stats = Util.GuardStats[stage] or { errors = 0 }
+  Util.GuardStats[stage] = stats
   stats.errors = stats.errors + 1
   stats.lastError = stats.lastError or key
   local Core = ns.Core
@@ -255,40 +272,62 @@ function Util.ClearErrors()
   Util.GuardStats = {}
 end
 
+-- Lua 5.1's xpcall takes no arguments. Every event runs through Guard, so
+-- arguments wait in reused per-depth slots, not a new closure and tables.
+local slots, depth = {}, 0
+local function Store(slot, i, n, value, ...)
+  if i > n then return end
+  slot[i] = value
+  return Store(slot, i + 1, n, ...)
+end
+local function RunSlot()
+  local slot = slots[depth]
+  return slot.fn(unpack(slot, 1, slot.n))
+end
+local function Finish(stage, ok, ...)
+  if not ok then Util.RecordError(stage, (...)) end
+  return ok, ...
+end
+local function Release(stage, ok, ...)
+  local slot = slots[depth]
+  for i = 1, slot.n do slot[i] = nil end
+  slot.fn, slot.n = nil, 0
+  depth = depth - 1
+  return Finish(stage, ok, ...)
+end
+
 -- Run fn(...) protected. Returns true plus fn's results, or false plus the
 -- traceback after recording it (Util.RecordError).
 function Util.Guard(stage, fn, ...)
-  local r
-  if select("#", ...) == 0 then
-    r = Pack(xpcall(fn, Trace))
-  else
-    local args = Pack(...)
-    r = Pack(xpcall(function() return fn(unpack(args, 1, args.n)) end, Trace))
-  end
-  if not r[1] then Util.RecordError(stage, r[2]) end
-  return unpack(r, 1, r.n)
+  local n = select("#", ...)
+  if n == 0 then return Finish(stage, xpcall(fn, Trace)) end
+  depth = depth + 1
+  local slot = slots[depth]
+  if not slot then slot = {}; slots[depth] = slot end
+  slot.fn, slot.n = fn, n
+  Store(slot, 1, n, ...)
+  return Release(stage, xpcall(RunSlot, Trace))
 end
 
--- Hot callbacks that need only success: no argument/result tables per call.
+-- Only whether fn succeeded, for callbacks that ignore results.
 function Util.RunGuarded(stage, fn)
-  local ok, err = xpcall(fn, Trace)
-  if not ok then Util.RecordError(stage, err) end
-  return ok
+  return (Finish(stage, xpcall(fn, Trace)))
 end
 
 ---------------------------------------------------------------------------
 -- Frames: events and throttled updates
 ---------------------------------------------------------------------------
--- Frame that runs handlers[event](event, ...) through Util.Guard (stage is
--- name, else the event). A handler is a function, or { fn = f, unit = "player" }
--- / { fn = f, unit = { "party1", "party2" } } for RegisterUnitEvent (at
--- most two units, the client's limit; plain
--- RegisterEvent where the client lacks it). Events the client does not know
--- are skipped. frame.handlers[event] can be swapped later. A standalone
--- addon on standby (ns.STANDBY, Highground is loaded) registers nothing.
+-- A standalone addon on standby (ns.STANDBY, Highground is loaded) or a
+-- disabled module registers nothing.
 function Util.ModuleEnabled(module)
   return not ns.STANDBY and (not ns.Modules or ns.Modules.Active(module))
 end
+
+-- Frame that runs handlers[event](event, ...) through Util.Guard (stage is
+-- name, else the event). A handler is a function, or { fn = f, unit = "player" }
+-- / { fn = f, unit = { "party1", "party2" } } for RegisterUnitEvent (two units
+-- at most; plain RegisterEvent where the client lacks it). Events the client
+-- does not know are skipped. frame.handlers[event] can be swapped later.
 
 function Util.Events(handlers, name, module)
   local frame = CreateFrame("Frame")
@@ -328,10 +367,7 @@ function Util.Every(seconds, fn, name, module)
   end
   local function Update(_, dt)
     handle.elapsed = handle.elapsed + (dt or 0)
-    if handle.elapsed < seconds then return end
-    local dt = handle.elapsed
-    handle.elapsed = 0
-    Invoke(dt)
+    if handle.elapsed >= seconds then dt, handle.elapsed = handle.elapsed, 0; Invoke(dt) end
   end
   local function Tick()
     local now = GetTime()
@@ -344,10 +380,8 @@ function Util.Every(seconds, fn, name, module)
   end
   function handle.Stop()
     if handle.timer then handle.timer:Cancel(); handle.timer = nil end
-    if frame then
-      frame:SetScript("OnUpdate", nil)
-      if frame.Hide then frame:Hide() end
-    end
+    if frame then frame:SetScript("OnUpdate", nil) end
+    if frame and frame.Hide then frame:Hide() end
   end
   function handle.Start()
     handle.Stop()
@@ -362,30 +396,4 @@ function Util.Every(seconds, fn, name, module)
   end
   if not Util.ModuleEnabled(module) then handle.Start = function() end else handle.Start() end
   return handle
-end
-
----------------------------------------------------------------------------
--- Text and game helpers
----------------------------------------------------------------------------
--- Strip the separators used by addon messages: , ; : |
-function Util.Clean(s)
-  return (tostring(s or ""):gsub("[,;:|]", ""))
-end
-
--- Subzone, else zone, else "".
-function Util.ZoneName()
-  local zone = Util.read(GetSubZoneText) or ""
-  if zone == "" then zone = Util.read(GetZoneText) or "" end
-  return zone
-end
-
--- "1,234g" (digit grouping when the client provides BreakUpLargeNumbers).
-function Util.Gold(n)
-  n = tonumber(n) or 0
-  return (BreakUpLargeNumbers and BreakUpLargeNumbers(n) or tostring(n)) .. "g"
-end
-
--- Play the raid warning sound. Callers decide whether sound is enabled.
-function Util.AlertSound()
-  Util.call(PlaySound, SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master")
 end

@@ -2,11 +2,14 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [3.0.1] - 2026-11-22
 
-- Two players who blacklist each other no longer send Reputation auto-replies back and forth endlessly when their addon languages differ. Replies always start with the English `[Highground Reputation]` prefix, and the translated prefixes 3.0.0 sent are still recognized.
-- Bounty pages (Create bounty, Claims & payments, Shared alert settings, Death reports) no longer pin the bounty board in place or double its shadow: drag a page's header to move the board. Pages shown inside the Highground window drop their own shadow too, and dragging them moves the window.
 - Fix **Create Bounty** using CPU and memory on every frame while open, which made addon memory climb by hundreds of KB per second. The bounty board also checks your guilds and communities less often while the game is still loading them.
+- Bounty pages (Create bounty, Claims & payments, Shared alert settings, Death reports) no longer pin the bounty board in place or double its shadow: drag a page's header to move the board. Pages shown inside the Highground window drop their own shadow too, and dragging them moves the window.
+- Two players who blacklist each other no longer send Reputation auto-replies back and forth endlessly when their addon languages differ. Replies always start with the English `[Highground Reputation]` prefix, and the translated prefixes 3.0.0 sent are still recognized.
+- All ten translations were reviewed again against English: nonsense wording is replaced, lost line breaks are restored and each language uses consistent game terms.
+- Long sessions no longer build up memory: battleground casts and unfinished capture estimates clear between matches, Nearby sightings expire while a preview is shown, and bounty alerts save data only for targets they announce.
+- Battleground timer tags, the flag respawn text and the yards unit are translated. Battleground names and the spell names in macro presets come from your game client.
 
 ## [3.0.0] - 2026-11-22
 

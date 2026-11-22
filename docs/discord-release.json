@@ -1,19 +1,15 @@
 {
   "releases": {
-    "Highground": "2.49.0",
-    "HighgroundArena": "0.7.5",
-    "HighgroundBattlegrounds": "0.11.1",
-    "HighgroundBounties": "0.15.0",
-    "HighgroundMacros": "0.9.5",
-    "HighgroundNearby": "0.15.0",
-    "HighgroundReputation": "0.3.0"
+    "Highground": "2.49.1",
+    "HighgroundBattlegrounds": "0.11.2",
+    "HighgroundBounties": "0.15.1",
+    "HighgroundNearby": "0.15.1",
+    "HighgroundReputation": "0.3.1"
   },
   "changes": [
-    "Reputation discovers enabled organizations and queues proposals until a moderator is available; receipt and approval are shown separately.",
-    "Bounty popups fit without scrolling; View bounty keeps full notes and contribution terms.",
-    "Try bounty previews: Highground /hg bounty test; Bounties /hgb test; Nearby /hgn bounty test. Replace test with guide for the tour.",
-    "Addon users counts you immediately. Names without a realm use the current Forever ruleset when the client omits the realm.",
-    "Alliance and Horde streamer banner packs are separate downloads on the Highground GitHub release."
+    "Reduce background memory growth and stuttering from Reputation, guild and community activity, including with addon windows closed.",
+    "Reduce memory growth while the Highground window is open with a saved profile, and extra work during busy bounty sharing.",
+    "Highground: /hg perf start records 60 seconds of FPS, memory and addon activity. Keep WoW in the foreground; /hg perf shows results and /reload saves the report."
   ],
-  "notice": "Fully quit and restart WoW to load the new bounty preview and Reputation files; /reload is not enough. Keep every included addon folder enabled. CurseForge files may await moderation."
+  "notice": "After updating from Highground 2.49.0 or the previous standalone versions, /reload loads these fixes. Fully quit and restart WoW when upgrading from an older release. Keep bundled data addons enabled."
 }

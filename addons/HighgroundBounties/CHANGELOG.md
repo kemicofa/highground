@@ -2,6 +2,12 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.15.1] - 2026-11-22
+
+- Reduce background memory use during guild and community activity, including unrelated players' guild updates.
+- Reduce extra work when many bounty updates are waiting to be sent.
+- Updating from 0.15.0 requires /reload after installing. Fully quit and restart WoW when upgrading from an older release; keep HighgroundBountyData enabled.
+
 ## [0.15.0] - 2026-11-21
 
 - Add live bounty previews with /hgb test: try poster, match, kill or board, and use test stop to close them. The interactive tour is now /hgb guide. Sample bounties stay separate from your saved records.

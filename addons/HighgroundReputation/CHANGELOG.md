@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## [0.3.1] - 2026-11-22
 
-- Avoid rebuilding full rosters for every queued recipient, and keep automatic discovery roster requests spaced out during native roster activity.
+- Reduce background memory growth and stuttering in large guilds and communities, including with the Reputation window closed or an organization paused.
+- Reduce repeated work while waiting for moderators and during unrelated players' guild or presence updates.
+- Updating from 0.3.0 requires /reload after installing. Fully quit and restart WoW when upgrading from an older release; keep HighgroundReputationData enabled.
 
 ## [0.3.0] - 2026-11-21
 

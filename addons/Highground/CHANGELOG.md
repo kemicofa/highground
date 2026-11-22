@@ -19,6 +19,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Replace **Join community** with **Join Discord** on Home, using Bounty's permanent invite on every supported client, region and faction. Copy the selected link into your browser or Discord. Forever's automatic invitation also points to Discord and preserves existing per-character dismissals.
 - Reduce Reputation discovery CPU work, memory allocations and traffic with guild announcements, shared officer replies and slower unanswered community/legacy checks. Fully restart WoW to load the new discovery modules.
 - Reduce Nearby CPU work and memory churn: creature aura and flag updates no longer redraw the panel, Cata combat-log bursts update each enemy once per second, and unit events stop while the feature is off or you are in an instance.
+- Reduce Reputation and shared-bounty work in large guilds: membership checks read each guild rank's permissions once per roster sweep, and community checks no longer build guild details they do not use.
 
 ## [2.50.0] - 2026-11-22
 

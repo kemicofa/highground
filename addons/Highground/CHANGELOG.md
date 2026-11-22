@@ -2,10 +2,13 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [2.49.1] - 2026-11-22
 
-- Reduce temporary memory growth while the main window is open with a named profile; unchanged settings no longer rebuild profile comparisons on every status update.
-- Reduce background roster work and stuttering in large guilds and communities during Reputation discovery and message delivery.
+- Reduce background memory growth and stuttering caused by Reputation, guild and community updates, including with the main window closed or an organization paused.
+- Reduce memory growth while the main window is open with a saved profile.
+- Reduce extra work during busy bounty sharing.
+- Add optional performance captures: /hg perf start records 60 seconds of FPS, memory and addon activity, then stops automatically. Keep WoW in the foreground; /hg perf shows results and /reload saves the report.
+- Updating from 2.49.0 requires /reload after installing. Fully quit and restart WoW when upgrading from an older release; keep all bundled data addons enabled.
 
 ## [2.49.0] - 2026-11-21
 

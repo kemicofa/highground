@@ -1,4 +1,4 @@
-<!-- HighgroundBounties 0.15.0 -->
+<!-- HighgroundBounties 0.15.1 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -20,7 +20,7 @@ Paste everything in the block below into the project description (Markdown):
 
 Highground Bounties tracks personal, guild, community and shared bounties and alerts when a target is observed. Share a hunt with other addon users, review claims and record payments. It runs on Retail, WoW Forever and Cataclysm Classic.
 
-**Performance:** Reduced memory use in controls; the bounty board pauses refreshes while hidden and refreshes less often when its contents are unchanged.
+**Performance:** Reduced background memory use during guild and community activity, with less repeated work during busy bounty sharing. The bounty board pauses refreshes while hidden and refreshes less often when its contents are unchanged.
 
 ## Features
 
@@ -48,7 +48,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 - **Guided bounty creation:** follow the connected **Target → Reward → Review** stepper. The final step previews your wanted poster beside a clear audience, kill goal, expiry and maximum-reward summary. Go back to edit without losing the draft; nothing publishes until you confirm.
 - **Bounty navigation:** **My bounties**, **Guild & communities** and **Shared board** are the main views. The **Suggestions** tab offers optional targets from repeated deaths; preferences stay under **Settings**; **Help** reopens the guide. Players from your realm appear without the realm name; other realms show `(*)`. Forever hides realm suffixes while preserving full character names.
 - **Direct bounty actions:** **Share bounty**, **Edit reward** and **Claim reward** are visible in the wanted-poster window. Change your own reward with **Edit reward**; **Add gold** contributes to another player’s reward. **Manage bounty** exposes tracking, audience and withdrawal actions directly.
-- **Compact posters and fixed controls (new):** wanted popups fit without an internal scrollbar. View bounty keeps full notes and terms in a compact details view, with one target header for multiple contributions. Actions stay outside the details scroll area, and background updates preserve your reading position.
+- **Compact posters and fixed controls:** wanted popups fit without an internal scrollbar. View bounty keeps full notes and terms in a compact details view, with one target header for multiple contributions. Actions stay outside the details scroll area, and background updates preserve your reading position.
 - **Simpler sharing and onboarding:** copy a bounty link directly, or choose **Share in chat**. The shorter interactive guide follows the same creation, sharing and claim-review flow.
 - Each row shows the reward, audience, approval status and last sighting. Open the wanted poster for details; closing it restores the board. Claims stay in the board window with **Back to board**. Smaller rewards stay visible below those meeting your alert minimum.
 - **My bounties**, **Guild & communities** and **Shared board** have search, reward totals and labelled approval status. Suggestions have their own tab; preferences live under **Settings**.
@@ -56,7 +56,7 @@ Highground Bounties tracks personal, guild, community and shared bounties and al
 - **Helpful empty boards:** see whether a search, guild membership or a shared-bounty opt-in explains an empty view. **Refresh** appears when the selected board can receive updates.
 - **Share in chat** prepares a link for other bounty-addon users to review and import as a personal copy; choose a channel and press Enter to send.
 - `/hgb claims` opens the claims ledger for manual review and payment records.
-- **Live bounty previews (new):** `/hgb test` toggles a live-style wanted poster preview. Use `test match`, `test kill` or `test board` for other sample UIs, and `test stop` to close them. `/hgb guide` opens the interactive feature tour. Both use isolated sample data.
+- **Live bounty previews:** `/hgb test` toggles a live-style wanted poster preview. Use `test match`, `test kill` or `test board` for other sample UIs, and `test stop` to close them. `/hgb guide` opens the interactive feature tour. Both use isolated sample data.
 
 ### 🛡️ Guild and community bounties
 
@@ -136,7 +136,7 @@ Older histories and bounty lists without enough ownership information remain sav
 - Preview wanted alerts with `/hgb test`, other samples with `test match`, `test kill` or `test board`, and close them with `test stop`. Use `/hgb guide` for the interactive tour.
 - Open `/hgb`. Choose **Create first bounty** and follow **Target → Reward → Review**, or **Browse shared bounties** to receive shared offers. Choose **Only me** for private tracking.
 - Optional suggestions: enable **Bounty suggestions** under `/hgb config` → **More settings**, then open `/hgb suggestions`. **Bounties** must also be on; choose separately whether to share your deaths.
-- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. Fully quit and restart WoW after updating to load the new bounty preview files; `/reload` is not enough.
+- Keep both included folders installed and enabled: **HighgroundBounties** and **HighgroundBountyData**, which preserves shared contributions, account IDs, recent suggestion reports and dismissals. After updating from 0.15.0, use `/reload` to load the fixes. Fully quit and restart WoW when upgrading from an older release to load its added files.
 - Type `/hgb` to open the bounty board, `/hgb config` for settings and `/hgb help` for every command. Main choices appear first; **More settings** reveals detailed controls.
 - With **Highground**, use `/hg config` → **Guild bounties** to enable suggestions and `/hg bounty suggestions` to review them.
 - Already using **Highground**? It has bounties built in (`/hg bounty`). Install Highground Bounties on its own if you only want the bounties.

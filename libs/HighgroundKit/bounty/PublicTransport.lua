@@ -1,11 +1,25 @@
 local _, ns = ...
 local B, U = ns.Bounty, ns.Util
 local P = B.Public
-P.CHANNEL = "HighgroundBounties"
+P.CHANNEL = ns.Scope.Channel("HighgroundBounties")
 P.peers, P.replies = {}, {}
 local HELLO = "Highground bounties v1"
+local channelReady = false
+
+function P.RefreshChannel()
+  local channel = ns.Scope.Channel("HighgroundBounties")
+  if channelReady and channel == P.CHANNEL then return end
+  P.CHANNEL, channelReady = channel, true
+  ns.Chat.LeaveOtherChannels("HighgroundBounties", P.Connected() and channel or nil)
+  P.joined, P.transportError, P.nextJoin = nil, nil, 0
+  P.moves, P.movedFrom, P.moveWait = nil, nil, nil
+  for _, field in ipairs({ "outbox", "incoming", "rates", "peers", "replies" }) do wipe(P[field]) end
+  P.nextHello, P.nextHeartbeat = 0, 0
+end
+ns.Scope.Listen(P.RefreshChannel)
 
 function P.ChannelID()
+  if not P.CHANNEL or P.CHANNEL ~= ns.Scope.Channel("HighgroundBounties") then return end
   local id = U.value(U.call(GetChannelName, P.CHANNEL))
   return type(id) == "number" and id > 0 and id or nil
 end
@@ -44,6 +58,7 @@ function P.NetworkStatus()
   if P.loadError then return P.loadError end
   if not P.Connected() then return "Shared bounties off" end
   if P.transportError then return P.transportError end
+  if not ns.Scope.Channel("HighgroundBounties") then return "Waiting for the Forever ruleset" end
   if not P.ChannelID() then return "Joining realm/faction bounty channel" end
   if not P.CanSend() then return "Sharing paused by the game" end
   return "Realm/faction sharing connected"
@@ -95,6 +110,7 @@ end
 function P.TransportTick()
   if not P.ready then return end
   B.Scope.Check()
+  P.RefreshChannel()
   local now = GetTime()
   local preference = tostring(P.Receiving()) .. ":" .. tostring(P.Publishing())
   if preference ~= P.preference then
@@ -103,17 +119,18 @@ function P.TransportTick()
     P.nextHello, P.nextHeartbeat = 0, 0
     P.quietUntil = now + 12
     if not P.Connected() then
-      if P.joined and LeaveChannelByName then pcall(LeaveChannelByName, P.CHANNEL) end
+      if P.CHANNEL and (P.joined or P.ChannelID()) then U.call(LeaveChannelByName, P.CHANNEL) end
+      ns.Chat.LeaveOtherChannels("HighgroundBounties")
       P.joined, P.transportError = nil, nil
     end
   end
   if not P.CanExchange() then return end
-  if P.Connected() and not P.ChannelID() and now >= (P.nextJoin or 0) then
+  if P.Connected() and P.CHANNEL and not P.ChannelID() and now >= (P.nextJoin or 0) then
     P.nextJoin = now + 30
     if JoinPermanentChannel then
-      local ok = pcall(JoinPermanentChannel, P.CHANNEL)
-      P.joined = ok or nil
-      if not ok then P.transportError = "Could not join the bounty channel. Check your channel limit." end
+      local ok, result = pcall(JoinPermanentChannel, P.CHANNEL)
+      P.joined = ok and result ~= false or nil
+      if not P.joined then P.transportError = "Could not join the bounty channel. Check your channel limit." end
     else P.transportError = "This client has no supported realm discovery channel." end
   end
   if P.Connected() then P.KeepChannelLast() end
@@ -143,7 +160,8 @@ end
 function P.OnAddon(text, channel, sender, _, _, localID, channelName)
   if not P.CanExchange() then return end
   if channel == "CHANNEL" then
-    if not P.Connected() or not ns.Caps.addonChannel or (tonumber(localID) ~= P.ChannelID() and channelName ~= P.CHANNEL) then return end
+    if not P.Connected() or not ns.Caps.addonChannel or not ns.Chat.MatchesChannel(P.CHANNEL,
+      P.ChannelID(), U.value(localID), U.value(channelName)) then return end
     if text == "1:Q" then return P.Peer(sender) end
   elseif channel == "GUILD" then
     if not B.InGuild() then return end
@@ -154,5 +172,12 @@ end
 
 function P.OnChannel(_, text, sender, _, _, _, _, _, channelID, channelName)
   if not ns.Caps.addonChannel and P.Connected() and text == HELLO
-    and (channelName == P.CHANNEL or channelID == P.ChannelID()) then P.Peer(sender) end
+    and ns.Chat.MatchesChannel(P.CHANNEL, P.ChannelID(), U.value(channelID), U.value(channelName)) then P.Peer(sender) end
+end
+
+function P.OnChannelNotice(_, notice, _, _, _, _, _, _, _, name)
+  notice, name = U.value(notice), U.value(name)
+  if notice == "YOU_JOINED" and type(name) == "string" and name:sub(1, 18):lower() == "highgroundbounties" then
+    ns.Chat.LeaveOtherChannels("HighgroundBounties", P.Connected() and ns.Scope.Channel("HighgroundBounties") or nil)
+  end
 end

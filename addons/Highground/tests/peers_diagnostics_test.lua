@@ -4,13 +4,15 @@ local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function fixture(configure)
   return new("retail", nil, function(s, env)
     env.GetBuildInfo = function() return "1.60.1", "71037", "Nov 2026", 16001 end
+    env.Enum.GameRule = { HardcoreRuleset = 1, RPRuleset = 2, PvPRuleset = 3 }
+    env.C_GameRules = { IsGameRuleActive = function() return false end }
     s.joins, s.sends, s.restricted, s.lockdown = 0, 0, true, false
-    env.GetChannelName = function(name) return name == "HighgroundUsers" and (s.channelID or 0) or 0 end
-    env.JoinTemporaryChannel = function()
+    env.GetChannelName = function(name) return name == (s.channelName or "HighgroundUsersPvE") and (s.channelID or 0) or 0 end
+    env.JoinTemporaryChannel = function(name)
       s.joins = s.joins + 1
       if s.joinError then error("private error detail") end
       if s.joinRejected then return false end
-      if not s.joinBlocked then s.channelID = 8 end
+      if not s.joinBlocked then s.channelName, s.channelID = name, 8 end
     end
     env.C_ChatInfo.AreOutgoingAddonChatMessagesRestricted = function() return s.restricted end
     env.C_ChatInfo.InChatMessagingLockdown = function() return s.lockdown end
@@ -80,7 +82,7 @@ t.test("Forever joins and announces with the reported idle realm-policy flags", 
   s:step(30); s:step(30)
   t.equal(s.joins, 1, "realm-policy flag cannot suppress joining on Forever")
   t.equal(s.sends, 1, "normal announcement reaches the sending API")
-  contains(P.Diagnostics(), "GetChannelName(HighgroundUsers): 8")
+  contains(P.Diagnostics(), "GetChannelName(HighgroundUsersPvE): 8")
   contains(P.Diagnostics(), "route: CHANNEL; accepted by API: true")
   contains(P.Status(), "Detection active")
   s.lockdown = true

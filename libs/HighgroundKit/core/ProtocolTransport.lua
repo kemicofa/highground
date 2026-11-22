@@ -9,16 +9,16 @@ function P.ClearRoutes()
   routeCount, window, budget = 0, 0, 0
 end
 
+local function Matches(base, id, name)
+  local channel = ns.Scope.Channel(base)
+  local joined = channel and U.read(GetChannelName, channel)
+  return type(joined) == "number" and joined > 0 and ns.Chat.MatchesChannel(channel, joined, id, name)
+end
+
 local function Channel(id, name)
-  for _, channel in ipairs({ "HighgroundUsers", "HighgroundBounties" }) do
-    local joined = U.read(GetChannelName, channel)
-    if type(joined) == "number" and joined > 0 and (id == joined or name == channel) then
-      if channel == "HighgroundUsers" then return ns.Peers and ns.Peers.RealmEnabled() end
-      local public = ns.Bounty and ns.Bounty.Public
-      return public and public.Connected()
-    end
-  end
-  return false
+  local peers, public = ns.Peers, ns.Bounty and ns.Bounty.Public
+  return peers and peers.RealmEnabled() and Matches("HighgroundUsers", id, name)
+    or public and public.Connected() and Matches("HighgroundBounties", id, name) or false
 end
 
 -- Called synchronously after accepted feature traffic. No queue, new channel,

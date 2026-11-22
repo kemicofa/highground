@@ -18,9 +18,10 @@ U.Events({
   PLAYER_MONEY = function() if P.ready then B.Gold.Refresh() end end,
   PLAYER_LOGOUT = function() B.Gold.Record() end,
   PLAYER_ENTERING_WORLD = function()
-    if P.ready then B.Scope.Check(); B.Gold.Refresh(); P.nextHello = 0 end
+    if P.ready then B.Scope.Check(); P.RefreshChannel(); B.Gold.Refresh(); P.nextHello = 0 end
   end,
   CHAT_MSG_CHANNEL = P.OnChannel,
+  CHAT_MSG_CHANNEL_NOTICE = P.OnChannelNotice,
 }, "shared bounties", "bounties")
 
 ns.Comms.Listen(P.PREFIX, P.OnAddon, "shared bounties", "bounties")

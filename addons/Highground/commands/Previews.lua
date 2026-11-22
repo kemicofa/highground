@@ -115,7 +115,7 @@ end
 
 function Commands.test(arg, msg, say)
   if arg == "stop" then P.StopAll(); say("Addon previews off.")
-  elseif arg ~= "" and arg ~= "all" then say("/hg test [all|stop] · /hg bg test for battleground panels")
+  elseif arg ~= "" and arg ~= "all" then say("/hg test [all||stop] · /hg bg test for battleground panels")
   elseif P.AllActive() then P.StopAll(); say("Addon previews off.")
   else local _, message = P.StartAll(); say(message) end
 end

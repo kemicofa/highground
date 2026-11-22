@@ -118,6 +118,9 @@ function Commands.map(arg, msg, say)
   end
 end
 
+-- Command syntax shown as text: chat reads "|r" in "s|i|raid" as an escape.
+local function Syntax(text) return (text:gsub("|", "||")) end
+
 -- /hg help: the command catalog (config/Commands.lua) for this client.
 function Commands.help(arg, msg, say)
   Core.UpdateMe()
@@ -130,8 +133,8 @@ function Commands.help(arg, msg, say)
       group = row[1]
     elseif ns.OptionAvailable(row) then
       if group then say(Hex("accent") .. group .. "|r"); group = nil end
-      say(Hex("gold") .. row[1] .. "|r  " .. Hex("textMuted") .. ns.CommandCatalog.Description(row) .. "|r")
-      for _, alias in ipairs(row.aliases or {}) do say("  Also: /hg " .. alias) end
+      say(Hex("gold") .. Syntax(row[1]) .. "|r  " .. Hex("textMuted") .. ns.CommandCatalog.Description(row) .. "|r")
+      for _, alias in ipairs(row.aliases or {}) do say("  Also: /hg " .. Syntax(alias)) end
     end
   end
   say("Keybind 'Target kill-order #1' under Key Bindings > AddOns.")

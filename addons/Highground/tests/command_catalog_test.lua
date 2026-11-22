@@ -135,7 +135,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       for _, target in ipairs({ item.frame, item.button }) do
         fire(target, "OnEnter")
         local tip = table.concat(s.env.GameTooltip.lines, "\n")
-        assert(tip:find(row[1], 1, true) and tip:find(row[2], 1, true), "hover retains full syntax and description")
+        -- Pipes are doubled so the tooltip shows them instead of reading escapes.
+        assert(tip:find((row[1]:gsub("|", "||")), 1, true) and tip:find(row[2], 1, true), "hover retains full syntax and description")
         assert(tip:find(row.ui.label, 1, true), "short action label has its full purpose on hover")
         for _, alias in ipairs(row.aliases or {}) do assert(tip:find("/hg " .. alias, 1, true), "aliases remain discoverable") end
         fire(target, "OnLeave"); assert(not s.env.GameTooltip:IsShown(), "tooltip closes on leave")

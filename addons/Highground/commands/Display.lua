@@ -59,7 +59,7 @@ function Commands.call(arg, msg, say)
   elseif arg == "" then
     Core.CallTarget()
   else
-    say("/hg call  = call now  |  /hg call s|i|raid|party|y  = channel")
+    say("/hg call  = call now  |  /hg call s||i||raid||party||y  = channel")
   end
 end
 
@@ -73,17 +73,18 @@ function Commands.mark(arg, msg, say)
     Core.UpdateTargetButton()
     say("mark button: raid icon " .. names[Core.db.markIcon])
   elseif sub == "ping" then
+    if not ns.Caps.pings then return say("pings are not available on this client: /hg mark icon 1-8") end
     if pings[val] then
       Core.db.pingType = val
     end
     Core.db.markMode = "ping"
     Core.markBound = nil
     Core.UpdateTargetButton()
-    say("mark button: " .. Core.db.pingType .. " ping  (/hg mark ping attack|warning|assist|onmyway)")
+    say("mark button: " .. Core.db.pingType .. " ping  (/hg mark ping attack||warning||assist||onmyway)")
   else
     say("Macro:  /click HighgroundMarkButton   (pings/marks the kill target, keeps your target)")
     say("Now: " .. (Core.db.markMode == "icon" and ("raid icon " .. names[Core.db.markIcon or 8]) or (Core.db.pingType .. " ping"))
-      .. "   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8")
+      .. (ns.Caps.pings and "   |  /hg mark ping attack||warning||assist||onmyway" or "") .. "  |  /hg mark icon 1-8")
     say("Mark + call:  /click HighgroundMarkButton  then  /hg call  on the next line")
     say("Re-points out of combat only. Raid icons may need lead/assist; pings don't.")
     local mt = Core.markBtn:GetAttribute("macrotext")
@@ -190,11 +191,11 @@ function Commands.sniper(arg, msg, say)
       local names = {}
       for k in pairs(Core.SNIPER_COLORS) do names[#names + 1] = k end
       table.sort(names)
-      say("/hg sniper color ring|skull|aim HEX|default; or color NAME (" .. table.concat(names, ", ") .. ")")
+      say("/hg sniper color ring||skull||aim HEX||default; or color NAME (" .. table.concat(names, ", ") .. ")")
     end
   elseif sub == "skull" or sub == "animate" then
     if val ~= "" and val ~= "on" and val ~= "off" then
-      say("/hg sniper " .. sub .. " on|off")
+      say("/hg sniper " .. sub .. " on||off")
       return
     end
     local key = sub == "skull" and "sniperSkull" or "sniperAnimate"
@@ -204,11 +205,11 @@ function Commands.sniper(arg, msg, say)
       .. (sub == "animate" and on and Core.ReducedMotion() and " (Reduced motion keeps it steady)" or ""))
   elseif sub == "style" then
     if Core.SetSniperStyle(val) then say("sniper style: " .. val)
-    else say("/hg sniper style layered|legacy") end
+    else say("/hg sniper style layered||legacy") end
   elseif sub == "place" then
     if Core.SetSniperPlacement(val) then
       say("sniper placement: " .. Core.SniperPlacement().label .. "; /hg sniper x N or y N to adjust")
-    else say("/hg sniper place body|head|left|right|above") end
+    else say("/hg sniper place body||head||left||right||above") end
   elseif (sub == "x" or sub == "y" or sub == "padding") and tonumber(val) then
     local key = sub == "padding" and "sniperPadding" or (sub == "x" and "sniperX" or "sniperY")
     Core.SetSniperNumber(key, tonumber(val))
@@ -258,7 +259,7 @@ function Commands.sniper(arg, msg, say)
     say("sniper scope over the " .. (Core.PriorityOn() and "kill target" or "your target") .. ": "
       .. (on and "on" or "off") .. "  (/hg sniper y N to raise/lower)")
   else
-    say("/hg sniper [test|why|style layered|legacy|place body|head|left|right|above|padding N|x N|y N|color NAME|size X|sound N|skull on|off|animate on|off]")
+    say("/hg sniper [test||why||style layered||legacy||place body||head||left||right||above||padding N||x N||y N||color NAME||size X||sound N||skull on||off||animate on||off]")
   end
 end
 
@@ -301,6 +302,8 @@ function Commands.unlock(arg, msg, say)
 end
 
 function Commands.reset(arg, msg, say)
+  -- The main panel holds secure buttons: it cannot move in combat.
+  if InCombatLockdown() then return say("leave combat first") end
   Core.pos.point = nil
   Core.PlaceDockHead(Core.frame)
 end

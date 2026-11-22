@@ -54,7 +54,7 @@ function Commands.profile(arg, msg, say)
       names[#names + 1] = n
     end
     say(#names > 0 and ("profiles: " .. table.concat(names, ", ")) or "no saved profiles")
-    say("/hg profile save|load|delete|share NAME, /hg export, /hg import")
+    say("/hg profile save||load||delete||share NAME, /hg export, /hg import")
   end
 end
 
@@ -91,6 +91,8 @@ function Commands.points(arg, msg, say)
     if not ok then say(err); return end
     say(real .. " = " .. val)
     Options.PointsChanged()
+  else
+    say("/hg points " .. real .. " N||reset")
   end
 end
 
@@ -167,7 +169,7 @@ function Commands.exec(arg, msg, say)
   local ok, err = Core.SetTuning("option", "executePct", tonumber(arg) / 100)
   if not ok then say(err); return end
   Options.PointsChanged()
-  say(string.format("execute highlight below %d%%", Core.db.executePct * 100))
+  say(string.format("execute highlight below %d%%", math.floor(Core.db.executePct * 100 + 0.5)))
 end
 
 Commands.options = Commands.config

@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("enUS", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "10v10 battlegrounds",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Warsong Gulch, Twin Peaks, Battle for Gilneas, Temple of Kotmogu and other 10v10 maps, every rated battleground and Blitz",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "15v15 battlegrounds",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Arathi Basin, Eye of the Storm, Deepwind Gorge, Strand of the Ancients",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Arathi Basin, Eye of the Storm, Deepwind Gorge, Strand of the Ancients and other 15v15 maps",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Epic battlegrounds",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Alterac Valley, Isle of Conquest, Wintergrasp, Slayer's Rise (40v40) and Ashran (35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Battleground timers",

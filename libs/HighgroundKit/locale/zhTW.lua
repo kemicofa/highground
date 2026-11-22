@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("zhTW", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "10v10戰場",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Warsong Gulch, Twin Peaks, Battle for Gilneas, Temple of Kotmogu 和其他10v10地圖，每個評級戰場和閃電",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "15v15戰場",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "阿拉提盆地，風暴之眼，深風峽谷，古人的海岸",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "阿拉提盆地，風暴之眼，深風峽谷，古人的海岸和其他15v15地圖",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "史詩戰場",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "奧特蘭克山谷、征服之島、冬握湖、Slayer's Rise（40v40）和阿什蘭（35v35）",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "戰場計時器",

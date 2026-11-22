@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("itIT", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "Campi di battaglia 10v10",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Forra Cantaguerra, Picchi Gemelli, Battaglia per Gilneas, Tempio di Kotmogu e altre mappe 10v10, tutti i campi di battaglia classificati e Blitz",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "Campi di battaglia 15v15",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Bacino d'Arathi, Occhio del Ciclone, Deepwind Gorge, Lido degli Antichi",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Bacino d'Arathi, Occhio del Ciclone, Deepwind Gorge, Lido degli Antichi e altre mappe 15v15",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Campi di battaglia epici",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Valle d'Alterac, Isola della Conquista, Lungoinverno, Slayer's Rise (40v40) e Ashran (35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Timer del campo di battaglia",

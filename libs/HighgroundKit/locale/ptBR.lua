@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "Campos de batalha 10v10",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Ravina Brado Guerreiro, Picos Gêmeos, Batalha por Guilnéas, Templo de Kotmogu e outros mapas 10v10, todos os campos de batalha ranqueados e Blitz",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "Campos de batalha 15v15",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Bacia Arathi, Olho da Tormenta, Deepwind Gorge, Baía dos Ancestrais",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Bacia Arathi, Olho da Tormenta, Deepwind Gorge, Baía dos Ancestrais e outros mapas 15v15",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Campos de batalha épicos",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Vale Alterac, Ilha da Conquista, Invérnia, Slayer's Rise (40v40) e Ashran (35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Temporizadores do campo de batalha",

@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("koKR", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "10v10 전장",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Warsong Gulch, Twin Peaks, Battle for Gilneas, Temple of Kotmogu 및 기타 10v10 맵, 모든 평가 전장 및 블리츠",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "15v15 전장",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "아라티 분지, 폭풍의 눈, 깊은 바람의 협곡, 고대의 해안선",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "아라티 분지, 폭풍의 눈, 깊은 바람의 협곡, 고대의 해안선 및 기타 15v15 맵",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "서사시적인 전장",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "알터랙 계곡, 정복의 섬, 겨울손아귀 호수, Slayer's Rise(40v40) 및 아쉬란(35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "전장 타이머",

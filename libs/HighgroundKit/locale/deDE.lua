@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("deDE", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "10v10 Schlachtfelder",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Kriegshymnenschlucht, Zwillingsgipfel, Die Schlacht um Gilneas, Tempel von Kotmogu und andere 10v10-Karten, jedes gewertete Schlachtfeld und Blitz",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "15v15 Schlachtfelder",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Arathibecken, Auge des Sturms, Tiefenwindschlucht, Strand der Uralten",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Arathibecken, Auge des Sturms, Tiefenwindschlucht, Strand der Uralten und andere 15v15-Karten",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Epische Schlachtfelder",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Alteractal, Insel der Eroberung, Tausendwintersee, Slayer's Rise (40v40) und Ashran (35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Schlachtfeld-Timer",

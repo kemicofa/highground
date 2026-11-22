@@ -3862,7 +3862,7 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "Поля боя 10 на 10",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Ущелье Песни Войны, Два Пика, Битва за Гилнеас, Храм Котмогу и другие карты 10 на 10, все рейтинговые поля боя и Блиц",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "Поля боя 15 на 15",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Низина Арати, Око Бури, Каньон Суровых Ветров, Берег Древних",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Низина Арати, Око Бури, Каньон Суровых Ветров, Берег Древних и другие карты 15 на 15",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Эпические поля боя",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Альтеракская долина, Остров Завоеваний, Озеро Ледяных Оков, Slayer's Rise (40 на 40) и Ашран (35 на 35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Таймеры поля боя",

@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("frFR", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "Champs de bataille 10v10",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Goulet des Chanteguerres, Pics-Jumeaux, La bataille de Gilnéas, Temple de Kotmogu et autres cartes 10v10, tous les champs de bataille cotés et le Blitz",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "Champs de bataille 15v15",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Bassin Arathi, L'Œil du cyclone, Deepwind Gorge, Rivage des Anciens",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Bassin Arathi, L'Œil du cyclone, Deepwind Gorge, Rivage des Anciens et autres cartes 15v15",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Champs de bataille épiques",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Vallée d'Alterac, Île des Conquérants, Joug-d'hiver, Slayer's Rise (40v40) et Ashran (35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Minuteurs de champ de bataille",

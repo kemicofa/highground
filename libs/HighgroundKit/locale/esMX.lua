@@ -3856,7 +3856,7 @@ assert(ns.Locale:Register("esMX", {
   ["shared.battlegrounds.10v10_battlegrounds.ebfe4f"] = "Campos de batalla 10v10",
   ["shared.battlegrounds.warsong_gulch_twin_peaks_battle_for_gilneas.eb7e94"] = "Garganta Grito de Guerra, Cumbres Gemelas, La Batalla por Gilneas, Templo de Kotmogu y otros mapas 10v10, todos los campos de batalla puntuados y Blitz",
   ["shared.battlegrounds.15v15_battlegrounds.25db3e"] = "Campos de batalla 15v15",
-  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.ef1761"] = "Cuenca de Arathi, Ojo de la Tormenta, Deepwind Gorge, Playa de los Ancestros",
+  ["shared.battlegrounds.arathi_basin_eye_of_the_storm_deepwind.011449"] = "Cuenca de Arathi, Ojo de la Tormenta, Deepwind Gorge, Playa de los Ancestros y otros mapas 15v15",
   ["shared.battlegrounds.epic_battlegrounds.4b17c3"] = "Campos de batalla épicos",
   ["shared.battlegrounds.alterac_valley_isle_of_conquest_wintergrasp_slayer.bcc493"] = "Valle de Alterac, Isla de la Conquista, Conquista del Invierno, Slayer's Rise (40v40) y Ashran (35v35)",
   ["shared.battlegrounds.battleground_timers.eeca0a"] = "Temporizadores de campo de batalla",

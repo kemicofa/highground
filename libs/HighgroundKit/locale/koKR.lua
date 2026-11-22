@@ -4981,4 +4981,6 @@ assert(ns.Locale:Register("koKR", {
   ["macros.save.unchanged.character"] = "캐릭터 전용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
   ["macros.save.unchanged.general"] = "공용 매크로의 {name}와(과) 같습니다. 변경하려면 내용을 수정하세요.",
   ["macros.card.differs"] = "다른 내용으로 저장됨",
+  ["macros.history.confirm.restore"] = "{name}의 이전 내용을 되돌리려면 '변경 사항 취소'를 한 번 더 클릭하세요. 현재 내용은 이후에 복원할 수 없습니다.",
+  ["macros.history.confirm.delete"] = "{name}을(를) 삭제하려면 '변경 사항 취소'를 한 번 더 클릭하세요. 삭제한 매크로는 복원할 수 없습니다.",
 }))

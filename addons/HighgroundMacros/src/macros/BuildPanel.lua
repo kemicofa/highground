@@ -16,29 +16,28 @@ Panel.FIELDS = { "name", "spell", "rank", "unitName", "aura", "item", "resetSeco
 -- still fit the text; growing every gap further would crowd out review.
 function Panel.Scale() return math.min(1.25, math.max(1, Macros.Host.FontScale())) end
 
+-- A recipe group on a Kit.SectionCard: a titled card for the required
+-- steps, a fold button (+/-, with its active count) for optional ones.
+-- g.body holds the controls (Panel.At coordinates); folded, it hides.
 function Panel.Group(p, title, optional, open)
   local g = CreateFrame("Frame", nil, p.form.body)
-  g.optional, g.open, g.title = optional, open ~= false, title
+  g.optional, g.open, g.label = optional, open ~= false, title
+  g.card = Kit.SectionCard(g, { title = not optional and title or nil })
+  g.card:SetPoint("TOPLEFT")
+  local inner = g.card.body
   if optional then
-    g.header = Kit.Button(g, title, 200, 32, { tone = "panel", onClick = function()
+    g.header = Kit.Button(inner, title, 200, 32, { tone = "panel", onClick = function()
       g.open = not g.open
       Kit.Dropdown.Hide()
       Panel.Layout()
     end })
-  else
-    g.header = CreateFrame("Frame", nil, g)
-    g.header:SetSize(200, 32)
-    g.header.label = Theme.Text(g.header, "heading", "titleText")
-    g.header.label:SetText(title)
+    g.header:SetPoint("TOPLEFT"); g.header:SetPoint("RIGHT")
+    g.header.label:ClearAllPoints()
+    g.header.label:SetPoint("LEFT", 12, 0)
+    g.header.label:SetPoint("RIGHT", -8, 0)
+    g.header.label:SetJustifyH("LEFT")
   end
-  g.header:SetPoint("TOPLEFT"); g.header:SetPoint("RIGHT")
-  g.header.label:ClearAllPoints()
-  g.header.label:SetPoint("LEFT", optional and 12 or 0, 0)
-  g.header.label:SetPoint("RIGHT", -8, 0)
-  g.header.label:SetJustifyH("LEFT")
-  g.body = CreateFrame("Frame", nil, g)
-  g.body:SetPoint("TOPLEFT", 0, -40)
-  g.body:SetPoint("RIGHT")
+  g.body = CreateFrame("Frame", nil, inner)
   g.contentHeight, g.active = 0, 0
   p.groups[#p.groups + 1] = g
   return g
@@ -141,20 +140,28 @@ function Panel.Layout()
   if not p or p.layingOut then return end
   p.layingOut = true
   local scale, width = Panel.Scale(), p:GetWidth()
-  local left = math.min(306 * scale, width * 0.43)
+  local left = math.min(330 * scale, width * 0.45)
   p.form:SetWidth(left)
   p.right:ClearAllPoints()
   p.right:SetPoint("TOPLEFT", left + 24, 0)
   p.right:SetPoint("BOTTOMRIGHT")
-  local content = math.max(180, left - 16)
-  p.form.body:SetWidth(content)
+  local card = math.max(180, left - 16)
+  p.form.body:SetWidth(card)
+  -- Controls fill a section card's inner width (Kit.SectionCard padding).
+  local content = card - Theme.Space("lg") * 2
+  local half = (content - 8) / 2
   for _, a in ipairs(p.placements) do
     local f, parent, x, y, w, h = unpack(a)
-    f:ClearAllPoints()
-    local half = (content - 8) / 2
-    f:SetPoint("TOPLEFT", parent, "TOPLEFT", x == "half" and half + 8 or x == "rank" and content - 44 * scale or x * scale, -y * scale)
-    f:SetWidth(w == "full" and content or w == "half" and half or w == "spell" and content - 52 * scale or w * scale)
-    if h then f:SetHeight(h * scale) end
+    local left = x == "half" and half + 8 or x == "rank" and content - 44 * scale or x * scale
+    local width = w == "full" and content or w == "half" and half or w == "spell" and content - 52 * scale or w * scale
+    -- The panel owns these controls: write only what changed since its last
+    -- layout, without reading native geometry (typing rarely moves them).
+    if a.left ~= left or a.top ~= y * scale then
+      a.left, a.top = left, y * scale
+      f:ClearAllPoints(); f:SetPoint("TOPLEFT", parent, "TOPLEFT", left, -y * scale)
+    end
+    if a.width ~= width then a.width = width; f:SetWidth(width) end
+    if h and a.height ~= h * scale then a.height = h * scale; f:SetHeight(h * scale) end
     if f == p.targetHint then
       local height = math.max(36 * scale, f:GetStringHeight())
       f:SetHeight(height)
@@ -165,18 +172,27 @@ function Panel.Layout()
   for _, g in ipairs(p.groups) do
     g:SetShown(not g.hidden)
     if not g.hidden then
-      g:ClearAllPoints(); g:SetPoint("TOPLEFT", 0, -y)
-      g:SetWidth(content)
-      g.header:SetHeight(32 * scale)
-      g.body:ClearAllPoints(); g.body:SetPoint("TOPLEFT", 0, -40 * scale); g.body:SetPoint("RIGHT")
-      g.body:SetHeight(g.contentHeight * scale)
+      local top = g.optional and 40 * scale or 0 -- below the fold button
       g.body:SetShown(g.open)
-      local h = (g.open and g.contentHeight + 40 or 32) * scale
-      g:SetHeight(h)
-      if g.optional then
-        g.header:SetText((g.open and "-  " or "+  ") .. g.title .. (g.active > 0 and (" (" .. g.active .. ")") or ""))
+      local inner = g.open and top + g.contentHeight * scale or 32 * scale
+      -- Typing relayouts the recipe; an unchanged card keeps its geometry
+      -- and measured height without native reads or writes.
+      local key = card .. "|" .. inner .. "|" .. g.contentHeight * scale
+      if g.cardKey ~= key then
+        g.cardKey = key
+        if g.header then g.header:SetHeight(32 * scale) end
+        Kit.Place(g.body, "TOPLEFT", g.card.body, "TOPLEFT", 0, -top, content, g.contentHeight * scale)
+        g.cardHeight = g.card:Layout(card, inner)
       end
-      y = y + h + 12 * scale
+      local h = g.cardHeight
+      if g.placedAt ~= y or g.placedHeight ~= h or g.placedWidth ~= card then
+        g.placedAt, g.placedHeight, g.placedWidth = y, h, card
+        Kit.Place(g, "TOPLEFT", p.form.body, "TOPLEFT", 0, -y, card, h)
+      end
+      if g.optional then
+        g.header:SetText((g.open and "-  " or "+  ") .. g.label .. (g.active > 0 and (" (" .. g.active .. ")") or ""))
+      end
+      y = y + h + 8 * scale
     end
   end
   p.form.body:SetHeight(math.max(1, y))
@@ -207,8 +223,13 @@ function Panel.Create(w, top)
     Kit.Dropdown.Hide()
     for _, field in ipairs(p.inputs) do field:ClearFocus() end
   end)
-  Theme.OnChange(Panel.Layout)
-  Macros.Host.OnFontScaleChange(Panel.Layout)
+  -- Theme and text size change card fonts: measure every card again.
+  local function Remeasure()
+    for _, g in ipairs(p.groups) do g.cardKey, g.placedAt = nil, nil end
+    Panel.Layout()
+  end
+  Theme.OnChange(Remeasure)
+  Macros.Host.OnFontScaleChange(Remeasure)
   Panel.Layout()
   p:Hide()
 end

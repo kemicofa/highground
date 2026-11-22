@@ -4981,4 +4981,6 @@ assert(ns.Locale:Register("deDE", {
   ["macros.save.unchanged.character"] = "Entspricht {name} in deinen charakterspezifischen Makros. Bearbeite es, um Änderungen zu speichern.",
   ["macros.save.unchanged.general"] = "Entspricht {name} in deinen allgemeinen Makros. Bearbeite es, um Änderungen zu speichern.",
   ["macros.card.differs"] = "Mit anderem Text gespeichert",
+  ["macros.history.confirm.restore"] = "Klicke erneut auf „Änderung rückgängig“, um den vorherigen Text von {name} wiederherzustellen. Der aktuelle Text kann danach nicht wiederhergestellt werden.",
+  ["macros.history.confirm.delete"] = "Klicke erneut auf „Änderung rückgängig“, um {name} zu löschen. Ein gelöschtes Makro kann nicht wiederhergestellt werden.",
 }))

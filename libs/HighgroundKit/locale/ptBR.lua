@@ -4981,4 +4981,6 @@ assert(ns.Locale:Register("ptBR", {
   ["macros.save.unchanged.character"] = "Igual a {name} nas suas macros de personagem. Edite-a para salvar alterações.",
   ["macros.save.unchanged.general"] = "Igual a {name} nas suas macros gerais. Edite-a para salvar alterações.",
   ["macros.card.differs"] = "Salva com outro texto",
+  ["macros.history.confirm.restore"] = "Clique em \"Desfazer a mudança\" de novo para recuperar o texto anterior de {name}. O texto atual não poderá ser restaurado depois.",
+  ["macros.history.confirm.delete"] = "Clique em \"Desfazer a mudança\" de novo para excluir {name}. Uma macro excluída não pode ser restaurada.",
 }))

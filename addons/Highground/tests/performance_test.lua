@@ -268,7 +268,7 @@ for _, client in ipairs({ "cata", "retail" }) do
   t.test(client .. " scoring reuses bounded working data without keeping stale reasons", function()
     local sim = new(client, {})
     local C = sim.ns.Core
-    sim:command("test"); sim:advance(3)
+    sim:command("bg test"); sim:advance(3)
     local enemy, other = C.order[1], C.order[2]
     local reasons, components = enemy.reasons, enemy.comp
     assert(reasons ~= other.reasons and components ~= other.comp, "each enemy owns its explanation")
@@ -286,7 +286,7 @@ for _, client in ipairs({ "cata", "retail" }) do
     collectgarbage("restart")
     assert(ok, err)
     assert(allocated < 64, "steady scoring must not rebuild tables: " .. allocated .. " KiB / 200 ticks")
-    sim:command("test")
+    sim:command("bg test")
     local calls, score = 0, C.Recompute
     C.Recompute = function(...) calls = calls + 1; return score(...) end
     sim:advance(3)
@@ -298,7 +298,7 @@ end
 t.test("reused cooldown buffers follow settings, spec changes and expiry immediately", function()
   local sim = new("cata", {})
   local C, out = sim.ns.Core, { "old contents" }
-  sim:command("test")
+  sim:command("bg test")
   local enemy = { class = "MAGE", cds = { [42292] = sim.now + 30 } }
   t.equal(C.KitFor(enemy, out), out, "caller owns the reusable buffer")
   assert(#out > 1)
@@ -352,6 +352,30 @@ t.test("channel roster events coalesce without restarting timers or multiplying 
   t.equal(s.rosterReads, before, "disabled discovery never scans rosters")
   s:assertHealthy()
 end)
+
+for _, client in ipairs({ "cata", "retail" }) do
+  t.test(client .. " repeated shared previews reuse widgets and stop their extra drivers without sending sample data", function()
+    local s = new(client, {})
+    local markerReads, targetPlate = 0, s.ns.Core.TargetPlateUnit
+    s.ns.Core.TargetPlateUnit = function(...) markerReads = markerReads + 1; return targetPlate(...) end
+    local scores, recompute = 0, s.ns.Core.Recompute
+    s.ns.Core.Recompute = function(...) scores = scores + 1; return recompute(...) end
+    s:advance(3)
+    s:command("test all"); s:advance(2); s:command("test stop"); s:advance(2)
+    local frames = #s.frames
+    for _ = 1, 3 do
+      local sent = #s.sent
+      s:command("test all"); s:advance(0.5)
+      t.equal(#s.sent, sent, "preview sends no sample messages")
+      s:command("test stop"); assert(not s.ns.PreviewTests.AnyActive())
+    end
+    t.equal(#s.frames, frames, "reopening the sample set reuses its widgets")
+    scores, markerReads = 0, 0; s:advance(2)
+    t.equal(scores, 0, "preview scoring ticker is cancelled")
+    t.equal(markerReads, 0, "preview marker driver is cancelled")
+    s:assertHealthy()
+  end)
+end
 
 dofile("../../tests/bounty_idle.lua")("Highground")
 t.finish("Performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

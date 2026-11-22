@@ -78,7 +78,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       t.equal(s.ns.Hub.current, "module-" .. def.key, "disabled guide still leads to addon settings")
       assert(not O.Coach.running and not s.ns.Core.testMode and not s.ns.Setup.placement)
     end
-    s:command("test"); assert(not s.ns.Core.testMode)
+    s:command("bg test"); assert(not s.ns.Core.testMode)
     s:command("bounty test"); assert(not s.ns.Bounty.Preview.testing)
     s:command("guide"); O.Go("enemies")
     assert(O.win.reload:IsVisible())

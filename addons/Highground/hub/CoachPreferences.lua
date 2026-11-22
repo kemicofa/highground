@@ -101,7 +101,7 @@ local function Features()
     page.scroll:SetVerticalScroll(math.min(maximum, math.max(0, offset)))
   end
   return {
-    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, and Previews and guide pages. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
+    Step("group", "Settings live with their addon", "Use an addon's Settings, Appearance, and Previews and guide pages. Battleground panels use /hg bg test. Help and commands offers Start all addon previews (/hg test all) and Stop all previews. Overview and enable controls whether the addon runs after reload. Shared preferences affect all addons.", settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end),
     Step("switch", bg and "Keep the panels you want" or "Choose shared preferences",
       bg and "Checked means enabled. More options reveals the detailed feature switches." or "Checked means enabled. This switch shows the Highground minimap button.", settingsKey,

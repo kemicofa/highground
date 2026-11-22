@@ -14,6 +14,7 @@ Standalone addons are deprecated; use the Highground commands below. Shared boun
 | --- | --- |
 | `/hg` | Open or close the Highground window |
 | `/hg help` | Every command in chat, with your detected spec |
+| `/hg test [all\|stop]` | Toggle previews for every enabled addon with sample modes, or stop all previews |
 | `/hg config [PAGE] \| config blizzard` | Highground window on a page; the Blizzard settings panel |
 | `/hg options` | Same as /hg config |
 | `/hg setup` | Optional playstyle presets and panel placement |
@@ -54,7 +55,7 @@ The main panel's cogwheel, Home and the minimap's right-click menu also offer **
 | --- | --- |
 | `/hg history` | Saved PvP results, personal stats and observed objective timelines |
 | `/hg journal` | Search enemy encounters, add notes, mute alerts or place a bounty |
-| `/hg test` | Main panel preview |
+| `/hg bg test [stop]` | Battleground enemy list, timers, objectives and flag carrier previews |
 | `/hg arena on\|off\|test` | Arena and duel panel |
 | `/hg nearby on\|off\|test\|clear\|forget` | Open-world nearby enemies; forget clears their saved history |
 | `/hg intel on\|off\|test \| intel share on\|off` | Enemy map positions and sharing |
@@ -140,13 +141,13 @@ See [Player reputation](reputation.md) for membership, moderation and sharing ru
 
 ## Preview buttons
 
-Each addon’s **Previews and guide** page offers its samples and guide chapters. **Start** runs a sample and **Stop** finishes it. Start samples outside combat and matches. **Try Kill window** needs an active main-panel or target-marker sample. **Open** buttons for the bounty board, Reputation and macro builder launch real tools. Bounties also offers each named sample scenario and **Stop bounty previews**. The shared **Help and commands** page links to these addon pages.
+Each addon’s **Previews and guide** page offers its samples and guide chapters. **Start** runs a sample and **Stop** finishes it. Start samples outside combat and matches. **Try Kill window** needs an active battleground-panel or target-marker sample. **Open** buttons for the bounty board, Reputation and macro builder launch real tools. Bounties also offers each named sample scenario and **Stop bounty previews**. The shared **Help and commands** page links to these addon pages and offers **Start all addon previews** and **Stop all previews**. `/hg test` and `/hg test all` start the available samples across enabled addons, including battleground markers and map pins where supported. Repeating either command stops the set; `/hg test stop` also stops samples started individually. `/hg bg test` (or **Battleground panels**) toggles only the enemy list and battleground windows; `/hg bg test stop` stops those windows explicitly. Existing samples are kept when starting the full set. Previews end when combat, a duel or a PvP instance begins, or when starting a guide or panel placement. Bounties starts its wanted-poster sample; its other scenarios stay on the Bounties page. Macros and Reputation have guides and real tools instead of toggleable previews.
 
 | Button | Command | What it shows |
 | --- | --- | --- |
-| Main panel | `/hg test` | Enemy list and kill-target card with sample enemies |
+| Battleground panels | `/hg bg test` | Enemy list, kill-target card, timers, objectives and flag carriers with sample data |
 | Target marker | `/hg sniper test` | Crosshair on any target with a visible nameplate |
-| Kill window | `/hg go` | GO look and sound (with Main panel or Target marker on) |
+| Kill window | `/hg go` | GO look and sound (with Battleground panels or Target marker on) |
 | Arena & duels | `/hg arena test` | Preview opponents; Forever shows one duelist |
 | Nearby enemies | `/hg nearby test` | Open-world enemy list |
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |

@@ -8,9 +8,9 @@ local _, ns = ...
 ns.CommandCatalog = {}
 
 ns.CommandCatalog.previews = {
-  { module = "battlegrounds", cmd = "test", label = "Main panel", desc = "Enemy list and kill-target card with sample enemies" },
+  { module = "battlegrounds", cmd = "bg test", label = "Battleground panels", desc = "Enemy list, kill-target card, timers, objectives and flag carriers with sample data" },
   { module = "battlegrounds", cmd = "sniper test", label = "Target marker", desc = "Crosshair on any target with a visible nameplate" },
-  { module = "battlegrounds", kind = "action", cmd = "go", label = "Kill window", desc = "GO look and sound (with Main panel or Target marker on)" },
+  { module = "battlegrounds", kind = "action", cmd = "go", label = "Kill window", desc = "GO look and sound (with Battleground panels or Target marker on)" },
   { module = "arena", cmd = "arena test", label = "Arena & duels", desc = "Preview opponents; Forever shows one duelist" },
   { module = "nearby", cmd = "nearby test", label = "Nearby enemies", desc = "Open-world enemy list" },
   { module = "battlegrounds", cmd = "intel test", label = "Map pin", desc = "Sample enemy pin on the world map" },
@@ -26,6 +26,7 @@ ns.CommandCatalog.commands = {
   { "General" },
   { "/hg", "Open or close the Highground window" },
   { "/hg help", "Every command in chat, with your detected spec" },
+  { "/hg test [all|stop]", "Toggle previews for every enabled addon with sample modes, or stop all previews" },
   { "/hg config [PAGE]  |  config blizzard", "Highground window on a page; the Blizzard settings panel" },
   { "/hg options", "Same as /hg config" },
   { "/hg setup", "Optional playstyle presets and panel placement" },
@@ -56,7 +57,7 @@ ns.CommandCatalog.commands = {
   { "Panels and previews" },
   { "/hg history", "Saved PvP results, personal stats and observed objective timelines" },
   { "/hg journal", "Search enemy encounters, add notes, mute alerts or place a bounty" },
-  { "/hg test", "Main panel preview" },
+  { "/hg bg test [stop]", "Battleground enemy list, timers, objectives and flag carrier previews" },
   { "/hg arena on|off|test", "Arena and duel panel" },
   { "/hg nearby on|off|test|clear|forget", "Open-world nearby enemies; forget clears their saved history" },
   { "/hg intel on|off|test  |  intel share on|off", "Enemy map positions and sharing" },

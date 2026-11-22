@@ -113,7 +113,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local s = make({ pressure = false })
     local O, H, C = s.ns.Options, s.ns.Hub, s.ns.Core
     for _, entry in ipairs({ { "arena", "arena test", "arenaPoint" }, { "nearby", "nearby test", "nearbyPoint" },
-      { "battlegrounds", "test", "enemies" } }) do
+      { "battlegrounds", "bg test", "enemies" } }) do
       H.Open(O.addonPages[entry[1]].previews)
       local page, button = O.byKey[O.addonPages[entry[1]].previews]
       for _, b in ipairs(page.previews) do if b.cmd == entry[2] then button = b end end

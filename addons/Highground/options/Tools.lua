@@ -22,6 +22,17 @@ local function Label(text, role, color, x, y)
 end
 
 Options.Section(page, "Addon previews and guides")
+page.allPreviews = Options.Link(page, "Start all addon previews", function() SlashCmdList.HIGHGROUND("test all") end)
+page.stopPreviews = Options.Link(page, "Stop all previews", function() SlashCmdList.HIGHGROUND("test stop") end)
+function page.RefreshPreviews()
+  local P = ns.PreviewTests
+  if not P then return end
+  local running = P.AllActive()
+  page.allPreviews:SetText(running and "Stop all addon previews" or "Start all addon previews")
+  page.allPreviews:SetEnabled(running or P.CanStart())
+  page.stopPreviews:SetEnabled(P.AnyActive())
+end
+page.frame:HookScript("OnShow", page.RefreshPreviews)
 for _, module in ipairs(ns.Modules.list) do
   Options.Link(page, module.name, function() ns.Hub.Open(Options.addonPages[module.key].previews) end)
 end

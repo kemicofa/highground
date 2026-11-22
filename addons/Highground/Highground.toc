@@ -178,6 +178,7 @@ commands/Diagnostics.lua
 commands/Settings.lua
 libs/bounty/Commands.lua
 commands/Display.lua
+commands/Previews.lua
 commands/Dispatch.lua
 features/battlegrounds/core/Exports.lua
 features/battlegrounds/map/Pins.xml

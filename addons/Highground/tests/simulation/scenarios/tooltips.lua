@@ -92,7 +92,7 @@ test("tooltips keep their text and colours", function()
   for _, p in ipairs(O.pages) do p.frame:Show() end
   lines, anchor = hover(sim, O.byKey["battlegrounds-previews"].previews[1])
   equal(anchor, "ANCHOR_RIGHT", "preview tooltip anchor")
-  expect(sim, lines, { { "/hg test", "gold" }, { "Click Start to preview, then Stop to finish. Sample data follows your current settings.", "textMuted", true } }, "preview")
+  expect(sim, lines, { { "/hg bg test", "gold" }, { "Click Start to preview, then Stop to finish. Sample data follows your current settings.", "textMuted", true } }, "preview")
 
   for _, row in ipairs(O.rows) do
     if row.key == "killPer" then

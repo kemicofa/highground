@@ -50,7 +50,7 @@ function Core.ResetTuning()
   Core.BuildCurve()
 end
 
--- Leave the /hg test preview.
+-- Leave the /hg bg test preview.
 function Core.StopTest()
   if not Core.testMode then return false end
   if Core.guidedTest then GameTooltip_Hide() end

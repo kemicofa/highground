@@ -150,6 +150,7 @@ function O.Explore(action)
   if action.bounties and not (ns.Bounty and ns.Bounty.Preview and ns.Bounty.Preview.StartGuided) then
     O.win.status:SetText("The bounty tour is unavailable. Open Bounties from the Highground sidebar."); return
   end
+  if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   O.active = action.review or O.Current().key
   O.exploring = action.preview and "preview" or action.map and "map" or action.bounties and "bounties"
     or action.quickCalls and "calls" or action.native and "native" or "page"

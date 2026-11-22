@@ -1,5 +1,7 @@
 # Highground
 
+[![Highground Horde animated stream banner](assets/stream-banner/horde/Highground-Twitch-Banner-Horde-960.gif)](https://www.curseforge.com/projects/1749115)
+
 Highground is the only supported distribution. It includes battleground tools, arenas and duels, bounties, nearby enemies, player reputation and macros for Retail, WoW Forever and Cataclysm Classic. On WoW Forever, the Arena panel handles duels.
 
 | Included feature | What it does |

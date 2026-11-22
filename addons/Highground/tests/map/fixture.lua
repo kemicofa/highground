@@ -105,13 +105,19 @@ local function client(options)
   env.GetBattlefieldFlagPosition = function(index) return unpack(state.flags[index]) end
   env.CombatLogGetCurrentEventInfo = function() return unpack(state.event) end
   dofile("tests/support/load_modules.lua")("map", env, ns)
+  ns.PvPEvents.Refresh() -- the fixture starts in an active match
   local ticker = ns.Intel.ticker.frame
   local driver = ns.Intel.events
-  state.tick = function() ticker.scripts.OnUpdate(ticker, 1) end
+  state.tick = function()
+    ns.PvPEvents.Refresh() -- the ticker follows state.active, as after Core.SetActive
+    if ticker.scripts.OnUpdate then ticker.scripts.OnUpdate(ticker, 1) end
+  end
+  local hot = ns.PvPEvents.frame
   state.combat = function(event, spellID, source)
     state.event = { state.now, event, false, "Player-Source", source or "Me", 0, 0,
       "Player-Enemy", key, 0, 0, spellID or 589 }
-    driver.scripts.OnEvent(driver, "COMBAT_LOG_EVENT_UNFILTERED")
+    ns.PvPEvents.Refresh() -- live listeners follow state.active, as after Core.SetActive
+    hot.scripts.OnEvent(hot, "COMBAT_LOG_EVENT_UNFILTERED")
   end
   state.enterWorld = function() driver.scripts.OnEvent(driver, "PLAYER_ENTERING_WORLD") end
   state.poiUpdated = function() driver.scripts.OnEvent(driver, "AREA_POIS_UPDATED") end

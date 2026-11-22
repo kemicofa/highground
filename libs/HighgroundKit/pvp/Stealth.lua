@@ -67,10 +67,11 @@ function P.OnCombatLog()
 end
 
 local function Reset() wipe(P.seen) end
-local handlers = {
-  PLAYER_ENTERING_WORLD = Reset,
-  ZONE_CHANGED_NEW_AREA = Reset,
-  DUEL_FINISHED = Reset,
+local OWNERS = { "battlegrounds", "arena" }
+U.Events({ PLAYER_ENTERING_WORLD = Reset, ZONE_CHANGED_NEW_AREA = Reset, DUEL_FINISHED = Reset },
+  "pvp stealth", OWNERS)
+-- Unit and combat-log traffic only while a match or duel is observed.
+local hot = {
   NAME_PLATE_UNIT_ADDED = function(_, unit) P.NoteUnit(unit) end,
   ARENA_OPPONENT_UPDATE = function(_, unit) P.NoteUnit(unit) end,
   UNIT_AURA = function(_, unit) P.NoteUnit(unit) end,
@@ -79,16 +80,19 @@ local handlers = {
   UPDATE_MOUSEOVER_UNIT = function() P.NoteUnit("mouseover") end,
 }
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
-  handlers.COMBAT_LOG_EVENT_UNFILTERED = P.OnCombatLog
+  hot.COMBAT_LOG_EVENT_UNFILTERED = P.OnCombatLog
 else
-  handlers.UNIT_SPELLCAST_SUCCEEDED = function(_, unit, _, id) P.OnUnitCast(unit, id) end
+  hot.UNIT_SPELLCAST_SUCCEEDED = function(_, unit, _, id) P.OnUnitCast(unit, id) end
 end
-U.Events(handlers, "pvp stealth", { "battlegrounds", "arena" })
-U.Every(1, function()
-  if not P.Enabled() then Reset(); return end
-  for name, e in pairs(P.seen) do if GetTime() - e.last > 300 then P.seen[name] = nil end end
+ns.PvPEvents.Listen(hot, "pvp stealth", P.Enabled, OWNERS)
+
+-- Retail/Forever infer a stealth end from the enemy being visible again.
+local WATCHED = { "target", "focus", "mouseover" }
+for i = 1, 5 do WATCHED[#WATCHED + 1] = "arena" .. i end
+for i = 1, 40 do WATCHED[#WATCHED + 1] = "nameplate" .. i end
+ns.PvPEvents.Every(1, function()
+  local now = GetTime()
+  for name, e in pairs(P.seen) do if now - e.last > 300 then P.seen[name] = nil end end
   if ns.Caps.combatLog or not next(P.seen) then return end
-  for _, unit in ipairs({ "target", "focus", "mouseover" }) do P.NoteUnit(unit) end
-  for i = 1, 5 do P.NoteUnit("arena" .. i) end
-  for i = 1, 40 do P.NoteUnit("nameplate" .. i) end
-end, "pvp stealth", { "battlegrounds", "arena" })
+  for i = 1, #WATCHED do P.NoteUnit(WATCHED[i]) end
+end, "pvp stealth", P.Enabled, OWNERS, Reset)

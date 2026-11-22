@@ -112,20 +112,16 @@ if not ns.Util.ModuleEnabled("battlegrounds") then
 end
 Core.eventFrame = ns.Util.Events(handlers)
 
--- Unguarded: a setup failure must show as a Lua error, and the combat log
--- fires too often for a per-event guard (Core.OnCombatLog guards its stages).
--- On standby (a standalone addon next to Highground) it registers nothing.
+-- Unguarded: a setup failure must show as a Lua error. On standby (a
+-- standalone addon next to Highground) it registers nothing.
 local raw = CreateFrame("Frame")
-if not ns.STANDBY then
-  raw:RegisterEvent("ADDON_LOADED")
-  if ns.Util.ModuleEnabled("battlegrounds") and ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
-    pcall(raw.RegisterEvent, raw, "COMBAT_LOG_EVENT_UNFILTERED")
-  end
-end
+if not ns.STANDBY then raw:RegisterEvent("ADDON_LOADED") end
 raw:SetScript("OnEvent", function(_, event, arg1)
-  if event == "ADDON_LOADED" then
-    OnAddonLoaded(event, arg1)
-  elseif Core.active and not Core.testMode then
-    Core.OnCombatLog()
-  end
+  if event == "ADDON_LOADED" then OnAddonLoaded(event, arg1) end
 end)
+
+-- The combat log (Cata) only while a live battleground is tracked.
+if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
+  ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Core.OnCombatLog() end }, "combatlog",
+    function() return Core.active and not Core.testMode end, "battlegrounds")
+end

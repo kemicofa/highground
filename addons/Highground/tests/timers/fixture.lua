@@ -140,12 +140,14 @@ local function scenario(config)
   dofile("tests/support/load_modules.lua")("timers", env, s.ns)
   s.env = env
   function s:pulse(seconds)
+    self.ns.PvPEvents.Refresh() -- tickers follow s.active, as after Core.SetActive
     self.now = self.now + seconds
     for _, f in ipairs(self.frames) do
       if f.scripts.OnUpdate then f.scripts.OnUpdate(f, seconds) end
     end
   end
   function s:event(event, ...)
+    self.ns.PvPEvents.Refresh() -- live listeners follow s.active, as after Core.SetActive
     for _, f in ipairs(self.frames) do
       if f.events[event] and f.scripts.OnEvent then f.scripts.OnEvent(f, event, ...) end
     end

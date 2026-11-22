@@ -118,14 +118,26 @@ local function Build()
   return w
 end
 
+-- The refresh ticker runs only while the panel can show: a live
+-- battleground, a preview or the guide.
+local NONE = {}
+local function Wanted()
+  return Quick.guide ~= nil or (Quick.Enabled() and (T.previewing or ns.IsTestMode() or Quick.Live())) or false
+end
+
 function Quick.Update()
+  local wanted = Wanted()
+  if wanted ~= Quick.wanted then
+    Quick.wanted = wanted
+    ns.PvPEvents.Refresh()
+  end
   local kind = select(2, IsInInstance())
   local guide = Quick.guide and not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena"
   local preview = (guide or T.previewing or ns.IsTestMode()) and kind ~= "pvp" and kind ~= "arena"
   local active = guide or Quick.Enabled() and (preview or Quick.Live())
   local area = active and (preview and "Farm" or Quick.Area())
-  local destinations = active and (guide and Quick.guide.mode == "destinations" or not guide and Quick.Enabled("quickCallsDestinations")) and Quick.Destinations(preview) or {}
-  local routes = active and (guide and Quick.guide.mode == "routes" or not guide and Quick.Enabled("quickCallsRoutes")) and Quick.Routes(preview) or {}
+  local destinations = active and (guide and Quick.guide.mode == "destinations" or not guide and Quick.Enabled("quickCallsDestinations")) and Quick.Destinations(preview) or NONE
+  local routes = active and (guide and Quick.guide.mode == "routes" or not guide and Quick.Enabled("quickCallsRoutes")) and Quick.Routes(preview) or NONE
   if not area and #destinations == 0 and #routes == 0 then
     if Quick.win then Quick.win:Hide(); Quick.win.context = nil end
     if not Quick.Live() then Quick.sentAt = nil end
@@ -181,4 +193,4 @@ Core.OnFontScaleChange(Layout)
 Theme.OnChange(Layout)
 U.Events({ PLAYER_ENTERING_WORLD = Quick.Update, ZONE_CHANGED = Quick.Update,
   ZONE_CHANGED_INDOORS = Quick.Update, ZONE_CHANGED_NEW_AREA = Quick.Update }, "quick callout areas", "battlegrounds")
-U.Every(0.25, Quick.Update, "quick callouts", "battlegrounds")
+ns.PvPEvents.Every(0.25, Quick.Update, "quick callouts", Wanted, "battlegrounds", Quick.Update)

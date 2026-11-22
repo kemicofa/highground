@@ -73,6 +73,7 @@ function Preview.Start(guided)
     if guided or Core.On("objectives") then Timers.ShowRows(obj, ObjectiveRows(me, them)) end
   end
   if guided or Core.On("flags") then ShowCarriers(me, them) end
+  ns.PvPEvents.Refresh() -- a battleground or arena ends the preview (timers/Driver.lua)
   if ns.QuickCalls then ns.QuickCalls.Update() end
   return true
 end
@@ -82,6 +83,7 @@ function Preview.Stop()
   Timers.previewing = nil
   Timers.HideWindows()
   Timers.SecureHide(Flags.flagWin)
+  ns.PvPEvents.Refresh()
   if ns.QuickCalls then ns.QuickCalls.Update() end
   return true
 end

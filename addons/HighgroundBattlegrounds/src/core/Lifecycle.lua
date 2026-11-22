@@ -103,6 +103,7 @@ function Core.SetActive(on)
       ShowPanel(false)
     end
   end
+  ns.PvPEvents.Refresh()
 end
 
 

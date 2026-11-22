@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Bounty pages (Create bounty, Claims & payments, Shared alert settings, Death reports) no longer pin the bounty board in place or double its shadow: drag a page's header to move the board. Pages shown inside the Highground window drop their own shadow too, and dragging them moves the window.
+
 ## [3.0.0] - 2026-11-22
 
 - **Highground speaks your language:** German, Spanish, French, Italian, Korean, Brazilian Portuguese, Russian and Simplified and Traditional Chinese join English. Choose one, or follow your game client, under **Shared preferences → General → Language** (`/hg config general`). Commands, macro text and saved data stay the same. Translations are machine-assisted; report wording that reads oddly.

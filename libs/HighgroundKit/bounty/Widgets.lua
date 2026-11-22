@@ -36,11 +36,12 @@ function W.MountPage(w)
     if not board:IsVisible() then Bounty.Board.Open() end
     if not w.bountyPage then
       local home = { parent = w:GetParent(), width = w:GetWidth(), height = w:GetHeight(),
-        movable = w:IsMovable(), closeShown = w.close and w.close:IsShown(), points = {} }
+        closeShown = w.close and w.close:IsShown(), points = {} }
       for i = 1, w.GetNumPoints and w:GetNumPoints() or 1 do home.points[i] = { w:GetPoint(i) } end
       w.bountyPage = home
       w:SetParent(board); w:ClearAllPoints(); w:SetAllPoints(board)
-      w:SetMovable(false); w:SetFrameLevel(board:GetFrameLevel() + 5)
+      w:SetFrameLevel(board:GetFrameLevel() + 5)
+      Kit.MountPage(w, board) -- one shadow; dragging the page moves the board
     end
     if not w.bountyPageHook then
       w.bountyPageHook = true
@@ -55,7 +56,7 @@ function W.MountPage(w)
         end
         w:SetParent(home.parent); w:ClearAllPoints(); w:SetSize(home.width, home.height)
         for _, point in ipairs(home.points) do if point[1] then w:SetPoint(unpack(point)) end end
-        w:SetMovable(home.movable)
+        Kit.UnmountPage(w)
         if w.close then w.close:SetShown(home.closeShown) end
         Bounty.Navigation.Closed()
       end)

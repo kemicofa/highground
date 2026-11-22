@@ -106,7 +106,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `nearbycount` | The live **NEARBY: N** count: visible enemies, restricted identities and combat-log-only sightings |
 | `bountysuggestions` | Death-report suggestions in Highground, using the shared suite in `HighgroundBounties/tests/suggestions/` |
 | `headers` | `Kit.Header` alignment inside and outside dialogs, text actions, macro metadata and the profile header |
-| `windows` | `Kit.Windows`: one foreground tool, nested child dialogs, review return paths and standalone kit instances |
+| `windows` | `Kit.Windows`: one foreground tool, nested child dialogs, review return paths and standalone kit instances; pages mounted in another window (bounty pages, hub pages): one shadow and drags that move the holding window |
 | `panelcogs` | HUD cog access and fades, reduced motion, invisible-but-shown secure windows and header controls at enlarged text |
 | `navigation` | Sidebar group expansion: intermediate states, following sections, row fades, chevrons and input only on revealed rows |
 | `router` | Hub routing: Home shortcut, Back/Forward history, component mounting and combat |

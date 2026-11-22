@@ -290,3 +290,81 @@ test("a new bounty poster slides in once; updates and reduced motion stay put", 
   assert(poster:IsShown() and not slide.group:IsPlaying() and poster:GetAlpha() == 1, "reduced motion shows it in place")
   sim:assertHealthy()
 end)
+
+-- A page shown inside another window draws no shadow or glow of its own,
+-- and dragging it runs the drag handlers of the window holding it.
+local function lit(page) return page.wbInlay.shadow:IsShown() or page.wbInlay.glow:IsShown() end
+local function drag(page) page.scripts.OnDragStart(page); page.scripts.OnDragStop(page) end
+local function counter(frame)
+  local count = { moves = 0, stops = 0 }
+  frame.StartMoving = function() count.moves = count.moves + 1 end
+  frame.StopMovingOrSizing = function() count.stops = count.stops + 1 end
+  return count
+end
+
+test("bounty pages keep the board's shadow and drag the board like its header", function()
+  local sim = new("retail")
+  local B, db = sim.ns.Bounty, sim.env.HighgroundDB
+  sim:command("bounty")
+  local board = B.Board.win
+  local count = counter(board)
+  for _, open in ipairs({ B.Preferences.Open, B.Ledger.Open }) do
+    local page = open()
+    equal(page:GetParent(), board, "mounted on the board")
+    assert(not lit(page) and lit(board), "only the board's shadow and glow show")
+    page:Hide()
+    assert(lit(page) and page:IsMovable(), "a closed page gets its own back")
+  end
+  B.Form.Open("Rival-Realm")
+  local form = B.Form.win
+  assert(form:GetParent() == board and not lit(form) and not form:IsMovable(), "the form is a page")
+  board:ClearAllPoints(); board:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 30, -40)
+  drag(form)
+  equal(count.moves, 1, "the board follows the drag"); equal(count.stops, 1, "and stops with it")
+  equal(db.windows.bounty[1], "TOPLEFT", "position saved"); equal(db.windows.bounty[3], 30, "x")
+  db.windows.bounty = nil
+  board:SetMovable(false)
+  drag(form)
+  equal(count.moves, 1, "a pinned board stays put"); equal(db.windows.bounty, nil, "and saves nothing")
+  board:SetMovable(true)
+  sim:setCombat(true)
+  board.protected = true
+  drag(form)
+  equal(count.moves, 1, "a protected window does not move in combat")
+  board.protected = nil
+  drag(form)
+  equal(count.moves, 2, "otherwise combat moves it as dragging the board does")
+  sim:setCombat(false)
+  form:Hide()
+  assert(lit(form) and form:IsMovable() and form:GetParent() ~= board, "the closed form is a window again")
+  local own = counter(form)
+  drag(form)
+  equal(own.moves, 1, "it moves itself"); equal(count.moves, 2, "not the board")
+  oneRoot(sim); sim:assertHealthy()
+end)
+
+test("borrowed hub pages drag the hub and nested pages find the movable window", function()
+  local sim = new("cata")
+  local H, K, db = sim.ns.Hub, sim.ns.Kit, sim.env.HighgroundDB
+  H.Open("setup")
+  local setup, hub = sim.ns.Setup.win, H.win
+  assert(setup:GetParent() == H.content and not lit(setup) and lit(hub), "the hub's shadow is the only one")
+  local count = counter(hub)
+  hub:ClearAllPoints(); hub:SetPoint("TOPLEFT", sim.env.UIParent, "TOPLEFT", 120, -80)
+  drag(setup)
+  equal(count.moves, 1, "dragging the borrowed page moves the hub"); equal(db.windows.hub[3], 120, "hub position saved")
+  H.Open("home")
+  assert(lit(setup) and setup:IsMovable(), "a returned window gets its own shadow and drag back")
+  local outer = K.Dialog(nil, { savedKey = "outer" })
+  local inner, page = K.Dialog(nil, {}), K.Dialog(nil, {})
+  inner:SetParent(outer); K.MountPage(inner, outer)
+  page:SetParent(inner); K.MountPage(page, inner)
+  local moved = counter(outer)
+  outer:ClearAllPoints(); outer:SetPoint("CENTER", sim.env.UIParent, "CENTER", 5, 6)
+  drag(page)
+  equal(moved.moves, 1, "a page in a pinned host moves the window holding that host")
+  equal(db.windows.outer[3], 5, "saved under the outer window")
+  K.UnmountPage(page); K.UnmountPage(inner)
+  assert(page:IsMovable() and inner:IsMovable() and lit(page), "unmounting restores both")
+  sim:assertHealthy()
+end)

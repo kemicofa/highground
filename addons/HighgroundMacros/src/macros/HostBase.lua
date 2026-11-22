@@ -21,6 +21,7 @@ Host.call, Host.value = Util.call, Util.value
 Host.Say, Host.Events, Host.ClassColor = Util.Say, Util.Events, Util.ClassColor
 Host.Trim, Host.Split, Host.Plural, Host.ClassName = Util.Trim, Util.Split, Util.Plural, Util.ClassName
 Host.SpellName, Host.SpellTexture, Host.SpellID = Util.SpellName, Util.SpellTexture, Util.SpellID
+Host.Api = ns.Api -- moved game APIs (libs/config/Client.lua)
 
 -- "retail", "cata", "forever", "classic" or "tbc": which spells and commands exist.
 function Host.Locale() return GetLocale and GetLocale() or "enUS" end

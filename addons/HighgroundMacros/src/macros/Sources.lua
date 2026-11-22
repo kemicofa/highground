@@ -11,13 +11,13 @@ local Call, Plain = Host.call, Host.value
 -- Equipped items and items in your bags, plus equipment slot numbers.
 function Suggest.Items()
   local list, _, add = Suggest.Unique()
-  local nameOf = ns.Api.ItemName
+  local nameOf = Host.Api.ItemName
   for slot = 1, 19 do
     local id = Plain(Call(GetInventoryItemID, "player", slot))
     if id then add(Plain(Call(nameOf, id))) end
   end
-  local slots = ns.Api.Fn("C_Container", "GetContainerNumSlots")
-  local itemID = ns.Api.Fn("C_Container", "GetContainerItemID")
+  local slots = Host.Api.Fn("C_Container", "GetContainerNumSlots")
+  local itemID = Host.Api.Fn("C_Container", "GetContainerItemID")
   for bag = 0, 4 do
     for i = 1, (slots and Plain(Call(slots, bag))) or 0 do
       local id = itemID and Plain(Call(itemID, bag, i))

@@ -1,6 +1,6 @@
 # Player reputation
 
-[Documentation](README.md) · [Commands](commands.md#player-reputation)
+[Documentation](README.md) · [Commands](commands.md#reputation)
 
 Player reports, community moderation, blacklist tooltips and optional chat filtering. Reputation is included in Highground.
 

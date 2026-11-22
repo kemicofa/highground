@@ -30,7 +30,7 @@
 ## References
 
 - [Changelog](../CHANGELOG.md): version history and release notes.
-- [License](../LICENSE): MIT. Font licenses are in [libs/media/](../libs/media/).
+- [License](../LICENSE): MIT. Font licenses are in [libs/media/](../../../libs/HighgroundKit/media/).
 - [GitHub Releases](https://github.com/kemicofa/highground/releases/latest): installable ZIPs, also on CurseForge.
 - [Standalone migration](getting-started.md#moving-from-a-standalone-addon): replace deprecated downloads with Highground and preserve saved data.
 - [Highground Bounty Data](../../HighgroundBountyData/README.md): the required shared bounty storage dependency.

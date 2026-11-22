@@ -46,4 +46,4 @@ It runs everything: validation, unit tests, full-addon simulations, then the rep
 
 ## License
 
-[MIT](LICENSE). Bundled font licenses are in [libs/media/](libs/media/); game-audio attribution is in [libs/sounds/stealth.txt](libs/sounds/stealth.txt).
+[MIT](LICENSE). Bundled font licenses are in [libs/media/](../../libs/HighgroundKit/media/); game-audio attribution is in [libs/sounds/stealth.txt](../../libs/HighgroundKit/sounds/stealth.txt).

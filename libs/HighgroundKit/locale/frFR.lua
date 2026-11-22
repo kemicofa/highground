@@ -1650,6 +1650,7 @@ assert(ns.Locale:Register("frFR", {
   ["battlegrounds.driver.all_apis_present.ecf4bf"] = "Toutes les API présentes",
   ["battlegrounds.driver.node_announcements_value1_recent_area_guesses_value2.787d76"] = " | annonces de bases {value1} | estimations de zone récente {value2} | client {value3} / règles {value4} | point de libération : maintenant {value5}, vu vivant {Intel_src_releaseAlive} / mort {Intel_src_releaseDead} | zones : {value8}",
   ["battlegrounds.driver.no_area.69fa7e"] = "Aucune zone",
+  ["battlegrounds.sharing.refused"] = " | refusés par le jeu {count}",
   ["battlegrounds.driver.no_spot_not_pinned.8a7e7f"] = " (aucun point : non épinglé)",
   ["battlegrounds.driver.value2_error_x_intel_stats_errors_intel.8e3230"] = " | {value2}erreur x{Intel_stats_errors} : {Intel_stats_lastError}|r",
   ["battlegrounds.driver.value2_pin_error_ps_lasterror_r.11ecde"] = " | {value2}erreur d'épingle : {ps_lastError}|r",

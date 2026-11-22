@@ -115,3 +115,90 @@ test("each prefix reaches only its own module", function()
   sim:event("CHAT_MSG_ADDON", "HighgroundC", nil, "INSTANCE_CHAT", "Buddy-Realm")
   assert(Core.logCaps.Buddy, "messages without text ignored")
 end)
+
+test("refused sightings stay queued and go out once sending is allowed", function()
+  local sim = new("cata")
+  sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })
+  sim.sendResult = 3 -- throttled
+  sim:join()
+  sim:advance(2)
+  local Intel = sim.ns.Intel
+  equal(#sentOn(sim, "HighgroundI"), 0, "a throttled sighting is not sent")
+  equal(Intel.stats.sent, 0, "refused packets are not counted as sent")
+  assert(Intel.stats.unsent > 0, "refused packets are counted")
+  assert(Intel.Status():find("refused by the game", 1, true), "status reports refused messages")
+  sim.sendResult = nil
+  sim:advance(2)
+  local intel = sentOn(sim, "HighgroundI")
+  assert(intel[1] and intel[1].message:find("Scout-Realm,3000,4000", 1, true), "the kept sighting goes out")
+end)
+
+test("a refused capture start is retried while the capture lasts", function()
+  local sim = new("cata")
+  local active = {}
+  sim.env.UnitCastingInfo = function(unit)
+    local c = active[unit]
+    if c and sim.now < c.finish then
+      return c.name, c.name, nil, c.start * 1000, c.finish * 1000, false, "cast", false, c.spell
+    end
+  end
+  sim:join()
+  sim.env.HighgroundDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  active.player = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  sim.sendResult = 3
+  sim:event("UNIT_SPELLCAST_START", "player", "Cast-1", 21651)
+  equal(#sentOn(sim, "HighgroundC"), 0, "throttled start not sent")
+  sim:advance(1)
+  equal(#sentOn(sim, "HighgroundC"), 0, "still throttled")
+  sim.sendResult = nil
+  sim:advance(1)
+  local caps = sentOn(sim, "HighgroundC")
+  equal(#caps, 1, "start sent on retry")
+  assert(caps[1].message:find("^1:S,50,70,"), "with the time left then: " .. caps[1].message)
+  sim:advance(1)
+  equal(#sentOn(sim, "HighgroundC"), 1, "no further retries once delivered")
+
+  -- A refused end is retried; it stops once teammates' bars would end anyway.
+  sim.sendResult = 3
+  active.player = nil
+  sim:event("UNIT_SPELLCAST_STOP", "player", "Cast-1", 21651)
+  equal(#sentOn(sim, "HighgroundC"), 1, "throttled end not sent")
+  sim.sendResult = nil
+  sim:advance(1)
+  caps = sentOn(sim, "HighgroundC")
+  equal(caps[#caps].message, "1:E", "end sent on retry")
+  sim:advance(10)
+  equal(#sentOn(sim, "HighgroundC"), 2, "nothing more")
+end)
+
+test("chat lockdown holds battleground sharing without counting it as sent", function()
+  local sim = new("retail")
+  sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })
+  sim.chatLockdown = true
+  sim:join()
+  sim:advance(4)
+  for _, prefix in ipairs({ "HighgroundC", "HighgroundT", "HighgroundI" }) do
+    equal(#sentOn(sim, prefix), 0, prefix .. " held during lockdown")
+  end
+  equal(sim.ns.Intel.stats.sent, 0, "nothing counted as sent")
+  assert(sim.ns.Intel.stats.unsent > 0, "lockdown counted")
+  sim.chatLockdown = nil
+  sim:advance(2)
+  assert(sentOn(sim, "HighgroundI")[1], "intel goes out after lockdown")
+end)
+
+test("WoW Forever shares despite its advisory restricted flag; retail holds", function()
+  local function forever(s)
+    s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+    s.env.loadstring_untainted = nil
+    s.secureSnippets = false
+  end
+  for _, case in ipairs({ { "Forever", forever, 1 }, { "Retail", nil, 0 } }) do
+    local sim = new("retail", nil, case[2])
+    sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })
+    sim.addonMessagesRestricted = true
+    sim:join()
+    sim:advance(2)
+    equal(#sentOn(sim, "HighgroundI") > 0 and 1 or 0, case[3], case[1] .. " intel with outgoing messages restricted")
+  end
+end)

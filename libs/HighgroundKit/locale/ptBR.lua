@@ -1650,6 +1650,7 @@ assert(ns.Locale:Register("ptBR", {
   ["battlegrounds.driver.all_apis_present.ecf4bf"] = "todas as APIs presentes",
   ["battlegrounds.driver.node_announcements_value1_recent_area_guesses_value2.787d76"] = " | anúncios de bases {value1} | palpites de área recente {value2} | cliente {value3} / regras {value4} | local de liberação: agora {value5}, visto vivo {Intel_src_releaseAlive} / morto {Intel_src_releaseDead} | áreas: {value8}",
   ["battlegrounds.driver.no_area.69fa7e"] = "sem área",
+  ["battlegrounds.sharing.refused"] = " | recusadas pelo jogo {count}",
   ["battlegrounds.driver.no_spot_not_pinned.8a7e7f"] = " (sem local: não fixado)",
   ["battlegrounds.driver.value2_error_x_intel_stats_errors_intel.8e3230"] = " | {value2}erro x{Intel_stats_errors}: {Intel_stats_lastError}|r",
   ["battlegrounds.driver.value2_pin_error_ps_lasterror_r.11ecde"] = " | {value2}erro de marcador: {ps_lastError}|r",

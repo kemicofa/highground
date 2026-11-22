@@ -8,10 +8,12 @@ local Timers, Comms = ns.Timers, ns.Comms
 --   2:mapID:V,x,y,diedAgo,seenAgo,area
 -- x/y in 1/10000 of the map, 0 = unknown; area is the sub-zone name.
 ---------------------------------------------------------------------------
+-- A full outbox (messages kept while sending is refused) drops its oldest.
 function Timers.Queue(msg)
-  if #Timers.outbox < 10 then
-    Timers.outbox[#Timers.outbox + 1] = msg
+  if #Timers.outbox >= 10 then
+    table.remove(Timers.outbox, 1)
   end
+  Timers.outbox[#Timers.outbox + 1] = msg
 end
 
 function ns.ShareWave(g)
@@ -36,7 +38,13 @@ function Timers.Flush()
     wipe(Timers.outbox)
     return
   end
-  local now, parts = GetTime(), {}
+  -- Refused messages stay queued and are encoded again, from their absolute
+  -- times, on the next flush.
+  if Comms.Blocked() then
+    Timers.stats.unsent = Timers.stats.unsent + 1
+    return
+  end
+  local now, entries = GetTime(), {}
   for _, msg in ipairs(Timers.outbox) do
     local area = ns.Util.Clean(msg.area)
     local x, y = math.floor((msg.x or 0) * 10000), math.floor((msg.y or 0) * 10000)
@@ -50,25 +58,32 @@ function Timers.Flush()
     else
       part = string.format("V,%d,%d,%d,%d,%s", x, y, math.floor(now - msg.t0), math.floor(now - msg.t1), area)
     end
-    if part then parts[#parts + 1] = part end
+    if part then entries[#entries + 1] = { msg = msg, part = part } end
   end
   -- Send complete records only: truncating a long area name can relocate a
-  -- wave, and truncating a timestamp can corrupt its phase.
-  local prefix, packet = "2:" .. mapID .. ":", ""
+  -- wave, and truncating a timestamp can corrupt its phase. After a refused
+  -- packet, keep it and the rest for the next flush.
+  local prefix, packet, batch, kept = "2:" .. mapID .. ":", "", {}, {}
   local function Send()
-    if packet ~= "" then
-      Comms.Send(Timers.PREFIX, prefix .. packet, chan)
+    if packet == "" then return end
+    if #kept == 0 and Comms.Send(Timers.PREFIX, prefix .. packet, chan) then
       Timers.stats.sent = Timers.stats.sent + 1
+    else
+      Timers.stats.unsent = Timers.stats.unsent + 1
+      for _, msg in ipairs(batch) do kept[#kept + 1] = msg end
     end
+    packet, batch = "", {}
   end
-  for _, part in ipairs(parts) do
-    if #prefix + #part <= 255 then
-      if #prefix + #packet + #part + 1 > 255 then Send(); packet = "" end
-      packet = packet == "" and part or (packet .. ";" .. part)
+  for _, e in ipairs(entries) do
+    if #prefix + #e.part <= 255 then
+      if #prefix + #packet + #e.part + 1 > 255 then Send() end
+      packet = packet == "" and e.part or (packet .. ";" .. e.part)
+      batch[#batch + 1] = e.msg
     end
   end
   Send()
   wipe(Timers.outbox)
+  for i, msg in ipairs(kept) do Timers.outbox[i] = msg end
 end
 
 function Timers.Receive(text, sender)

@@ -58,7 +58,7 @@ function Timers.Enabled()
   return Timers.DB() and ns.Core.On("timers")
 end
 
-Timers.stats = { waves = 0, votes = 0, guide = 0, caps = 0, sent = 0, recv = 0 }
+Timers.stats = { waves = 0, votes = 0, guide = 0, caps = 0, sent = 0, recv = 0, unsent = 0 }
 
 -- Guarded call; failures land in Util.GuardStats and HighgroundDB.errors.
 Timers.Try = ns.Util.Guard

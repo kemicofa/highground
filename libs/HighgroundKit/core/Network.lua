@@ -22,10 +22,8 @@ end
 
 function N.CanSend()
   if not ns.Comms.CanSend() then return false, "missing_api" end
-  local U = ns.Util
-  if not (ns.Caps and ns.Caps.addonRestrictionAdvisory)
-    and U.read(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted) then return false, "outgoing_restricted" end
-  if U.read(C_ChatInfo.InChatMessagingLockdown) then return false, "chat_lockdown" end
+  local blocked = ns.Comms.Blocked()
+  if blocked then return false, blocked end
   return true
 end
 

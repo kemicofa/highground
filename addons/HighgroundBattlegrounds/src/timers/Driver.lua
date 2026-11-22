@@ -94,5 +94,5 @@ function ns.TimersStatus()
   return ns.Locale:Format("battlegrounds.driver.timers_bases_n_captures_timers_stats_caps.159810", { n = string.format("%d", n), Timers_stats_caps = string.format("%d", Timers.stats.caps), value3 = string.format("%s", tostring(Timers.CapTime() or "?")), clock = string.format("%s", clock), nA = string.format("%d", nA), nH = string.format("%d", nH), known = string.format("%d", known), Timers_stats_waves = string.format("%d", Timers.stats.waves), Timers_stats_guide = string.format("%d", Timers.stats.guide), Timers_stats_votes = string.format("%d", Timers.stats.votes), Timers_stats_sent = string.format("%d", Timers.stats.sent), Timers_stats_recv = string.format("%d", Timers.stats.recv), value13 = string.format("%s", (function()
       local l = Timers.GameGraveyards(Timers.MapID())
       return l and (#l .. " (" .. (l[1].name or tostring(l[1].id or "unnamed")) .. ", ...)") or "none"
-    end)()), value14 = string.format("%s", ErrorText()) })
+    end)()), value14 = string.format("%s", ErrorText()) }) .. ns.Comms.RefusedNote(Timers.stats.unsent)
 end

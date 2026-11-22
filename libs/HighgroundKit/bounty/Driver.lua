@@ -23,7 +23,9 @@ local function TooltipLine(tip)
   if b then
     if b.state == "public" then
       ns.Theme.TipLine(tip, "Shared bounty: " .. Bounty.GoldText(b) .. " with funds reported available", "gold")
-      ns.Theme.TipLine(tip, #b.contributions .. " contributions; " .. ns.Util.Gold(b.pledgedGold) .. " pledged", "textMuted")
+      local n = #b.contributions
+      ns.Theme.TipLine(tip, n .. (n == 1 and " contribution; " or " contributions; ") .. ns.Util.Gold(b.pledgedGold) .. " pledged",
+        "textMuted")
     else ns.Theme.TipLine(tip, "Bounty: " .. Bounty.GoldText(b) .. " from " .. Core.DisplayName(b.by or "?"), "gold") end
   end
 end

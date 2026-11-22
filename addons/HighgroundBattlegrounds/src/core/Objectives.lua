@@ -98,16 +98,21 @@ function Core.EnemyByChatName(name)
   if key and Core.enemies[key] then
     return Core.enemies[key]
   end
-  local found
+  -- A unique short name, else (WoW Forever: first name and surname) a unique
+  -- first name; Forever announcements can use the first name alone.
+  local found, first
   for _, e in pairs(Core.enemies) do
-    if e.display:match("^[^-]+") == name then
+    local short = e.display:match("^[^-]+")
+    if short == name then
       if found then
         return nil -- ambiguous short name
       end
       found = e
+    elseif short and short:match("^(%S+)%s") == name then
+      first = first == nil and e or false -- false: ambiguous first name
     end
   end
-  return found
+  return found or first or nil
 end
 
 function Core.ClearCarriers()

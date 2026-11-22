@@ -1686,6 +1686,7 @@ assert(ns.Locale:Register("zhTW", {
   ["battlegrounds.layer.value1_graveyard_value3.8368c3"] = "{value1} 星際迷航：墓地 {value3}",
   ["battlegrounds.layer.estimated_from_enemy_deaths.71fbd2"] = " (根據敵方死亡人數估計)",
   ["battlegrounds.layer.from_base_capture_time.8580e8"] = " (從基準捕獲時間)",
+  ["battlegrounds.layer.from_a_teammate.d2dd3b"] = " (來自隊友)",
   ["battlegrounds.layer.next_res_in_value1_value2.944c3a"] = "下一個res在{value1}{value2}",
   ["battlegrounds.layer.res_timer_unknown_yet.39019e"] = "解析度計時器未知",
   ["battlegrounds.layer.your_team.80b301"] = "您的團隊",

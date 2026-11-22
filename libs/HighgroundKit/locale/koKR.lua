@@ -1686,6 +1686,7 @@ assert(ns.Locale:Register("koKR", {
   ["battlegrounds.layer.value1_graveyard_value3.8368c3"] = "{value1} 묘지: {value3}",
   ["battlegrounds.layer.estimated_from_enemy_deaths.71fbd2"] = " (적의 사망자를 기준으로 추정)",
   ["battlegrounds.layer.from_base_capture_time.8580e8"] = " (기본 캡처 시간)",
+  ["battlegrounds.layer.from_a_teammate.d2dd3b"] = " (팀원 제공)",
   ["battlegrounds.layer.next_res_in_value1_value2.944c3a"] = "다음은 {value1}{value2}",
   ["battlegrounds.layer.res_timer_unknown_yet.39019e"] = "해상도 타이머 알 수 없음",
   ["battlegrounds.layer.your_team.80b301"] = "당신의 팀",

@@ -24,6 +24,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Reduce CPU and memory churn in battlegrounds: game events no longer allocate per handler, enemy focus markers coalesce bursts of nameplate and target changes (Cataclysm) and schedule nothing on other clients, scoring skips unused explanation text, and alert sounds no longer poll while idle. Fully restart WoW to load the new shared module.
 - Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
 - `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
+- Battleground win predictions no longer name the Alliance as the winner when both teams would reach the score limit together. Graveyard map tooltips name a clock from a base capture or a teammate as such instead of "estimated from enemy deaths". On WoW Forever, flag and orb announcements that use only a carrier's first name now mark that enemy when the first name is unique.
 
 ## [2.50.0] - 2026-11-22
 

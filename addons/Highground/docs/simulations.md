@@ -105,6 +105,8 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 
 WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
 
+`tests/battleground_objectives_test.lua`, `battleground_roster_test.lua`, `battleground_timers_test.lua` and `battleground_waves_test.lua` run real battleground rules through the simulator: flag, single-flag and orb carriers, team detection without your own scoreboard row, score prediction (including dead heats and learned rates), graveyard names by side and for cross-faction teams, map pin tooltips, spirit guides, resurrection advice and cart/round status widgets.
+
 Standalone suites add their own integration coverage. `tests/arena_duels.lua` runs against both Highground and Highground Arena: incoming/outgoing challenges, localized countdowns, cancellation, combat deferral, fixed opponent identity, Forever surnames, restricted data and duel stealth alerts. In particular, `addons/HighgroundBounties/tests/public_test.lua` and `public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh HighgroundBounties` from the repository root to run them with that addon's other tests.
 
 ## Write a scenario

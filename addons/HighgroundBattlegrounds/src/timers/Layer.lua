@@ -37,7 +37,12 @@ AddLayer(function(mapID)
       tooltip = function(tt)
         Tip(tt, ns.Locale:Format("battlegrounds.layer.value1_graveyard_value3.8368c3", { value1 = (g.team == Timers.MyTeam() and ns.Locale:Get("battlegrounds.layer.your.ba596f") or ns.Locale:Get("battlegrounds.layer.enemy.a25632")), value3 = Timers.GYName(g) }), c)
         if nw then
-          Tip(tt, ns.Locale:Format("battlegrounds.layer.next_res_in_value1_value2.944c3a", { value1 = string.format("%s", Timers.Clock(nw - now)), value2 = string.format("%s", est and ns.Locale:Get("battlegrounds.layer.estimated_from_enemy_deaths.71fbd2") or g.conf == "cap" and ns.Locale:Get("battlegrounds.layer.from_base_capture_time.8580e8") or "") }), "white")
+          -- Name the clock's source: a capture or a teammate's report is
+          -- estimated too, but not from enemy deaths.
+          local source = g.conf == "cap" and "battlegrounds.layer.from_base_capture_time.8580e8"
+            or g.conf == "shared" and "battlegrounds.layer.from_a_teammate.d2dd3b"
+            or est and "battlegrounds.layer.estimated_from_enemy_deaths.71fbd2"
+          Tip(tt, ns.Locale:Format("battlegrounds.layer.next_res_in_value1_value2.944c3a", { value1 = string.format("%s", Timers.Clock(nw - now)), value2 = source and ns.Locale:Get(source) or "" }), "white")
         else
           Tip(tt, ns.Locale:Get("battlegrounds.layer.res_timer_unknown_yet.39019e"), "textMuted")
         end

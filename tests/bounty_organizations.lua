@@ -185,7 +185,7 @@ test("Forever community sync excludes foreign and unresolved rulesets before whi
   assert(#packets > 0, "same-ruleset community synchronization still sends")
   for _, packet in ipairs(packets) do
     equal(packet.channel, "WHISPER")
-    equal(packet.target, "Ally Bright-RP-PVP", "never whisper foreign or unresolved community members")
+    equal(packet.target, "Ally Bright", "never whisper foreign or unresolved community members")
   end
   equal(B(ally).Guild("club:42")["enemy shade-rp-pvp"].state, "approved", "same-ruleset recipient gets the bounty")
   local forged = B(owner).Public.Copy(b)

@@ -272,7 +272,8 @@ function P.Prune()
   for i = 1001, #settled do P.Data().claims[settled[i].id] = nil end
   for id, p in pairs(P.Data().offers) do
     -- Keep an unexpired tombstone until the original offer cannot return.
-    if now > p.expiresAt + P.CLAIM_WINDOW and not pending[id] and (not p.contract or p.state == "paid") then
+    if now > p.expiresAt + P.CLAIM_WINDOW and not pending[id]
+      and (not p.contract or p.state == "paid" or now > p.expiresAt + P.CONTRACT_GRACE) then
       local b = B.Guild(p.organization)[B.Key(p.name)]
       if b and b.publicID == p.id and b.by == p.by then b.publicClosed = true end
       P.Data().offers[id] = nil

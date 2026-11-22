@@ -7,6 +7,9 @@ P.CLAIM_WINDOW = 15 * 60
 P.FUNDS_TTL = 5 * 60
 P.MAX_OFFERS, P.MAX_OWN = 2000, 20
 P.MAX_CLAIMS = 2000
+-- An expired, unpaid contribution to a shared reward waits this long for a
+-- delayed owner decision, then is pruned so it cannot hold a slot forever.
+P.CONTRACT_GRACE = 90 * 86400
 
 function P.Now()
   return U.value(U.call(GetServerTime)) or time()
@@ -73,10 +76,29 @@ function P.Init()
 end
 
 function P.Data()
+  if P.pruning then return P.pruning end
   if not P.ready then return { offers = {}, claims = {} } end
-  local key = P.Scope()
-  P.db.scopes[key] = P.db.scopes[key] or { offers = {}, claims = {} }
-  return P.db.scopes[key]
+  local data = ns.Saved.Table(P.db.scopes, P.Scope())
+  ns.Saved.Table(data, "offers"); ns.Saved.Table(data, "claims")
+  return data
+end
+
+-- Other realm/faction scopes follow the same pruning rules, once per
+-- session; a scope left without offers or claims is removed.
+function P.PruneOtherScopes()
+  if not P.ready then return end
+  local current = P.Scope()
+  for key, data in pairs(P.db.scopes) do
+    if key ~= current then
+      if type(data) ~= "table" then P.db.scopes[key] = nil else
+        ns.Saved.Table(data, "offers"); ns.Saved.Table(data, "claims")
+        P.pruning = data
+        U.Guard("shared bounties", P.Prune)
+        P.pruning = nil
+        if next(data.offers) == nil and next(data.claims) == nil then P.db.scopes[key] = nil end
+      end
+    end
+  end
 end
 
 function P.NewID()

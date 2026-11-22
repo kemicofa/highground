@@ -2,7 +2,6 @@ local _, ns = ...
 local Locale, Localization = ns.Macros.Host.Messages, ns.Macros.Host.Localization
 local M = ns.Macros
 local H = M.Host
-local L = H.L
 local B = {}
 M.Backups = B
 
@@ -78,7 +77,7 @@ function B.Open()
           local why = B.Check(backup)
           if why then B.confirm:Reset(); return false, why end
           if not B.confirm:Request(backup) then
-            return nil, L:Format(backup.before and "macros.history.confirm.restore" or "macros.history.confirm.delete",
+            return nil, Locale:Format(backup.before and "macros.history.confirm.restore" or "macros.history.confirm.delete",
               { name = backup.after.name })
           end
           return B.Undo(backup)

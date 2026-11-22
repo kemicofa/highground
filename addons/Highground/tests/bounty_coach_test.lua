@@ -218,6 +218,9 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     s:advance(3)
     t.equal(summaries, 0, "unchanged sample progress is not rebuilt on every update")
     t.equal(anchors, 0, "the fitted sample window keeps its anchor")
+    s.ns.Localization.SetPreference("deDE"); C.Update()
+    assert(summaries > 0, "a language change rebuilds the localized card text")
+    s.ns.Localization.SetPreference("enUS"); C.Update(); summaries = 0
     local status = D.state.coachRow.status
     click(S.PrimaryButton()); C.Update()
     assert(summaries > 0 and D.state.coachRow.tracking, "a sample change still refreshes the card")

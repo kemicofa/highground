@@ -6,15 +6,19 @@ local Kit, Theme = ns.Kit, ns.Theme
 -- filters. Supply true for a default message, or a string for feature copy.
 -- A ready collection may have zero rows; count then distinguishes an empty
 -- collection from a filter with no results. No timers or data are owned here.
-local DEFAULTS = {
-  error = "Could not load entries. Try again.",
-  unavailable = "These entries are unavailable right now.",
-  disabled = "This feature is turned off.",
-  loading = "Loading entries…",
-  filtered = "No matches. Clear the search or try another name.",
-  empty = "No entries yet.",
-  ready = "",
-}
+-- Default copy comes from the localization library at display time, so a
+-- language change applies to the next refresh.
+local function Default(kind)
+  local Locale = ns.Locale
+  if not Locale then return "" end
+  if kind == "error" then return Locale:Get("kit.state.error") end
+  if kind == "unavailable" then return Locale:Get("kit.state.unavailable") end
+  if kind == "disabled" then return Locale:Get("kit.state.disabled") end
+  if kind == "loading" then return Locale:Get("kit.state.loading") end
+  if kind == "filtered" then return Locale:Get("kit.state.filtered") end
+  if kind == "empty" then return Locale:Get("kit.state.empty") end
+  return ""
+end
 
 function Kit.ResolveState(facts)
   facts = facts or {}
@@ -30,7 +34,7 @@ function Kit.ResolveState(facts)
     kind = (facts.count or 0) > 0 and "ready" or facts.filtered and "filtered" or "empty"
     message = type(facts[kind]) == "string" and facts[kind] or nil
   end
-  return { kind = kind, message = message or DEFAULTS[kind], tone = kind == "error" and "danger" or "textMuted",
+  return { kind = kind, message = message or Default(kind), tone = kind == "error" and "danger" or "textMuted",
     blocked = kind ~= "ready" and kind ~= "empty" and kind ~= "filtered" }
 end
 

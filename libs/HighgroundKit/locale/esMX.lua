@@ -4981,6 +4981,7 @@ assert(ns.Locale:Register("esMX", {
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
   ["bounty.board.unavailable"] = "Recompensas compartidas no disponibles",
   ["bounty.card.reports_hint"] = "Haz clic para ver los reportes de muerte.",
+  ["bounty.form.note_too_long"] = "Acorta la nota a {max} bytes o menos (ahora {used}). Las letras acentuadas y los símbolos ocupan más de un byte.",
   ["bounty.confirm.withdraw"] = "Confirmar retiro",
   ["bounty.confirm.remove"] = "Confirmar eliminación",
   ["bounty.confirm.reject"] = "Confirmar rechazo / retiro",

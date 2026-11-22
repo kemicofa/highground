@@ -4981,6 +4981,7 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
   ["bounty.board.unavailable"] = "Taglie condivise non disponibili",
   ["bounty.card.reports_hint"] = "Fai clic per vedere i rapporti di morte.",
+  ["bounty.form.note_too_long"] = "Accorcia la nota a {max} byte o meno (ora {used}). Le lettere accentate e i simboli occupano più di un byte.",
   ["bounty.confirm.withdraw"] = "Conferma ritiro",
   ["bounty.confirm.remove"] = "Conferma rimozione",
   ["bounty.confirm.reject"] = "Conferma rifiuto / ritiro",

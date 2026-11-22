@@ -4981,6 +4981,7 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.objectives.action"] = "启动目标指南",
   ["bounty.board.unavailable"] = "共享悬赏不可用",
   ["bounty.card.reports_hint"] = "点击查看死亡报告。",
+  ["bounty.form.note_too_long"] = "请将备注缩短到 {max} 字节以内（当前 {used}）。中文、带重音的字母和符号每个占用多于一个字节。",
   ["bounty.confirm.withdraw"] = "确认撤回",
   ["bounty.confirm.remove"] = "确认移除",
   ["bounty.confirm.reject"] = "确认拒绝 / 撤回",

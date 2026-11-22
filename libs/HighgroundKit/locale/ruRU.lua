@@ -4981,6 +4981,7 @@ assert(ns.Locale:Register("ruRU", {
   ["commands.guide.objectives.action"] = "Руководство по стартовым целям",
   ["bounty.board.unavailable"] = "Общие награды недоступны",
   ["bounty.card.reports_hint"] = "Нажмите, чтобы посмотреть отчёты о смертях.",
+  ["bounty.form.note_too_long"] = "Сократите заметку до {max} байт или меньше (сейчас {used}). Буквы кириллицы, буквы с диакритикой и символы занимают больше одного байта.",
   ["bounty.confirm.withdraw"] = "Подтвердить отзыв",
   ["bounty.confirm.remove"] = "Подтвердить удаление",
   ["bounty.confirm.reject"] = "Подтвердить отклонение / отзыв",

@@ -193,7 +193,10 @@ function Form.Build(preview)
     Kit.Tooltip(w.expiryButtons[option.key], function() return { option.hint, ns.Locale:Get("shared.form.other_posters_choose_their_own_expiry_editing.18a05e") } end)
   end
   w.duration = ns.Localization.BindWidget(Kit.Input(body, 180, ns.Locale:Get("shared.form.custom_duration_e_g_30m_or_14d.6f68de")), { caption = "shared.form.custom_duration_e_g_30m_or_14d.6f68de" })
-  w.note = ns.Localization.BindWidget(Kit.Input(body, 500, ns.Locale:Get("shared.form.note_optional.f91717")), { caption = "shared.form.note_optional.f91717" }); w.note:SetMaxLetters(B.NOTE_MAX)
+  w.note = ns.Localization.BindWidget(Kit.Input(body, 500, ns.Locale:Get("shared.form.note_optional.f91717")), { caption = "shared.form.note_optional.f91717" })
+  -- Notes travel with a byte limit; accented letters and symbols use more
+  -- than one byte. The game's byte limit includes the terminator.
+  if w.note.SetMaxBytes then w.note:SetMaxBytes(B.NOTE_MAX + 1) else w.note:SetMaxLetters(B.NOTE_MAX) end
   w.terms = T.Text(body, "body", "textMuted"); w.terms:SetJustifyH("LEFT"); w.terms:SetJustifyV("TOP"); w.terms:SetWordWrap(true)
   w.error = T.Text(w, "body", "warning")
   w.error:SetPoint("BOTTOMLEFT", 24, 64); w.error:SetPoint("RIGHT", -24, 0)

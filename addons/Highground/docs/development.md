@@ -276,6 +276,8 @@ Cata simulator comparison, default saved data, same navigation sequence:
 
 The follow-up idle audit uses `luajit ../../tools/performance_idle.lua cata` (or `retail`). It covers a closed hub, Home, Bounties, the feature guide, `/hg bg test`, a guided panel example, and closing everything afterwards. It disables JIT, settles animations, then measures 30 seconds per case, including retained heap after collection. Collection is diagnostic tooling only; the addon does not force collection.
 
+The simulator's own per-step health checks and absent-fixture lookups no longer allocate. On Cata this lowered every `performance_idle.lua` case by about 240 KiB per 30 simulated seconds (closed UI: 334 → 92 KiB); compare totals only with runs on the same simulator version. Budgets that wrap addon calls directly are unaffected.
+
 - Background intervals previously used 23 independent per-frame handlers even with the UI closed. Native tickers now wake callbacks at their requested intervals, with reusable error wrappers and cancellable preview handles. At the simulator's 20 FPS, that removes 13,800 idle OnUpdate calls per 30 seconds; the required periodic scans and network work still run.
 - Bounties rebuilt all tab models and card geometry twice per second. Changes still refresh immediately; age/expiry-only refreshes now poll every five seconds while visible. Hidden parents prevent background repainting, except during deliberate window preparation.
 - Guide spotlight geometry is reused until the target, scroll clipping, viewport, context, motion preference or coach size changes. Repeated `SetEnabled` calls no longer repaint unchanged buttons or interrupt pressed feedback.

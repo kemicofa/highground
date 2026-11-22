@@ -186,6 +186,28 @@ t.test("addon messages report client results, throttling, lockdown and size limi
   end
 end)
 
+t.test("combat log events keep parameter positions with optional fields", function()
+  local sim = new()
+  local function event() return { sim.env.CombatLogGetCurrentEventInfo() }, select("#", sim.env.CombatLogGetCurrentEventInfo()) end
+  sim:combatLog("SPELL_DAMAGE", "Foe-Realm", "Me", 133)
+  local e, n = event()
+  t.equal(n, 12, "default spell event length")
+  t.equal(e[5] .. e[9] .. e[12] .. e[6], "Foe-RealmMe1330", "default names, spell and flags")
+  local flags = sim.combatFlags
+  sim:combatLog("SPELL_DAMAGE", "Foe-Realm", "Me", 133, { sourceGUID = "Player-1-1", sourceFlags = flags.hostilePlayer,
+    destFlags = flags.mine, suffix = { 250, 40 } })
+  e, n = event()
+  t.equal(n, 16, "spell event with suffix")
+  t.equal(e[4], "Player-1-1", "source GUID")
+  t.equal(e[6], 0x548, "hostile player flags")
+  t.equal(e[13], nil, "absent spell name keeps its position")
+  t.equal(e[15] + e[16], 290, "amount and overkill follow the spell parameters")
+  sim:combatLog("SWING_DAMAGE", "Foe-Realm", "Me", nil, { suffix = { 75, 5 } })
+  e, n = event()
+  t.equal(n, 13, "swing events have no spell parameters")
+  t.equal(e[12] + e[13], 80, "swing amount and overkill")
+end)
+
 t.test("simulators reuse compiled files without sharing state", function()
   local dir = os.tmpname()
   os.remove(dir)

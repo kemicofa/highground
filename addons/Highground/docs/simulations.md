@@ -139,10 +139,10 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim.checks` | Functions `check(sim, db)` returning error messages; every event, clock step and click runs them |
 | `sim:enemy(name, fields)` | Add a scoreboard enemy and nameplate unit; returns the mutable unit and token |
 | `sim:join(mapID, instanceID, name)` / `sim:leave()` | Deliver world/scoreboard events and advance the drivers |
-| `sim:advance(seconds)` | Run scheduled callbacks and visible-frame updates with a virtual clock |
+| `sim:advance(seconds)` | Run scheduled callbacks and visible-frame updates with a virtual clock. `C_Timer` matches the game: zero delays wait for the next step, `NewTimer`/`NewTicker` handles are passed to their callbacks, tickers honour an iteration count, and handles support `Cancel`/`IsCancelled` |
 | `sim:event(name, ...)` | Dispatch an event only to registered frames |
 | `sim:setCombat(boolean)` | Change combat restrictions and send the regeneration event |
-| `sim:combatLog(kind, sourceName, targetName, spellID)` | Send a combat-log observation |
+| `sim:combatLog(kind, sourceName, targetName, spellID, fields)` | Send a combat-log observation. Optional `fields`: `sourceGUID`, `sourceFlags`, `destGUID`, `destFlags`, `spellName`, `school` and `suffix` (such as `{ amount, overkill }`); `sim.combatFlags` names common unit flags |
 | `sim:command(text)` | Run the actual `/hg` command dispatcher |
 | `sim:slash(key, text)` | Run any `SlashCmdList[key]`, such as `HIGHGROUNDMACROS` |
 | `sim:click(frameOrName, button, shift, upOnly)` | Deliver a secure click; defaults to left-button down/up without Shift; `upOnly` models `/click` |
@@ -152,7 +152,8 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim.graveyards`, `sim.releasePosition`, `sim.healerTime` | Client graveyard list, resurrection destination and healer countdown |
 | `sim.faction` | Player faction: 1 for Alliance (default), 0 for Horde; set the player's scoreboard faction to match |
 | `sim.env.HighgroundRow1`, `sim.env.WorldMapFrame.pins` | Rendered widgets and pins |
-| `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects |
+| `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects. Addon messages and chat over 255 bytes fail as in the game |
+| `sim.sendResult`, `sim.chatLockdown`, `sim.addonMessagesRestricted` | Addon-message result (default success: `true` on Cata, `0` on Retail; other values reject the message) and Retail chat restrictions |
 
 Unit fields include `yards`, `health`, `maxHealth`, `mana`, `maxMana`, `dead`, `position = { x, y }`, `buffs`, `debuffs` and Retail aura `categories`. A unit can be assigned to another token, such as `sim.units.target = enemy`, to model targeting without changing its identity.
 

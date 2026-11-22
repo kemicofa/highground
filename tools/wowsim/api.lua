@@ -174,7 +174,11 @@ return function(sim, env)
     env.C_ChatInfo.InChatMessagingLockdown = function() return sim.chatLockdown == true end
     env.C_ChatInfo.AreOutgoingAddonChatMessagesRestricted = function() return sim.addonMessagesRestricted == true end
   end
-  env.CombatLogGetCurrentEventInfo = function() return unpack(sim.combatEvent or EMPTY) end
+  -- sim:combatLog sets n so nil parameters keep their positions.
+  env.CombatLogGetCurrentEventInfo = function()
+    local event = sim.combatEvent or EMPTY
+    return unpack(event, 1, event.n or #event)
+  end
   env.PlaySound = function(id) sim.sounds[#sim.sounds + 1] = id; return true end
   env.PlaySoundFile = env.PlaySound
   -- Chat drafts and filters: run the addon's real receive filter and its

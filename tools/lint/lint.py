@@ -52,6 +52,8 @@ LOWERCASE_GLOBALS = frozenset("""
     debugstack debuglocals debugprofilestart debugprofilestop geterrorhandler seterrorhandler
     loadstring_untainted getglobal setglobal scrub
 """.split())
+# The standalone interpreter's extra globals, allowed in tests and tools.
+TOOL_GLOBALS = frozenset("arg debug dofile io jit loadfile os package require newproxy".split())
 # Literal text passed straight to a widget (comments are stripped first).
 UI_LITERAL = re.compile(r""":(?:SetText|SetFormattedText|AddLine|AddDoubleLine)\(\s*(["'])[^"']*[A-Za-z]{2}""")
 # Explicit _G.Name = ... or _G["Name"] = ... writes (table sets, not GSET).
@@ -159,6 +161,12 @@ def analyse(root, lua_files):
     return {name: scopes.analyse((Path(root) / name).read_text(encoding="utf-8")) for name in sorted(lua_files)}
 
 
+def is_runtime(name):
+    """Whether a path is addon runtime code (not a test or tool), which WoW loads."""
+    parts = PurePosixPath(Path(name).as_posix()).parts
+    return "tests" not in parts and "tools" not in parts
+
+
 def scope_errors(root, analysis, reads, baseline):
     """Unused locals outside the baseline, and global reads that are probably missing locals."""
     errors = []
@@ -170,7 +178,8 @@ def scope_errors(root, analysis, reads, baseline):
         declared = analysis[name][1].get(symbol)
         if declared and declared != line:
             errors.append(f"{name}:{line}: global '{symbol}' read before the file-level local on line {declared}")
-        elif symbol[:1].islower() and symbol not in LOWERCASE_GLOBALS:
+        elif symbol[:1].islower() and symbol not in LOWERCASE_GLOBALS and not (
+                symbol in TOOL_GLOBALS and not is_runtime(name)):
             errors.append(f"{name}:{line}: unknown lowercase global '{symbol}' (missing local?)")
     return errors
 

@@ -155,9 +155,25 @@ function Runtime:setCombat(on)
   self:event(on and "PLAYER_REGEN_DISABLED" or "PLAYER_REGEN_ENABLED")
 end
 
-function Runtime:combatLog(kind, source, destination, spellID)
-  self.combatEvent = { self.now, kind, false, "Player-source", source, 0, 0,
-    "Player-destination", destination, 0, 0, spellID }
+-- Unit flags for combatLog fields (COMBATLOG_OBJECT_* combinations).
+Runtime.combatFlags = { mine = 0x511, friendlyPlayer = 0x518, hostilePlayer = 0x548, hostileNPC = 0xa48 }
+
+-- Fires COMBAT_LOG_EVENT_UNFILTERED. fields (optional): sourceGUID,
+-- sourceFlags, destGUID, destFlags, spellName, school, and suffix: values
+-- after the spell parameters (after the base ones for SWING_ events), such
+-- as { amount, overkill }. Without fields, GUIDs are placeholders and flags 0.
+function Runtime:combatLog(kind, source, destination, spellID, fields)
+  fields = fields or NONE
+  local event = { self.now, kind, false, fields.sourceGUID or "Player-source", source, fields.sourceFlags or 0, 0,
+    fields.destGUID or "Player-destination", destination, fields.destFlags or 0, 0 }
+  local suffix = 12
+  if not kind:match("^SWING_") then
+    event[12], event[13], event[14], suffix = spellID, fields.spellName, fields.school, 15
+  end
+  local extra = fields.suffix or NONE
+  for i = 1, #extra do event[suffix + i - 1] = extra[i] end
+  event.n = math.max(#extra > 0 and suffix + #extra - 1 or 0, suffix == 15 and 12 or 11)
+  self.combatEvent = event
   self:event("COMBAT_LOG_EVENT_UNFILTERED")
 end
 

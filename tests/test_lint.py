@@ -149,6 +149,14 @@ class GlobalReadTests(unittest.TestCase):
             "file.lua:3: global 'second' read before the file-level local on line 4",
             "file.lua:5: unknown lowercase global 'valeu' (missing local?)"])
 
+    def test_interpreter_globals_are_allowed_only_outside_runtime_code(self):
+        source = "local file = io.open(arg[1])\nreturn file\n"
+        (self.root / "tests").mkdir()
+        (self.root / "tests/helper.lua").write_text(source)
+        lint.check_scopes(self.root, ["tests/helper.lua"], set())
+        self.assertEqual(self.errors(source), ["file.lua:1: unknown lowercase global 'arg' (missing local?)",
+                                               "file.lua:1: unknown lowercase global 'io' (missing local?)"])
+
     def test_baseline_keeps_known_unused_locals_only(self):
         source = "local known, fresh = 1, 2\nreturn 1\n"
         path = lint.repository_path(self.root, "file.lua")

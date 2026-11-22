@@ -67,6 +67,11 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Reduce memory and allocations from button effects and interface transitions.
 - Smaller download and less texture memory: guide logos, the crest, the brand icon and the marker's aiming point now ship at twice their on-screen size instead of four times.
 - Find Reputation moderators in communities whose online status the game does not report, using recent addon messages, friends and shared guilds, with slow, limited checks for the rest. Proposal resends now back off and stop after a few per online session.
+- Show command syntax intact in `/hg help`, command usage lines and **Help and commands**: choices such as `s|i|raid` and `left|right` no longer lose letters to chat formatting codes.
+- `/hg reset` asks you to leave combat instead of trying to move the protected enemy panel. `/hg mark ping` explains that pings are unavailable on clients without them, `/hg exec 29` reports 29% instead of 28%, and `/hg points NAME` with a non-numeric value prints its usage.
+- Set the execute threshold on Retail and WoW Forever too (**Target behavior** or `/hg exec PCT`); it already decides the red execute outline on enemy rows there.
+- `/hg points NAME` without a value shows that value and how to change it instead of resetting it; only `/hg points NAME reset` resets. `/hg rows`, `/hg scale`, `/hg opacity` and `/hg exec` with a non-number print their one usage line instead of the full command list, and an unknown scoring value names the Highground window pages that list them.
+- Cart and epic battleground status allocates about a tenth as much memory per update.
 
 ## [2.50.0] - 2026-11-22
 

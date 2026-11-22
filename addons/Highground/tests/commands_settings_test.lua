@@ -22,9 +22,14 @@ t.test("/hg points lists overrides, matches keys in any case and validates value
   assert(has(out, "killPer must be 0"), "range explained: " .. out)
   out = run(sim, "points killPer lots")
   equal(db.points.killPer, 9, "non-numeric value ignored")
-  assert(has(out, "/hg points killPer N|reset"), "usage for a non-numeric value: " .. out)
+  assert(has(out, "/hg points NAME VALUE|reset  "), "usage for a non-numeric value: " .. out)
+  out = run(sim, "points killPer")
+  equal(db.points.killPer, 9, "a name alone never resets")
+  assert(has(out, "killPer = 9 (default " .. default .. ")"), "a name alone shows the value: " .. out)
+  assert(has(out, "/hg points NAME VALUE|reset"), "and how to change it")
   out = run(sim, "points nonsense 3")
-  assert(has(out, "unknown key"), "unknown key")
+  assert(has(out, "Unknown scoring value. In /hg config, see Battlegrounds → Target priority, Objectives, Live signals"),
+    "the Highground window pages: " .. out)
   equal(new("cata", db).ns.Core.db.points.killPer, 9, "override survives reload")
   out = run(sim, "points killPer reset")
   equal(db.points.killPer, nil, "reset drops the override")
@@ -88,8 +93,11 @@ t.test("/hg rows, scale and opacity clamp values and print help for non-numbers"
   assert(has(out, "background opacity: 35%"), "opacity set")
   local rows, scale = db.rows, db.scale
   for _, command in ipairs({ "rows many", "scale big", "opacity half", "exec low" }) do
+    local before = #sim.messages
     out = run(sim, command)
-    assert(has(out, "/hg help"), command .. " prints the command help")
+    equal(#sim.messages, before + 1, command .. " prints one line")
+    local syntax = sim.ns.CommandCatalog.byId[command:match("^%S+")][1]
+    assert(has(out, syntax .. "  "), command .. " prints its usage: " .. out)
   end
   equal(db.rows, rows, "rows kept")
   equal(db.scale, scale, "scale kept")
@@ -106,6 +114,18 @@ t.test("/hg exec reports the saved threshold without rounding it down", function
   local out = run(sim, "exec 2")
   equal(db.executePct, 0.35, "out-of-range threshold rejected")
   assert(has(out, "executePct must be"), "range explained")
+end)
+
+t.test("Retail sets the execute threshold that colours its execute marks", function()
+  local sim = new("retail", {})
+  local out = run(sim, "exec 50")
+  equal(sim.env.HighgroundDB.executePct, 0.5, "threshold saved on Retail")
+  assert(has(out, "below 50%"), "confirmed")
+  assert(sim.ns.OptionAvailable(sim.ns.CommandCatalog.byId.exec), "listed in Help and commands on Retail")
+  sim.ns.Hub.Open("behavior")
+  local page, row = sim.ns.Options.byKey.behavior
+  for _, r in ipairs(page.rows or {}) do if r.key == "executePct" then row = r end end
+  assert(row, "Target behavior offers the execute threshold on Retail")
 end)
 
 t.test("layout commands wait for the end of combat and then apply", function()

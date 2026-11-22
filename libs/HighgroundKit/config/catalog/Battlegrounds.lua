@@ -26,7 +26,7 @@ ns.OptionsAdd({
     ns.Localization.Define({ key = "switchMargin", def = 8, min = 0, max = 100, unit = "points", desc = ns.Locale:Get("shared.battlegrounds.lead_required_to_switch_targets_or_reorder.b58245") }, { desc = "shared.battlegrounds.lead_required_to_switch_targets_or_reorder.b58245" }),
     ns.Localization.Define({ key = "goWindow", def = 12, min = 0, max = 60, unit = "seconds", desc = ns.Locale:Get("shared.battlegrounds.go_alert_after_protection_expires.22cff4") }, { desc = "shared.battlegrounds.go_alert_after_protection_expires.22cff4" }),
     ns.Localization.Define({ key = "spentWindow", def = 60, min = 1, max = 120, unit = "seconds", desc = ns.Locale:Get("shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b") }, { desc = "shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b" }),
-    ns.Localization.Define({ key = "executePct", def = 0.35, min = 0.05, max = 0.90, step = 0.05, unit = "fraction (0.35 = 35%)", cata = true,
+    ns.Localization.Define({ key = "executePct", def = 0.35, min = 0.05, max = 0.90, step = 0.05, unit = "fraction (0.35 = 35%)",
       desc = ns.Locale:Get("shared.battlegrounds.execute_health_threshold.47de21") }, { desc = "shared.battlegrounds.execute_health_threshold.47de21" }),
   },
   features = {

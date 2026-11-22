@@ -26,7 +26,7 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   L("live", "battlegrounds.commands.toggle_live_priority_row_sorting.f7637b", "behavior", "battlegrounds.commands.live_sorting_controls.909ed6"),
   L("all", "battlegrounds.commands.toggle_participation_in_unrated_battlegrounds.4bff63", "battlegrounds-settings", "battlegrounds.commands.battleground_scope_controls.ca4a01"),
   A("kit", "battlegrounds.commands.print_tracked_cooldowns_for_your_target_or.0d757f", "battlegrounds.commands.show_target_cooldowns.7698c5", { cata = true }),
-  L("exec", "battlegrounds.commands.set_the_execute_health_threshold.511f1c", "behavior", "battlegrounds.commands.execute_threshold.d8cefd", { usage = "PCT", cata = true }),
+  L("exec", "battlegrounds.commands.set_the_execute_health_threshold.511f1c", "behavior", "battlegrounds.commands.execute_threshold.d8cefd", { usage = "PCT" }),
   C.Tool("history", "battlegrounds.commands.review_saved_pvp_results_and_observed_objective.8f8151", "history", "highground.toursteps.open_match_history.2cef7d"),
   L("bg test", "battlegrounds.commands.start_or_stop_battleground_enemy_rows_timers.3af8e3", "battlegrounds-previews", "battlegrounds.commands.battleground_panel_preview_controls.629df4"),
   A("bg test stop", "battlegrounds.commands.stop_the_battleground_panel_previews.be5439", "battlegrounds.commands.stop_battleground_previews.6dc499"),

@@ -2,16 +2,6 @@ local _, ns = ...
 local B = ns.Bounty
 local P = B.Public
 
-function P.Tooltip(b)
-  local lines = { { ns.Core.DisplayName(b.name), "gold" },
-    { ns.Locale:Format("shared.publicview.value1_with_recent_available_funds_reports_value3.044a16", { value1 = ns.Util.Gold(b.gold), value3 = ns.Util.Gold(b.pledgedGold) }), "text", true },
-    { ns.Locale:Get("shared.publicview.each_contribution_expires_separately_payment_is_manual.8498d0"), "textMuted", true } }
-  for _, p in ipairs(b.contributions) do
-    lines[#lines + 1] = { ns.Locale:Format("shared.publicview.value1_from_value3_value5_value7.0ff941", { value1 = ns.Util.Gold(p.gold), value3 = ns.Core.DisplayName(p.by), value5 = P.Remaining(p.expiresAt), value7 = P.FUND_LABELS[P.Funds(p)] }), "text", true }
-  end
-  return lines
-end
-
 function P.Fill(name, source)
   return B.Form.Open(name, "public", source)
 end

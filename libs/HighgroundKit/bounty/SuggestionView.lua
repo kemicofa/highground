@@ -31,14 +31,6 @@ function V.Review(name)
   B.Say(ns.Locale:Get("shared.suggestionview.these_reports_have_expired_or_the_suggestion.04ecd9"))
 end
 
-function V.Tooltip(r)
-  local lines = { { ns.Core.DisplayName(r.name), "gold" }, { r.status, "text", true },
-    { ns.Locale:Format("shared.suggestionview.your_deaths_r_personal_guild_r_guilddeaths.beb130", { r_personal = r.personal, r_guildDeaths = r.guildDeaths, r_guildVictimCount = r.guildVictimCount }), "text", true },
-    { ns.Locale:Get("shared.suggestionview.reports_from_participating_players_not_server_verified.f5c3c3"), "textMuted", true } }
-  if r.existing then lines[#lines + 1] = { ns.Locale:Get("shared.suggestionview.a_bounty_already_exists_review_opens_that.0fec65"), "gold", true } end
-  return lines
-end
-
 local function Evidence(r)
   local lines = { ns.Core.DisplayName(r.name), "", ns.Locale:Format("shared.suggestionview.r_total_reported_deaths_in_the_last.5920af", { r_total = r.total, value3 = (S.Window() / 60) }),
     ns.Locale:Format("shared.suggestionview.you_r_personal_guild_r_guilddeaths_deaths.ecdb3a", { r_personal = r.personal, r_guildDeaths = r.guildDeaths, r_guildVictimCount = r.guildVictimCount }),

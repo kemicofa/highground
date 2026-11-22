@@ -2,6 +2,24 @@ local _, ns = ...
 local Core, Options, Commands = ns.Core, ns.Options, ns.Commands
 local Hex = ns.Theme.TipHex -- chat
 
+-- One usage line from a command's catalog entry: its syntax, then what it
+-- does. Pipes are doubled so chat shows them instead of reading escapes.
+local function Usage(id)
+  local C = ns.CommandCatalog
+  local row = C.byId[id]
+  return (row[1]:gsub("|", "||")) .. "  " .. C.Description(row)
+end
+
+-- The Highground window pages that list scoring values, in sidebar order.
+local function ScoringPages()
+  local names = {}
+  for _, def in ipairs(Core.POINTS) do
+    local page = def.group and Options.pointPages[def.page]
+    if page then names[#names + 1] = page.name end
+  end
+  return table.concat(names, ", ")
+end
+
 -- /hg export [NAME]: a saved profile, or your current settings.
 function Commands.export(arg, msg, say)
   Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$") or false)
@@ -76,8 +94,14 @@ function Commands.points(arg, msg, say)
     end
     say(n == 0 and ns.Locale:Get("highground.settings.all_points_at_default_hg_config_to.c0390a") or "/hg points KEY reset")
   elseif not real then
-    say(ns.Locale:Get("highground.settings.unknown_key_see_options_addons_highground.3f9b67"))
-  elseif val == "reset" or val == "" then
+    say(ns.Locale:Format("highground.settings.unknown_scoring_value_in_hg_config_see.b49c0d", { addon = ns.Modules.byKey.battlegrounds.name, pages = ScoringPages() }))
+  elseif val == "" then
+    -- Show the value; only an explicit "reset" resets it.
+    local v = (Core.db.points or {})[real] or Core.POINT_DEFAULT[real]
+    say(ns.Locale:Format("highground.settings.k_value2_default_value3.000f55", { k = real, value2 = Options.Format(v),
+      value3 = Options.Format(Core.POINT_DEFAULT[real]) }))
+    say(Usage("points-value"))
+  elseif val == "reset" then
     local ok, err = Core.SetTuning("point", real, Core.POINT_DEFAULT[real])
     if not ok then say(err); return end
     say(ns.Locale:Format("highground.settings.real_reset_to_value3.553ad8", { real = real, value3 = Options.Format(Core.POINT_DEFAULT[real]) }))
@@ -88,7 +112,7 @@ function Commands.points(arg, msg, say)
     say(real .. " = " .. val)
     Options.PointsChanged()
   else
-    say("/hg points " .. real .. " N||reset")
+    say(Usage("points-value"))
   end
 end
 
@@ -136,13 +160,13 @@ function Commands.all(arg, msg, say)
 end
 
 function Commands.rows(arg, msg, say)
-  if not tonumber(arg) then return Commands.help(arg, msg, say) end
+  if not tonumber(arg) then return say(Usage("rows")) end
   if not Core.SetRows(arg) then return say(ns.Locale:Format("highground.settings.choose_a_whole_number_of_enemies_from.8566b5", { Core_MAX_ROWS = Core.MAX_ROWS })) end
   say(ns.Locale:Format("highground.settings.enemies_shown_core_db_rows_value3.efd93e", { Core_db_rows = Core.db.rows, value3 = (InCombatLockdown() and ns.Locale:Get("highground.settings.updates_after_combat.f25c8c") or "") }))
 end
 
 function Commands.scale(arg, msg, say)
-  if not tonumber(arg) then return Commands.help(arg, msg, say) end
+  if not tonumber(arg) then return say(Usage("scale")) end
   local applied = ns.SetUIScale(tonumber(arg))
   say(ns.Locale:Format("highground.settings.ui_scale_value1_value2.faf6df", { value1 = string.format("%d", math.floor(Core.db.scale * 100 + 0.5)), value2 = string.format("%s", applied and "" or ns.Locale:Get("highground.settings.applies_after_combat.fcdc04")) }))
 end
@@ -155,13 +179,13 @@ function Commands.compact(arg, msg, say)
 end
 
 function Commands.opacity(arg, msg, say)
-  if not tonumber(arg) then return Commands.help(arg, msg, say) end
+  if not tonumber(arg) then return say(Usage("opacity")) end
   ns.SetBgAlpha(tonumber(arg) / 100)
   say(ns.Locale:Format("highground.settings.background_opacity_value1.68cc4a", { value1 = string.format("%d", math.floor(Core.BgAlpha() * 100 + 0.5)) }))
 end
 
 function Commands.exec(arg, msg, say)
-  if not tonumber(arg) then return Commands.help(arg, msg, say) end
+  if not tonumber(arg) then return say(Usage("exec")) end
   local ok, err = Core.SetTuning("option", "executePct", tonumber(arg) / 100)
   if not ok then say(err); return end
   Options.PointsChanged()

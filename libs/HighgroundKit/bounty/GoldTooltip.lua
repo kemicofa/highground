@@ -38,11 +38,12 @@ local function Hook(frame)
   frame:HookScript("OnHide", function() Tip.Hide(frame) end)
 end
 
+local COINS = { "GoldButton", "SilverButton", "CopperButton" }
 local function Money(frame)
   if not frame then return end
   Hook(frame)
   local name = frame.GetName and frame:GetName()
-  for _, coin in ipairs({ "GoldButton", "SilverButton", "CopperButton" }) do
+  for _, coin in ipairs(COINS) do
     Hook(frame[coin] or name and _G[name .. coin])
   end
 end

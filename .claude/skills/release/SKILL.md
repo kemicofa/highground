@@ -27,16 +27,7 @@ On merge to `main`, CI publishes Highground's tested ZIP to GitHub, then CurseFo
 2. **`addons/<Addon>/CHANGELOG.md`:** add `## [X.Y.Z] - YYYY-MM-DD` at the top, above the previous entry. Write short player-facing bullets: what changed and how to use it. No spin, no internals.
 3. **`addons/<Addon>/docs/curseforge.md` (required):**
    - Set the first line to `<!-- <Addon> X.Y.Z -->`.
-   - Update the **Description** block so it matches the addon as of this release:
-     - add new features, and mark them `(new)`;
-     - drop "(new)" from the previous release's features;
-     - remove anything that no longer exists;
-     - update the supported-versions table and the Getting started section if commands or pages changed.
-   - Update the **Summary** if the feature list changed. CurseForge cuts it off past about 200 characters, and the build fails above 200.
-     - Make it catchy and bold. Lead with what the player gets, a punchy hook first ("Stop guessing. Start winning."), then the headline features and the supported games.
-     - Not a dry spec list.
-     - Check the length with `printf '%s' "<summary>" | wc -m`.
-   - Write plain and concise. Use the same terms as the UI and docs: "Highground window", "Features", "Bounties", "kill-target card", "target marker".
+   - Apply [highground-curseforge-copy](../../../.agents/skills/highground-curseforge-copy/SKILL.md) to the **Summary** and **Description**. A new headline feature gets one bullet; smaller changes, fixes and performance work stay in the changelog. Remove features that no longer exist and fix renamed pages or commands.
 
 ### Discord announcement (once per release)
 
@@ -53,10 +44,10 @@ CI adds addon names, versions and download/release-note links. Keep the complete
 
 - **CurseForge asset boundary:** never send assets that are not used directly by the addon to CurseForge. This includes banners, promotional images/videos, editable artwork, source scenes and separate GitHub release attachments. Do not add them to addon manifests or bypass the asset/ZIP checks in `scripts/package_assets.py`, `scripts/build.py` and `scripts/curseforge.py`. Only actual in-game assets with loaded runtime readers may be registered; required addon documentation and licenses remain allowed.
 - **Description content check (required).** The build only checks the version line and the summary length, so check the content yourself:
-  1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | head -1` (none on a first release: describe everything). Read every CHANGELOG entry above `P`, the new one included.
-  2. For each player-visible feature in those entries, find it in the **Description** block. Mark new ones `(new)`. Rewrite anything the release changed: renamed pages, new commands, removed features.
-  3. Run `git diff P -- addons/<Addon>/docs/curseforge.md`. The diff must show those Description changes, not just the version line. If a release really has no player-visible change (for example a pure fix), say so in the hand-off.
-  4. Read the Description once against the current UI and commands (`addons/Highground/docs/commands.md`). Remove anything stale.
+  1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | head -1`. Read every CHANGELOG entry above `P`, the new one included.
+  2. For each new headline feature, removed feature, renamed page or changed command in those entries, update the **Description**. Leave fixes, refinements and performance work in the changelog.
+  3. Run `git diff P -- addons/<Addon>/docs/curseforge.md`. If only the version line changed, say in the hand-off why no Description change was needed.
+  4. Finish with the copy skill's checks: glance test, summary length and no release-note wording.
 - `bash tests/run.sh` must pass. It includes the release tests that check the TOCs, the CHANGELOG and `docs/curseforge.md`.
 - `python3 scripts/build.py <Addon>` must build `dist/<Addon>/<Addon>-X.Y.Z.zip`.
 - The release manifest must contain only Highground. If a check requests a deprecated addon bump, fix release discovery instead of reviving that distribution. Run `python3 scripts/release_plan.py` after committing and updating release tags; it fails the whole batch if the announcement is missing.
@@ -78,6 +69,6 @@ CI adds addon names, versions and download/release-note links. Keep the complete
 - Give the Highground CurseForge text, so it can be pasted:
   - the Summary as plain text;
   - the Description block from its `docs/curseforge.md`, verbatim as raw Markdown;
-  - one line per Description change since the previous release, or "no player-visible changes" with the reason.
+  - one line per Description change since the previous release, or why none was needed.
 - Remind the user that new CurseForge files may wait in moderation.
 - Say whether players need a full client restart. That is the case when the release adds new files.

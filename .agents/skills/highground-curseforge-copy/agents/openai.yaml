@@ -1,0 +1,5 @@
+interface:
+  display_name: "Highground CurseForge Copy"
+  short_description: "Keep the CurseForge summary punchy and the description feature-focused"
+policy:
+  allow_implicit_invocation: true

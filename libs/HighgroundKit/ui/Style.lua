@@ -123,30 +123,24 @@ end
 
 -- Font strings have no edit callbacks/cursor to reset. Compare their native
 -- text, so formatted/external writes remain visible and no string cache grows.
--- A number remembers only its last written value and the native text it
--- produced, so repeated counters skip tostring. Restricted values go
--- straight to the native setter, never compared or remembered.
+-- A number keeps only its last value and resulting text, so repeated counters
+-- skip tostring. Restricted values go straight to the native setter.
+local function Secret(v) return issecretvalue and issecretvalue(v) end
 local function SetText(fs, text)
   local kind = type(text)
-  local plain = (kind == "string" or kind == "number") and not (issecretvalue and issecretvalue(text))
-  if plain then
-    local current = fs:GetText()
-    if not (issecretvalue and issecretvalue(current)) then
-      if kind == "string" then
-        if current == text then return end
-      elseif fs.wbNumber == text and current == fs.wbNumberText then
-        return
-      elseif current == tostring(text) then
-        fs.wbNumber, fs.wbNumberText = text, current
-        return
-      end
-    end
+  local plain = (kind == "string" or kind == "number") and not Secret(text)
+  local current = plain and fs:GetText()
+  if plain and not Secret(current) then
+    if kind == "string" then
+      if current == text then return end
+    elseif fs.wbNumber == text and current == fs.wbNumberText then return
+    elseif current == tostring(text) then fs.wbNumber, fs.wbNumberText = text, current; return end
   end
   fs.wbNumber, fs.wbNumberText = nil, nil
   local result = fs.wbSetText(fs, text)
   if plain and kind == "number" then
     local written = fs:GetText()
-    if not (issecretvalue and issecretvalue(written)) then fs.wbNumber, fs.wbNumberText = text, written end
+    if not Secret(written) then fs.wbNumber, fs.wbNumberText = text, written end
   end
   return result
 end

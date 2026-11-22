@@ -50,7 +50,7 @@ function Commands.profile(arg, msg, say)
       names[#names + 1] = n
     end
     say(#names > 0 and (ns.Locale:Format("highground.settings.profiles_value2.8d2cc0", { value2 = table.concat(names, ", ") })) or ns.Locale:Get("highground.settings.no_saved_profiles.69bd31"))
-    say("/hg profile save|load|delete|share NAME, /hg export, /hg import")
+    say("/hg profile save||load||delete||share NAME, /hg export, /hg import")
   end
 end
 
@@ -87,6 +87,8 @@ function Commands.points(arg, msg, say)
     if not ok then say(err); return end
     say(real .. " = " .. val)
     Options.PointsChanged()
+  else
+    say("/hg points " .. real .. " N||reset")
   end
 end
 
@@ -163,7 +165,7 @@ function Commands.exec(arg, msg, say)
   local ok, err = Core.SetTuning("option", "executePct", tonumber(arg) / 100)
   if not ok then say(err); return end
   Options.PointsChanged()
-  say(ns.Locale:Format("highground.settings.execute_highlight_below_value1.7bf2ca", { value1 = string.format("%d", Core.db.executePct * 100) }))
+  say(ns.Locale:Format("highground.settings.execute_highlight_below_value1.7bf2ca", { value1 = string.format("%d", math.floor(Core.db.executePct * 100 + 0.5)) }))
 end
 
 Commands.options = Commands.config

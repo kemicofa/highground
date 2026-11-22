@@ -1,5 +1,7 @@
 local _, ns = ...
 local Core, Commands = ns.Core, ns.Commands
+-- Command syntax shown as text: chat reads "|r" in "s|i|raid" as an escape.
+local function Syntax(text) return (text:gsub("|", "||")) end
 local P = {}
 ns.PreviewTests = P
 
@@ -115,7 +117,7 @@ end
 
 function Commands.test(arg, msg, say)
   if arg == "stop" then P.StopAll(); say(ns.Locale:Get("highground.previews.addon_previews_off.e8dafb"))
-  elseif arg ~= "" and arg ~= "all" then say(ns.Locale:Get("shared.messages.hg_test_all_stop_hg_bg_test.477367"))
+  elseif arg ~= "" and arg ~= "all" then say(Syntax(ns.Locale:Get("shared.messages.hg_test_all_stop_hg_bg_test.477367")))
   elseif P.AllActive() then P.StopAll(); say(ns.Locale:Get("highground.previews.addon_previews_off.e8dafb"))
   else local _, message = P.StartAll(); say(message) end
 end

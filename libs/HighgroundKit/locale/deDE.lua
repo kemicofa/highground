@@ -4978,6 +4978,8 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.enemies.action"] = "Anleitung zum Zielen auf Feinde starten",
   ["commands.guide.objectives.description"] = "Lernen Sie Wiederauferstehungswellen, Eroberungen und Flaggenträger kennen.",
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
+  ["bounty.board.unavailable"] = "Geteilte Kopfgelder nicht verfügbar",
+  ["bounty.card.reports_hint"] = "Klicke, um die Todesberichte anzusehen.",
   ["bounty.confirm.withdraw"] = "Zurückziehen bestätigen",
   ["bounty.confirm.remove"] = "Entfernen bestätigen",
   ["bounty.confirm.reject"] = "Ablehnen / Zurückziehen bestätigen",

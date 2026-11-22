@@ -68,6 +68,17 @@ function A.Run(anchor, r)
   else return A.Report(r) end
 end
 
+-- The line above the cards: the latest action result, else what this board is for.
+function A.Hint(owner)
+  if owner.message then return owner.message, owner.messageTone or "success" end
+  if owner.provider then return ns.Locale:Get("shared.board.sample_bounties_try_the_real_controls_nothing.30d499") end
+  return owner.tab == "mine" and ns.Locale:Get("shared.board.tracked_targets_and_your_rewards_each_card.3869f6")
+    or owner.tab == "suggestions" and ns.Locale:Get("shared.board.review_the_death_reports_then_choose_whether.a3a9a9")
+    or owner.tab == "guild" and ns.Locale:Get("shared.board.hunt_an_approved_target_detected_kills_are.ae01ff")
+    or not B.Public.Receiving() and ns.Locale:Get("shared.board.browsing_is_paused_saved_rewards_remain_below.ddcf90")
+    or ns.Locale:Get("shared.board.open_a_bounty_to_see_who_pays.ee720e")
+end
+
 -- Board feedback keeps its tone: failures and interrupted refreshes are
 -- warnings, not successes. Navigating to another board clears it.
 function A.Notify(owner, message, tone)

@@ -4978,6 +4978,8 @@ assert(ns.Locale:Register("esMX", {
   ["commands.guide.enemies.action"] = "Iniciar guía de enfoque enemigo",
   ["commands.guide.objectives.description"] = "Aprende olas de resurrección, capturas y portadores de banderas.",
   ["commands.guide.objectives.action"] = "Guía de objetivos de inicio",
+  ["bounty.board.unavailable"] = "Recompensas compartidas no disponibles",
+  ["bounty.card.reports_hint"] = "Haz clic para ver los reportes de muerte.",
   ["bounty.confirm.withdraw"] = "Confirmar retiro",
   ["bounty.confirm.remove"] = "Confirmar eliminación",
   ["bounty.confirm.reject"] = "Confirmar rechazo / retiro",

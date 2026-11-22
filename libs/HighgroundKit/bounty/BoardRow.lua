@@ -34,8 +34,10 @@ function Row.Build(parent)
   Kit.Tooltip(r.primary, function() return r.entry and { B.BoardActions.Primary(r.entry), B.BoardActions.Help(r.entry) } end)
   Kit.Tooltip(r, function()
     local b = r.entry
-    return b and { ns.Core.DisplayName(b.name), ns.Locale:Format("shared.boardrow.value1_reward.56d8af", { value1 = ns.Util.Gold(b.gold) }), b.owner .. " · " .. b.visibility,
-      { b.status, "textMuted" }, ns.Locale:Get("shared.boardrow.click_to_open_the_full_wanted_poster.cbf3b4") }
+    -- Suggestions are death reports, not rewards: match the card's count.
+    return b and { ns.Core.DisplayName(b.name), b.suggestion and ns.Locale:Format("shared.boardrow.b_total_reports.550c8a", { b_total = b.total })
+      or ns.Locale:Format("shared.boardrow.value1_reward.56d8af", { value1 = ns.Util.Gold(b.gold) }), b.owner .. " · " .. b.visibility,
+      { b.status, "textMuted" }, b.suggestion and ns.Locale:Get("bounty.card.reports_hint") or ns.Locale:Get("shared.boardrow.click_to_open_the_full_wanted_poster.cbf3b4") }
   end, { anchor = "ANCHOR_RIGHT" })
   return r
 end

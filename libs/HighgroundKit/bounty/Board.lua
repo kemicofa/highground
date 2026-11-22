@@ -205,13 +205,21 @@ function Board.Build(provider)
   return w
 end
 
+-- Shared rewards cannot load from unsupported saved data. Say so instead of
+-- presenting an empty shared board.
+local function Unavailable(Board)
+  return not Board.provider and Board.tab == "public" and not Board.help and B.Public.loadError or nil
+end
+
 local function Guide(w, count, total, member)
   local Board = w.board or Board
   local query = w.search:GetText() ~= ""
   local intro = Board.help or Board.tab == "mine" and total == 0 and not query
-  local browse = not Board.provider and Board.tab == "public" and not B.Public.Receiving() and not Board.help
+  local unavailable = Unavailable(Board)
+  local browse = not Board.provider and Board.tab == "public" and not B.Public.Receiving() and not Board.help and not unavailable
   local title, body = ns.Locale:Get("shared.board.no_bounties_here_yet.5ffb10"), ns.Locale:Get("shared.board.create_a_bounty_to_choose_a_player.fae0d5")
-  if intro then
+  if unavailable then title, body = ns.Locale:Get("bounty.board.unavailable"), unavailable
+  elseif intro then
     title = Board.help and ns.Locale:Get("shared.board.from_a_target_to_a_reward.8ead76") or ns.Locale:Get("shared.board.who_are_you_hunting.e091a5")
     body = ns.Locale:Get("shared.board.create_a_bounty_in_3_steps_target.324a2a")
   elseif query then title, body = ns.Locale:Get("shared.board.no_matching_bounties.ca7058"), ns.Locale:Get("shared.board.no_matching_bounties_clear_the_search_to.e0276f")
@@ -256,16 +264,6 @@ local function Guide(w, count, total, member)
   w.createMode = not Board.help and Board.tab == "public" and "public" or not Board.help and Board.tab == "guild" and member and "guild" or "personal"
 end
 
-local function Hint(Board, suggestions)
-  if Board.message then return Board.message, Board.messageTone or "success" end
-  if Board.provider then return ns.Locale:Get("shared.board.sample_bounties_try_the_real_controls_nothing.30d499") end
-  return Board.tab == "mine" and ns.Locale:Get("shared.board.tracked_targets_and_your_rewards_each_card.3869f6")
-    or suggestions and ns.Locale:Get("shared.board.review_the_death_reports_then_choose_whether.a3a9a9")
-    or Board.tab == "guild" and ns.Locale:Get("shared.board.hunt_an_approved_target_detected_kills_are.ae01ff")
-    or not B.Public.Receiving() and ns.Locale:Get("shared.board.browsing_is_paused_saved_rewards_remain_below.ddcf90")
-    or ns.Locale:Get("shared.board.open_a_bounty_to_see_who_pays.ee720e")
-end
-
 -- One full model build per refresh: other tabs only need their counts.
 function Board.Refresh(owner)
   local Board = type(owner) == "table" and owner.provider and owner or Board
@@ -291,8 +289,11 @@ function Board.Refresh(owner)
   for _, def in ipairs(TABS) do
     local count = def.key == Board.tab and query == "" and not filter and #list
       or provider and #provider.rows(def.key) or B.BoardModel.Count(def.key)
-    w.tabs[def.key]:Select(Board.tab == def.key)
-    w.tabs[def.key].count:SetText(tostring(count)); w.tabs[def.key].count:SetShown(count > 0)
+    local tab = w.tabs[def.key]
+    tab:Select(Board.tab == def.key)
+    -- Kit.Tab leaves its count to the owner; paint it so it follows themes.
+    T.Paint(tab.count, Board.tab == def.key and "accent" or "textMuted")
+    tab.count:SetText(tostring(count)); tab.count:SetShown(count > 0)
     if def.key == Board.tab then total = count end
   end
   w.visible = Board.CARDS
@@ -305,7 +306,7 @@ function Board.Refresh(owner)
   w.help:SetText(Board.help and ns.Locale:Get("shared.board.back_to_board.c4cc8d") or ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1"))
   -- A finished refresh attempt leaves its result message for the hint.
   w.sync:RefreshBusy(); w.browse:RefreshBusy()
-  Kit.StatusText(w.viewHint, Hint(Board, suggestions))
+  Kit.StatusText(w.viewHint, B.BoardActions.Hint(Board))
   -- Lay out once, after every label and visibility that affects geometry.
   Board.Layout(w)
   local available, gap = w.list.body:GetWidth(), 16
@@ -330,7 +331,7 @@ function Board.Refresh(owner)
   w.list:Refresh()
   Guide(w, #list, total, member)
   w.viewHint:SetShown((#list > 0 or Board.message ~= nil) and not Board.help)
-  w.sync:SetShown(not Board.help and not suggestions and (provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and member))
+  w.sync:SetShown(not Board.help and not suggestions and not Unavailable(Board) and (provider or Board.tab == "public" and B.Public.Receiving() or Board.tab ~= "public" and member))
   w.sync:SetEnabled(true)
   w.range:SetText(ns.Locale:Format("shared.board.value1_value2_of_value3.e1ddb3", { value1 = string.format("%d", Board.offset + 1), value2 = string.format("%d", math.min(#list, Board.offset + w.visible)), value3 = string.format("%d", #list) }))
   w.range:SetShown(w.pages); w.prev:SetShown(w.pages); w.next:SetShown(w.pages)

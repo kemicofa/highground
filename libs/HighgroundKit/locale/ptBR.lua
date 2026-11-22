@@ -4978,6 +4978,8 @@ assert(ns.Locale:Register("ptBR", {
   ["commands.guide.enemies.action"] = "Iniciar guia de alvo inimigo",
   ["commands.guide.objectives.description"] = "Aprenda ondas de ressurreição, capturas e portadores de bandeira.",
   ["commands.guide.objectives.action"] = "Iniciar o guia de objetivos",
+  ["bounty.board.unavailable"] = "Recompensas compartilhadas indisponíveis",
+  ["bounty.card.reports_hint"] = "Clique para ver os relatórios de morte.",
   ["bounty.confirm.withdraw"] = "Confirmar retirada",
   ["bounty.confirm.remove"] = "Confirmar remoção",
   ["bounty.confirm.reject"] = "Confirmar recusa / retirada",

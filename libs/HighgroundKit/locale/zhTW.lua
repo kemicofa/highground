@@ -4978,6 +4978,8 @@ assert(ns.Locale:Register("zhTW", {
   ["commands.guide.enemies.action"] = "開始敵人瞄準指南",
   ["commands.guide.objectives.description"] = "學習復活波,捕獲和旗幟承運人。",
   ["commands.guide.objectives.action"] = "啟動目標指南",
+  ["bounty.board.unavailable"] = "共享懸賞無法使用",
+  ["bounty.card.reports_hint"] = "點擊查看死亡報告。",
   ["bounty.confirm.withdraw"] = "確認撤回",
   ["bounty.confirm.remove"] = "確認移除",
   ["bounty.confirm.reject"] = "確認拒絕 / 撤回",

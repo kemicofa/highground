@@ -116,3 +116,11 @@ function Model.Rows(scope, query, pending, organization)
   end)
   return out
 end
+
+-- The current row for one target, as the board would show it.
+function Model.Find(scope, name, organization)
+  local key = B.Key(name)
+  for _, row in ipairs(Model.Rows(scope, nil, false, organization)) do
+    if B.Key(row.name) == key then return row end
+  end
+end

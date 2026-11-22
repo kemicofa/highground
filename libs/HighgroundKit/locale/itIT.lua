@@ -4978,6 +4978,8 @@ assert(ns.Locale:Register("itIT", {
   ["commands.guide.enemies.action"] = "Guida all'avvio del targeting nemico",
   ["commands.guide.objectives.description"] = "Imparare ondate di resurrezione, cattura e portabandiere.",
   ["commands.guide.objectives.action"] = "Guida agli obiettivi Start",
+  ["bounty.board.unavailable"] = "Taglie condivise non disponibili",
+  ["bounty.card.reports_hint"] = "Fai clic per vedere i rapporti di morte.",
   ["bounty.confirm.withdraw"] = "Conferma ritiro",
   ["bounty.confirm.remove"] = "Conferma rimozione",
   ["bounty.confirm.reject"] = "Conferma rifiuto / ritiro",

@@ -69,6 +69,17 @@ function W.MountPage(w)
   if ns.Motion then ns.Motion.Stop(w, 1) end
 end
 
+-- Accented profile header shared by claim reports and the bounty review: a
+-- reading surface with a gold wash and a top strip (hero.strip).
+function W.Hero(parent)
+  local hero = CreateFrame("Frame", nil, parent)
+  Theme.Fill(hero, "BACKGROUND", "surface"):SetAllPoints()
+  Theme.Gradient(hero, "BORDER", "gold", "headerLight", "HORIZONTAL", 1, 0):SetAllPoints()
+  hero.strip = Theme.Fill(hero, "ARTWORK", "gold")
+  hero.strip:SetPoint("TOPLEFT"); hero.strip:SetPoint("TOPRIGHT"); hero.strip:SetHeight(2)
+  return hero
+end
+
 -- Destructive actions take a second click on the same control. An arm
 -- belongs to one key (record and action); another action, a different
 -- record or closing the owner disarms it.

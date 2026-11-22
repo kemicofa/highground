@@ -28,9 +28,8 @@ local function OpenDetails(w)
     local scope = item.bounty.state == "public" and "public" or item.bounty.state == "personal" and "mine" or "guild"
     B.Board.Open()
     B.Board.SetTab(scope)
-    for _, row in ipairs(B.BoardModel.Rows(scope)) do
-      if B.Key(row.name) == B.Key(item.bounty.name) then B.Details.Open(row); break end
-    end
+    local row = B.BoardModel.Find(scope, item.bounty.name)
+    if row then B.Details.Open(row) end
   end
 end
 

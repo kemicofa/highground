@@ -4978,6 +4978,8 @@ assert(ns.Locale:Register("zhCN", {
   ["commands.guide.enemies.action"] = "开始敌人瞄准指南",
   ["commands.guide.objectives.description"] = "学习复活波,捕获和旗帜承运人。",
   ["commands.guide.objectives.action"] = "启动目标指南",
+  ["bounty.board.unavailable"] = "共享悬赏不可用",
+  ["bounty.card.reports_hint"] = "点击查看死亡报告。",
   ["bounty.confirm.withdraw"] = "确认撤回",
   ["bounty.confirm.remove"] = "确认移除",
   ["bounty.confirm.reject"] = "确认拒绝 / 撤回",

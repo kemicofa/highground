@@ -5,10 +5,7 @@ B.Details = D
 local SCOPES = ns.Localization.Define({ mine = ns.Locale:Get("shared.board.my_bounties.8513d0"),  public = ns.Locale:Get("shared.board.shared_board.4b49e6") }, { guild = "shared.board.guild_communities.a49fce", mine = "shared.board.my_bounties.8513d0", public = "shared.board.shared_board.4b49e6" })
 
 local function Current()
-  if D.preview then return D.preview end
-  for _, row in ipairs(B.BoardModel.Rows(D.scope, nil, false, D.organization)) do
-    if B.Key(row.name) == B.Key(D.name) then return row end
-  end
+  return D.preview or B.BoardModel.Find(D.scope, D.name, D.organization)
 end
 
 local function Entries(b)

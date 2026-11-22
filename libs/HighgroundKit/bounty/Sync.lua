@@ -235,6 +235,7 @@ function Bounty.Receive(text, sender, organization)
   if not text then return end
   local from = Core.Canon(sender)
   if not from or from == Bounty.Me() then return end
+  if Bounty.Public.Heard then Bounty.Public.Heard(from) end
   local version, kind, rest = text:match("^([124567]):(%u)(.*)$")
   if (version == "6" or version == "7") and kind ~= "A" then return end
   if version == "2" and kind ~= "A" then return end

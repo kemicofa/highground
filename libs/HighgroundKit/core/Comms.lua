@@ -38,6 +38,45 @@ function Comms.CanSend()
   return C_ChatInfo ~= nil and C_ChatInfo.SendAddonMessage ~= nil
 end
 
+-- An addon whisper to an offline player prints "No player named ... is
+-- currently playing." Hide that notice only for names an addon message was
+-- whispered to in the last few seconds; the player's own whispers keep it.
+Comms.NOTICE_SECONDS = 5
+local whispered, whisperedCount, notice = {}, 0, nil
+local function Mark(key, now)
+  if not whispered[key] then whisperedCount = whisperedCount + 1 end
+  whispered[key] = now
+end
+local installed
+local function Whispered(recipient)
+  if not installed then
+    -- Installed with the first addon whisper; standby hosts never send.
+    local add = ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter or ChatFrame_AddMessageEventFilter
+    if type(add) ~= "function" or type(GetTime) ~= "function" then return end
+    installed = true
+    add("CHAT_MSG_SYSTEM", Comms.HideNotice)
+  end
+  local now = GetTime()
+  if whisperedCount >= 64 then
+    for key, at in pairs(whispered) do
+      if now - at > Comms.NOTICE_SECONDS then whispered[key], whisperedCount = nil, whisperedCount - 1 end
+    end
+  end
+  -- The notice may name the full address or just the character.
+  Mark(recipient:lower(), now)
+  Mark((recipient:match("^[^-]+") or recipient):lower(), now)
+end
+function Comms.HideNotice(_, _, text)
+  if type(text) ~= "string" or Util.secret(text) or type(ERR_CHAT_PLAYER_NOT_FOUND_S) ~= "string" then return false end
+  if not notice then
+    local escaped = ERR_CHAT_PLAYER_NOT_FOUND_S:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0")
+    notice = "^" .. (escaped:gsub("%%%%s", "(.+)")) .. "$"
+  end
+  local name = text:match(notice)
+  local at = name and whispered[name:lower()]
+  return at ~= nil and GetTime() - at <= Comms.NOTICE_SECONDS
+end
+
 -- Send text under prefix on channel (target for WHISPER). Return whether
 -- the game accepted it; queueing and retries belong to the caller. Clients
 -- return nothing, a boolean, an enum (0 = success), or a second result.
@@ -49,6 +88,7 @@ function Comms.Send(prefix, text, channel, target)
   if channel == "WHISPER" and ns.Caps and ns.Caps.rulesetRealms and type(target) == "string" then
     recipient = target:match("^[^-]+")
   end
+  if channel == "WHISPER" and type(recipient) == "string" then Whispered(recipient) end
   local ok, result, second = pcall(C_ChatInfo.SendAddonMessage, prefix, text, channel, recipient)
   if second ~= nil then result = second end
   local accepted = ok and (result == nil or result == true or result == 0)

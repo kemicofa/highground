@@ -209,7 +209,8 @@ function L.RetryReports()
       if not c.personal and (c.organization and B.Organizations.Member(c) or c.guild ~= nil and c.guild == B.GuildKey()) then
         B.Send(table.concat({ "5:K", B.Clean(c.name), c.killedAt, c.offerAt, B.Kills.Pack(c.evidence, c.cause) }, ","), c.organization)
       elseif c.personal and c.ownerOnly and c.contract then
-        B.Pot.Report(c.contract, c.killedAt, c.evidence, c.cause)
+        B.Public.Retry("report:" .. c.id, c.contract.by, c.killedAt + B.Public.CLAIM_WINDOW,
+          function() return B.Pot.Report(c.contract, c.killedAt, c.evidence, c.cause) end)
       end
     end
   end

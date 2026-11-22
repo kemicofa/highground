@@ -400,5 +400,88 @@ t.test("sync requests in one reply window share one answer without republishing 
   assert(p.fundsRevision > revision, "funding older than the heartbeat is refreshed before answering")
 end)
 
+-- Count queued claim whispers to one recipient, then drop the queue (missed).
+local function Pending(s, target)
+  local n = 0
+  for _, item in ipairs(P(s).outbox) do
+    if item.route.target == target and item.context and item.context.kind == "claim" then n = n + 1 end
+  end
+  F.flush(s)
+  return n
+end
+
+t.test("settled reviews retry only while the hunter seems online, back off, and stop once echoed", function()
+  local a, h = New("Alice", 120100), New("Hunter", 120100)
+  F.post(a, nil, 400); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  local claim = assert(F.claim(a))
+  assert(P(a).ChangeClaim(claim, "approved"))
+  t.equal(Pending(a, "Hunter-Realm"), 1, "the review is sent at once")
+  local R, sent = P(a).RETRY, 0
+  local function Tick(seconds) a.now = a.now + seconds; h.now = a.now; P(a).RetryClaims(); return Pending(a, "Hunter-Realm") end
+  t.equal(Tick(R.BASE - 1), 0, "the first retry waits for the backoff")
+  t.equal(Tick(R.PRESENCE), 0, "no whisper once the hunter has not been heard for ten minutes")
+  -- The hunter returns but its replies are lost: one session gets at most ATTEMPTS sends, further apart each time.
+  local gaps, last = {}, nil
+  for minute = 1, 6 * 60 do
+    if minute % 5 == 0 then P(h).QueueHello(); F.deliver(h, a) end
+    local n = Tick(60)
+    if n > 0 then
+      sent = sent + n
+      if last then gaps[#gaps + 1] = minute - last end
+      last = minute
+    end
+  end
+  t.equal(sent, R.ATTEMPTS, "an unacknowledged review is capped per online session")
+  for i = 2, #gaps do assert(gaps[i] >= gaps[i - 1], "retries back off: " .. table.concat(gaps, ",")) end
+  t.equal(Tick(R.PRESENCE + 1), 0, "still nothing while the hunter is away")
+  P(h).QueueHello(); F.deliver(h, a)
+  P(a).RetryClaims(); local packets = F.flush(a)
+  assert(#packets > 0, "a new session of the hunter gets the review again")
+  F.deliver(a, h, packets); F.deliver(h, a) -- The hunter stores it and echoes it back.
+  t.equal(F.claim(h).state, "approved", "the hunter has the review")
+  for _ = 1, 30 do P(h).QueueHello(); F.deliver(h, a); t.equal(Tick(R.CAP), 0, "an acknowledged review is never resent") end
+  assert(P(a).ChangeClaim(claim, "paid")); F.deliver(a, h); F.deliver(h, a)
+  t.equal(F.claim(h).state, "paid", "the payment receipt arrives")
+  for _ = 1, 3 do h.now = h.now + R.CAP; P(h).RetryClaims() end
+  t.equal(#P(h).outbox, 0, "a settled claim asks nothing more")
+  t.equal(Tick(R.CAP), 0, "the payment receipt was acknowledged too")
+end)
+
+t.test("native guild presence lets a review retry without addon traffic from the hunter", function()
+  local a, h = Guild("Officer", 120100, { saved = { bountyPublish = true } }), Guild("Hunter", 120100, { saved = { bountyReceive = true } })
+  local online = false
+  a.env.GetGuildRosterInfo = function(i)
+    local m = a.roster[i]
+    if m then return m[1], "Rank", m[2], nil, nil, nil, nil, nil, m[1] ~= "Hunter-Realm" or online end
+  end
+  F.post(a, nil, 400); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  assert(P(a).ChangeClaim(assert(F.claim(a)), "approved")); F.flush(a)
+  a.now = a.now + P(a).RETRY.PRESENCE + 1
+  P(a).RetryClaims(); t.equal(Pending(a, "Hunter-Realm"), 0, "an offline guild member is not whispered")
+  online = true; a.now = a.now + 6 -- the native roster refreshes every five seconds
+  P(a).RetryClaims(); t.equal(Pending(a, "Hunter-Realm"), 1, "an online guild member is")
+end)
+
+t.test("the offline notice is hidden only for recent addon whisper recipients", function()
+  for _, case in ipairs({ { 120100, "Poster-Realm", "Poster-Realm" }, { 16001, "Kara Stone-PvE", "Kara Stone" } }) do
+    local s = New("Alice", case[1])
+    local notice = "No player named '%s' is currently playing."
+    s.env.ERR_CHAT_PLAYER_NOT_FOUND_S = notice
+    local function Hidden(text)
+      for _, filter in ipairs(s.chatFilters.CHAT_MSG_SYSTEM or {}) do if filter(nil, "CHAT_MSG_SYSTEM", text) then return true end end
+      return false
+    end
+    assert(s.ns.Comms.Send(P(s).PREFIX, "probe", "WHISPER", case[2]))
+    t.equal(s.sent[#s.sent].target, case[3], "the whisper uses the client's address")
+    assert(Hidden(notice:format(case[3])), case[1] .. ": the notice for our recipient is hidden")
+    assert(not Hidden(notice:format("Somebody Else")), case[1] .. ": other players' notices remain")
+    assert(not Hidden("Your group has been disbanded."), case[1] .. ": other system messages remain")
+    s.now = s.now + s.ns.Comms.NOTICE_SECONDS + 1
+    assert(not Hidden(notice:format(case[3])), case[1] .. ": a later notice for the same name remains")
+  end
+end)
+
 t.finish("Bounty network: " .. t.tests .. " scenarios, " .. t.checks .. " checks")
 end

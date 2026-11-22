@@ -95,7 +95,9 @@ test("owner acceptance creates the contributor's debt even without a separate cl
   equal(debt.reviewedBy, "Alice-Realm"); equal(contribution.killsAwarded, 1, "retries cannot duplicate awards")
   equal(P(b).ChangeClaim(debt, "rejected"), false)
   equal(P(b).Withdraw(contribution), nil)
-  F.deliver(b, h); P(b).RetryClaims(); F.deliver(b, h)
+  F.deliver(b, h); P(h).QueueHello(); F.deliver(h, b) -- The hunter is online.
+  b.now = b.now + P(b).RETRY.BASE; h.now = b.now
+  P(b).RetryClaims(); F.deliver(b, h)
   equal(assert(claimFor(h, contribution.id)).state, "approved", "hunter learns about a previously unknown contributor's debt")
   assert(P(b).ChangeClaim(debt, "paid")); equal(contribution.state, "paid")
   F.deliver(b, h); equal(claimFor(h, contribution.id).state, "paid")
@@ -169,7 +171,8 @@ test("multi-kill decisions survive disconnects and do not charge late contributo
   F.deliver(b, a)
   assert(P(h).Claim("Enemy")); F.deliver(h, a)
   assert(P(a).ChangeClaim(claimFor(a, original.id), "approved")); F.flush(a) -- Contributor offline.
-  a.now, b.now, h.now = a.now + 10, b.now + 10, h.now + 10
+  local wait = P(a).RETRY.BASE
+  a.now, b.now, h.now = a.now + wait, b.now + wait, h.now + wait
   B(a).Pot.RetryDecisions(); F.deliver(a, b)
   equal(contribution.killsAwarded, 1)
   assert(P(h).Claim("Enemy")); F.deliver(h, a)
@@ -228,6 +231,8 @@ test("an offline contributor retains its obligation and original amount until a 
   assert(P(a).ChangeClaim(claimFor(a, original.id), "approved")); F.flush(a)
   a.now, b.now = a.now + 40 * 86400, b.now + 40 * 86400
   P(b).Prune(); assert(P(b).Data().offers[p.id], "pending original decisions retain the contract")
+  B(a).Pot.RetryDecisions(); equal(#P(a).outbox, 0, "no decision is whispered while the contributor is away")
+  P(b).QueueHello(); F.deliver(b, a) -- The contributor comes back online.
   B(a).Pot.RetryDecisions(); F.deliver(a, b)
   equal(claimFor(b, p.id).gold, 100, "earlier kill uses the pre-top-up snapshot")
   equal(P(b).Hold(p), 1000000)
@@ -338,6 +343,36 @@ for _, client in ipairs({ { "retail", 120100 }, { "cata", 40402 }, { "retail", 1
     s:assertHealthy(); other:assertHealthy()
   end)
 end
+
+test("an acknowledged decision is never resent and an unacknowledged one waits for its recipient", function()
+  local a, b, h = F.new("Alice"), F.new("Bob"), F.new("Hunter")
+  local original = F.post(a)
+  local packets = F.flush(a); F.deliver(a, b, packets); F.deliver(a, h, packets)
+  assert(B(b).Pot.Add(P(b).Data().offers[original.id], 300, true))
+  F.deliver(b, a)
+  assert(P(h).Claim("Enemy")); F.deliver(h, a)
+  assert(P(a).ChangeClaim(claimFor(a, original.id), "approved"))
+  F.deliver(a, b, F.flush(a)) -- Bob receives the decision; the hunter's copy is lost.
+  F.deliver(b, a) -- Bob echoes it.
+  local function Decisions(target)
+    local n = 0
+    for _, item in ipairs(P(a).outbox) do
+      if item.route.target == target and item.context.kind == "decision" then n = n + 1 end
+    end
+    F.flush(a)
+    return n
+  end
+  for _ = 1, 5 do
+    a.now, b.now, h.now = a.now + 3600, b.now + 3600, h.now + 3600
+    P(b).QueueHello(); F.deliver(b, a)
+    B(a).Pot.RetryDecisions()
+    equal(Decisions("Bob-Realm"), 0, "the acknowledged decision is not resent to an online contributor")
+    equal(Decisions("Hunter-Realm"), 0, "the away hunter is not whispered")
+  end
+  P(h).QueueHello(); F.deliver(h, a)
+  B(a).Pot.RetryDecisions()
+  equal(Decisions("Hunter-Realm"), 1, "the hunter gets it once back online")
+end)
 
 test("decisions outlive no contract they could still settle", function()
   local h = F.new("Hunter")

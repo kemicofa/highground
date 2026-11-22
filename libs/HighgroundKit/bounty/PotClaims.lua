@@ -80,9 +80,8 @@ local function Apply(d, p)
   end
   c.decision = d.id
   P.Data().claims[id] = c
-  local ok = P.ApplyClaimState(c, d.state, d.owner)
+  local ok = P.ApplyClaimState(c, d.state, d.owner) -- also sends the review to the hunter
   if ok then
-    P.QueueClaim(c)
     if d.state == "approved" then B.Say("Original poster accepted the claim. You owe " .. ns.Util.Gold(c.gold)
       .. " to " .. ns.Core.DisplayName(c.claimant) .. ". Open Claims & payments.") end
     B.Emit("updated")
@@ -97,8 +96,17 @@ local function ValidDecision(d)
     and B.Kills.ValidEvidence(d.evidence) and B.Kills.ValidCause(d.cause)
 end
 
+-- Owners resend each decision (P.Retry) until its recipient echoes it back.
+local function Sent(d, who) return "decision:" .. d.id .. ":" .. who end
+local function Route(d, who) return d.organization and B.Organizations.Allowed(d.organization, who) and d.organization or nil end
+
 function M.ReceiveDecision(d, sender)
-  if not ValidDecision(d) or sender ~= d.owner then return false end
+  if not ValidDecision(d) then return false end
+  if sender ~= d.owner then
+    local own = d.owner == B.Me() and Decisions()[d.id]
+    if own and ns.Codec.Pack(own) == ns.Codec.Pack(d) then P.Delivered(Sent(d, sender)); return true end
+    return false
+  end
   local root = M.Source(d.contract)
   local relevant = sender == B.Me() or root and not root.contract and root.by == sender and root.name == d.name
   for _, c in pairs(P.Data().claims) do
@@ -125,16 +133,23 @@ function M.ReceiveDecision(d, sender)
     end
   end
   for _, p in pairs(P.Data().offers) do Apply(d, p) end
+  if sender ~= B.Me() then P.Enqueue("decision", d, sender, Route(d, sender)) end -- acknowledge
   B.Emit("updated")
   return true
 end
 
-local function Queue(d)
+-- The hunter and every contributor to this original; only one when given.
+local function Queue(d, only, force)
   local recipients = { [d.claimant] = true }
   for _, p in pairs(P.Data().offers) do
     if p.contract and p.contract.id == d.contract and p.contract.by == B.Me() then recipients[p.by] = true end
   end
-  for who in pairs(recipients) do if who ~= B.Me() then P.Enqueue("decision", d, who, d.organization and B.Organizations.Allowed(d.organization, who) and d.organization or nil) end end
+  for who in pairs(recipients) do
+    if who ~= B.Me() and (not only or who == only) then
+      P.Retry(Sent(d, who), who, d.at + M.MAX_DURATION + P.CLAIM_WINDOW,
+        function() return P.Enqueue("decision", d, who, Route(d, who)) end, force)
+    end
+  end
 end
 
 function M.Decide(c, source)
@@ -144,7 +159,7 @@ function M.Decide(c, source)
   local d = { organization = contract.organization, id = "decision." .. M.Hash(c.id), contract = contract.id, owner = c.by, name = c.name,
     claimant = c.claimant, killedAt = c.killedAt, claimedAt = c.claimedAt, at = P.Now(), state = c.state,
     evidence = c.evidence or "manual report", cause = P.Copy(c.cause) }
-  if M.ReceiveDecision(d, B.Me()) then Queue(d) end
+  if M.ReceiveDecision(d, B.Me()) then Queue(d, nil, true) end
 end
 
 function M.RetryDecisions()
@@ -208,7 +223,7 @@ B.Listen("publicChanged", function(p)
   if not p or not p.contract then return end
   for _, d in pairs(Decisions()) do
     if d.contract == p.contract.id then
-      if d.owner == B.Me() then Queue(d) else Apply(d, p) end
+      if d.owner == B.Me() then Queue(d, p.by) else Apply(d, p) end
     end
   end
 end)

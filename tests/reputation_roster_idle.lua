@@ -17,6 +17,10 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
       assert(checks > 0 and not c.reports.foreign, "native non-moderator state still purges private reports immediately")
       assert(c.reports.own, "the account's own report survives")
       c.reports.own, checks = nil, 0
+      c.reports[false] = { account = "another-account" }
+      W.Reconcile()
+      assert(checks > 0 and next(c.reports) == nil, "malformed saved keys cannot bypass private-note cleanup")
+      checks = 0
       W.Reconcile()
       t.equal(checks, 0, "empty storage becomes dormant again")
       s:assertHealthy()

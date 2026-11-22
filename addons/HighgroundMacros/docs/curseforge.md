@@ -26,6 +26,8 @@ Highground Macros gives you ready-made macros for your class and a builder that 
 
 **Spell-rank updates:** queued upgrades stay together while combat or an occupied cursor delays them. A requested upgrade explains which condition it is waiting for.
 
+**Using full Highground? This separate download is not needed.** We recommend uninstalling this standalone addon while using Highground. Keep Highground, its module folders and both required data addons. Close WoW before cleanup, then reinstall the complete Highground bundle and restart.
+
 ## Features
 
 - **Window and control refresh:** Back/Forward navigation preserves supported page drafts and filters; dialogs return to the tool that opened them. Header spacing stays consistent when opening or reopening windows, including at larger text sizes. Rounded controls and focus effects follow text size and Reduced motion. Changing character or context closes stale macro-history windows.

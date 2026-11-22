@@ -103,6 +103,56 @@ for _, client in ipairs({ "cata", "retail" }) do
     s:setCombat(false); s:assertHealthy()
   end)
 
+  t.test(client .. " installation advice detects only standalone copies and keeps module controls independent", function()
+    local copies = { HighgroundArena = true, HighgroundMacros = false,
+      HighgroundBountyData = true, HighgroundReputationData = true, HighgroundModuleNearby = true }
+    local s = new(client, nil, F.configure(nil, true, nil, copies))
+    local M = s.ns.Modules
+    t.equal(#M.StandaloneAddons(), 2, "enabled and disabled standalone copies are both unnecessary")
+    t.equal(M.StandaloneAddons()[1].standalone, "HighgroundArena", "exact standalone folder")
+    t.equal(M.StandaloneAddons()[2].standalone, "HighgroundMacros", "never include module or data folders")
+    s.ns.Hub.Open("addons")
+    local page, reads, frames = s.ns.Hub.activeFrame, s.standaloneReads, #s.frames
+    assert(page.notice and page.notice:IsVisible(), "show removal advice")
+    for _ = 1, 5 do s.ns.Hub.Open("addons"); s.ns.Hub.RefreshHome() end
+    t.equal(s.standaloneReads, reads, "installed copies are checked once, not on every refresh")
+    t.equal(#s.frames, frames, "notice controls are reused")
+    for _, scale in ipairs({ 1, 1.5 }) do
+      s.ns.Core.SetFontScale(scale)
+      local notice, row = s.bounds(page.notice), s.bounds(page.rows[1])
+      assert(notice[2] + notice[4] <= row[2], "removal advice never overlaps switches")
+    end
+    click(page.rows[1])
+    assert(M.Pending("battlegrounds"), "module switch still works below the notice")
+    t.equal(#s.moduleWrites, 1, "advice never changes standalone or data enable states")
+    s:assertHealthy()
+  end)
+
+  t.test(client .. " duplicate-installation guide shows removal advice and scrolls to the real switches", function()
+    local copies = {}; for _, name in ipairs(F.names) do copies["Highground" .. name] = true end
+    local s = new(client, nil, function(s, e)
+      F.configure(nil, false, nil, copies)(s, e)
+      e.C_AddOns.DoesAddOnExist = function(name)
+        return s.moduleStates[name] ~= nil or copies[name] ~= nil
+      end
+    end)
+    t.equal(#s.ns.Modules.StandaloneAddons(), 6, "modern existence API finds all six copies")
+    s.ns.Core.SetFontScale(1.5)
+    local O = s.ns.Onboarding
+    for _ = 1, 2 do
+      O.Start("addons")
+      local page = s.ns.Hub.BuildModules()
+      O.Coach.Go(1); t.equal(page.scroll.offset, 0, "show installation advice from its top")
+      O.Coach.Go(2); assert(page.scroll.offset > 0, "scroll past removal instructions to reach switches")
+      local row, viewport = s.bounds(page.rows[1]), s.bounds(page.scroll)
+      assert(row[2] >= viewport[2] and row[2] + row[4] <= viewport[2] + viewport[4], "highlighted switch is inside the viewport")
+      O.Return()
+    end
+    t.equal(#s.moduleWrites, 0, "guide does not disable or remove anything")
+    t.equal(s.reloads, nil, "guide does not reload automatically")
+    s:assertHealthy()
+  end)
+
   t.test(client .. " disabled guide chapters and previews lead to addon controls", function()
     local off = {}; for _, name in ipairs(F.names) do off[name:lower()] = true end
     local s = new(client, nil, F.configure(off))

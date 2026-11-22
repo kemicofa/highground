@@ -14,6 +14,8 @@ Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclys
 
 Highground includes all of these. When it is loaded, the standalone addons stay inactive. The Arena panel covers arena matches and duels on Retail and Cataclysm Classic, and duels on WoW Forever.
 
+**Using Highground? Remove the separate standalone downloads.** They are already included and are not needed. Open **Highground → Addons** to see exactly which extras were detected. Keep Highground, its module folders and both required data addons. Close WoW before removing extras, then reinstall the complete Highground bundle and restart. See the [cleanup instructions](docs/getting-started.md).
+
 ## Install
 
 Install **Highground** from [CurseForge](https://www.curseforge.com/projects/1749115), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). See [getting started](docs/getting-started.md).

@@ -7,6 +7,15 @@ from support import ROOT, TempTestCase, addons, build
 
 
 class PackageTests(TempTestCase):
+    def test_standalone_groups_and_bundle_dependencies_stay_separate(self):
+        required = set(addons.field(ROOT / 'addons' / 'Highground', 'Dependencies').replace(',', ' ').split())
+        for suffix in ('Battlegrounds', 'Arena', 'Nearby', 'Bounties', 'Reputation', 'Macros'):
+            name = 'Highground' + suffix
+            for toc in addons.tocs(ROOT / 'addons' / name):
+                self.assertIn('## Group: ' + name + '\n', toc.read_text())
+            self.assertNotIn(name, required)
+        self.assertEqual(required, {'HighgroundBountyData', 'HighgroundReputationData'})
+
     def test_addon_list_icons_are_packaged_in_their_own_folders(self):
         for directory in sorted((ROOT / 'addons').iterdir()):
             if not addons.tocs(directory):

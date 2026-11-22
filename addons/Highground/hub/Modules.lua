@@ -31,9 +31,26 @@ function Hub.BuildModules(key)
   p.hint = Theme.Text(p, "body", "textMuted")
   p.hint:SetPoint("TOPLEFT", 20, -64); p.hint:SetPoint("TOPRIGHT", -20, -64)
   p.hint:SetHeight(54); p.hint:SetJustifyH("LEFT"); p.hint:SetWordWrap(true)
-  p.hint:SetText("Choose which addons run for this character, just like WoW’s AddOn List. Changes apply after reload. Your settings and records are kept.")
+  p.hint:SetText("Highground includes all six features. No standalone downloads are needed. Keep the bundled module folders and both required data addons. Use these switches to turn features off, then reload.")
   local scroll = Kit.ScrollArea(p)
+  p.scroll = scroll
   scroll:SetPoint("TOPLEFT", 0, -126); scroll:SetPoint("BOTTOMRIGHT", -12, 66)
+  local extras = M.StandaloneAddons()
+  if #extras > 0 then
+    local names = {}
+    for _, def in ipairs(extras) do names[#names + 1] = "Highground " .. def.name .. " (" .. def.standalone .. ")" end
+    p.notice = Kit.Card(scroll.body, 100, { titleRole = "cardTitle", strip = "warning" })
+    p.notice:SetPoint("TOPLEFT", 20, 0); p.notice:SetPoint("TOPRIGHT", -20, 0)
+    p.notice:EnableMouse(false)
+    p.notice.title:SetText("Recommended: remove extra standalone addons")
+    p.notice.title:SetPoint("RIGHT", -16, 0); p.notice.title:SetWordWrap(true)
+    p.notice.text = Theme.Text(p.notice, "body", "text")
+    p.notice.text:SetPoint("TOPLEFT", p.notice.title, "BOTTOMLEFT", 0, -8)
+    p.notice.text:SetPoint("RIGHT", -16, 0); p.notice.text:SetJustifyH("LEFT"); p.notice.text:SetWordWrap(true)
+    p.notice.text:SetText("Highground already includes these. Remove only these separate downloads:\n"
+      .. table.concat(names, ", ") .. ".\n\n1. Close WoW.\n2. Uninstall the listed standalone downloads in your addon manager, or delete only their listed folders.\n3. Reinstall Highground, then restart WoW."
+      .. "\n\nKEEP Highground, all HighgroundModule folders, HighgroundBountyData and HighgroundReputationData. Keep both data addons enabled or Highground cannot load.")
+  end
   p.rows, p.actions = {}, {}
   local y = 0
   for _, def in ipairs(M.list) do
@@ -76,8 +93,17 @@ function Hub.BuildModules(key)
   function p.Refresh()
     if p.refreshing then return end
     p.refreshing = true
+    p.hint:SetHeight(math.max(54, p.hint:GetStringHeight()))
+    scroll:SetPoint("TOPLEFT", 0, -64 - p.hint:GetHeight() - 12)
     scroll:Refresh()
     local offset = 0
+    if p.notice then
+      local titleHeight, textHeight = p.notice.title:GetStringHeight(), p.notice.text:GetStringHeight()
+      p.notice.title:SetHeight(titleHeight); p.notice.text:SetHeight(textHeight)
+      p.notice:SetHeight(titleHeight + textHeight + 40)
+      offset = p.notice:GetHeight() + 16
+    end
+    p.switchOffset = offset
     local combat = InCombatLockdown()
     for _, row in ipairs(p.rows) do
       local def = row.module

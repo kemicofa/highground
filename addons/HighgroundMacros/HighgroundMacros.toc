@@ -1,7 +1,8 @@
 ## Interface: 120100, 120105, 16001, 11508, 11509, 20505, 20506
-## Title: Highground Macros
+## Title: Highground Macros (standalone)
+## Group: HighgroundMacros
 ## IconTexture: Interface\AddOns\HighgroundMacros\libs\media\HighgroundIcon.tga
-## Notes: PvP and PvE macro presets, a macro builder that explains every line, and highest spell ranks on WoW Forever, Classic Era and The Burning Crusade.
+## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. PvP and PvE macro presets, a macro builder that explains every line, and highest spell ranks on WoW Forever, Classic Era and The Burning Crusade.
 ## Author: kemicofa
 ## Version: 0.9.5
 ## X-Curse-Project-ID: 1769615

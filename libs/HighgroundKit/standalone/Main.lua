@@ -30,6 +30,11 @@ end
 local function Standby(spec)
   local text = (ns.STANDBY_LABEL or "Highground") .. " is loaded and already has this: use "
     .. (ns.STANDBY_COMMAND or "/hg") .. ". You can disable " .. ns.LABEL .. "."
+  if not ns.STANDBY_LABEL or ns.STANDBY_LABEL == "Highground" then
+    text = "Highground already includes this feature. Recommended: uninstall this separate standalone addon ("
+      .. addon .. "). To manage features, use " .. (ns.STANDBY_COMMAND or "/hg")
+      .. ". Keep Highground, its module folders and both required data addons. After removing standalone downloads, reinstall Highground and restart WoW."
+  end
   Register(spec, function() Util.Say(text) end)
   -- Once per session; Util.Events registers nothing on standby.
   local f = CreateFrame("Frame")

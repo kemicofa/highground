@@ -49,6 +49,7 @@ local function New(name, options)
         end,
         GetMemberInfo = function(id, who) return native[id] and native[id].members[who] end,
       }
+      if options.configure then options.configure(s, e) end
     end)
   end
   return F.new(name, options)
@@ -129,6 +130,42 @@ test("membership and role changes invalidate queued messages and retained board 
   equal(#F.flush(hunter), 0, "leaving drops queued submissions")
   owner.native[42].members["Owner-Realm"].role = 4
   equal(B(owner).IsOfficer(nil, "club:42"), false, "live demotion")
+end)
+
+test("Forever community sync excludes foreign and unresolved rulesets before whispering", function()
+  local native = { [42] = { name = "Hunters", members = {
+    ["Owner Bright-RP-PVP"] = { name = "Owner Bright", role = 1, presence = 1, guid = "Player-1-101" },
+    ["Ally Bright-RP-PVP"] = { name = "Ally Bright", role = 4, presence = 1, guid = "Player-1-202" },
+    ["Rex Gadgetz-PVP"] = { name = "Rex Gadgetz", role = 3, presence = 1, guid = "Player-2-303" },
+    ["Unknown Person"] = { name = "Unknown Person", role = 3, presence = 1 },
+  } } }
+  local function new(name, guid)
+    return New(name, { native = native, realm = "RP-PVP", build = 16001, configure = function(s, e)
+      s.units.player.guid = guid
+      e.Enum.GameRule = { HardcoreRuleset = 1, RPRuleset = 2, PvPRuleset = 3 }
+      e.C_GameRules = { IsGameRuleActive = function(rule) return rule == 2 or rule == 3 end }
+      s.sameServer = { ["Player-1-101"] = true, ["Player-1-202"] = true, ["Player-2-303"] = false }
+      e.PlayerLocation = { CreateFromGUID = function(_, who) return { guid = who } end }
+      e.C_PlayerInfo = { UnitIsSameServer = function(location) return s.sameServer[location.guid] end }
+    end })
+  end
+  local owner, ally = new("Owner Bright", "Player-1-101"), new("Ally Bright", "Player-1-202")
+  local b = Post(owner, "club:42", "Enemy Shade-RP-PVP")
+  local packets = Deliver(owner, ally)
+  assert(#packets > 0, "same-ruleset community synchronization still sends")
+  for _, packet in ipairs(packets) do
+    equal(packet.channel, "WHISPER")
+    equal(packet.target, "Ally Bright-RP-PVP", "never whisper foreign or unresolved community members")
+  end
+  equal(B(ally).Guild("club:42")["enemy shade-rp-pvp"].state, "approved", "same-ruleset recipient gets the bounty")
+  local forged = B(owner).Public.Copy(b)
+  forged.name, forged.by = "Foreign Target-RP-PVP", "Rex Gadgetz-RP-PVP"
+  B(ally).Receive(B(owner).Encode(forged), forged.by, "club:42")
+  equal(B(ally).Guild("club:42")["foreign target-rp-pvp"], nil, "foreign moderator cannot approve local data")
+  B(owner).RequestSync("club:42")
+  assert(#B(owner).Public.outbox > 0, "eligible recipient queued")
+  owner.sameServer["Player-1-202"] = false
+  equal(#F.flush(owner), 0, "queued whispers recheck the recipient's native server")
 end)
 
 test("community claims, review and payment remain scoped across realms", function()

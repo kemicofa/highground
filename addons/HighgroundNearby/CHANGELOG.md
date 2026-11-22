@@ -6,6 +6,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 - Redesign bounty cards with larger portraits, aligned rewards and action footers, and ink-colored View bounty buttons. Give bounty details a full wanted-poster layout with a larger portrait and clearly separated reward terms.
 - Populate `/hgn bounty test board` with three distinct cards per audience, varied rewards, shared contributions and a pending guild submission. Editing, tracking, added gold and claim review stay with the selected sample target.
+- Skip community members on other Forever rulesets during bounty synchronization. Leave unresolved member names unsent instead of adding your ruleset to their whisper address.
 
 ## [0.15.1] - 2026-11-22
 

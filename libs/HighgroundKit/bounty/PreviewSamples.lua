@@ -144,7 +144,7 @@ Demo.scenes = {
     detail = "Account tracking is on by default. Requiring enough gold is off by default: an over-budget reward warns but can be created. Balances are scoped to this realm or Forever realmset. Alt balances update when you log in; payment and transfers remain manual." },
   { key = "guild", label = "Guild approval", title = "Submit and approve a guild bounty",
     description = "Try awaiting approval, officer approval and rejection, then inspect the resulting wanted card. These roles are available in the tour even without a guild.",
-    detail = "Approved guild rewards can show a NEW BOUNTY poster. This announces a reward, not a sighting. Sharing one reward with both guild and global boards does not create a second payment obligation." },
+    detail = "Approved guild rewards can show a NEW BOUNTY poster. This announces a reward, not a sighting. Sharing one reward with both guild and global boards does not create a second payment obligation. On Forever, community rewards synchronize only with members of your ruleset." },
   { key = "shared", label = "Shared arrivals", title = "A bounty matches your filters",
     description = "Use Start tracking or Ignore on the incoming poster. Try sample alert settings and funding states. This target has not been spotted.",
     detail = "The notification minimum counts rewards with current available-funds reports. Imported, stale or unfunded offers remain distinguishable. Tracking pledges no gold; ignoring silences the target's bounty and sighting alerts." },

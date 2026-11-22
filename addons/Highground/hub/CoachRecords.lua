@@ -187,7 +187,7 @@ function C.ReputationSteps()
       requireAction = advance ~= nil, advance = advance, hint = hint }
   end
   return {
-    Step("organization", "Open an organization", "Officers and community moderators enable Reputation. Members discover it automatically. Open this sample guild to begin.",
+    Step("organization", "Open an organization", "Officers and community moderators enable Reputation. Members discover it automatically. On Forever, community discovery and sharing stay within your ruleset. Open this sample guild to begin.",
       function() Open("organizations"); P.Disable() end, function() return U.window.rows[1].action end,
       function() return P.Joined(P.Get()) end, "Click Open. This sample never sends reports."),
     Step("report_open", "Open the report form", "Report player opens the same form used from a player's portrait or chat name.",

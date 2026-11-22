@@ -13,6 +13,43 @@ local function packet(W, name, enabled, id)
   return { kind = "presence", community = id, request = probe.request, revision = 1, enabled = enabled }
 end
 
+test("Forever moderator discovery and queued whispers stay within the native ruleset", function()
+  for _, addon in ipairs({ "HighgroundReputation", "Highground" }) do
+    local native = F.native("Owner")
+    native[42].members["Owner-Realm"].presence = 3
+    local foreign = native[42].members["Moderator-Realm"]
+    foreign.name, foreign.guid = "Rex Gadgetz", "Player-2-303"
+    native[42].members["Local Bright-Realm"] = {
+      name = "Local Bright", guid = "Player-1-202", role = 3, presence = 1, memberId = 99,
+    }
+    local s = F.new("Member", { addon = addon, native = native, build = 16001, ruleset = "RP-PvP",
+      runtime = addon == "Highground" and dofile("../../tools/wowsim/battleground/runtime.lua") or nil,
+      configure = function(sim, e)
+        sim.sameServer = { ["Player-1-202"] = true, ["Player-2-303"] = false }
+        e.PlayerLocation = { CreateFromGUID = function(_, guid) return { guid = guid } end }
+        e.C_PlayerInfo = { UnitIsSameServer = function(location) return sim.sameServer[location.guid] end }
+      end })
+    local W, c = F.W(s), F.community(s)
+    W.Discover(c.id, true)
+    equal(W.probes[c.id .. ":Rex Gadgetz-Realm"], nil, "foreign moderator is never probed")
+    assert(W.probes[c.id .. ":Local Bright-Realm"], "same-ruleset moderator is discovered")
+    F.pump({ s }, 25)
+    assert(#s.sent > 0, "discovery sends to eligible moderators")
+    for _, message in ipairs(s.sent) do
+      equal(message.target, "Local Bright-Realm", "only same-ruleset moderators receive addon whispers")
+    end
+    W.Discover(c.id, true)
+    assert(#W.outbox > 0, "discovery still has pending whispers")
+    local before = #s.sent
+    s.sameServer["Player-1-202"] = false
+    W.Flush()
+    equal(#s.sent, before, "queued messages stop before the next send when recipient eligibility changes")
+    equal(#W.outbox, 0, "ineligible recipient removed from retry queue")
+    equal(W.Availability(c.id).code, "offline", "foreign moderators do not appear available for local proposals")
+    s:assertHealthy()
+  end
+end)
+
 test("only native owners, leaders, moderators and permitted guild ranks can enable", function()
   for _, role in ipairs({ 1, 2, 3, 4, 0 }) do
     local s = F.new("Owner")

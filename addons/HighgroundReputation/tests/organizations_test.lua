@@ -99,4 +99,78 @@ test("Forever names preserve surnames and rulesets isolate feature data", functi
   assert(W.Match(F.target(s, "Enemy Dark")), "original scoped data retained")
 end)
 
+test("Forever community names require native same-server evidence before adding our ruleset", function()
+  local s = F.new("Owner Bright", { build = 16001, ruleset = "RP-PvP", configure = function(sim, e)
+    e.GetNormalizedRealmName = function() return "RP-PVP" end
+    sim.units.player.realm = "RP-PVP"
+    local members = sim.native[42].members
+    members["Owner Bright-Realm"].name, members["Owner Bright-Realm"].isSelf = "Owner Bright", true
+    members["Member-Realm"].name, members["Member-Realm"].guid = "Ally Bright", "Player-1-111"
+    members["Moderator-Realm"].name, members["Moderator-Realm"].guid = "Rex Gadgetz", "Player-2-222"
+    sim.sameServer = { ["Player-1-111"] = true, ["Player-2-222"] = false }
+    e.PlayerLocation = { CreateFromGUID = function(self, guid)
+      equal(self, e.PlayerLocation, "native location constructor receives its owner")
+      return { guid = guid }
+    end }
+    e.C_PlayerInfo = { UnitIsSameServer = function(location) return sim.sameServer[location.guid] end }
+  end })
+  local O, members = s.ns.Organizations, s.native[42].members
+  equal(O.IsMember("club:42"), true, "self membership survives unqualified names")
+  equal(O.IsMember("club:42", "Ally Bright-RP-PVP"), true, "confirmed local surname is preserved")
+  equal(O.IsMember("club:42", "Rex Gadgetz-RP-PVP"), false, "PvP member never acquires our RP-PvP suffix")
+  equal(O.CanModerate("club:42", "Rex Gadgetz-RP-PVP"), false, "foreign moderator cannot authorize local data")
+  equal(#O.Members("club:42"), 2, "foreign members excluded from recipient enumeration")
+  members["Member-Realm"].name = "Ally Bright-Backend-Other"
+  equal(O.IsMember("club:42", "Ally Bright-Backend-Other"), true, "native confirmation preserves a different backend suffix")
+  members["Member-Realm"].name = "Ally Bright"
+  members["Moderator-Realm"].name = "Rex Gadgetz-RP-PVP"
+  equal(O.IsMember("club:42", "Rex Gadgetz-RP-PVP"), false, "native rejection overrides a matching suffix")
+  s.sameServer["Player-1-111"] = false
+  equal(O.IsMember("club:42", "Ally Bright-RP-PVP"), false, "native eligibility is rechecked live")
+  s:assertHealthy()
+end)
+
+test("Forever skips unresolved community names and preserves explicit ruleset suffixes", function()
+  for _, rule in ipairs({ "PvE", "PvP", "RP", "RP-PvP", "Hardcore" }) do
+    local s = F.new("Owner", { build = 16001, ruleset = rule, configure = function(sim, e)
+      e.GetNormalizedRealmName = function() return "" end
+      sim.units.player.realm = ""
+      local members = sim.native[42].members
+      members["Owner-Realm"].name, members["Owner-Realm"].isSelf = "Owner", true
+      members["Member-Realm"].name = "Ally Bright-" .. rule:upper()
+      members["Moderator-Realm"].name = "Rex Gadgetz-" .. (rule == "PvP" and "PvE" or "PvP")
+    end })
+    local O, members = s.ns.Organizations, s.native[42].members
+    members["Owner-Realm"].isSelf = nil
+    equal(O.IsMember("club:42"), true, "self lookup works without realm or GUID metadata")
+    members["Owner-Realm"].isSelf = true
+    equal(O.IsMember("club:42", "Ally Bright-" .. rule:upper()), true, "case-insensitive explicit ruleset")
+    equal(O.IsMember("club:42", members["Moderator-Realm"].name), false, "other ruleset excluded")
+    members["Moderator-Realm"].name, members["Moderator-Realm"].guid = "Rex Gadgetz", "Player-2-222"
+    for _, mode in ipairs({ "missing", "unknown", "error", "secret" }) do
+      s.env.PlayerLocation = { CreateFromGUID = function(_, guid) return { guid = guid } end }
+      s.env.C_PlayerInfo = mode ~= "missing" and { UnitIsSameServer = function()
+        if mode == "error" then error("native lookup unavailable") end
+        if mode == "secret" then return "secret" end
+      end } or nil
+      s.env.issecretvalue = function(value) return value == "secret" end
+      equal(O.IsMember("club:42", "Rex Gadgetz-" .. rule), false, mode .. " lookup never guesses a local recipient")
+    end
+    members["Moderator-Realm"].guid = "secret"
+    s.env.PlayerLocation.CreateFromGUID = function() error("secret GUID must not be passed to the game") end
+    equal(#O.Members("club:42"), 2, "unreadable GUID does not supply local membership")
+    s:assertHealthy()
+  end
+end)
+
+test("Retail community recipients remain available across native servers", function()
+  local s = F.new("Owner", { configure = function(sim, e)
+    sim.native[42].members["Member-Realm"].name = "Ally-OtherRealm"
+    sim.native[42].members["Member-Realm"].guid = "Player-2-222"
+    e.PlayerLocation = { CreateFromGUID = function(_, guid) return { guid = guid } end }
+    e.C_PlayerInfo = { UnitIsSameServer = function() return false end }
+  end })
+  equal(s.ns.Organizations.IsMember("club:42", "Ally-OtherRealm"), true, "Retail keeps cross-realm community access")
+end)
+
 t.finish("Organizations: " .. t.tests .. " scenarios")

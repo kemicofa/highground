@@ -212,4 +212,37 @@ t.test("native roster activity cannot turn 90-second discovery into repeated ros
   s:assertHealthy()
 end)
 
+t.test("Forever rechecks native rulesets without rescanning a thousand-member community", function()
+  local reads, lists, queries = 0, 0, 0
+  local s = F.new("Member", { build = 16001, ruleset = "RP-PvP", configure = function(sim, e)
+    local members, ids, byId = {}, {}, {}
+    for i = 1, 1000 do
+      local name = i == 1 and "Member-Realm" or string.format("Player%04d-Realm", i)
+      local row = { name = name, guid = "Player-1-" .. i, role = 4, memberId = i, presence = 1 }
+      members[name], ids[i], byId[i] = row, i, row
+    end
+    sim.native = { [42] = { name = "Large Forever community", members = members } }
+    e.C_Club.GetClubMembers = function() lists = lists + 1; return ids end
+    e.C_Club.GetMemberInfo = function(_, id) reads = reads + 1; return byId[id] end
+    e.PlayerLocation = { CreateFromGUID = function(_, guid) return { guid = guid } end }
+    e.C_PlayerInfo = { UnitIsSameServer = function(location)
+      queries = queries + 1
+      return location.guid ~= sim.foreignGUID
+    end }
+  end })
+  local O = s.ns.Organizations
+  t.equal(#O.Members("club:42"), 1000, "native ruleset checks retain eligible members")
+  reads, lists, queries = 0, 0, 0
+  for _ = 1, 100 do assert(O.IsMember("club:42", "Player0002-Realm")) end
+  t.equal(reads, 100, "each authorization reads only the selected member")
+  t.equal(queries, 100, "every authorization rechecks the live native server")
+  t.equal(lists, 0, "known recipients never enumerate the community")
+  s.foreignGUID = "Player-1-2"
+  assert(not O.IsMember("club:42", "Player0002-Realm"), "eligibility changes apply without a roster event")
+  t.equal(reads, 101, "revocation still reads only the selected member")
+  t.equal(queries, 101, "revocation uses current native evidence")
+  t.equal(lists, 0, "revocation does not rescan the community")
+  s:assertHealthy()
+end)
+
 t.finish("Reputation performance: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

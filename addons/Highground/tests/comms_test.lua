@@ -1,5 +1,6 @@
 local t = dofile("../../tools/harness.lua")("addon message results")
-local ns = { Util = { Events = function() return {} end } }
+local ns = { Util = { Events = function() return {} end,
+  Guard = function(_, fn, ...) return fn(...) end } }
 local env = setmetatable({}, { __index = _G })
 setfenv(assert(loadfile("libs/core/Comms.lua")), env)("Highground", ns)
 local C = ns.Comms
@@ -26,6 +27,43 @@ t.test("send normalizes legacy, enum and two-result APIs without losing false", 
     end }
     t.equal(C.Send("Test", "payload", "WHISPER", "Friend-Realm"), case[2], case[1])
   end
+end)
+
+t.test("Forever whispers use full character names and retain canonical protocol identities", function()
+  ns.Caps = { rulesetRealms = true }
+  local recipient, announced
+  env.C_ChatInfo = { SendAddonMessage = function(_, _, _, target) recipient = target; return 0 end }
+  ns.Protocols = { Sent = function(_, _, target) announced = target end }
+  for _, name in ipairs({ "First Surname", "Игрок Пример" }) do
+    for _, realm in ipairs({ "PvP", "RP-PvP", "ClassicBetaPvE2" }) do
+      local canonical = name .. "-" .. realm
+      assert(C.Send("HighgroundBP", "payload", "WHISPER", canonical))
+      t.equal(recipient, name, "Forever server receives the full name without an internal realm")
+      t.equal(announced, canonical, "capability throttles retain the original peer identity")
+    end
+    assert(C.Send("HighgroundRep", "payload", "WHISPER", name))
+    t.equal(recipient, name, "already realm-less names remain intact")
+  end
+  ns.Protocols, ns.Caps = nil, nil
+end)
+
+t.test("realm addressing on other clients and non-whisper routes stay intact", function()
+  local recipient
+  env.C_ChatInfo = { SendAddonMessage = function(_, _, _, target) recipient = target; return 0 end }
+  ns.Protocols = nil
+  for _, caps in ipairs({ {}, { rulesetRealms = false } }) do
+    ns.Caps = caps
+    assert(C.Send("Test", "payload", "WHISPER", "Friend-OtherRealm"))
+    t.equal(recipient, "Friend-OtherRealm", "cross-realm whisper")
+  end
+  ns.Caps = { rulesetRealms = true }
+  for _, target in ipairs({ 7, "Highground-Test" }) do
+    assert(C.Send("Test", "payload", "CHANNEL", target))
+    t.equal(recipient, target, "custom channel routing")
+  end
+  assert(C.Send("Test", "payload", "GUILD"))
+  t.equal(recipient, nil, "broadcast has no recipient")
+  ns.Caps = nil
 end)
 
 t.test("missing APIs, missing channels and standby never send", function()

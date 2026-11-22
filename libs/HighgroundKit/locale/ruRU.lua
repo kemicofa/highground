@@ -3987,6 +3987,8 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.azeroth.obsidian_panels_sculpted_bronze_edges_and_warcraft.d0f810"] = "Обсидиановые панели, резные бронзовые края и названия, вдохновленные Warcraft.",
   ["shared.classcolors.class_colors.9dea52"] = "Цвета классов",
   ["shared.classcolors.highground_blue_and_gold_with_stronger_full.cc8f44"] = "Синий и золотой Highground с более насыщенными цветами классов на всю строку.",
+  ["shared.dark.dark.ae1ef0"] = "Тёмная",
+  ["shared.dark.near_black_panels_graphite_surfaces_and_violet.268f9a"] = "Почти чёрные панели, графитовые поверхности и фиолетовые акценты.",
   ["shared.ember.ember.20632b"] = "Угли",
   ["shared.ember.smoked_charcoal_warm_copper_light_and_sculpted.f5ee39"] = "Дымчатый уголь, теплый медный свет и рельефные края.",
   ["shared.parchment.parchment.4761c1"] = "Пергамент",

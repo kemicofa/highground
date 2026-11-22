@@ -18,7 +18,8 @@ test(client .. " every theme sets every token with a valid value", function()
   equal(names[1], "highground", "default first")
   local listed = {}
   for _, n in ipairs(names) do listed[n] = true end
-  assert(listed.ember and listed.parchment and listed.azeroth and listed.classcolors, "all shipped palettes registered")
+  assert(listed.ember and listed.parchment and listed.azeroth and listed.classcolors and listed.dark,
+    "all shipped palettes registered")
   for _, name in ipairs(names) do
     local t = themes[name]
     assert(type(t.label) == "string" and t.label ~= "", name .. " has a label")
@@ -114,7 +115,7 @@ test(client .. " every palette re-skins open windows, also in combat", function(
   local size = {}
   for i, r in ipairs(Core.rows) do size[i] = { r.width, r.height } end
   local frame = { Core.frame.width, Core.frame.height }
-  for _, name in ipairs({ "ember", "parchment", "azeroth", "classcolors" }) do
+  for _, name in ipairs({ "ember", "parchment", "azeroth", "classcolors", "dark" }) do
     assert(T.Use(name), name)
     checkAll(sim, name, name)
     assert(T.Use("highground"))

@@ -107,8 +107,6 @@ do
     return n
   end
 
-  local lastSc
-
   local function Learned()
     local db, key = Timers.LearnedDB(), Timers.RulesKey()
     local scoring = Timers.Rules().scoring
@@ -169,17 +167,13 @@ do
     local scoring = Timers.Rules().scoring
     if not (scoring and scoring.predict) then return nil end
     local sc = Read()
-    if not sc then
-      lastSc = nil
-      return nil
-    end
+    if not sc then return nil end
     sc.n = Bases(sc)
     sc.max = sc.A.m or sc.H.m
     if sc.n then
       Track("A", sc.A.s, sc.n.A, now)
       Track("H", sc.H.s, sc.n.H, now)
     end
-    lastSc = sc
     return sc
   end
 

@@ -44,8 +44,6 @@ function Localization.Bind(target, key, values)
   return target
 end
 
-function Localization.Unbind(target) bindings[target] = nil end
-
 -- Reused controls must release an old label binding when showing live data.
 function Localization.Written(target)
   if writing ~= target then bindings[target] = nil end

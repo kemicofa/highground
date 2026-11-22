@@ -315,19 +315,6 @@ function S.Form(field, mode)
   return w
 end
 
-function S.Arrival()
-  S.Select("shared")
-  B.Matches.Show(D.bounty, true); D.Dock(B.Matches.previewWin)
-  local w = B.Matches.previewWin
-  if not w.coachInterestHook then
-    w.coachInterestHook = true
-    for _, button in ipairs({ w.details, w.ignore }) do button:HookScript("OnClick", function()
-      if D.guided and D.state and D.state.coachRole then D.state.coachInterestVersion = (D.state.coachInterestVersion or 0) + 1 end
-    end) end
-  end
-  S.ReturnOn(w.details, w); S.ReturnOn(w.ignore, w)
-end
-
 function S.OpenPot(source)
   D.state.coachPotOpened = true
   local w = B.Pot.Open(source or D.bounty.contributions[1], true)

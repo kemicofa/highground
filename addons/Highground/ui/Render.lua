@@ -52,7 +52,6 @@ function Core.Render()
   local needsLayout = false
   local targetKey = UnitExists("target") and Core.CanonUnit("target") or nil
   local focusKey = UnitExists("focus") and Core.CanonUnit("focus") or nil
-  local reach = Core.Reach()
   local now = GetTime()
   for i = 1, Core.MAX_ROWS do
     local r = Core.rows[i]

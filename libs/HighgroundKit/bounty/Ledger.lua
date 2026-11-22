@@ -1,5 +1,5 @@
 local _, ns = ...
-local B, Kit, U = ns.Bounty, ns.Kit, ns.Util
+local B, Kit = ns.Bounty, ns.Kit
 local L = {}
 B.Ledger = L
 local pending = {}

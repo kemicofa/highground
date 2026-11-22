@@ -1,6 +1,5 @@
 local _, ns = ...
 local W, K = ns.Reputation, ns.Kit
-local UI = W.UI
 
 function W.OpenDetails(c, row, source)
   local W = source or W

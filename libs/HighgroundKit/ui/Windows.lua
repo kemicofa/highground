@@ -217,7 +217,7 @@ Timers.Compact = Compact
 
 -- Header, width and rows for the current layout (normal or compact).
 function Timers.LayoutWindow(w)
-  local width, top, pad, gap, compact = Timers.Geometry(w)
+  local width, top, pad, _, compact = Timers.Geometry(w)
   w:SetWidth(width)
   w.head:SetHeight(top - (compact and 1 or 4))
   w.brand:SetSize(compact and 4 or 6, compact and 4 or 6)

@@ -1,5 +1,5 @@
 local _, ns = ...
-local C, O, Kit, Core = ns.Onboarding.Coach, ns.Onboarding, ns.Kit, ns.Core
+local C, O, Kit = ns.Onboarding.Coach, ns.Onboarding, ns.Kit
 local N = { windows = {} }
 C.Native = N
 

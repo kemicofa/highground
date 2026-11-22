@@ -43,7 +43,7 @@ Placement shows example data and draggable headers. Choose another panel set to 
 
 `/hg alerts` offers **Essentials** (the new-install default), **Everything**, **Critical only**, **Objectives** and **Text only**. Essentials keeps objective warnings, attack openings, nearby sightings, stealth and bounty alerts while silencing target locks. Text only silences sounds.
 
-Under **Addon alerts**, the **Battlegrounds**, **Nearby** and **Bounties** quick links open each addon's settings at its text and sound switches. Links for disabled addons become available after enabling the addon and reloading. **Enemy stealth** is directly available on the Alerts page because it covers several addons. The selected alert level still applies to every category. Changes save automatically. Sounds arriving together use the highest-priority cue; **Sounds** in Shared preferences mutes them all.
+Under **Addon alerts**, the **Battlegrounds**, **Nearby** and **Bounties** quick links open each addon's settings at its text and sound switches. Links for disabled addons become available after enabling the addon and reloading. **Enemy stealth** is directly available on the Alerts page because it covers several addons. The selected alert level still applies to every category. Changes save automatically. Sounds arriving together use the highest-priority cue; **Sounds** in Shared preferences mutes them all. **Play sound** beside an alert auditions its cue even when Highground alerts are muted, without triggering an event or changing your preferences; WoW sound settings still apply. Enemy stealth offers entering and leaving cues. **Lock-on sound** in Battlegrounds settings selects the target-lock cue, including Silent.
 
 **Enemy stealth** uses altered versions of the game's stealth sound: lower-pitched when applied, higher-pitched when removed. This works for nearby enemies, active battlegrounds, arenas and the current duel opponent. Nearby also follows its own sound switch. Cata reads applications and removals from the combat log; Retail and Forever use readable enemy casts and reappearance; Nearby also detects readable hiding auras. Restart WoW after installing the new sound files.
 
@@ -150,7 +150,7 @@ The context bar says **Settings from: [name]**, with **Matches saved profile** o
 
 ## Appearance
 
-A panel cogwheel’s **Panel appearance** action opens its owning addon’s Appearance page. **Settings** and **Previews and guide** in the same menu also open that addon. Each local Appearance page links to **Shared theme and accessibility**.
+Open an addon's **Appearance** page from its sidebar or a panel cogwheel. Choose a sample and **Start preview** to see changes as you edit. Use **Stop preview** or `/hg test stop` to finish. Leaving the page, combat, matches or duels also ends it. Samples preserve saved panel positions and do not enable features or create real records. Appearance edits save automatically. **Shared theme and accessibility** opens Shared appearance, whose preview selector covers your enabled addons.
 
 - **Battlegrounds → Appearance**: target marker style, colours, size and placement; enemy count and suggested-target card; main, timer and flag-panel scales; sizes and spacing; enemy-row elements and health style.
 - **Arena → Appearance**: arena/duel panel scale, compact spacing, width, row spacing, padding and header height.

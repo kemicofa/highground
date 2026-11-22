@@ -180,6 +180,72 @@ totals. Instrumentation remains opt-in, stops after 60 seconds, restores its
 hooks and never changes GC policy. A live retest is needed before claiming the
 client's idle allocation or retained-memory problem is resolved.
 
+The version-2 capture at November 22, 07:39:00–07:40:00 confirms that all tracked
+windows stayed unbuilt. Reputation UI, snapshots and transport allocated zero;
+the addon counter rose from 10.480 to 11.095 MiB, versus +6.169 MiB in the prior
+run. Reputation still allocated 346 KiB/min. Its inclusive detail rows identify
+discovery (178 KiB), access reconciliation (75 KiB) and update requests (61 KiB).
+All monitored queues stayed empty, the error count stayed at 383, and saved
+Reputation records were structurally unchanged. The capture does not establish
+retained leakage. Guild roster events were invalidating unrelated community
+identity and moderator hints, while access reconciliation checked roles even
+when saved report storage was empty. Invalidation now stays with the affected
+guild/community, with global resets retained for reconnect/world transitions;
+empty report tables skip the permission sweep. Nonempty reports, private reads
+and every transmission retain their existing live authorization.
+
+From `addons/HighgroundReputation/`, run
+`luajit ../../tools/performance_reputation_idle.lua followed never Highground guild-events`.
+It replays six native guild roster events/minute with two followed communities,
+offline moderators and no UI. Over three minutes, native community scans fall
+from 36 to 2; allocations fall from 230–299 to 195–259 KiB/min (about 14% over the
+run), with essentially flat post-collection heap and empty queues. This small
+fixture measures all callbacks triggered by the event, including shared hosts;
+avoiding full native roster scans also removes work that grows with community
+size. Regression cases cover both Reputation hosts, Cataclysm, Retail and Forever,
+targeted and global invalidation, live demotion, ID replacement and private-note
+cleanup. The live capture above predates this second change; its remaining
+allocation rate must not be described as post-fix retained-memory growth.
+
+The next live capture, November 22, 08:34:01–08:35:02, confirms that the roster
+fix reduced Reputation from 346 to 157 KiB/min at a similar tick count (299 to
+298). Access reconciliation allocated zero; all monitored windows stayed
+unbuilt, queues stayed empty, saved Reputation records were unchanged and the
+error count stayed at 383. Total guarded allocations fell from 790 to
+628 KiB/min, but the addon counter still rose 0.678 MiB, versus 0.615 MiB before.
+Panel controls became the largest measured stage at 186 KiB/min (595 calls),
+versus 41 KiB/min (597 calls). The saved panels were locked in the new run and
+unlocked previously. Sampled FPS averaged 58.3, with a minimum of 50.
+
+Panel polling rebuilt a dock-membership table even in the undocked layout and
+rewrote unchanged cog alpha. A reproduction with rounded native alpha readback
+also repeatedly restarted fades: comparing the requested endpoint with a fixed
+floating-point epsilon did not recognize a completed native write. Motion now
+remembers the requested and actual settled alpha on the region itself. An
+unchanged pair does no work; an external alpha edit or changed target still
+reconciles. Active retargeting, cancellation and reduced motion keep their
+existing semantics. Dock checks read the four named slots directly, eliminating
+the per-poll map without retaining frame references or invalidation state.
+
+From `addons/Highground/`, run
+`luajit ../../tools/performance_panel_idle.lua retail split` (also `cata` or
+`compact`). With one visible locked cog, three minutes of exact readback fall
+from 37.5–38.6 KiB/min and 600 alpha writes/min to 0 KiB and zero writes. The
+deliberately rounded model falls from 131.3 KiB/min and 900 writes/min to
+0–0.9 KiB/min and zero writes. The poll still runs 600 times/minute. These are
+LuaJIT interpreter-mode simulator measurements; the rounded model is a
+representation-boundary regression, not a measurement of this client's native
+precision. The saved capture does not prove that rounding accounts for all its
+panel allocation or establish retained leakage.
+
+`luajit -e 'dofile("../../tests/panel_idle.lua")()'` exercises both alpha models,
+independent and compact panels, actual scheduled polling, external alpha edits,
+hover transitions and object reuse across five HUD hosts on Cataclysm, Retail
+and Forever. Existing motion, cog, guide, preview and combat tests preserve
+their interactions. The optimization adds two scalar fields to each animated
+region, no global ownership table or runtime GC changes. Live follow-up is
+still needed before claiming the client's remaining memory growth is resolved.
+
 Run `luajit ../../tools/performance_reputation_idle.lua followed` and repeat with `paused` from `addons/HighgroundReputation/`. Both modes keep two saved organizations and offline moderators, with no pending traffic. Between discovery checks, the fix reduces **1,200 membership lookups and about 1.3 MiB/min allocated to zero lookups and 19 KiB/min**. Following minutes include the scheduled full sweep and remain below 46 KiB in this fixture. Regression tests preserve immediate live authorization for private reads, moderation and outgoing fragments, plus periodic cleanup after a missed demotion event.
 
 The subsequent foreground capture confirmed the allocation reduction with the main UI closed:

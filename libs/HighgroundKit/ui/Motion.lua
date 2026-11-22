@@ -8,6 +8,12 @@ ns.Motion = Motion
 -- changes geometry; Value also supports plain-frame accordion layouts.
 local active, tick, driver = {}, {}, nil
 
+local function SettleAlpha(region, value)
+  region:SetAlpha(value)
+  -- Retain the actual native endpoint on its owner, without a global cache.
+  region.wbMotionAlphaTarget, region.wbMotionAlphaValue = value, region:GetAlpha()
+end
+
 local function Reduced() return Core.db and Core.db.reducedMotion == true end
 
 local function Idle()
@@ -20,7 +26,7 @@ end
 
 local function Finish(region, state)
   active[region] = nil
-  Apply(region, state, state.to)
+  if state.apply then state.apply(region, state.to) else SettleAlpha(region, state.to) end
   if state.hide then region:Hide() end
 end
 
@@ -61,7 +67,7 @@ function Motion.IsPlaying(region) return active[region] ~= nil end
 -- known state; otherwise the current visual value is preserved.
 function Motion.Stop(region, alpha)
   active[region] = nil
-  if alpha ~= nil then region:SetAlpha(alpha) end
+  if alpha ~= nil then SettleAlpha(region, alpha) end
   Idle()
 end
 
@@ -75,7 +81,7 @@ local function Start(region, from, target, duration, apply)
   duration = type(duration) == "string" and Theme.Motion(duration) or duration or Theme.Motion("hover")
   if Reduced() or duration <= 0 or not region:IsVisible() or from == target then
     Motion.Stop(region)
-    if apply then apply(region, target) else region:SetAlpha(target) end
+    if apply then apply(region, target) else SettleAlpha(region, target) end
     return
   end
   local previous = active[region]
@@ -90,6 +96,9 @@ end
 -- This primitive only changes alpha, never visibility or geometry.
 function Motion.Alpha(region, alpha, duration)
   local current = region:GetAlpha() or 1
+  -- A completed native write can round beyond floating-point epsilon. The
+  -- unchanged requested/read-back pair is settled; external edits still retry.
+  if not active[region] and region.wbMotionAlphaTarget == alpha and region.wbMotionAlphaValue == current then return end
   -- Native alpha may round the value we set. A visually settled endpoint
   -- must not start another transition on every reconciliation tick.
   if math.abs(current - alpha) < 0.000001 then current = alpha end

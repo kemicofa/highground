@@ -20,6 +20,7 @@ function W.Moderators(id)
   end
   local org = O.Get(id)
   if not org then W.candidates[id] = nil; return {}, "unavailable" end
+  cache.kind = org.kind
   if now - cache.at >= (cache.dirty and GAP or REFRESH) then
     local members, state = O.Moderators(id)
     cache.at, cache.state, cache.dirty = now, state, state ~= "ready"
@@ -58,7 +59,9 @@ function W.NoteModerator(id, member)
 end
 
 function W.InvalidateCandidates(event, clubId)
-  if clubId and type(clubId) == "number" then
+  if O.IsGuildEvent(event) then
+    for _, cache in pairs(W.candidates) do if cache.kind == "guild" then cache.dirty = true end end
+  elseif clubId and type(clubId) == "number" then
     if event == "CLUB_REMOVED" then W.candidates["club:" .. clubId] = nil; return end
     local cache = W.candidates["club:" .. clubId]
     if cache then cache.dirty = true end

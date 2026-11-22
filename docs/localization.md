@@ -19,7 +19,8 @@ saves the preference. Opening or closing the guide never selects a language.
 This is the **localization foundation**, not a translated release. Messages in
 Shared preferences, the language names/sample, addon launcher labels and tooltips,
 configuration command descriptions, grouped Battlegrounds guide labels and commands,
-profile workspace controls, comparisons, position descriptions, and related guide/preference help
+Appearance samples, sound auditions, profile workspace controls, comparisons,
+position descriptions, and related guide/preference help
 are registered in English. Profile reviews
 redraw the prepared labels when the language changes, preserving the reviewed
 values. Other feature strings remain at their existing call

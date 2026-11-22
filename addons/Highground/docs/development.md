@@ -2,6 +2,8 @@
 
 Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
 
+Highground owns the full shared-feature regression coverage. Retained standalone suites focus on host loading, coexistence, saved-data isolation, command/UI routing and host-specific behavior; they also keep feature coverage that has no Highground equivalent. Do not add a standalone wrapper for an unchanged shared scenario already covered by Highground unless it exercises a distinct compatibility path.
+
 [Documentation](README.md) · [Highground overview](../README.md)
 
 Highground uses Lua 5.1 (LuaJIT in tests) and the repository's shared HighgroundKit library. It has no external Lua dependencies. Each file gets the addon namespace through `local _, ns = ...`; there is no `require`.

@@ -226,6 +226,23 @@ function Core.RefreshRoster()
   end
 end
 
+-- Remembered specs: at most HISTORY_MAX names per region, none unseen for
+-- HISTORY_DAYS; the most recently seen are kept. Damaged entries go first.
+Core.HISTORY_MAX, Core.HISTORY_DAYS = 4000, 120
+local function Seen(h) return type(h) == "table" and tonumber(h.t) or -math.huge end
+local function OldestFirst(a, b) return a[2] < b[2] end
+function Core.PruneHistory(history, now)
+  local cutoff, count = now - Core.HISTORY_DAYS * 86400, 0
+  for key, h in pairs(history) do
+    if Seen(h) < cutoff then history[key] = nil else count = count + 1 end
+  end
+  if count <= Core.HISTORY_MAX then return end
+  local list = {}
+  for key, h in pairs(history) do list[#list + 1] = { key, Seen(h) } end
+  table.sort(list, OldestFirst)
+  for i = 1, count - Core.HISTORY_MAX do history[list[i][1]] = nil end
+end
+
 -- After the match, specs are no longer secret: remember them for next time.
 function Core.HarvestHistory()
   for idx = 1, GetNumBattlefieldScores() or 0 do
@@ -242,8 +259,7 @@ function Core.HarvestHistory()
           e.fingerprinted = true
           local fingerprints = ns.Scope.Saved("fingerprints", "rules")
           local fp = class .. "/" .. spec
-          local list = fingerprints[fp] or {}
-          fingerprints[fp] = list
+          local list = ns.Saved.Table(fingerprints, fp)
           list[#list + 1] = { mana = e.maxMana, hp = e.maxHP }
           if #list > 50 then
             table.remove(list, 1)
@@ -252,4 +268,5 @@ function Core.HarvestHistory()
       end
     end
   end
+  Core.PruneHistory(ns.Scope.Saved("history", "social"), time())
 end

@@ -93,7 +93,6 @@ Core.DEFAULTS = {
   sniperScale = 1,
   sniperSound = 1, -- index into SNIPER_SOUNDS; 0 = off
   soundVersion = 2,
-  history = {},
 }
 
 -- Window positions are saved per character (HighgroundCharDB); these keys

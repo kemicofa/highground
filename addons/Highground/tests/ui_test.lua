@@ -59,6 +59,7 @@ local function client(saved)
   end
   setfenv(assert(loadfile("libs/core/Util.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Events.lua")), env)("Highground", ns)
+  setfenv(assert(loadfile("libs/core/Saved.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Router.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/RouterNavigation.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("features/battlegrounds/core/State.lua")), env)("Highground", ns)

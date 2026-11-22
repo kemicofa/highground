@@ -145,6 +145,20 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     for _, name in ipairs({ "CreateMacro", "EditMacro", "PickupMacro" }) do s.env[name] = function() error("No automatic macro writes") end end
     O.Start("macros"); equal(C.target, M.Window.win.tabs.class); assert(not C.Examples.key)
     go(C, "save"); assert(C.win.hint:GetText():find("real save", 1, true))
+    go(C, "casting"); equal(C.target, M.Window.win.tabs.build)
+    click(C.target)
+    local P = M.BuildPanel
+    local p = P.frame
+    p.spell:SetText("Shadow Bolt")
+    if not p.beforeGroup.open then click(p.beforeGroup.header) end
+    local after
+    for _, toggle in ipairs(p.toggles) do if toggle.value == "stopafter" then after = toggle end end
+    assert(after and after:IsVisible() and not after.selected, "guide reaches the optional casting control")
+    click(after)
+    assert(p.code:GetPlainText():match("/cast Shadow Bolt\n/stopcasting$"), "real code preview demonstrates stop-after")
+    C.Replay(); click(C.target)
+    assert(after.selected, "guide replay preserves the player's draft")
+    assert(p.code:GetPlainText():match("/cast Shadow Bolt\n/stopcasting$"), "draft text survives guide replay")
     go(C, "library"); assert(not C.win.next.enabled)
     click(M.Window.win.tabs.mine); C.Update(); equal(C.steps[C.index].id, "wow")
     equal(C.target, M.Window.win.open)

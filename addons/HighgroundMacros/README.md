@@ -22,6 +22,8 @@ Settings, window positions and macro backups are saved per account in `Highgroun
 
 Open `/hgm`, choose a preset under **For my class**, choose its target, then click **Use macro**. Click **Open WoW macros** and drag the saved icon onto an action bar. Press that action-bar button to use it. A focus macro needs a focus first: select a player and type `/focus`.
 
+In **Create → Casting options**, **Stop casting after spell** adds `/stopcasting` at the end of a **Cast spell** macro. It attempts to cancel a normal cast after trying the spell, but cannot guarantee instant-only casting or check a proc such as Nightfall. Normal casts may continue on some clients, and existing casts or channels can be interrupted. Test while stationary with and without the proc. The option starts off and the editor shows a warning when a stop follows a spell.
+
 **Show macro code** displays highlighted source on preset cards and remembers the choice. Changing the target updates the preview; long macros scroll. **Hide macro code** returns to the compact view.
 
 Header **Back** and **Forward** revisit tabs, modes and individual editors, preserving unsaved code, form options and the save destination for each visit. Navigation never saves a game macro. History lasts until UI reload; import and review dialogs return to their original window. See the shared [routing guide](../Highground/docs/router.md) for the API.

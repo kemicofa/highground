@@ -208,7 +208,7 @@ Config.UNIT_PATTERNS = { "^party[1-4]$", "^partypet[1-4]$", "^raid%d+$", "^raidp
   "^arenapet[1-5]$", "^boss[1-8]$", "^nameplate%d+$" }
 
 -- Autocomplete (macros/Suggest.lua) ----------------------------------------
-Config.COMMAND_HINTS = { cast = "cast a spell", use = "use an item or slot", stopcasting = "stop casting first",
+Config.COMMAND_HINTS = { cast = "cast a spell", use = "use an item or slot", stopcasting = "stop your current cast or channel",
   startattack = "start auto attack", cancelaura = "remove a buff", focus = "set focus", target = "target",
   castsequence = "spells in turn", petattack = "pet attacks", tm = "raid marker", click = "click a button" }
 -- Units offered after @ and target=, in this order.

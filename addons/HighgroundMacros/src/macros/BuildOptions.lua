@@ -48,10 +48,17 @@ local function Before(p)
   local g = Panel.Group(p, "Casting options", true, false)
   p.beforeGroup = g
   for i, def in ipairs({ { "stopcast", "Stop my current cast first" },
+    { "stopafter", "Stop casting after spell" },
     { "toggle", "Second press cancels spell" }, { "force", "Keep spell active (!)" },
     { "noclip", "Never cut my channel" } }) do
     local b = Check(p, g, def[1], def[2], (i - 1) * 38)
     p.toggles[#p.toggles + 1] = b
+    if def[1] == "stopafter" then
+      Kit.Tooltip(b, { "Stop casting after spell", "Adds /stopcasting at the end for Cast spell. "
+        .. "Tries to cancel a normal cast after an instant proc would have fired, but does not check for a proc. "
+        .. "Normal casts can still continue on some clients. It can also interrupt an existing cast or channel. "
+        .. "Test while stationary with and without the proc." })
+    end
   end
   Kit.Tooltip(p.toggles[#p.toggles], { "Never cut my channel", "Adds /stopmacro [channeling]: pressing it while "
     .. "you channel Arcane Missiles, Drain Life or Mind Flay does nothing." })
@@ -61,15 +68,15 @@ local function Before(p)
       Panel.opts.startattack, Panel.opts.stopattack = key == "start", key == "stop"
       Panel.Update()
     end })
-  Panel.At(p, p.attack, g.body, 0, 178, "full", 32)
+  Panel.At(p, p.attack, g.body, 0, 216, "full", 32)
   p.pet = Menu(p, g.body, "petDo", "Your pet", { { key = "unchanged", label = "Leave unchanged" },
-    { key = "attack", label = "Attacks the same enemy" }, { key = "follow", label = "Follows me" } }, 244)
+    { key = "attack", label = "Attacks the same enemy" }, { key = "follow", label = "Follows me" } }, 282)
   Kit.Tooltip(p.pet, { "Your pet", "Adds /petattack (at the spell's enemy) or /petfollow before the spell." })
-  p.aura = Panel.Field(p, g.body, "aura", "Remove buffs first (optional)", 310)
+  p.aura = Panel.Field(p, g.body, "aura", "Remove buffs first (optional)", 348)
   Kit.Tooltip(p.aura, { "Remove buffs first", "Adds /cancelaura before the spell. Bladestorm stops Pummel; "
     .. "Ice Block and Divine Shield block other abilities. Separate several buffs with commas." })
   M.Suggest.Attach(p.aura, M.Suggest.LastItem(M.Suggest.AuraProvider))
-  g.contentHeight = 342
+  g.contentHeight = 380
 end
 
 -- Your stances and forms, in bar order: { { index, name } }.

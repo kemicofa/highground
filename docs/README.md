@@ -24,7 +24,7 @@ Start with the monorepo guide, then development.
 - [Performance review](performance.md): pre-commit budgets, profilers, regression patterns and the in-game capture; measured incidents are in [performance history](performance-history.md).
 - [Organizations](organizations.md): the shared guild/community service and its bounty and reputation adapters.
 - [Networking](networking.md): transport, protocol versions, discovery, directed retries (`ns.Presence`, `ns.Outbox`) and delivery tests.
-- [Localization](localization.md): message library, English fallback, key naming, `Locale:Get`/`Format` and label bindings, and adding translations.
+- [Localization](localization.md): message library, English fallback, key naming, `Locale:Get`/`Format` and label bindings, and adding translations with `scripts/l10n_sync.py`.
 - [UI routing](../addons/Highground/docs/router.md): routes, guards, per-visit state and dialog returns.
 - [Design system](../addons/Highground/docs/design-system.md): tokens, themes, motion calls and cues, shared controls and building blocks.
 - [Battleground rules](../addons/Highground/docs/battleground-rules.md): rule fields, precedence and adding a battleground.

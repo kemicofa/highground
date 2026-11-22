@@ -124,7 +124,19 @@ font and layout checks in the simulator do not replace live-client glyph review.
 2. Add a reviewed translation to all ten other catalogs. Shipped catalogs must
    have exactly the English key set (`tests/test_localization.py`), with the
    same named arguments, inline controls (`|c…`, `|r`, `|H`, `|T`), slash
-   commands and `#showtooltip` text.
+   commands and `#showtooltip` text. `scripts/l10n_sync.py` does the
+   bookkeeping:
+
+   ```sh
+   python3 scripts/l10n_sync.py missing              # missing or stale keys per catalog; exit 1 if any
+   python3 scripts/l10n_sync.py template -o todo.json # {key: {"_en": English, "deDE": "", ...}}
+   python3 scripts/l10n_sync.py apply todo.json       # insert the filled entries in enUS order
+   ```
+
+   `apply` refuses entries whose controls, `{placeholders}` or command syntax
+   differ from English, ignores empty strings (apply a partly filled file again
+   later), keeps existing translations unless `--overwrite`, and removes keys
+   English no longer has with `--prune-stale`. `--dry-run` writes nothing.
 3. At a dynamic display boundary, use `ns.Locale:Get(key)` or
    `ns.Locale:Format(key, arguments)`. For labels created during file loading,
    use `ns.Localization.Bind(labelOrButton, key, arguments?)`; SavedVariables
@@ -198,6 +210,7 @@ Run from the repository root:
 
 ```sh
 python3 scripts/check_localization.py            # working tree
+python3 scripts/l10n_sync.py missing             # every catalog has every key
 python3 scripts/check_localization.py --staged   # exact staged content
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_localization.py -v
 bash tests/run.sh --jobs 4

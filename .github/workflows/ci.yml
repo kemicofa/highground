@@ -17,9 +17,36 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  changes:
+    name: Detect code changes
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      run_tests: ${{ steps.classify.outputs.run_tests }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: github.event_name == 'pull_request'
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # compare the complete PR against its merge base
+      - name: Classify changed paths
+        id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == pull_request ]]; then
+            python3 scripts/ci_changes.py "$BASE_SHA" "$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          else
+            echo 'run_tests=true' >> "$GITHUB_OUTPUT"
+          fi
+
   checks:
     name: Repository checks
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: changes
+    if: needs.changes.outputs.run_tests == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -36,7 +63,8 @@ jobs:
 
   addons:
     name: ${{ matrix.addon }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    needs: changes
+    if: needs.changes.outputs.run_tests == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -56,7 +84,7 @@ jobs:
   ci:
     # Keep this name stable: main requires this aggregate check.
     name: CI
-    needs: [checks, addons]
+    needs: [changes, checks, addons]
     if: ${{ !cancelled() && (github.event_name != 'pull_request' || github.event.pull_request.draft == false) }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -66,9 +94,24 @@ jobs:
     steps:
       - name: Require every check to pass
         env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          RUN_TESTS: ${{ needs.changes.outputs.run_tests }}
+          EVENT_NAME: ${{ github.event_name }}
           REPOSITORY_RESULT: ${{ needs.checks.result }}
           ADDON_RESULT: ${{ needs.addons.result }}
         run: |
+          if [[ "$CHANGES_RESULT" != success ]]; then
+            echo "::error::Change detection did not succeed: $CHANGES_RESULT"
+            exit 1
+          fi
+          if [[ "$EVENT_NAME" == pull_request && "$RUN_TESTS" == false && "$REPOSITORY_RESULT" == skipped && "$ADDON_RESULT" == skipped ]]; then
+            echo 'Documentation-only PR: tests intentionally skipped.'
+            exit 0
+          fi
+          if [[ "$RUN_TESTS" != true ]]; then
+            echo "::error::Unexpected test decision: $RUN_TESTS"
+            exit 1
+          fi
           if [[ "$REPOSITORY_RESULT" != success || "$ADDON_RESULT" != success ]]; then
             echo "::error::Repository checks: $REPOSITORY_RESULT; addon tests and Highground package: $ADDON_RESULT"
             exit 1

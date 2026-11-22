@@ -85,7 +85,7 @@ For a portable visual comparison, run `python3 tools/theme_preview.py` from the 
 - A new kind of HUD timer row (a capture starting, a graveyard changing hands) flashes once. Opening a window, reordering rows or changing their scores does not.
 - Featured cards and urgent signals breathe through native alpha animation groups. Hidden owners stop their groups; reduced motion keeps their light steady. Palettes with zero glow suspend these loops. There is no permanent Lua update loop for lighting.
 
-The `ns.Motion` calls are listed under [motion calls](#motion-calls-and-window-lifecycle). Related theme and kit helpers:
+The `ns.Motion` calls are listed under [motion calls](#motion-api-and-lifecycle). Related theme and kit helpers:
 
 | Call | Use |
 | --- | --- |

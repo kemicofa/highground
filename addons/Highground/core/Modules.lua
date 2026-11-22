@@ -4,7 +4,7 @@ local _, ns = ...
 -- Snapshot once while loading: changing a switch takes effect after reload.
 local M = { list = {
   { key = "battlegrounds", name = "Battlegrounds", addon = "HighgroundModuleBattlegrounds", standalone = "HighgroundBattlegrounds",
-    description = "Enemy targets, map intel, timers, flag carriers and team callouts." },
+    description = "Enemy targets, map intel, timers, flag carriers and quick callouts." },
   { key = "arena", name = "Arena", addon = "HighgroundModuleArena", standalone = "HighgroundArena",
     description = "Arena opponents and duels, with target and focus controls." },
   { key = "nearby", name = "Nearby", addon = "HighgroundModuleNearby", standalone = "HighgroundNearby",
@@ -85,7 +85,7 @@ end
 M.commands = {
   bounty = "bounties", reputation = "reputation", macros = "macros", nearby = "nearby", journal = "nearby",
   arena = "arena", test = "battlegrounds", bg = "battlegrounds", timers = "battlegrounds",
-  flags = "battlegrounds", map = "battlegrounds", calls = "battlegrounds", capprobe = "battlegrounds",
+  flags = "battlegrounds", map = "battlegrounds", capprobe = "battlegrounds",
   intel = "battlegrounds", sniper = "battlegrounds", go = "battlegrounds", burst = "battlegrounds", pressure = "battlegrounds",
 }
 

@@ -54,7 +54,6 @@ ns.CommandCatalog.commands = {
   { "/hg kit", "Tracked cooldowns of your target", cata = true },
   { "/hg exec PCT", "Execute health threshold", cata = true },
   { "Panels and previews" },
-  { "/hg calls [incoming|help|clear|escort] [COUNT] [LOCATION]", "Prepare an objective callout; press Enter to send" },
   { "/hg history", "Saved PvP results, personal stats and observed objective timelines" },
   { "/hg journal", "Search enemy encounters, add notes, mute alerts or place a bounty" },
   { "/hg test", "Main panel preview" },

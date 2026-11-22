@@ -41,6 +41,29 @@ test(client .. " current profile stays visible across settings and updates after
 end)
 end
 
+test("legacy callout channels do not affect profile loading, import or modified status", function()
+  local sim = new("cata", { objectiveChannel = "s" })
+  local C, P = sim.ns.Core, sim.ns.Options.Profiles
+  C.SetFeature("quickCalls", true)
+  save(sim, "Old battleground setup")
+  local legacy = C.db.profiles["Old battleground setup"]
+  legacy.setup.preferences.objectiveChannel = "raid"
+  state(sim, "Old battleground setup", false)
+  C.db.objectiveChannel = "party"
+  state(sim, "Old battleground setup", false)
+  C.SetFeature("quickCalls", false)
+  state(sim, "Old battleground setup", true)
+  assert(P.LoadProfile("Old battleground setup"))
+  equal(C.db.quickCalls, true)
+  equal(C.db.objectiveChannel, "party", "retired setting is not restored")
+  state(sim, "Old battleground setup", false)
+  C.SetFeature("quickCalls", false)
+  assert(P.ImportText(P.ExportString(legacy)))
+  equal(C.db.quickCalls, true, "legacy imports retain Quick callouts")
+  equal(P.Snapshot().setup.preferences.objectiveChannel, nil, "retired setting is no longer exported")
+  sim:assertHealthy()
+end)
+
 test("restoring defaults clears Modified across appearance, alerts and HUD positions", function()
   local sim = new("cata", {})
   local C, P = sim.ns.Core, sim.ns.Options.Profiles

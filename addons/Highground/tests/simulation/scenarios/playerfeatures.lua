@@ -5,7 +5,7 @@ local function equal(a, b, why) return check(a, b, why or "values match") end
 
 test("player tools open directly and inside the hub without releasing their parent", function()
   local sim = new("cata")
-  for _, key in ipairs({ "setup", "alerts", "calls", "history", "journal" }) do
+  for _, key in ipairs({ "setup", "alerts", "history", "journal" }) do
     sim:command(key)
     sim:command("config " .. key)
     local hub = sim.ns.Hub
@@ -59,20 +59,29 @@ test("role presets keep a backup and activity assignments switch full profiles",
   equal(C.db.activeProfile, "Arena setup")
 end)
 
-test("callouts prepare location and count without sending or replacing a draft", function()
-  local sim = new("cata")
-  sim:join()
-  sim.env.GetSubZoneText = function() return "Farm" end
-  sim:command("calls incoming 3")
-  sim:advance(0.1)
-  equal(#sim.chat, 0)
-  assert(sim.chatDraft:find("Incoming 3", 1, true))
-  assert(sim.chatDraft:find("Farm", 1, true))
-  local draft = sim.chatDraft
-  equal(sim.ns.ObjectiveCalls.Draft("clear"), false)
-  equal(sim.chatDraft, draft)
-  equal(sim.ns.ObjectiveCalls.Draft("incoming", "bad"), false)
-end)
+for _, game in ipairs({ "cata", "retail", "forever" }) do
+  test(game .. " retired Team callouts links fall back safely without touching chat", function()
+    local sim = new(game == "cata" and "cata" or "retail", { hubSection = "calls" }, function(_, env)
+      if game == "forever" then env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
+    end)
+    sim:command("")
+    equal(sim.ns.Hub.current, "home", "obsolete saved section falls back to Home")
+    sim:command("config calls")
+    equal(sim.ns.Hub.current, "home", "obsolete links fall back to Home")
+    sim:join()
+    sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
+    for _, command in ipairs({ "calls", "calls incoming 3 Farm", "calls help", "calls clear", "calls escort" }) do
+      sim:command(command)
+    end
+    sim:advance(0.1)
+    equal(sim.chatDraft, "/w Friend unfinished message")
+    equal(#sim.chat, 0)
+    equal(sim.ns.ObjectiveCalls, nil, "removed window is not loaded")
+    for _, section in ipairs(sim.ns.Hub.Sections()) do assert(section.key ~= "calls") end
+    for _, item in ipairs(sim.ns.PanelControls.Items("quickCallsPoint")) do assert(item.text ~= "Team callouts") end
+    sim:assertHealthy()
+  end)
+end
 
 test("alert arbitration chooses urgent sound and honors channel preferences", function()
   local sim = new("cata")

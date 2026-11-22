@@ -195,6 +195,33 @@ t.test("native selection events are not roster responses and changed display ind
   t.equal(s.selected, 2, "previous selection restored after reindexing")
 end)
 
+for _, fail in ipairs({ false, true }) do
+  t.test((fail and "failed" or "successful") .. " selection callbacks leave later display changes responsive", function()
+    local s = make("retail", nil, function(sim, e)
+      local select = e.SetSelectedDisplayChannel
+      e.SetSelectedDisplayChannel = function(index)
+        select(index)
+        sim:event("CHANNEL_UI_UPDATE")
+        if sim.failSelect and index == sim.channelIndex then error("selection failed after updating UI") end
+      end
+    end)
+    s:tick(30); s:reply(); s:advance(2)
+    local R, reads = s.ns.Peers.Roster, s.rosterReads
+    assert(R.Snapshot(), "complete roster survives selection restoration")
+    if fail then
+      s.failSelect, s.now = true, s.now + 30
+      R.Request(true); s:advance(2)
+      t.equal(R.status, "unavailable", "failed selection preserves announcement fallback")
+      t.equal(s.selected, 2, "failed selection restores the previous channel")
+    end
+    s.channelIndex = 5; s:event("CHANNEL_UI_UPDATE"); s:advance(2)
+    assert(not R.Snapshot(), "later mapping change retires the old roster through the timer")
+    t.equal(s.rosterReads, reads, "selection events never read member rows")
+    assert(not R.awake, "mapping work returns to sleep when finished")
+    s:assertHealthy()
+  end)
+end
+
 t.test("synchronous replies, failed selects and changed previous indexes preserve native state", function()
   local s = make("retail", nil, function(sim) sim.autoReply = true end)
   s:tick(30)

@@ -14,6 +14,9 @@ local function Sleep()
   R.awake = nil
   if ticker then ticker.Stop() end
 end
+local function SleepIfIdle()
+  if not R.pending and not R.dirty and not R.mappingDirty then Sleep() end
+end
 
 local function Integer(value, minimum, maximum)
   return U.plain(value) and type(value) == "number" and value >= minimum
@@ -138,7 +141,7 @@ function R.Tick()
     R.status = R.status == "waiting" and "timeout" or R.status
     Finish()
   end
-  if not R.pending and not R.dirty then Sleep() end
+  SleepIfIdle()
 end
 
 function R.Request(explicit)
@@ -170,7 +173,8 @@ function R.Request(explicit)
   Wake()
   local ok, result = pcall(SetSelectedDisplayChannel, index)
   if not ok or U.secret(result) or result == false then
-    R.status = "unavailable"; Finish(); Sleep()
+    R.status, R.dirty = "unavailable", nil
+    Finish(); SleepIfIdle()
   end
 end
 

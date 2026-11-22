@@ -70,7 +70,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 
 ### 🗡️ And more
 
-- **Reachable panel controls:** panel cogwheels offer lock/unlock, arrangement, callouts, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
+- **Reachable panel controls:** panel cogwheels offer lock/unlock, arrangement, history and settings. Locked cogs remain faintly visible and brighten on hover, including in Frameless mode. Compact columns share one cog on the first visible panel. Move panels outside combat.
 
 - **Highground by default:** Obsidian steel, luminous gold and sculpted borders, with persistent class identity wherever player data is available. Class Colors offers stronger row tinting. Explicit saved themes and appearance preferences are kept.
 - **Identity and frame details:** Added metal frame details and class identity on known flag carriers, separate from faction labels. Carrier health lines remain readable and unknown players clear old class colours.
@@ -79,7 +79,7 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 - **Sap calls** for rogues in Warsong Gulch and Twin Peaks: a raid warning to sap the enemy flag carrier or a healer after they die.
 - Optional quest tracker hiding and sap calls start off on new installations.
 - **Objective overview:** ownership, recent sightings and resource-map plans where available. Cart and epic maps show visible objective status and announcements.
-- `/hgbg calls` prepares incoming/help/clear/escort messages; press Enter to send. `/hgbg history` keeps observed results, personal stats and timelines for the current character, faction and realm or Forever ruleset. Older match records without ownership information remain saved but are not assigned automatically.
+- `/hgbg history` keeps observed results, personal stats and timelines for the current character, faction and realm or Forever ruleset. Older match records without ownership information remain saved but are not assigned automatically.
 - **Quick callouts:** enable **Quick callout panel** in `/hgbg config` for separate movable **Help**, **1**, **2**, **3+** and **All clear** buttons. In named areas, a click sends your location and chosen enemy count directly to battleground chat, or tells teammates the area is safe. The panel starts off, works during combat, and preserves existing chat drafts. Its position is saved per character and stays separate in Compact layout; **Preview windows** lets you place it with sending disabled. A brief cooldown prevents double sends.
 - **Destination and EFC calls:** enable the optional **Enemy destination callouts** switch to choose another area, then click 1, 2 or 3+ to send `2 enemies going to Farm`, for example. **EFC route callouts** adds Ramp, Graveyard and Tunnel in Warsong Gulch; Ramp, Graveyard and Water in Twin Peaks. Both switches start off in `/hgbg config` and require Quick callout panel. They also work in midfield, share the callout cooldown, and are disabled in previews. Destination selections reset between matches; Gilneas Mine/Mines is shown once using the observed map name.
 - `/hgbg alerts` opens alert presets and category controls.

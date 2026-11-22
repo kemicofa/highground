@@ -14,7 +14,7 @@ Highground's battleground tools as their own addon, for players who want the tim
 - Optional **Sap calls** for rogues and an option to hide the quest tracker; both start off on new installations.
 - **Enemy stealth alerts:** lower- and higher-pitched versions of the game's stealth sound mark entering and leaving stealth. Cata uses combat-log events; Retail and Forever use readable enemy casts and reappearance. Control these through **Enemy stealth** in `/hgbg alerts`.
 
-**Objective overview** adds a goal summary, base ownership and recent enemy sightings. Cart and epic maps show visible objective status and recent announcements. `/hgbg calls` prepares incoming/help/clear/escort messages for you to send. `/hgbg history` keeps recent match results and observed timelines. Flag and orb carriers do not receive low-health resurrection reminders.
+**Objective overview** adds a goal summary, base ownership and recent enemy sightings. Cart and epic maps show visible objective status and recent announcements. `/hgbg history` keeps recent match results and observed timelines. Flag and orb carriers do not receive low-health resurrection reminders.
 
 ## Install
 
@@ -38,7 +38,6 @@ New installations work in ordinary battlegrounds and use **Essentials** alerts. 
 | `/hgbg reset` | Windows back to their default spots |
 | `/hgbg timers`, `/hgbg intel` | What the timers and the map have seen this match |
 | `/hgbg config` | Settings: which battlegrounds, each panel and alert, sharing, sounds |
-| `/hgbg calls [incoming\|help\|clear\|escort] [COUNT] [LOCATION]` | Prepare a callout; press Enter to send |
 | `/hgbg history` | Saved match results, stats and observed timelines |
 | `/hgbg alerts` | Alert presets and category controls |
 | `/hgbg theme NAME` | Highground, Ember, Parchment, Azeroth or Class Colors (`classcolors`) |

@@ -130,6 +130,40 @@ test("protected frames keep their visibility in combat and fade alpha instead", 
   sim:assertHealthy()
 end)
 
+test("a hide deferred by combat happens after combat unless the frame was shown again", function()
+  local sim, M = setup()
+  local function secure()
+    local f = sim.env.CreateFrame("Frame", nil, sim.env.UIParent)
+    sim.env.CreateFrame("Button", nil, f, "SecureActionButtonTemplate")
+    return f
+  end
+  local function listener()
+    for _, f in ipairs(sim.frames) do
+      local script = f.scripts.OnEvent
+      if script and debug.getinfo(script, "S").source:find("Motion.lua", 1, true) then return f end
+    end
+  end
+  local faded, instant, reshown, restored, marked = secure(), secure(), secure(), secure(), secure()
+  sim:setCombat(true)
+  M.Show(faded, false, "exit"); M.Show(instant, false, 0); M.Show(reshown, false, 0)
+  M.Show(restored, false, 0); M.Mark(marked, false)
+  sim:advance(0.2)
+  assert(faded:IsShown() and faded:GetAlpha() == 0, "combat keeps it shown but transparent")
+  assert(listener().events.PLAYER_REGEN_ENABLED, "a pending hide waits for the end of combat")
+  M.Show(reshown, true, 0)
+  restored:SetAlpha(1) -- its owner made it visible directly
+  sim:setCombat(false)
+  assert(not faded:IsShown() and faded:GetAlpha() == 0, "a faded-out frame hides when combat ends")
+  assert(not instant:IsShown(), "so does an immediate hide")
+  assert(not marked:IsShown() and marked:GetAlpha() == 1, "a removed mark hides at its rest alpha")
+  assert(reshown:IsShown() and reshown:GetAlpha() == 1, "a later Show cancels the pending hide")
+  assert(restored:IsShown(), "a frame made visible again is not hidden")
+  assert(not listener().events.PLAYER_REGEN_ENABLED, "nothing stays registered")
+  sim:setCombat(true); M.Show(reshown, false, 0); sim:setCombat(false)
+  assert(not reshown:IsShown(), "the listener re-arms for the next combat")
+  sim:assertHealthy()
+end)
+
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " native cues replay, stop and respect reduced motion", function()
   local sim, M, T = setup(client)

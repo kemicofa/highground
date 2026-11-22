@@ -74,7 +74,7 @@ test("/hg sound mutes every Highground sound", function()
   equal(#sim.sounds, before + 1, "nearby alert muted")
 end)
 
-test("Help and commands settings page runs previews and lists every command", function()
+test("Addon pages run previews and Help and commands lists every command", function()
   local sim = new("cata")
   local page
   for _, p in ipairs(sim.ns.Options.pages) do if p.name == "Help and commands" then page = p end end

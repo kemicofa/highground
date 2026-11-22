@@ -183,7 +183,7 @@ t.test("/hg sniper rejects unknown colors, sounds and words with their choices",
   local before = db.sniperColor
   local out = run(sim, "sniper color teal")
   equal(db.sniperColor, before, "unknown preset ignored")
-  assert(has(out, "cyan, gold, lime, magenta, orange, white, yellow"), "sorted presets listed: " .. out)
+  assert(has(out, "cyan, gold, lime, magenta, orange, theme, white, yellow"), "sorted presets listed: " .. out)
   out = run(sim, "sniper color ring nothex")
   equal(db.sniperRingColor or "", "", "invalid hex ignored")
   out = run(sim, "sniper sound 0")

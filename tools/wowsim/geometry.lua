@@ -47,14 +47,31 @@ return function(sim)
     if type(f) ~= "table" or f == env.UIParent then return 1 end
     return (f.scale or 1) * scale(f.parent)
   end
-  local resolving = {}
+  -- One measurement resolves each frame once: anchor chains with two points
+  -- per row otherwise recompute shared ancestors exponentially. Results that
+  -- passed through an anchor cycle's placeholder are not reused.
+  local resolving, memo, depth, cycles = {}, {}, 0, 0
+  local compute
   local function bounds(f)
     if not f or type(f) ~= "table" then return { 0, 0, 0, 0 } end
-    if resolving[f] then return { 0, 0, f.width or 0, f.height or 0 } end
-    resolving[f] = true
-    if f.allPoints then
-      local r = bounds(f.allPoints); resolving[f] = nil; return r
+    local known = memo[f]
+    if known then return known end
+    if resolving[f] then cycles = cycles + 1; return { 0, 0, f.width or 0, f.height or 0 } end
+    local before = cycles
+    resolving[f], depth = true, depth + 1
+    local ok, result = pcall(compute, f)
+    resolving[f], depth = nil, depth - 1
+    if depth == 0 then
+      for key in pairs(memo) do memo[key] = nil end
+      cycles = 0
+    elseif ok and cycles == before then
+      memo[f] = result
     end
+    if not ok then error(result, 0) end
+    return result
+  end
+  function compute(f)
+    if f.allPoints then return bounds(f.allPoints) end
     local factor = scale(f)
     local w, h = f.widthSet and f.width or 0, f.heightSet and f.height or 0
     if f.kind == "FontString" then
@@ -92,7 +109,6 @@ return function(sim)
     local x, y = parent and parent[1] or 0, parent and parent[2] or 0
     if points[1] then x, y = points[1][3] - w * points[1][1], points[1][4] - h * points[1][2] end
     if f.parent and f.parent.scrollChild == f then y = y - (f.parent.verticalScroll or 0) * factor end
-    resolving[f] = nil
     return { x, y, w, h }
   end
   sim.bounds = bounds

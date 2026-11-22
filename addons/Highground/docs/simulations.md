@@ -10,9 +10,10 @@ The simulator runs the real addon under LuaJIT with a controlled WoW API boundar
 
 | Location | Contents |
 | --- | --- |
-| `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver) |
+| `tools/wowsim/` (repository root) | Generic simulator: `runtime.lua` (loading, events, timers, combat, slash commands and hooks), `frames.lua` (widgets), `clicks.lua` (secure clicks), `api.lua` (game API fixtures), `geometry.lua` (optional anchor resolver), `clubs.lua` (optional native communities and guild club: `C_Club` with loading, disabled and unknown-member states) |
 | `tools/harness.lua` | The test harness every `*_test.lua` uses: `test`, `equal`, `close`, pass and fail counts, `finish` |
-| `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, 400-line limit, Lua 5.1 compilation) and its LuaJIT global-write scanner (`globals.lua`) |
+| `tools/lint/` | The generic validator (`lint.py`: duplicate TOC entries, XML references, unloaded modules, accidental globals, scope errors, 400-line limit, Lua 5.1 compilation), its LuaJIT global read/write scanner (`globals.lua`), the scope analyser (`scopes.py`), known findings (`baseline.txt`) and the report-only unused-code finder (`dead.py`, `references.py`) |
+| `tools/coverage.lua` | Line and function coverage for `tests/run.sh --coverage` |
 | `tools/wowsim/battleground/` | The battleground extension (`runtime.lua`): scoreboard, PvP state, area POIs, flags, graveyards, `sim:join`, `sim:enemy`, `sim:command`, Highground's own error fields; map canvases and pins (`maps.lua`). Highground and Highground Battlegrounds both run on it |
 | `tests/simulation/character.lua`, `bounty.lua` | The Cata character pane, bounty scenario helpers |
 | `tests/simulation/scenarios/` | The situations, one group per file |
@@ -140,10 +141,10 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim.checks` | Functions `check(sim, db)` returning error messages; every event, clock step and click runs them |
 | `sim:enemy(name, fields)` | Add a scoreboard enemy and nameplate unit; returns the mutable unit and token |
 | `sim:join(mapID, instanceID, name)` / `sim:leave()` | Deliver world/scoreboard events and advance the drivers |
-| `sim:advance(seconds)` | Run scheduled callbacks and visible-frame updates with a virtual clock |
+| `sim:advance(seconds)` | Run scheduled callbacks and visible-frame updates with a virtual clock. `C_Timer` matches the game: zero delays wait for the next step, `NewTimer`/`NewTicker` handles are passed to their callbacks, tickers honour an iteration count, and handles support `Cancel`/`IsCancelled` |
 | `sim:event(name, ...)` | Dispatch an event only to registered frames |
 | `sim:setCombat(boolean)` | Change combat restrictions and send the regeneration event |
-| `sim:combatLog(kind, sourceName, targetName, spellID)` | Send a combat-log observation |
+| `sim:combatLog(kind, sourceName, targetName, spellID, fields)` | Send a combat-log observation. Optional `fields`: `sourceGUID`, `sourceFlags`, `destGUID`, `destFlags`, `spellName`, `school` and `suffix` (such as `{ amount, overkill }`); `sim.combatFlags` names common unit flags |
 | `sim:command(text)` | Run the actual `/hg` command dispatcher |
 | `sim:slash(key, text)` | Run any `SlashCmdList[key]`, such as `HIGHGROUNDMACROS` |
 | `sim:click(frameOrName, button, shift, upOnly)` | Deliver a secure click; defaults to left-button down/up without Shift; `upOnly` models `/click` |
@@ -153,7 +154,8 @@ Change scenario inputs, then drive events or time. Avoid calling internal scorin
 | `sim.graveyards`, `sim.releasePosition`, `sim.healerTime` | Client graveyard list, resurrection destination and healer countdown |
 | `sim.faction` | Player faction: 1 for Alliance (default), 0 for Horde; set the player's scoreboard faction to match |
 | `sim.env.HighgroundRow1`, `sim.env.WorldMapFrame.pins` | Rendered widgets and pins |
-| `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects |
+| `sim.sent`, `sim.messages`, `sim.sounds`, `sim.chatDraft` | Captured outgoing effects. Addon messages and chat over 255 bytes fail as in the game |
+| `sim.sendResult`, `sim.chatLockdown`, `sim.addonMessagesRestricted` | Addon-message result (default success: `true` on Cata, `0` on Retail; other values reject the message) and Retail chat restrictions |
 
 Unit fields include `yards`, `health`, `maxHealth`, `mana`, `maxMana`, `dead`, `position = { x, y }`, `buffs`, `debuffs` and Retail aura `categories`. A unit can be assigned to another token, such as `sim.units.target = enemy`, to model targeting without changing its identity.
 

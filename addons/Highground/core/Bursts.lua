@@ -27,8 +27,7 @@ function Core.CanStrip(b)
   local p = Core.PURGERS[Core.me.class]
   if not p then return false end
   if p.pet then
-    local ok, known = pcall(IsSpellKnown, p.pet, true)
-    if not (ok and known) then return false end
+    if not ns.Api.IsSpellKnown(p.pet, true) then return false end
   end
   if p.steal then return b.steal == true or (b.steal == nil and b.dispel == "Magic") end
   return (p.magic and b.dispel == "Magic") or (p.enrage and b.dispel == "Enrage") or false

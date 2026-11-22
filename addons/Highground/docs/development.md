@@ -94,6 +94,8 @@ flowchart LR
 
 A new game needs class configuration that sets `ns.CLIENT` and `ns.GAME`, a row in `libs/config/Client.lua`, and matching standalone detection in `libs/standalone/Bootstrap.lua` where supported.
 
+Retail and WoW Forever moved many globals into `C_` namespaces (add-ons, items, spells, specializations, chat). Call `ns.Api` from `libs/config/Client.lua` instead of writing `C_X.Fn or Fn`: `Api.Fn(space, name)` returns the namespaced function or the older global, and wrappers such as `Api.AddOnMetadata`, `Api.SendChatMessage`, `Api.ItemCount` and `Api.IsSpellKnown` also even out argument differences. Lookups happen per call. Repository test `tests/test_api_compat.py` fails on new direct reads of moved globals and lists the remaining exceptions with their reasons.
+
 ## Module boundaries
 
 ```mermaid

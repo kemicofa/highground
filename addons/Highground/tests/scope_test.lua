@@ -51,6 +51,24 @@ t.test("list entries written early are appended to saved lists", function()
   t.equal(backups[1].at, 1, "no mixed record")
 end)
 
+t.test("early entries join the newest end of newest-first lists", function()
+  local s = Fixture()
+  local key = "cata:3:realm:Home:Horde:Player-5"
+  local saved = {}
+  for i = 1, 40 do saved[i] = { at = 100 - i } end -- newest first, full
+  local db = { scoped = { character = { [key] = { macroBackups = saved } } } }
+  s.ns.Core.db = db
+  local early = s.S.Saved("macroBackups", "character")
+  table.insert(early, 1, { at = 200 }); table.insert(early, 1, { at = 300 })
+  s.guid, s.ns.Core.myRealm = "Player-5", "Home"
+  local backups = s.S.Saved("macroBackups", "character")
+  t.equal(backups[1].at, 300, "the newest early entry comes first")
+  t.equal(backups[2].at, 200, "early entries keep their order")
+  t.equal(backups[3].at, 99, "then the saved entries")
+  while #backups > 40 do table.remove(backups) end
+  t.equal(backups[1].at, 300, "trimming a full list keeps the early entries")
+end)
+
 t.test("writes before the saved table exists reach the default saved table", function()
   local s = Fixture()
   s.guid, s.ns.Core.myRealm = "Player-2", "Home"

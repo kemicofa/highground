@@ -3784,7 +3784,7 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.suggestions.you_r_personal_guild_reports_r_guilddeaths.35f12d"] = "Вы: {r_personal} · Сообщения гильдии: {r_guildDeaths}",
   ["shared.suggestions.ignored_choose_allow_again_to_restore_suggestions.a19cd3"] = "Игнорируется · выберите Разрешить снова, чтобы восстановить предложения",
   ["shared.suggestions.r_total_reported_deaths_value3_m_value5.7940c2"] = "{r_total} сообщенных случаев смерти / {value3}м · {value5}",
-  ["shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"] = "Сообщено: {r_total} смертей / {value2}м; вы {r_personal}, жертвы гильдии {r_guildVictimCount}",
+  ["shared.suggestions.reported_r_total_deaths_value2_m_you.6cbedc"] = "Смертей: {r_total}/{value2}м; вы {r_personal}, гильдия {r_guildVictimCount}",
   ["shared.sync.waiting_for_contribution_details_sync_the_guild.8535e1"] = "Ожидается получение подробной информации о взносах. Синхронизировать доску гильдии и попробуйте снова.",
   ["shared.sync.this_organization_bounty_is_not_active.151972"] = "Эта награда организации не активна.",
   ["shared.sync.all_requested_kills_have_already_been_reported.4d8d55"] = "Все запрошенные убийства уже сообщены или утверждены.",

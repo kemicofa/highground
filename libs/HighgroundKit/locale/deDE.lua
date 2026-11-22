@@ -4972,6 +4972,7 @@ assert(ns.Locale:Register("deDE", {
   ["commands.guide.objectives.description"] = "Lernen Sie Wiederauferstehungswellen, Eroberungen und Flaggenträger kennen.",
   ["commands.guide.objectives.action"] = "Leitfaden für Startziele",
   ["bounty.claims.reject.confirm"] = "Ablehnen bestätigen",
+<<<<<<< HEAD
   ["bounty.claims.reject.prompt"] = "Ablehnen weist diesen Abschussbericht endgültig zurück. Wähle „Ablehnen bestätigen“, um fortzufahren, oder eine andere Aktion.",
   ["bounty.board.unavailable"] = "Geteilte Kopfgelder nicht verfügbar",
   ["bounty.card.reports_hint"] = "Klicke, um die Todesberichte anzusehen.",
@@ -4996,4 +4997,7 @@ assert(ns.Locale:Register("deDE", {
   ["reputation.reply.confirm_reset"] = "Zurücksetzen bestätigen",
   ["macros.history.confirm.restore"] = "Klicke erneut auf „Änderung rückgängig“, um den vorherigen Text von {name} wiederherzustellen. Der aktuelle Text kann danach nicht wiederhergestellt werden.",
   ["macros.history.confirm.delete"] = "Klicke erneut auf „Änderung rückgängig“, um {name} zu löschen. Ein gelöschtes Makro kann nicht wiederhergestellt werden.",
+=======
+  ["bounty.claims.reject.prompt"] = "Ablehnen weist diesen Abschussbericht endgültig zurück. Wählen Sie „Ablehnen bestätigen“, um fortzufahren, oder eine andere Aktion.",
+>>>>>>> origin/l10n/cleanup-bounty-engine
 }))

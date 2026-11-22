@@ -224,9 +224,9 @@ handlers.PLAYER_ENTERING_WORLD = function() refresh:Cancel() end
 
 The kit has two small helpers for any frame ([libs/ui/kit/Controls.lua](../../../libs/HighgroundKit/ui/kit/Controls.lua)): `Kit.Tooltip(frame, lines[, opts])` adds a hover tooltip (a list of lines or a function returning one; the first line is the title; calling it again replaces the content), and `Kit.ClassIcon(texture, class)` shows a class icon from the game's atlas and returns whether it has one. Reusable page blocks (cards, labelled values, badges, empty states, toolbars, segmented choices, confirmations and recycled lists) are listed under the design system's [building blocks](design-system.md#building-blocks).
 
-## Directed messages: presence and outbox
+## Directed messages
 
-`ns.Presence` and `ns.Outbox` are described under [networking](../../../docs/networking.md#directed-messages-presence-and-outbox).
+Directed addon messages retry only while the recipient seems online: see [presence and outbox](../../../docs/networking.md#directed-messages-presence-and-outbox).
 
 ## Async attempts and state transitions
 

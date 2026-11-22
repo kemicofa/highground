@@ -94,7 +94,9 @@ local function Present(w, item)
   if pot and #pot.contributions > 1 then b = B.Public.Copy(pot); b.gold = pot.pledgedGold end
   w.item, w.remaining, w.checkElapsed = item, Poster.DURATION, 0
   local owner = b.state == "personal" and ns.Locale:Get("shared.boardmodel.your_bounty.2ec6d8") or (ns.Locale:Format("highground.coachbountysamples.posted_by_value2.435384", { value2 = Core.DisplayName(b.by or "?") }))
-  if b.state == "public" then owner = #b.contributions .. (b.imported and ns.Locale:Get("shared.poster.contributors_imported_offer_funds_unverified.0053b7") or ns.Locale:Get("shared.poster.contributors_funds_reported_available.af9c3a")) end
+  if b.state == "public" then
+    owner = B.Contributions(#b.contributions, ns.Locale:Get(b.imported and "bounty.contribution.poster_imported" or "bounty.contribution.poster_funds"))
+  end
   if b.mega then owner = ns.Locale:Format("shared.boardmodel.mega_bounty_value2_contributors.ef37bd", { value2 = #b.contributions }) end
   local status = item.report and (B.Sightings.Near(item.report) and ns.Locale:Get("shared.poster.reported_in_your_zone.325a83") or ns.Locale:Get("shared.poster.sighting_reported.19830d"))
   local location = item.report and (ns.Locale:Format("shared.poster.reported_value2.45542f", { value2 = B.Sightings.Describe(item.report) }))

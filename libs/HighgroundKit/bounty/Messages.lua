@@ -23,6 +23,13 @@ end
 
 Bounty.GoldText, Bounty.Amount = M.Gold, M.Amount
 
+-- "1 contribution" or "3 contributions", then detail (optional).
+function M.Contributions(count, detail)
+  return ns.Locale:Format(count == 1 and "bounty.contribution.one" or "bounty.contribution.other",
+    { count = count, detail = detail or "" })
+end
+Bounty.Contributions = M.Contributions
+
 M.done = {
   submit = function(b)
     return b.state == "approved" and (ns.Locale:Format("shared.messages.posted_value2_to_value4.525352", { value2 = Name(b), value4 = Bounty.Organizations.Label(b) }))

@@ -237,3 +237,36 @@ test("WoW Forever two-part names keep the flag carrier's team and identity", fun
   sim.units.target = sim.units.raid1
   equal(F.CarrierUnit(me, "Ally Person"), "raid1", "the carrier resolves to the teammate's unit")
 end)
+
+test("WoW Forever times Darkspear Islands bases and 300-second Alterac Valley captures", function()
+  local function unrated(s) s.rated, s.blitz = false, false end
+  local sim = new("retail", nil, function(s) forever(s); unrated(s) end)
+  local C = sim.ns.Core
+  sim:enemy("Enemy With Surname")
+  sim:join(0, 2997, "Darkspear Islands")
+  assert(C.active and C.frame:IsVisible(), "Darkspear Islands activates the panel")
+  equal(C.currentBG.id, "darkspear_islands", "Forever's own battleground is recognized")
+  equal(C.currentBG.size, 15, "15 players per team")
+  equal(C.currentBG.rules.objective, "carry", "the central flag is carried to a base")
+  local T = sim.ns.Timers
+  sim.pois[1] = { name = "Ruins", position = { x = 0.7, y = 0.7 }, textureIndex = 38 } -- Alliance owns
+  sim.pois[2] = { name = "Darkspear Encampment", position = { x = 0.5, y = 0.95 }, textureIndex = 40 }
+  sim:event("AREA_POIS_UPDATED")
+  assert(T.nodes.Ruins and T.nodes.Ruins.hasGraveyard, "Ruins is a base with a graveyard")
+  assert(not T.nodes["Darkspear Encampment"].hasGraveyard, "the Horde start is not a capturable base")
+  sim.pois[1].textureIndex = 39 -- Horde assault
+  sim:event("AREA_POIS_UPDATED")
+  equal(T.nodes.Ruins.capEnd - sim.now, 60, "a base takes 60 seconds to capture")
+  equal(T.WavePeriod(), 30, "graveyards resurrect every 30 seconds")
+  sim:leave()
+  sim:join(91, 30, "Alterac Valley")
+  equal(C.currentBG.id, "alterac_valley", "Alterac Valley is recognized")
+  equal(sim.ns.Timers.CapTime(), 300, "towers and graveyards take 300 seconds")
+  local retail = new("retail", nil, unrated)
+  retail:enemy("Enemy")
+  retail:join(91, 30, "Alterac Valley")
+  equal(retail.ns.Timers.CapTime(), 240, "retail keeps its own capture time")
+  retail:leave()
+  retail:join(0, 2997, "Darkspear Islands")
+  equal(retail.ns.Core.currentBG, nil, "retail does not claim Forever's instance")
+end)

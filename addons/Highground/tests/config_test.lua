@@ -1,5 +1,9 @@
 local loadConfig = dofile("tests/load_config.lua")
 local retail, cata = loadConfig("retail"), loadConfig("cata")
+-- WoW Forever loads the retail manifest; its build reports interface 16001.
+GetBuildInfo = function() return "1.60.1", "71037", "Nov 20 2026", 16001 end
+local forever = loadConfig("retail")
+GetBuildInfo = nil
 local checks = 0
 local function check(condition, message)
   assert(condition, message)
@@ -9,7 +13,8 @@ local function bg(ns, instance, mode)
   return assert(ns.ResolveBattleground(nil, instance, ns.CLIENT, mode))
 end
 
--- The registry contains 16 definitions: 15 Retail and all 8 original Cata BGs.
+-- The registry contains 17 definitions: 15 Retail, Forever's Darkspear
+-- Islands (on the retail client) and all 8 original Cata BGs.
 local definitions, clients = 0, { retail = 0, cata = 0 }
 for _, config in pairs(retail.BattlegroundConfigs) do
   definitions = definitions + 1
@@ -17,22 +22,38 @@ for _, config in pairs(retail.BattlegroundConfigs) do
   for client, maps in pairs(config.clients) do
     clients[client] = clients[client] + 1
     for _, id in ipairs(maps.inst or {}) do
-      local resolved = retail.ResolveBattleground(nil, id, client)
+      local resolved = retail.ResolveBattleground(nil, id, client, nil, maps.game)
       check(resolved and resolved.id == config.id, "instance mapping " .. id)
     end
     for _, id in ipairs(maps.ui or {}) do
-      local resolved = retail.ResolveBattleground(id, nil, client)
+      local resolved = retail.ResolveBattleground(id, nil, client, nil, maps.game)
       check(resolved and resolved.id == config.id, "UI map mapping " .. id)
     end
   end
 end
-check(definitions == 16 and clients.retail == 15 and clients.cata == 8, "BG coverage")
+check(definitions == 17 and clients.retail == 16 and clients.cata == 8, "BG coverage")
 check(cata.ResolveBattleground(417, 998) == nil, "Cata must not resolve Retail Temple")
 check(retail.ResolveBattleground(128, 607) == nil, "Retail must not resolve retired Strand")
 check(retail.ResolveBattleground(2444, nil) == nil, "outdoor Slayer's Rise is not the BG")
 check(bg(retail, 2799).id == "slayers_rise", "Slayer's Rise instance")
 check(retail.ResolveBattleground(519, 1105) == nil, "legacy Deepwind rules cannot masquerade as modern map")
 check(bg(retail, 2245).rules.scoring.bases == 5, "modern Deepwind has five bases")
+
+check(forever.GAME == "forever" and forever.CLIENT == "retail", "Forever runs on the retail client")
+local av, foreverAV = bg(retail, 30), bg(forever, 30)
+check(av.rules.capture.seconds == 240 and foreverAV.rules.capture.seconds == 300, "Forever AV captures take 300 seconds")
+check(foreverAV.rules.graveyards.mode == "names", "Forever AV keeps the retail rules it does not override")
+check(retail.ResolveBattleground(nil, 30, "retail", nil, "forever").rules.capture.seconds == 300
+  and bg(retail, 30).rules.capture.seconds == 240, "an explicit game resolves separately")
+local darkspear = bg(forever, 2997)
+check(darkspear.id == "darkspear_islands" and darkspear.size == 15 and darkspear.rules.objective == "carry"
+  and darkspear.rules.scoring.bases == 4, "Darkspear Islands: 15v15, four bases and a carried flag")
+check(darkspear.rules.capture.seconds == 60 and darkspear.rules.resurrection.period == 30,
+  "Darkspear Islands: 60-second captures and 30-second waves")
+check(#darkspear.rules.graveyards.names == 4 and #darkspear.rules.callouts.destinations == 4,
+  "Darkspear Islands: four base graveyards and destinations")
+check(retail.ResolveBattleground(nil, 2997) == nil and cata.ResolveBattleground(nil, 2997) == nil,
+  "only Forever resolves Darkspear Islands")
 
 local standard = bg(retail, 2107)
 local blitz = bg(retail, 2107, "blitz")

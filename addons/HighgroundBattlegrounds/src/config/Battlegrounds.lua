@@ -2,6 +2,9 @@ local _, ns = ...
 
 -- Pure data registry. A TOC loads one class/client config, then this registry
 -- and one file per battleground. Rules never fall through to another client.
+-- WoW Forever runs the retail client with its own content: `games.forever`
+-- overrides retail rules there, and a client entry with `game` exists only
+-- in that game.
 ns.BattlegroundConfigs = {}
 local index = { retail = { ui = {}, inst = {} }, cata = { ui = {}, inst = {} } }
 local resolved = {}
@@ -63,8 +66,10 @@ function ns.RegisterBattleground(config)
   assert(type(config.gameName or config.name) == "string" and PRIORITY[config.kind], "invalid battleground identity")
   assert(type(config.size) == "number" and config.size > 0, "battleground needs a team size")
   assert(type(config.clients) == "table" and next(config.clients), "battleground needs a client")
+  assert(config.games == nil or type(config.games) == "table", "battleground games must be a table")
   for client, maps in pairs(config.clients) do
     assert(index[client], "unsupported battleground client: " .. tostring(client))
+    assert(maps.game == nil or type(maps.game) == "string", "client game must be a name")
     for _, kind in ipairs({ "ui", "inst" }) do
       for _, id in ipairs(maps[kind] or {}) do
         assert(type(id) == "number" and not index[client][kind][id], "duplicate/invalid map id: " .. tostring(id))
@@ -76,8 +81,9 @@ function ns.RegisterBattleground(config)
   ns.BattlegroundConfigs[config.id] = config
 end
 
-function ns.ResolveBattleground(ui, instance, client, mode)
+function ns.ResolveBattleground(ui, instance, client, mode, game)
   client = client or ns.CLIENT
+  game = game or (client == ns.CLIENT and ns.GAME) or client
   local lookup = index[client]
   if not lookup then return nil end
   -- An instance ID is more reliable than a transient/stale UI map.
@@ -85,9 +91,13 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   if not config then return nil end
   mode = (client == "retail" and mode == "blitz" and "blitz") or (mode == "rated" and "rated") or "standard"
   local maps = config.clients[client]
+  if maps.game and maps.game ~= game then return nil end
   local variant = maps.variants and maps.variants[instance]
+  -- Learned state needs no game: each game has its own saved variables.
   local key = client .. ":" .. config.id .. ":" .. (variant and variant.id or "default") .. ":" .. mode
-  if resolved[key] then return resolved[key] end
+  local cache = resolved[game] or {}
+  resolved[game] = cache
+  if cache[key] then return cache[key] end
   local rules = {
     resurrection = { period = 30 },
     capture = {},
@@ -98,6 +108,7 @@ function ns.ResolveBattleground(ui, instance, client, mode)
   }
   Merge(rules, config.rules)
   Merge(rules, maps.rules)
+  Merge(rules, config.games and config.games[game])
   Merge(rules, variant and variant.rules)
   if mode == "blitz" then
     rules.priority.impact = (rules.priority.impact or 1) * 1.3
@@ -117,6 +128,6 @@ function ns.ResolveBattleground(ui, instance, client, mode)
     ui = maps.ui or {}, inst = maps.inst or {}, rulesKey = key, rules = rules,
     coverage = config.coverage,
   }, { coverage = ns.Localization.Key(config, "coverage") })
-  resolved[key] = bg
+  cache[key] = bg
   return bg
 end

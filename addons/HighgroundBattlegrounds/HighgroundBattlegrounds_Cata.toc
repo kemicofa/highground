@@ -47,6 +47,7 @@ src/config/battlegrounds/AlteracValley.lua
 src/config/battlegrounds/ArathiBasin.lua
 src/config/battlegrounds/Ashran.lua
 src/config/battlegrounds/BattleForGilneas.lua
+src/config/battlegrounds/DarkspearIslands.lua
 src/config/battlegrounds/DeephaulRavine.lua
 src/config/battlegrounds/DeepwindGorge.lua
 src/config/battlegrounds/EyeOfTheStorm.lua

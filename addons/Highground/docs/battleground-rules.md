@@ -15,8 +15,9 @@ Overrides apply in this order:
 1. Shared defaults.
 2. Battleground `rules`.
 3. Client `rules`.
-4. Instance `variants`.
-5. `blitz` for Blitz matches, or a 45-second resurrection period and then `rated` for rated matches.
+4. Game rules (`games.forever` for WoW Forever, which runs the retail client).
+5. Instance `variants`.
+6. `blitz` for Blitz matches, or a 45-second resurrection period and then `rated` for rated matches.
 
 Named rule groups merge, lists replace lists, and `false` can disable an inherited setting. Omitted capture durations remain unknown; they do not become a generic 60-second timer. Resolved tables are configuration and must not be mutated by runtime state.
 
@@ -27,6 +28,8 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `size` | Players per team (10, 15, 35 or 40). Picks the 10v10, 15v15 or epic switch; rated play counts as 10 and Blitz as 8 |
 | `clients.retail`, `clients.cata` | Supported client and its `ui`/`inst` IDs; absence means unsupported |
 | `clients.<client>.variants[instanceID]` | Named instance variant and its overrides |
+| `clients.<client>.game` | Only this game uses these IDs, such as a WoW Forever battleground on the retail client |
+| `games.<game>` | Rule overrides for one game on a shared client, such as Forever's 300-second Alterac Valley captures |
 | `capture.seconds` | Time from an observed assault to ownership |
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
@@ -51,6 +54,6 @@ Run [the test suite](development.md#validation) after changing rules.
 
 ## Learned state and resets
 
-Learned resource rates are keyed by client, battleground, instance variant and mode. Old rates indexed only by battleground name are intentionally not reused. Match-local clocks reset on map/mode changes and world entry.
+Learned resource rates are keyed by client, battleground, instance variant and mode. Each game keeps its own saved variables, so the key does not include the game. Old rates indexed only by battleground name are intentionally not reused. Match-local clocks reset on map/mode changes and world entry.
 
 See [observations and timers](observations.md) for position quality, graveyard ownership, clock invalidation and destination handling.

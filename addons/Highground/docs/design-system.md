@@ -136,6 +136,16 @@ Regions made or painted through the API are remembered and repainted on a switch
 
 ## Kit
 
+### Navigation patterns
+
+Page tabs form one strip attached to the content they select. Keep one page selected; clicking the selected tab preserves its content and never collapses it. The router owns navigation, permission redirects and Back/Forward history. Update the selected marker only after navigation succeeds, and restore the page's search, pagination and scroll when returning. Keep action buttons outside the tab strip.
+
+Reputation separates **Organizations** and account-wide **Preferences** with persistent workspace tabs. An open organization's **Overview**, **Blacklist**, **Proposals**, **Members** and **History** belong to a second strip inside Organizations. Returning from Preferences restores the organization page; All organizations returns to the directory. Preferences remain available without organization membership.
+
+Use a segmented control for a compact mode or filter within one view, such as the macro catalog's PvP/PvE mode. Use a disclosure with a chevron for optional content that opens and closes on repeated clicks, such as the macro builder's optional sections. Folding a section keeps its values. These patterns have different behavior and should remain visually distinct.
+
+Tab labels must fit at the current text size. When a complete strip cannot fit, use a clearly labelled page selector with the same selection and availability rules. Never squeeze labels or silently remove destinations.
+
 `ns.Kit` ([libs/ui/kit/](../../../libs/HighgroundKit/ui/kit/)) builds shared controls from tokens. They are plain frames, so they work in combat.
 
 | File | Controls |

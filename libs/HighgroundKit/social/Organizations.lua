@@ -63,9 +63,32 @@ function O.Get(id)
   for _, organization in ipairs(O.List()) do if organization.id == id then return organization end end
 end
 
-local function Member(info)
+local function Realm(value) value = Text(value); return value and value:gsub("%s", ""):lower() end
+
+-- Forever communities span rulesets, but addon whispers do not. Check the
+-- native GUID's server before Canon can turn an unqualified roster name into
+-- a local address. Unknown bare names must wait for native identity data.
+local function SameRuleset(info, name, self)
+  if not ns.Caps.rulesetRealms or self or U.value(info.isSelf) == true then return true end
+  local guid = Text(info.guid)
+  if guid and guid == U.read(UnitGUID, "player") then return true end
+  local query = C_PlayerInfo and C_PlayerInfo.UnitIsSameServer
+  if guid and type(query) == "function" then
+    local location = Table(U.read(PlayerLocation and PlayerLocation.CreateFromGUID, PlayerLocation, guid))
+    local same = location and U.read(query, location)
+    if type(same) == "boolean" then return same end
+  end
+  -- Older/missing native lookups may still supply an explicit realm. Never
+  -- use the suffix Canon would invent, or split RP-PvP at its second dash.
+  local realm = Realm(name:match("^[^-]+%-(.+)$"))
+  return realm ~= nil and (realm == Realm(Core.myRealm) or realm == Realm(ns.Scope.Ruleset()))
+end
+
+local function Member(info, self)
   if not Table(info) then return end
-  local name = Core.Canon(Text(info.name))
+  local name = Text(info.name)
+  if not name or not SameRuleset(info, name, self) then return end
+  name = Core.Canon(name)
   local roles = Enum and Enum.ClubRoleIdentifier or {}
   local role, presence = U.value(info.role), U.value(info.presence)
   local statuses = Enum and Enum.ClubMemberPresence or {}
@@ -138,7 +161,7 @@ function O.Member(id, who)
       local _, rank = G.Info()
       return { name = who, role = rank == 0 and "owner" or G.IsOfficer() and "moderator" or "member", online = true }
     end
-    local member = Member(U.read(C_Club.GetMemberInfoForSelf, org.clubId))
+    local member = Member(U.read(C_Club.GetMemberInfoForSelf, org.clubId), true)
     if member and member.name == who then return member end
   end
   if org.kind == "guild" then

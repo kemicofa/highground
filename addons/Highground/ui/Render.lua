@@ -26,7 +26,13 @@ end
 
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
 -- follow priority independently of display order and combat bindings.
+local MARKERS = {}
+for i = 1, 8 do MARKERS[i] = "Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. i end
 local rankOf = {}
+local header = {} -- inputs of the subtitle text last written
+-- A language change rewrites the subtitle on the next render.
+ns.Localization.Watch(header, function() header.error = nil end)
+local ownTarget = {} -- the scope's entry while the priority panel is off
 function Core.Render()
   wipe(rankOf)
   local topLive = -math.huge
@@ -100,7 +106,7 @@ function Core.Render()
       r.icon:SetShown(Core.ShowsElement("icon"))
       r.icon:SetDesaturated(e.dead)
 
-      r.name:SetText(e.display:match("^[^-]+"))
+      r.name:SetText(Core.ShortName(e))
       Paint(r.name, "text", not e.unit and 0.6 or nil)
       if ns.Bounty then ns.Bounty.MarkRow(r, not Core.testMode and e.key or nil) end
 
@@ -198,8 +204,8 @@ function Core.Render()
         r.pipText:Hide()
       end
 
-      if e.marker then
-        r.marker:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. e.marker)
+      if e.marker and MARKERS[e.marker] then
+        r.marker:SetTexture(MARKERS[e.marker])
         r.marker:Show()
       else
         r.marker:Hide()
@@ -300,7 +306,8 @@ function Core.Render()
     -- the test driver owns the scope
   elseif not Core.PriorityOn() then
     local unit = Core.TargetPlateUnit(true)
-    Core.UpdateSniper(unit and { plateUnit = unit, key = Core.CanonUnit("target") } or nil)
+    ownTarget.plateUnit, ownTarget.key = unit, unit and Core.CanonUnit("target")
+    Core.UpdateSniper(unit and ownTarget or nil)
   else
     Core.UpdateSniper(recommended, recommendedGo)
   end
@@ -317,8 +324,20 @@ function Core.Render()
   elseif not hasRoster then
     Core.liveDotAnim:Stop()
   end
-  local tag = Core.currentProfile and (Core.currentProfile.label:upper() .. (Core.isBlitz and ns.Locale:Get("highground.render.blitz.8994ea") or "") .. "  \194\183  ")
-    or ""
-  local count = bound < #Core.order and (bound .. "/" .. #Core.order) or tostring(#Core.order)
-  Core.subtitle:SetText(hasRoster and (tag .. count) or (Core.rosterStatus or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
+  -- An error notice owns the subtitle (Core.Tick); otherwise rebuild the
+  -- text only when the battleground, Blitz, row counts or status change.
+  if Core.lastError then
+    header.error = true
+    return
+  end
+  local label, blitz, total, status = Core.currentProfile and Core.currentProfile.label, Core.isBlitz == true,
+    #Core.order, Core.rosterStatus
+  if header.error ~= false or header.label ~= label or header.blitz ~= blitz or header.bound ~= bound
+    or header.total ~= total or header.status ~= status then
+    header.error, header.label, header.blitz, header.bound, header.total, header.status =
+      false, label, blitz, bound, total, status
+    local tag = label and (label:upper() .. (blitz and ns.Locale:Get("highground.render.blitz.8994ea") or "") .. "  \194\183  ") or ""
+    local count = bound < total and (bound .. "/" .. total) or tostring(total)
+    Core.subtitle:SetText(hasRoster and (tag .. count) or (status or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
+  end
 end

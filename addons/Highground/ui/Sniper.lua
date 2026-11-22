@@ -279,6 +279,8 @@ function Core.UpdateSniper(e, isGo)
   Core.sniper:RefreshMotion()
 end
 
+local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
+
 -- Nameplate unit token of your current target (hostile only if asked).
 function Core.TargetPlateUnit(hostile)
   if not (UnitExists("target") and C_NamePlate and C_NamePlate.GetNamePlateForUnit) then
@@ -291,11 +293,9 @@ function Core.TargetPlateUnit(hostile)
   local plate = C_NamePlate.GetNamePlateForUnit("target")
   local unit = plate and plate.namePlateUnitToken
   if unit then return unit end
-  for i = 1, 40 do
-    local ok, same = pcall(UnitIsUnit, "nameplate" .. i, "target")
-    if ok and Core.plain(same) and same == true then
-      return "nameplate" .. i
-    end
+  for _, token in ipairs(NAMEPLATES) do
+    local ok, same = pcall(UnitIsUnit, token, "target")
+    if ok and Core.plain(same) and same == true then return token end
   end
 end
 
@@ -303,8 +303,9 @@ end
 -- (open world, no panel). /hg go toggles the kill-window look while testing.
 -- Started/stopped by the command; disabled previews schedule no work.
 Core.sniperTest = { on = false, go = false }
+local sample = {}
 Core.sniperDriver = ns.Util.Every(0.1, function()
-  local unit = Core.TargetPlateUnit()
-  Core.UpdateSniper(unit and { plateUnit = unit } or nil, Core.sniperTest.go)
+  sample.plateUnit = Core.TargetPlateUnit()
+  Core.UpdateSniper(sample.plateUnit and sample or nil, Core.sniperTest.go)
 end, "sniper", "battlegrounds")
 Core.sniperDriver:Stop()

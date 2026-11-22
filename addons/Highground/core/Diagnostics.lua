@@ -6,16 +6,18 @@ local Core = ns.Core
 ---------------------------------------------------------------------------
 -- /hg probe: report which APIs return readable vs secret values right now,
 -- on your target. Results are also saved to HighgroundDB.lastProbe.
+local function Pack(...) return { n = select("#", ...), ... } end
 function Core.Probe(say)
   local out = {}
   local function show(label, f, ...)
-    local res = { pcall(f, ...) }
+    -- Count results explicitly: # is unreliable when a result is nil.
+    local res = Pack(pcall(f, ...))
     local text
     if not res[1] then
       text = ns.Locale:Format("highground.diagnostics.error_value2.731725", { value2 = tostring(res[2]) })
     else
       local parts = {}
-      for i = 2, math.max(#res, 2) do
+      for i = 2, math.max(res.n, 2) do
         local v = res[i]
         if v == nil then
           parts[#parts + 1] = "nil"

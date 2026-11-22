@@ -5,6 +5,7 @@ local started, nextJoin, nextPrune = false, 0, 0
 local dirty = true
 local diagnostic = { joins = 0, sends = 0 }
 local channelReady = false
+local GROUP_CONTEXTS = { "PARTY", "RAID", "INSTANCE_CHAT" }
 local blocked = ns.Localization.Define({
   missing_api = ns.Locale:Get("highground.peertransport.announcements_unavailable_this_client_has_no_addon.9d954e"),
   outgoing_restricted = ns.Locale:Get("highground.peertransport.announcements_paused_this_realm_restricts_outgoing_addon.b149b1"),
@@ -30,11 +31,12 @@ local function SetContext(context, identity)
   if identity then Schedule(context) else due[context] = nil end
 end
 
+local RAID, PARTY = U.UnitTokens("raid", 40), U.UnitTokens("party", 4)
 local function GroupRoster(context, raid)
   local roster = {}
-  for i = 1, raid and 40 or 4 do
-    local key = P.Key(Core.CanonUnit((raid and "raid" or "party") .. i))
-    if key and U.read(UnitIsConnected, (raid and "raid" or "party") .. i) ~= false then roster[key] = true end
+  for _, unit in ipairs(raid and RAID or PARTY) do
+    local key = P.Key(Core.CanonUnit(unit))
+    if key and U.read(UnitIsConnected, unit) ~= false then roster[key] = true end
   end
   P.rosters[context] = roster
 end
@@ -273,7 +275,7 @@ U.Events({
   PLAYER_GUILD_UPDATE = function(_, unit) if not unit or unit == "player" then dirty = true end end,
   GROUP_ROSTER_UPDATE = function()
     dirty = true
-    for _, context in ipairs({ "PARTY", "RAID", "INSTANCE_CHAT" }) do
+    for _, context in ipairs(GROUP_CONTEXTS) do
       if P.active[context] then Schedule(context) end
     end
   end,

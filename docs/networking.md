@@ -6,7 +6,7 @@ Highground is the only supported distribution. Standalone references below docum
 
 `ns.Network` transports bounded text messages between players. It is shared by HighgroundKit consumers and has no bounty dependency. Bounties use it for both legacy guild messages and fragmented global/community messages; other features can choose their own prefix and schema.
 
-Load `core/Util.lua`, your `ns.Core`, `core/Names.lua`, `core/Scope.lua`, `core/Comms.lua`, `core/Network.lua`, `core/Protocols.lua`, then `core/ProtocolTransport.lua` before feature listeners in the addon's TOCs. The existing networking consumers already include these. A feature still owns its audience, opt-in settings, peer discovery, payload validation and reconciliation. Native membership and role queries are available separately through `ns.Guild` and `ns.Organizations`.
+Load `core/Util.lua`, `core/Events.lua`, your `ns.Core`, `core/Names.lua`, `core/Scope.lua`, `core/Comms.lua`, `core/Network.lua`, `core/Protocols.lua`, then `core/ProtocolTransport.lua` before feature listeners in the addon's TOCs. The existing networking consumers already include these. A feature still owns its audience, opt-in settings, peer discovery, payload validation and reconciliation. Native membership and role queries are available separately through `ns.Guild` and `ns.Organizations`.
 
 ## Protocol compatibility
 

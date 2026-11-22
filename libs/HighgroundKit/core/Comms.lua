@@ -78,14 +78,24 @@ function Comms.Listen(prefix, fn, stage, module)
   if loggedIn or (IsLoggedIn and IsLoggedIn()) then Register(prefix) end
 end
 
-Comms.frame = Util.Events({
+-- Every addon's messages arrive here, often many per second in groups:
+-- filter by prefix before any guard; only our listeners run guarded.
+local frame = CreateFrame("Frame")
+frame.handlers = {
   PLAYER_LOGIN = function()
     loggedIn = true
     for prefix in pairs(listeners) do Register(prefix) end
   end,
-  -- Every addon's messages arrive here: filter by prefix before guarding.
   CHAT_MSG_ADDON = function(_, prefix, text, channel, sender, ...)
     local l = listeners[prefix]
     if l and type(text) == "string" then Util.Guard(l.stage, l.fn, text, channel, sender, ...) end
   end,
-}, "comms")
+}
+if not ns.STANDBY then
+  for event in pairs(frame.handlers) do pcall(frame.RegisterEvent, frame, event) end
+end
+frame:SetScript("OnEvent", function(self, event, ...)
+  if event == "CHAT_MSG_ADDON" then return self.handlers.CHAT_MSG_ADDON(event, ...) end
+  Util.Guard("comms", self.handlers[event], event, ...)
+end)
+Comms.frame = frame

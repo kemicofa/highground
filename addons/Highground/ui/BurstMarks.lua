@@ -35,6 +35,7 @@ end
 -- /hg burst test: a sample marker on your target's nameplate.
 Core.burstTest = false
 local SAMPLE = { spell = 77801 } -- Demon Soul
+local EMPTY, SAMPLE_LIST = {}, { { key = "test", plateUnit = "target", test = true } }
 local testDriver = ns.Util.Every(0.1, function() Core.UpdateBurstMarks() end, "burstmarks", "battlegrounds")
 testDriver.Stop()
 
@@ -48,10 +49,10 @@ end
 function Core.UpdateBurstMarks()
   local used = 0
   local on = Core.On("burstMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
-  local list = on and Core.enemies or {}
+  local list = on and Core.enemies or EMPTY
   if on and Core.burstTest then
     local plateTarget = ns.Util.call(C_NamePlate.GetNamePlateForUnit, "target")
-    list = plateTarget and { { key = "test", plateUnit = "target", test = true } } or {}
+    list = plateTarget and SAMPLE_LIST or EMPTY
   end
   for _, e in pairs(list) do
     local answer, b

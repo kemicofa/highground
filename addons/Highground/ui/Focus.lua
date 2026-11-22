@@ -33,21 +33,30 @@ end
 ---------------------------------------------------------------------------
 -- Ranking: allies by how many observed enemies target them
 ---------------------------------------------------------------------------
+-- Runs on unit events in large groups: records are reused, never rebuilt.
+local allies, pool, pooled = {}, {}, 0
+local RAID, PARTY = ns.Util.UnitTokens("raid", 40), ns.Util.UnitTokens("party", 4)
+local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
+
+local function AddAlly(unit)
+  if not Alive(unit) then return end
+  local key = Key(unit)
+  if not key or allies[key] then return end
+  pooled = pooled + 1
+  local ally = pool[pooled]
+  if not ally then ally = {}; pool[pooled] = ally end
+  ally.key, ally.unit, ally.count = key, unit, 0
+  allies[key] = ally
+end
+
 local function Allies()
-  local allies = {}
-  local function add(unit)
-    if not Alive(unit) then return end
-    local key = Key(unit)
-    if key and not allies[key] then
-      allies[key] = { key = key, unit = unit, name = key:match("^[^-]+"), count = 0 }
-    end
-  end
-  add("player")
+  wipe(allies)
+  pooled = 0
+  AddAlly("player")
   local n = Read(GetNumGroupMembers) or 0
   local raid = Read(IsInRaid) == true
-  for i = 1, math.min(40, raid and n or math.max(0, n - 1)) do
-    add((raid and "raid" or "party") .. i)
-  end
+  local tokens = raid and RAID or PARTY
+  for i = 1, math.min(#tokens, raid and n or math.max(0, n - 1)) do AddAlly(tokens[i]) end
   return allies
 end
 
@@ -57,8 +66,16 @@ end
 
 -- Fills `ranked` with up to `limit` allies, most targeted first; ties keep
 -- the previous order so badges don't jump.
+local counted = {}
+local function RankOrder(a, b)
+  if a.count ~= b.count then return a.count > b.count end
+  local pa, pb = previous[a.key] or math.huge, previous[b.key] or math.huge
+  if pa ~= pb then return pa < pb end
+  return a.key < b.key
+end
+
 local function Collect(allies, limit)
-  local counted = {}
+  wipe(counted)
   for key, enemy in pairs(ns.enemies or {}) do
     local unit = enemy.unit
     if unit and not enemy.dead and not counted[key] and Alive(unit)
@@ -74,12 +91,7 @@ local function Collect(allies, limit)
   for _, ally in pairs(allies) do
     if ally.count >= config.minimumEnemies then ranked[#ranked + 1] = ally end
   end
-  table.sort(ranked, function(a, b)
-    if a.count ~= b.count then return a.count > b.count end
-    local pa, pb = previous[a.key] or math.huge, previous[b.key] or math.huge
-    if pa ~= pb then return pa < pb end
-    return a.key < b.key
-  end)
+  table.sort(ranked, RankOrder)
   for i = #ranked, limit + 1, -1 do ranked[i] = nil end
   wipe(previous)
   for i, ally in ipairs(ranked) do previous[ally.key] = i end
@@ -118,8 +130,7 @@ local function Plate(ally)
     if Plain(token) and type(token) == "string" and Read(UnitIsPlayer, token) == true
       and Key(token) == ally.key then return plate, token end
   end
-  for i = 1, 40 do
-    local unit = "nameplate" .. i
+  for _, unit in ipairs(NAMEPLATES) do
     if Read(UnitExists, unit) == true and Read(UnitIsPlayer, unit) == true and Key(unit) == ally.key then
       plate = Read(get, unit)
       if UsableFrame(plate) then return plate, unit end
@@ -253,22 +264,32 @@ function ns.PressureCommand(arg, say)
     say(ns.Locale:Get("highground.focus.enemy_focus_preview_shield_with_4_targeting.1b0baf"))
   else
     say(ns.Locale:Format("highground.focus.enemy_focus_markers_value2_up_to_value4.843948", { value2 = (ns.Core.On("pressure") and "on" or "OFF"), value4 = Limit(db) }))
-    for _, ally in ipairs(ranked) do say(ns.Locale:Format("highground.focus.value1_ally_count_enemies_targeting.ceb231", { value1 = ns.Core.DisplayName(ally.name, true), ally_count = ally.count })) end
+    for _, ally in ipairs(ranked) do say(ns.Locale:Format("highground.focus.value1_ally_count_enemies_targeting.ceb231", { value1 = ns.Core.DisplayName(ally.key:match("^[^-]+"), true), ally_count = ally.count })) end
   end
   if db.pressureError then say(ns.Locale:Format("highground.focus.last_marker_error_db_pressureerror.1831e9", { db_pressureError = db.pressureError })) end
 end
 
-local ticker = ns.Util.Every(config.updateSeconds, function() ns.UpdatePressure() end, "pressure", "battlegrounds")
-local update = function() ns.UpdatePressure() end
+-- Other clients cannot read the target tokens: no timer or events there.
+if not Supported() then return end
+-- Plates appearing in a fight and enemies retargeting arrive in bursts:
+-- one update per window, plus the regular interval.
+local pressure = ns.Throttle.New(config.eventSeconds, ns.UpdatePressure, "pressure")
+local ticker = ns.Util.Every(config.updateSeconds, function() pressure:Run() end, "pressure", "battlegrounds")
+local function Request() pressure:Request() end
+-- A teammate changing target does not change which allies enemies target.
+local teammates = {}
+for _, unit in ipairs(RAID) do teammates[unit] = true end
+for _, unit in ipairs(PARTY) do teammates[unit] = true end
 ns.Util.Events({
   PLAYER_ENTERING_WORLD = function()
     preview, ticker.elapsed = false, 0
+    pressure:Cancel()
     Clear()
   end,
   NAME_PLATE_UNIT_REMOVED = function(_, unit)
     for _, marker in pairs(markers) do if marker.plateUnit == unit then HideMarker(marker) end end
   end,
-  GROUP_ROSTER_UPDATE = update,
-  UNIT_TARGET = update,
-  NAME_PLATE_UNIT_ADDED = update,
+  GROUP_ROSTER_UPDATE = Request,
+  UNIT_TARGET = function(_, unit) if not teammates[unit] then Request() end end,
+  NAME_PLATE_UNIT_ADDED = Request,
 }, "pressure", "battlegrounds")

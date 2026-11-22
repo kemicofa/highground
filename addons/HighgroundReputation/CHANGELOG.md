@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Skip community members on other Forever rulesets when discovering moderators and synchronizing Reputation. Leave unresolved member names unsent instead of adding your ruleset to their whisper address.
+
 ## [0.3.1] - 2026-11-22
 
 - Reduce background memory growth and stuttering in large guilds and communities, including with the Reputation window closed or an organization paused.

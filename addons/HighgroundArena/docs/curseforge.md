@@ -1,4 +1,4 @@
-<!-- HighgroundArena 0.7.5 -->
+<!-- HighgroundArena 0.7.6 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -25,6 +25,8 @@ A compact opponent panel for arenas and duels. **Left-click targets; right-click
 **Performance:** Reduced memory use in controls and fewer repeated updates to unchanged arena and duel rows.
 
 **Duel status:** requests, countdowns and active fights stay consistent through repeated notifications and leaving or returning to bounds. Only unanswered challenges expire automatically.
+
+**AddOn List (new):** The addon now shows the Highground icon in WoW's AddOn List.
 
 ## Duels on WoW Forever
 

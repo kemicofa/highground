@@ -3,7 +3,7 @@
 ## IconTexture: Interface\AddOns\HighgroundReputation\libs\media\HighgroundIcon.tga
 ## Notes: Community blacklists, account-wide proposals, moderation, player tooltips and chat filtering.
 ## Author: kemicofa
-## Version: 0.3.1
+## Version: 0.3.2
 ## OptionalDeps: Highground
 ## Dependencies: HighgroundReputationData
 ## X-Bundled-Addons: HighgroundReputationData

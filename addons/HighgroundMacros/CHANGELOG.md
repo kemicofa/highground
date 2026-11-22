@@ -2,9 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [0.10.0] - 2026-11-22
 
 - Add optional **Stop casting after spell** under **Create → Casting options**, with a trailing `/stopcasting` and a warning that it cannot guarantee instant-only casting. Explain stop commands according to their position in the macro.
+- Show the Highground icon beside the addon in WoW's AddOn List.
 
 ## [0.9.5] - 2026-11-21
 

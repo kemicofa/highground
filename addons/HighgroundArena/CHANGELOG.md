@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [0.7.6] - 2026-11-22
+
+- Show the Highground icon beside the addon in WoW's AddOn List.
+
 ## [0.7.5] - 2026-11-21
 
 - Keep names without a realm suffix on the current Forever ruleset when the game does not provide a realm name.

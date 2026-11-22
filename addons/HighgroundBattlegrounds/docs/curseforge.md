@@ -1,4 +1,4 @@
-<!-- HighgroundBattlegrounds 0.11.2 -->
+<!-- HighgroundBattlegrounds 0.11.3 -->
 <!-- CurseForge project text. Update for every release; the build fails when the version above does not match the TOCs. -->
 
 # CurseForge description
@@ -25,6 +25,8 @@ Highground Battlegrounds shows what a battleground hides: when each graveyard se
 **Performance:** Reduced memory use in controls and fewer repeated updates while idle or adjusting panel appearance.
 
 **Sharing compatibility:** automatically advertise supported sharing features alongside existing teammate messages. Current broadcasts and older clients keep working without a setup step.
+
+**AddOn List (new):** The addon now shows the Highground icon in WoW's AddOn List.
 
 ## Features
 

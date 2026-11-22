@@ -2,7 +2,10 @@
 -- A live simulated battleground with 15 visible enemies, in combat. Each
 -- native event is dispatched to every registered frame; the profiler
 -- reports temporary Lua allocation per event and the native widget calls
--- made by the kill-order tick. Simulator diagnostics, not WoW frame times.
+-- made by the kill-order tick. A second battleground with 40 enemies then
+-- runs one minute with 20 UNIT_TARGET and 20 NAME_PLATE_UNIT_ADDED events
+-- per second and attributes allocation to the kill-order stages and to the
+-- outermost guarded callbacks. Simulator diagnostics, not WoW frame times.
 jit.off()
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local client, repeats = arg[1] or "cata", tonumber(arg[2]) or 1000
@@ -91,3 +94,64 @@ C.Render = render
 print(string.format("Live tick: %.1f KiB allocated / 30s; %d renders, %.0f widget calls per render",
   tick, renders, widgetCalls / math.max(1, renders)))
 sim:assertHealthy()
+
+local big = new(client, {}, function(s)
+  dofile("../../tools/wowsim/geometry.lua")(s)
+  s.env.WorldMapFrame:Hide(); s.env.BattlefieldMapFrame:Hide()
+end)
+local units = {}
+for i = 1, 40 do
+  local _, token = big:enemy("Enemy" .. i, { yards = 5 + i, classID = i % 11 + 1 })
+  units[i] = token
+end
+for i = 1, 3 do big.units[units[i] .. "target"] = big.units.player end
+big:join(); big:setCombat(true); big:advance(2)
+local rows, inside = {}, false
+local function Finish(row, before, ...)
+  row.kb, row.calls = row.kb + collectgarbage("count") - before, row.calls + 1
+  return ...
+end
+local function Measure(owner, name, label)
+  local fn, row = owner[name], { label = label, kb = 0, calls = 0 }
+  rows[#rows + 1] = row
+  owner[name] = function(...) return Finish(row, collectgarbage("count"), fn(...)) end
+end
+Measure(big.ns.Core, "Render", "Core.Render (rows, card, scope)")
+Measure(big.ns.Core, "Recompute", "Core.Recompute (scoring)")
+Measure(big.ns.Core, "UpdateHealerMarks", "Core.UpdateHealerMarks")
+-- Outermost guarded callbacks by stage; nested guards are included once.
+local stages = {}
+local function Outer(row, before, ...)
+  inside = false
+  return Finish(row, before, ...)
+end
+for _, name in ipairs({ "Guard", "RunGuarded" }) do
+  local base = big.ns.Util[name]
+  big.ns.Util[name] = function(stage, fn, ...)
+    if inside then return base(stage, fn, ...) end
+    local row = stages[stage]
+    if not row then row = { label = "guarded " .. tostring(stage), kb = 0, calls = 0 }; stages[stage] = row end
+    inside = true
+    return Outer(row, collectgarbage("count"), base(stage, fn, ...))
+  end
+end
+local step = 0
+big.env.C_Timer.NewTicker(0.05, function()
+  step = step + 1
+  local unit = units[step % 40 + 1]
+  for i = 1, #big.frames do
+    local f = big.frames[i]
+    if f.scripts.OnEvent and f.events.UNIT_TARGET then f.scripts.OnEvent(f, "UNIT_TARGET", unit) end
+    if f.scripts.OnEvent and f.events.NAME_PLATE_UNIT_ADDED then f.scripts.OnEvent(f, "NAME_PLATE_UNIT_ADDED", unit) end
+  end
+end)
+collectgarbage("collect"); collectgarbage("stop")
+before = collectgarbage("count")
+big:advance(60)
+local minute = collectgarbage("count") - before
+collectgarbage("restart")
+for _, row in pairs(stages) do if row.kb >= 1 then rows[#rows + 1] = row end end
+table.sort(rows, function(a, b) return a.kb > b.kb end)
+print(string.format("40 enemies, one minute with event traffic: %.0f KiB allocated", minute))
+for _, row in ipairs(rows) do print(string.format("  %-36s %5d calls %9.1f KiB", row.label, row.calls, row.kb)) end
+big:assertHealthy()

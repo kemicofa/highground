@@ -158,7 +158,9 @@ local function checkUnknown(s, ns, message)
   local sight = ns.Test.intel[key]
   check(sight and sight.t == s.now and sight.x == nil and sight.y == nil and sight.how == "unknown", message)
   check(#s.items() == 0, "an unknown position gets no map pin")
-  check((ns.MapWhere(key) or ""):find("position unknown", 1, true), "the enemy's location text says its position is unknown")
+  local where, placed = ns.MapWhere(key)
+  check((where or ""):find("position unknown", 1, true) and placed == false,
+    "the target card says the position is unknown; row tooltips leave it out")
 end
 
 return {

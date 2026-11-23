@@ -1590,6 +1590,8 @@ assert(ns.Locale:Register("esES", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Cementerio de Waterworks",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Cementerio de la Mina",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Capturas de nodos y tasas de recursos aprendidas; Cata tiene dos cementerios iniciales permanentes más tres cementerios de nodo que dependen de quién controle el nodo.",
+  ["battlegrounds.darkspearislands.horde_start.6ee922"] = "Inicio de la Horda",
+  ["battlegrounds.darkspearislands.alliance_start.7669f4"] = "Inicio de la Alianza",
   ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "Portador, capturas de bases, cementerios y tendencia de recursos; las futuras entregas de bandera no se pueden predecir.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Fichas de portador, oleadas de resurrección observadas, puntos de referencia de vagonetas, widgets de objetivos visibles y anuncios recientes. Sin llegada de vagonetas deducida ni duración de reaparición de cristales.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Mapa moderno de cinco bases; la variante antigua de tres bases/vagonetas no se reconoce a propósito.",

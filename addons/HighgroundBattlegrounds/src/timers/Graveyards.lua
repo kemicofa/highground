@@ -78,6 +78,19 @@ function Timers.Reset(mapID)
   for _, g in ipairs(learned or {}) do
     Timers.gys[#Timers.gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, learned = true }
   end
+  -- Permanent start graveyards (rules.graveyards.starts), named and placed
+  -- from the map; never learned or reassigned.
+  local graveyards = Timers.Rules().graveyards
+  for _, s in ipairs(graveyards and graveyards.starts or {}) do
+    Timers.gys[#Timers.gys + 1] = { team = s.team, label = s.label, x = s.x, y = s.y, configured = true, start = true }
+  end
+end
+
+-- A team's start graveyard, on maps that declare one.
+function Timers.StartGY(team)
+  for _, g in ipairs(Timers.gys) do
+    if g.start and g.team == team then return g end
+  end
 end
 
 function Timers.AtNode(g, n)
@@ -198,11 +211,11 @@ function Timers.TeamGY(team)
     return only
   end
   for _, g in ipairs(Timers.gys) do
-    if g.team == team and g.label == "graveyard" then
+    if g.team == team and g.unplaced then
       return g
     end
   end
-  local g = { team = team, label = ns.Locale:Get("battlegrounds.graveyards.graveyard.2b11fa") }
+  local g = { team = team, label = ns.Locale:Get("battlegrounds.graveyards.graveyard.2b11fa"), unplaced = true }
   Timers.gys[#Timers.gys + 1] = g
   return g
 end

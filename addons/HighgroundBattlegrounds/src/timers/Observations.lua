@@ -27,7 +27,10 @@ function Timers.ScanTeam()
       Timers.pendingRez[name] = nil
       local x, y, area, how = Timers.Loc(unit, name)
       if Timers.ConfiguredGYs() and how == "area" then x, y = nil, nil end
-      local g = (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or Timers.TeamGY(Timers.MyTeam())
+      -- Your own unplaced resurrection is at your start: base graveyards
+      -- report a release position, start graveyards do not.
+      local start = ns.Util.read(UnitIsUnit, unit, "player") == true and Timers.StartGY(Timers.MyTeam())
+      local g = (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
       Timers.SetWave(g, t, "exact")
       if g and g.x then
         Timers.Learn(g)
@@ -57,7 +60,8 @@ function Timers.ScanTeam()
       if rx then
         x, y = rx, ry
       end
-      local g = (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or Timers.TeamGY(Timers.MyTeam())
+      local g = (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or Timers.StartGY(Timers.MyTeam())
+        or Timers.TeamGY(Timers.MyTeam())
       if g and rx and not g.exact and not g.configured then
         g.x, g.y, g.exact, g.saved = rx, ry, true, nil
         Timers.Learn(g)

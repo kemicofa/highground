@@ -1396,6 +1396,8 @@ assert(ns.Locale:Register("ruRU", {
   ["highground.tooltip.cls_dim_specialization_unknown_r.da59cc"] = "{cls}  {dim}(специализация неизвестна)|r",
   ["highground.tooltip.spec_tagged_by"] = "Специализацию отметил(а) {name}",
   ["highground.tooltip.spec_tagged_by_you"] = "Специализацию отметили вы",
+  ["highground.tooltip.matchup_good"] = "Выгодное противостояние для вашей специализации",
+  ["highground.tooltip.matchup_bad"] = "Невыгодное противостояние для вашей специализации",
   ["highground.tooltip.spec_tag_hint"] = "Игра не определила эту специализацию: нажмите на значок специализации справа в строке, чтобы отметить её для команды.",
   ["highground.specpicker.click_to_tag"] = "Нажмите, чтобы отметить специализацию этого противника. Союзники с Highground тоже её увидят.",
   ["highground.specpicker.click_to_remove"] = "Отмечено. Нажмите ещё раз, чтобы снять отметку.",

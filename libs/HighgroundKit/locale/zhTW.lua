@@ -1390,6 +1390,8 @@ assert(ns.Locale:Register("zhTW", {
   ["highground.tooltip.cls_dim_specialization_unknown_r.da59cc"] = "{cls} {dim}（專業不詳）|r",
   ["highground.tooltip.spec_tagged_by"] = "專精由 {name} 標記",
   ["highground.tooltip.spec_tagged_by_you"] = "專精由你標記",
+  ["highground.tooltip.matchup_good"] = "對你的專精有利的對位",
+  ["highground.tooltip.matchup_bad"] = "對你的專精不利的對位",
   ["highground.tooltip.spec_tag_hint"] = "遊戲尚未識別此專精：點擊該列右側的專精圖示，為你的隊伍標記它。",
   ["highground.specpicker.click_to_tag"] = "點擊以標記該敵人的專精。使用 Highground 的隊友也能看到。",
   ["highground.specpicker.click_to_remove"] = "已標記。再次點擊可移除標記。",

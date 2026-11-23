@@ -140,6 +140,9 @@ test("enemy rows show a spec only when it is identified, never the class name", 
   local icon = C.specInfo[r.entry.specID].icon
   assert(icon and r.icon.texture == icon, "the icon shows an identified spec")
   equal(r.spec:GetText(), "", "the spec is not repeated as text")
+  r.entry.edge = -1
+  r.scripts.OnEnter(r)
+  assert(table.concat(sim.env.GameTooltip.lines, "\n"):find("Unfavorable matchup", 1, true), "the tooltip names the matchup")
   C.SetElement("icon", false)
   sim:advance(0.5)
   assert(r.spec:GetText() ~= "", "with the icon hidden, the spec shows as text")

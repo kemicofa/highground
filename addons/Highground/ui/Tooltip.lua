@@ -46,6 +46,12 @@ function Core.ShowTooltip(self)
       local r, g, b = RGB("warning")
       GameTooltip:AddLine((e.specSrc == "cast" and ns.Locale:Get("highground.tooltip.identified_from.4c20d5") or ns.Locale:Get("highground.tooltip.estimated_from.1f8ae0")) .. e.specReason, r, g, b, true)
     end
+    -- The row's spec icon carries no matchup colour, so name it here.
+    local edge = e.edge or 0
+    if edge > 0.05 or edge < -0.05 then
+      Theme.TipLine(GameTooltip, ns.Locale:Get(edge > 0 and "highground.tooltip.matchup_good" or "highground.tooltip.matchup_bad"),
+        edge > 0 and "success" or "danger", true)
+    end
   else
     GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.cls_dim_specialization_unknown_r.da59cc", { cls = cls, dim = dim }), RGB("textMuted"))
   end

@@ -1390,6 +1390,8 @@ assert(ns.Locale:Register("enUS", {
   ["highground.tooltip.cls_dim_specialization_unknown_r.da59cc"] = "{cls}  {dim}(specialization unknown)|r",
   ["highground.tooltip.spec_tagged_by"] = "Spec tagged by {name}",
   ["highground.tooltip.spec_tagged_by_you"] = "Spec tagged by you",
+  ["highground.tooltip.matchup_good"] = "Favorable matchup for your spec",
+  ["highground.tooltip.matchup_bad"] = "Unfavorable matchup for your spec",
   ["highground.tooltip.spec_tag_hint"] = "The game hasn't identified this spec: click a spec icon at the right of the row to tag it for your team.",
   ["highground.specpicker.click_to_tag"] = "Click to tag this enemy's spec. Teammates with Highground see it too.",
   ["highground.specpicker.click_to_remove"] = "Tagged. Click again to remove the tag.",

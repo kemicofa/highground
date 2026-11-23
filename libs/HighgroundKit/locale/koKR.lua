@@ -1390,6 +1390,8 @@ assert(ns.Locale:Register("koKR", {
   ["highground.tooltip.cls_dim_specialization_unknown_r.da59cc"] = "{cls}  {dim}(전문성 알 수 없음)|r",
   ["highground.tooltip.spec_tagged_by"] = "{name} 님이 표시한 전문화",
   ["highground.tooltip.spec_tagged_by_you"] = "내가 표시한 전문화",
+  ["highground.tooltip.matchup_good"] = "내 전문화에 유리한 매치업",
+  ["highground.tooltip.matchup_bad"] = "내 전문화에 불리한 매치업",
   ["highground.tooltip.spec_tag_hint"] = "게임이 이 전문화를 확인하지 못했습니다. 줄 오른쪽의 전문화 아이콘을 클릭하면 팀에 표시됩니다.",
   ["highground.specpicker.click_to_tag"] = "클릭하여 이 적의 전문화를 표시합니다. Highground를 사용하는 팀원도 볼 수 있습니다.",
   ["highground.specpicker.click_to_remove"] = "표시됨. 다시 클릭하면 표시가 제거됩니다.",

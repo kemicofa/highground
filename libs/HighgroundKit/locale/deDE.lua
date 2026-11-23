@@ -1390,6 +1390,8 @@ assert(ns.Locale:Register("deDE", {
   ["highground.tooltip.cls_dim_specialization_unknown_r.da59cc"] = "{cls}  {dim}(Spezialisierung unbekannt)|r",
   ["highground.tooltip.spec_tagged_by"] = "Spezialisierung markiert von {name}",
   ["highground.tooltip.spec_tagged_by_you"] = "Spezialisierung von dir markiert",
+  ["highground.tooltip.matchup_good"] = "Günstiges Matchup für Ihre Spezialisierung",
+  ["highground.tooltip.matchup_bad"] = "Ungünstiges Matchup für Ihre Spezialisierung",
   ["highground.tooltip.spec_tag_hint"] = "Das Spiel hat diese Spezialisierung nicht erkannt: Klicke rechts in der Zeile auf ein Spezialisierungssymbol, um sie für dein Team zu markieren.",
   ["highground.specpicker.click_to_tag"] = "Klicke, um die Spezialisierung dieses Gegners zu markieren. Mitspieler mit Highground sehen sie auch.",
   ["highground.specpicker.click_to_remove"] = "Markiert. Erneut klicken, um die Markierung zu entfernen.",

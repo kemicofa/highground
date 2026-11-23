@@ -1390,6 +1390,8 @@ assert(ns.Locale:Register("esES", {
   ["highground.tooltip.cls_dim_specialization_unknown_r.da59cc"] = "{cls}  {dim}(especialización desconocida)|r",
   ["highground.tooltip.spec_tagged_by"] = "Especialización marcada por {name}",
   ["highground.tooltip.spec_tagged_by_you"] = "Especialización marcada por ti",
+  ["highground.tooltip.matchup_good"] = "Enfrentamiento favorable para tu especialización",
+  ["highground.tooltip.matchup_bad"] = "Enfrentamiento desfavorable para tu especialización",
   ["highground.tooltip.spec_tag_hint"] = "El juego no ha identificado esta especialización: haz clic en un icono de especialización a la derecha de la fila para marcarla para tu equipo.",
   ["highground.specpicker.click_to_tag"] = "Haz clic para marcar la especialización de este enemigo. Tus compañeros con Highground también la verán.",
   ["highground.specpicker.click_to_remove"] = "Marcada. Haz clic de nuevo para quitar la marca.",

@@ -50,7 +50,7 @@ function Timers.Flush()
     local x, y = math.floor((msg.x or 0) * 10000), math.floor((msg.y or 0) * 10000)
     local part
     if msg.kind == "W" then
-      local at, period = msg.at, Timers.WavePeriod()
+      local at, period = msg.at, Timers.WaveCycle()
       if at < now and period then at = at + math.ceil((now - at) / period) * period end
       if at >= now then
         part = string.format("W,%s,%d,%d,%d,%s", msg.team, x, y, math.floor(at - now + 0.5), area)

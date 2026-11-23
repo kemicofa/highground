@@ -209,7 +209,7 @@ test("WoW Forever Arathi Basin: the starts share a clock, a captured base starts
   sim:event("AREA_POIS_UPDATED")
   local farm = T.nodes.Farm
   assert(farm and farm.hasGraveyard, "the Farm has a graveyard")
-  local period = T.WavePeriod()
+  local period = T.WaveCycle()
   local captured = T.NextWave(mine, sim.env.GetTime()) - period + 7
   T.NodeCaptured(farm, me, captured)
   local g = T.NodeGY(farm, me)
@@ -217,4 +217,53 @@ test("WoW Forever Arathi Basin: the starts share a clock, a captured base starts
   assert(next and math.abs(next - (captured + period)) < 0.5, "the Farm's waves run from its capture")
   equal(T.NextWave(mine, captured + 1), next - 7, "the starts keep their own clock")
   sim:assertHealthy()
+end)
+
+test("WoW Forever waves come every 30 seconds plus the spirit healer's downtime", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:enemy("Enemy With Surname")
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  equal(T.WavePeriod(), 30, "the game counts down 30 seconds")
+  equal(T.WaveCycle(), 31.6, "the next countdown starts 1.6 seconds after a wave")
+  sim.units.player.ghost, sim.healerTime = true, 12
+  sim:advance(0.5)
+  local mine = T.SingleGY(T.MyTeam())
+  local wave = T.NextWave(mine, sim.env.GetTime())
+  equal(T.NextWave(mine, wave + 0.1), wave + 31.6, "the wave after yours")
+  equal(T.NextWave(mine, wave + 31.7), wave + 63.2, "no drift two waves on")
+  assert(sim.ns.TimersStatus():find("30+1.6", 1, true), "/hg timers shows the downtime")
+  sim:assertHealthy()
+end)
+
+test("a downtime the configuration lacks is learned from exact waves", function()
+  local sim = horde()
+  sim.rated = false
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  equal(T.WaveCycle(), 30, "Cata waves follow the countdown")
+  local g = graveyard(sim, "H")
+  local t = sim.env.GetTime()
+  T.SetWave(g, t, "exact")
+  T.SetWave(g, t + 31.6, "exact")
+  equal(T.WaveCycle(), 30, "one pair is not enough")
+  T.SetWave(g, t + 94.8, "exact")
+  equal(T.WaveCycle(), 31.6, "two pairs agree on 1.6 seconds")
+  equal(T.WavePeriod(), 30, "the countdown stays 30")
+  T.SetWave(g, t + 94.8 + 50, "exact")
+  equal(T.WaveCycle(), 31.6, "a pair that fits no downtime is ignored")
+  sim:leave()
+  sim:join(1460, 489, "Warsong Gulch")
+  equal(T.WaveCycle(), 30, "each match learns again")
+end)
+
+test("timing noise around exact 30-second waves learns no downtime", function()
+  local sim = horde()
+  sim.rated = false
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  local g = graveyard(sim, "H")
+  local t = sim.env.GetTime()
+  for _, at in ipairs({ 0, 30.4, 60, 90.3, 120.4 }) do T.SetWave(g, t + at, "exact") end
+  equal(T.WaveCycle(), 30, "early and late waves cancel out")
 end)

@@ -174,7 +174,7 @@ function Timers.OnCombatLog()
       end
       -- Else the estimated (or timer-less) one whose clock is closest.
       if not g then
-        local period = Timers.WavePeriod()
+        local period = Timers.WaveCycle()
         local bestD
         for _, gy in ipairs(cands) do
           if gy.conf ~= "exact" and gy.conf ~= "guide" then

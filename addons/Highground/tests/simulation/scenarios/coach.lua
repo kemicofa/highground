@@ -63,13 +63,19 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       equal(map:GetMapID(), M.mapID)
       equal(M.mapID, client == "cata" and 1460 or 1339)
       assert(map:IsVisible() and not sim.env.HighgroundMapSample, "no copied map window")
-      equal(#map.pins, 5); equal(#sim.env.BattlefieldMapFrame.pins, 0, "sample pins stay on the guide's map")
+      equal(#map.pins, 6, "five sample enemies and the rough sighting's circle")
+      equal(#sim.env.BattlefieldMapFrame.pins, 0, "sample pins stay on the guide's map")
+      local circles = 0
       for _, pin in ipairs(map.pins) do
-        equal(pin:GetParent(), map:GetCanvas()); equal(pin.template, "HighgroundPinTemplate")
+        equal(pin:GetParent(), map:GetCanvas())
+        if pin.template == "HighgroundZonePinTemplate" then circles = circles + 1
+        else equal(pin.template, "HighgroundPinTemplate") end
         assert(pin:IsVisible() and pin.mouseEnabled)
       end
+      equal(circles, 1, "only the approximate sighting gets a circle")
       assert(M.Pin("fresh").item.mark)
       equal(M.Pin("old").item.label, "36s"); equal(M.Pin("rough").item.label, "~12s")
+      assert(M.Pin("rough").item.zone.radius > 0)
       assert(M.Pin("old"):GetAlpha() < M.Pin("fresh"):GetAlpha())
       O.Coach.Go(2); sim:advance(1); O.Coach.Update()
       local pin = M.Pin("fresh")
@@ -80,7 +86,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       equal(sim.env.GameTooltip:GetOwner(), pin, "the normal pin tooltip is used")
       equal(Intel.intel, live); equal(next(live), nil); equal(#sim.sent, sends)
       map:SetMapID(37); equal(#map.pins, 0, "samples never appear on a different zone")
-      O.Coach.Replay(); equal(map:GetMapID(), M.mapID); equal(#map.pins, 5)
+      O.Coach.Replay(); equal(map:GetMapID(), M.mapID); equal(#map.pins, 6, "replay restores the samples and circle")
       map:Hide(); O.Coach.Replay(); assert(map:IsVisible(), "Replay reopens the native map")
       O.Return(); equal(map:IsShown(), alreadyOpen); equal(map:GetMapID(), mapID)
       assert(not sim.env.GameTooltip:IsShown() and not M.session)

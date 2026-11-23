@@ -37,7 +37,7 @@ test("remote node announcements place last-seen enemies and ownership does not r
   end
 end)
 
-test("large stacks remain separate on the world and small battlefield canvases", function()
+test("approximate sightings share a faint circle that holds their enemies on both canvases", function()
   local sim = new("cata")
   sim.area = "Lighthouse"
   for i = 1, 15 do sim:enemy("Scout" .. i) end
@@ -46,19 +46,40 @@ test("large stacks remain separate on the world and small battlefield canvases",
     sim.area = area
     sim:advance(2.5)
     for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
-      local enemies = {}
+      local zones, enemies, more = {}, {}, 0
       for _, pin in ipairs(canvas.pins) do
+        if pin.item.radius then zones[#zones + 1] = pin end
         if pin.item.icon == "classicon-mage" then enemies[#enemies + 1] = pin end
+        if pin.item.label and pin.item.label:match("^%+%d+$") then more = more + tonumber(pin.item.label:sub(2)) end
       end
-      equal(#enemies, 15, "all enemy markers are rendered")
+      equal(#zones, 1, "enemies seen in one area share one circle")
+      local zone = zones[1]
+      local radius = zone:GetWidth() / 2
+      assert(zone.item.alpha < 1, "the circle is faint until hovered")
+      equal(#enemies + more, 15, "every enemy is drawn or counted")
       for i, pin in ipairs(enemies) do
-        assert(pin.x > 0 and pin.x < 1 and pin.y > 0 and pin.y < 1, "marker stays within the map")
+        local dx = (pin.x - zone.x) * canvas:GetWidth()
+        local dy = (pin.y - zone.y) * canvas:GetHeight()
+        assert(math.sqrt(dx * dx + dy * dy) <= radius + 0.5, "enemies sit inside their circle")
+        equal(pin.item.label, "", "ages move to the circle's tooltip")
         for j = 1, i - 1 do
-          local dx = math.abs(pin.x - enemies[j].x) * canvas:GetWidth()
-          local dy = math.abs(pin.y - enemies[j].y) * canvas:GetHeight()
-          assert(dx >= 39.9 or dy >= 41.9, "marker icons and labels remain separated in screen space")
+          local ox = (pin.x - enemies[j].x) * canvas:GetWidth()
+          local oy = (pin.y - enemies[j].y) * canvas:GetHeight()
+          assert(math.sqrt(ox * ox + oy * oy) >= pin.item.size * 0.6, "icons inside a circle do not pile up")
         end
       end
+      zone.scripts.OnEnter(zone)
+      equal(zone:GetAlpha(), 1, "hover brings the circle up")
+      zone.scripts.OnLeave(zone)
+      assert(zone:GetAlpha() < 1, "and it fades again")
+      if #enemies > 0 then
+        enemies[1].scripts.OnEnter(enemies[1])
+        equal(zone:GetAlpha(), 1, "hovering an enemy brings up its circle")
+        enemies[1].scripts.OnLeave(enemies[1])
+      end
+      local lines = {}
+      zone.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
+      assert(table.concat(lines, " "):find("Somewhere in this circle", 1, true), "the circle explains itself")
     end
   end
 end)
@@ -89,7 +110,7 @@ test("Gilneas sightings follow named areas on both maps without coordinate APIs"
       assert(pin, "enemy pin rendered")
       equal(pin.x, point[2], "enemy pin follows the area horizontally")
       equal(pin.y, point[3], "enemy pin follows the area vertically")
-      equal(pin.item.label, "~", "fallback is marked approximate")
+      assert(pin.item.zone and pin.item.zone.radius > 0, "a fallback position sits in a circle")
     end
   end
   local sent = false
@@ -125,7 +146,7 @@ test("Arathi area pins survive unlocated teammate combat on both maps", function
     assert(pin, "enemy pin rendered without coordinate APIs")
     equal(pin.x, 0.3748, "pin uses Stables area anchor")
     equal(pin.y, 0.2917, "pin uses Stables area anchor")
-    equal(pin.item.label, "~", "area estimates are labeled")
+    assert(pin.item.zone and pin.item.zone.radius > 0, "area estimates sit in a circle")
   end
   local sent = false
   for _, packet in ipairs(sim.sent) do

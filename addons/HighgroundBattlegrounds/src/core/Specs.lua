@@ -153,13 +153,14 @@ function Core.EstimateSpec(e, auras)
   if auras and auras.specConflict then
     if e.specSrc == "aura" or e.specSrc == "mana" then
       e.specID, e.specSrc, e.specReason = nil, nil, nil
+      if Core.ApplySpecTag then Core.ApplySpecTag(e) end
     end
     return
   end
   local tree, reason, source
   if auras and auras.specTree then
     tree, reason, source = auras.specTree, auras.specReason, "aura"
-  elseif e.specSrc == "aura" or e.specSrc == "hist" then
+  elseif e.specSrc == "aura" or e.specSrc == "hist" or e.specSrc == "tag" then
     return -- keep stronger evidence when its buff expires or the unit leaves sight
   elseif e.specManaObservation then
     local observed = e.specManaObservation

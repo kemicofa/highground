@@ -10,7 +10,9 @@ local function Samples(cue)
     if not cue or i == 1 then
       local key = identity[1] .. "-Sample"
       local specs = Core.classSpecs[identity[2]]
-      enemies[key] = { key = key, display = key, class = identity[2], specID = specs and specs[1], specSrc = "live",
+      local hidden = cue == "spectag" -- a spec the game hasn't revealed
+      enemies[key] = { key = key, display = key, class = identity[2], specID = not hidden and specs and specs[1] or nil,
+        specSrc = not hidden and "live" or nil,
         testHp = i == 1 and 0.64 or 0.9, hpPct = i == 1 and 0.64 or 0.9,
         yards = cue ~= "unknown" and 5 or nil,
         def = cue == "DEF", immune = cue == "IMMUNE", cc = cue == "CC",
@@ -22,12 +24,18 @@ end
 
 local function Panel(cue)
   E.Hide()
+  Core.HideSpecPicker()
   -- Placement owns lock restoration and protected-frame cleanup on combat.
   if not ns.Setup.placement then ns.Setup.BeginPlacement(true) end
   ns.Setup.PreviewContext("enemies", Samples(cue))
+  -- The picker normally opens on hover; the guide holds it open on Lunara.
+  if cue == "spectag" then Core.ShowSpecPicker(Core.rows[1], true) end
 end
 
 local function RowPart(key)
+  if key == "specPicker" then
+    return Core.specPicker:IsVisible() and Core.specPicker or Core.rows[1]
+  end
   local row = Core.rows[1]
   local part = key and row[key]
   return part and part:IsVisible() and part or row
@@ -128,6 +136,8 @@ function C.EnemySteps()
     ns.Localization.Define(RowStep("immunity", ns.Locale:Get("highground.coachtargeting.immune_means_damage_is_blocked.f27940"), ns.Locale:Get("highground.coachtargeting.an_observed_immunity_prevents_damage_the_recommendation.2686ec"), ns.Locale:Get("highground.coachtargeting.immune.4c42ca"), "pipText"), { title = "highground.coachtargeting.immune_means_damage_is_blocked.f27940", text = "highground.coachtargeting.an_observed_immunity_prevents_damage_the_recommendation.2686ec" }),
     ns.Localization.Define(RowStep("control", ns.Locale:Get("highground.coachtargeting.cc_marks_breakable_crowd_control.5e7301"), ns.Locale:Get("highground.coachtargeting.attacking_this_enemy_may_break_the_effect.270e22"), ns.Locale:Get("highground.coachtargeting.cc.c5a976"), "pipText"), { title = "highground.coachtargeting.cc_marks_breakable_crowd_control.5e7301", text = "highground.coachtargeting.attacking_this_enemy_may_break_the_effect.270e22" }),
     ns.Localization.Define(RowStep("unknown", ns.Locale:Get("highground.coachtargeting.unknown_distance_stays_unknown.01e741"), ns.Locale:Get("highground.coachtargeting.the_distance_means_there_is_no_reliable.630799"), "unknown", "dist"), { title = "highground.coachtargeting.unknown_distance_stays_unknown.01e741", text = "highground.coachtargeting.the_distance_means_there_is_no_reliable.630799" }),
+    ns.Localization.Define(RowStep("spectag", ns.Locale:Get("highground.coachtargeting.spectag.title"), ns.Locale:Get("highground.coachtargeting.spectag.text"), "spectag", "specPicker",
+      ns.Locale:Get("highground.coachtargeting.spectag.hint")), { title = "highground.coachtargeting.spectag.title", text = "highground.coachtargeting.spectag.text", hint = "highground.coachtargeting.spectag.hint" }),
   }
   for _, step in ipairs(E.Start("markers")) do steps[#steps + 1] = step end
   return steps

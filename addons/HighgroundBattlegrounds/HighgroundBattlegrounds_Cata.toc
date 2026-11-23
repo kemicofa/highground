@@ -99,6 +99,7 @@ libs/core/Network.lua
 libs/core/Protocols.lua
 libs/core/ProtocolTransport.lua
 src/core/CapShare.lua
+src/core/SpecTags.lua
 src/core/SapCall.lua
 libs/core/Alerts.lua
 libs/core/Stealth.lua

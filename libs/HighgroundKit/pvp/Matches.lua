@@ -38,7 +38,9 @@ function H.Ensure()
     and (not duration or duration >= (saved.lastDuration or 0)) then
     H.current = saved
   else
-    local spec = ns.Core.me and ns.Core.me.specID or U.value((ns.Api.SpecializationInfo(ns.Api.Specialization())))
+    -- Talent-tree games: the client's spec index ignores points spent.
+    local spec = ns.Core.me and ns.Core.me.specID
+      or not ns.Caps.classicSpecs and U.value((ns.Api.SpecializationInfo(ns.Api.Specialization()))) or nil
     local info = spec and ns.Core.specInfo and ns.Core.specInfo[spec]
     local _, specName = U.call(GetSpecializationInfoByID, spec)
     H.sequence = (H.sequence or 0) + 1

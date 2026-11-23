@@ -157,6 +157,32 @@ function Api.NumSpecializationsForClassID(classID)
   return Call(Api.Fn("C_SpecializationInfo", "GetNumSpecializationsForClassID"), classID)
 end
 
+-- Points spent per talent tree of your active loadout, in tree order:
+-- { { name = "Subtlety", spent = 30 }, ... }. WoW Forever draws its three
+-- classic trees as groups of one trait tree. Nil without such groups.
+local function TalentTreePoints()
+  local traits, secret = G.C_Traits, G.issecretvalue
+  local config = Call(Api.Fn("C_ClassTalents", "GetActiveConfigID"))
+  local info = config and traits.GetConfigInfo(config)
+  local tree = info and info.treeIDs and info.treeIDs[1]
+  local groups = tree and traits.GetGroupDisplayInfoByTreeID(tree)
+  if not groups or #groups == 0 then return end
+  table.sort(groups, function(a, b) return a.orderIndex < b.orderIndex end)
+  local ids, spent, points = {}, {}, {}
+  for i, group in ipairs(groups) do ids[i] = group.groupID end
+  for _, group in ipairs(traits.GetGroupCurrencyInfo(config, ids)) do
+    local currency = group.currencyInfos[1]
+    spent[group.traitNodeGroupID] = currency and currency.spent
+  end
+  for i, group in ipairs(groups) do
+    local n = spent[group.groupID] or 0
+    if secret and secret(n) then return end
+    points[i] = { name = group.displayName, spent = n }
+  end
+  return points
+end
+function Api.TalentTreePoints() return Call(TalentTreePoints) end
+
 -- Map names in the client's language: a UI map (C_Map) or an instance
 -- (GetRealZoneText); nil when the client does not know the ID.
 local function Name(value) if type(value) == "string" and value ~= "" then return value end end

@@ -4,7 +4,7 @@
 ## IconTexture: Interface\AddOns\Highground\libs\media\HighgroundIcon.tga
 ## Notes: Battleground command board: kill order, shared enemy intel map, res/base timers, enemy cooldowns. Retail and WoW Forever.
 ## Author: kemicofa
-## Version: 3.2.0
+## Version: 3.2.1
 ## X-Curse-Project-ID: 1749115
 ## X-Wago-ID: b6Xy3OKp
 ## X-GitHub-Latest: true

@@ -106,9 +106,10 @@ local function POIs(mapID)
 end
 
 local GETTERS = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
-  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
+  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetDoubleStatusBarWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
   "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo", "GetScenarioHeaderTimerWidgetVisualizationInfo" }
-local FIELDS = { "text", "leftText", "rightText", "overrideBarText", "barValue", "barMax", "barMaxValue", "timerValue", "shownState" }
+local FIELDS = { "text", "leftText", "rightText", "overrideBarText", "leftBarValue", "rightBarValue", "leftBarMax", "rightBarMax",
+  "barValue", "barMax", "barMaxValue", "timerValue", "shownState" }
 local function WidgetText(W, id)
   for _, key in ipairs(GETTERS) do
     local data = U.call(W[key], id)

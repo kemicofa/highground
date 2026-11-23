@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Arathi Basin and Darkspear Islands on WoW Forever show who is expected to win again (WIN, NEED and the overview's PLAN). Highground now reads the modern double score bar these scoreboards use, as on Retail. WoW Forever's score rates are learned from the first few score ticks of a match and kept for later ones.
 - WoW Forever resurrection timers end when you are actually back on your feet. The spirit healer counts down in whole seconds and players revive about a second after it ends; Highground now uses the latest countdown reading and adds that second, refined from your own resurrections. Teammates' timers no longer jump by a second while you wait at the healer.
 - During WoW Forever's battleground chat lockdown, Highground no longer keeps retrying to share resurrection timers it cannot send.
 - Reputation: a player's right-click menu shows **Add to blacklist** directly under a **Highground Reputation** heading. With several enabled guilds and communities it opens a list to pick one, or **All guilds and communities**. The report form offers the same **All** choice and saves a blacklist decision where you moderate and a proposal everywhere else.

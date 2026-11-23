@@ -8,12 +8,13 @@ local equal = t.equal
 -- Score widgets: sim.widgetText[id] is the widget's text; sim.topWidgets
 -- lists the top-center widget set for maps without fixed widget IDs.
 local function widgets(sim, env)
-  sim.widgetText = {}
+  sim.widgetText, sim.bars = {}, {}
   env.C_UIWidgetManager = {
     GetIconAndTextWidgetVisualizationInfo = function(id)
       local text = sim.widgetText[id]
       return text and { text = text }
     end,
+    GetDoubleStatusBarWidgetVisualizationInfo = function(id) return sim.bars[id] end,
     GetTopCenterWidgetSetID = function() return 1 end,
     GetAllWidgetsBySetID = function() return sim.topWidgets or {} end,
   }
@@ -96,6 +97,40 @@ t.test("maps without fixed score widgets read the first two at the top of the sc
   equal(sc.n.A, 3, "base counts from the widgets")
   sim.topWidgets = { { widgetID = 51 } }
   equal(sim.ns.Timers.Scores(sim.now), nil, "one readable score is not enough")
+end)
+
+t.test("WoW Forever's double score bar predicts from the map's bases and learns their rates", function()
+  local sim = new("retail", {}, function(s, env)
+    widgets(s, env)
+    env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+    env.loadstring_untainted, s.secureSnippets, s.rated, s.blitz = nil, false, false, false
+  end)
+  sim:enemy("Foe")
+  sim:join(1461, 529, "Arathi Basin")
+  -- Owned icons: 18, 23, 28 Alliance; 20, 25 Horde (timers/Nodes.lua).
+  for i, base in ipairs({ { "Stables", 18 }, { "Farm", 23 }, { "Blacksmith", 28 }, { "Lumber Mill", 20 }, { "Gold Mine", 25 } }) do
+    sim.pois[i] = { name = base[1], position = { x = 0.1 * i, y = 0.5 }, textureIndex = base[2] }
+  end
+  sim:event("AREA_POIS_UPDATED")
+  sim:advance(1)
+  local T = sim.ns.Timers
+  local score = 100
+  for _ = 1, 5 do
+    sim.bars[1671] = { leftBarValue = score, rightBarValue = 50, leftBarMax = 1500, rightBarMax = 1500 }
+    T.Scores(sim.now)
+    sim:advance(10)
+    score = score + 20
+  end
+  local sc = T.Scores(sim.now)
+  equal(sc.max, 1500, "limit from the bar")
+  equal(sc.n.A .. "-" .. sc.n.H, "3-2", "base counts from the map")
+  t.close(T.LearnedDB().rates[T.RulesKey()][3], 2, "two points a second learned for three bases", 0.01)
+  sim.bars[1671] = { leftBarValue = 1100, rightBarValue = 1000, leftBarMax = 1500, rightBarMax = 1500 }
+  local out = rows(sim)
+  assert(out.WIN and out.WIN.team == "A", "the leader on bases is named")
+  equal(out.WIN.time, "3:20", "at the learned rate")
+  sim.bars[1671] = { leftBarValue = { secret = true }, rightBarValue = 1000, leftBarMax = 1500 }
+  equal(T.Scores(sim.now), nil, "an unreadable bar is no score")
 end)
 
 t.test("flag-map graveyards are named by side, also when your character fights for the other faction", function()

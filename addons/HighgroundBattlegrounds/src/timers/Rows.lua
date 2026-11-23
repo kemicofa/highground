@@ -168,7 +168,7 @@ function Timers.Rows(now)
     local row = pool:Add()
     Timers.Tag(row, g == myG and "YOU" or ours and "OURS" or "THEIRS")
     row.color, row.team = Timers.TeamColor(g.team), g.team
-    row.left, row.total, row.est = it.nw and it.nw - now, Timers.WavePeriod(), it.est or g.conf == "cap"
+    row.left, row.total, row.est = it.nw and it.nw - now, Timers.WaveCycle(), it.est or g.conf == "cap"
     local name = Timers.GYName(g)
     row.text = name ~= "" and name or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c")
     if g == myG and die then

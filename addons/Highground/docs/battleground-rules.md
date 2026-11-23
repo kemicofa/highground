@@ -63,7 +63,8 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `graveyards.static` | Permanent graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
 | `graveyards.nodes` | Graveyards enabled by owned, uncontested capture nodes; separate graveyard and capture-point coordinates |
 | `graveyards.mapLabels` | Short map-only aliases, keyed by lowercase names after removing `Graveyard` and shortening faction/start/middle words |
-| `resurrection.period` | Wave period; currently defaults to 30 seconds |
+| `resurrection.period` | Spirit healer countdown; currently defaults to 30 seconds |
+| `resurrection.downtime` | Seconds from a wave until the next countdown starts, so waves come every period + downtime; 0 unless set (WoW Forever: 1.6). Learned during a match from exact waves |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
 | `flags`, `orbs` | Stack timing and known respawn timing. Without `flags.respawnSeconds`, a carried flag's respawn is learned from the gap between a capture and "The flag has been reset." |

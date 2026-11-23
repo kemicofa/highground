@@ -46,7 +46,9 @@ function Timers.Reset(mapID)
   wipe(Timers.track)
   Timers.dieAlertedFor = nil
   Timers.clock, Timers.clockShared, Timers.periodOverride, Timers.startClock, Timers.releaseGY = nil, nil, nil, nil, nil
+  Timers.downtimeOverride = nil
   wipe(Timers.periodVotes)
+  wipe(Timers.downtimes)
   ns.flagRespawnAt = nil
   Timers.currentMap, Timers.currentRulesKey = mapID, mapID and Timers.RulesKey()
   Timers.currentMatch = ns.MatchSerial
@@ -255,17 +257,20 @@ function Timers.SharedClock()
   return nil
 end
 
--- Two exact waves of one clock dt apart must be a whole number of periods.
+-- Two exact waves of one clock dt apart must be a whole number of cycles.
 -- Another period needs two such pairs (one could be a misattributed wave).
+-- Pairs that fit tell the downtime: the median of this match's samples.
 Timers.periodVotes = {}
 function Timers.CheckPeriod(dt)
   local period = Timers.WavePeriod()
   if not period or dt < 10 or dt > 400 then return end
   local function fits(p)
-    local k = math.floor(dt / p + 0.5)
-    return k >= 1 and math.abs(dt - k * p) <= Timers.CLOCK_TOLERANCE
+    local cycle = p + Timers.Downtime()
+    local k = math.floor(dt / cycle + 0.5)
+    return k >= 1 and math.abs(dt - k * cycle) <= Timers.CLOCK_TOLERANCE, k
   end
-  if fits(period) then return end
+  local fit, k = fits(period)
+  if fit then return Timers.NoteDowntime(dt / k - period) end
   for _, p in ipairs(Timers.PERIODS) do
     if p ~= period and fits(p) then
       Timers.periodVotes[p] = (Timers.periodVotes[p] or 0) + 1
@@ -273,6 +278,13 @@ function Timers.CheckPeriod(dt)
       return
     end
   end
+  -- Off every cycle: another downtime, when only one wave count fits.
+  local found = 0
+  for n = 1, math.floor(dt / period) do
+    local d = dt / n - period
+    if d >= 0 and d <= Timers.MAX_DOWNTIME then found, k = found + 1, n end
+  end
+  if found == 1 then Timers.NoteDowntime(dt / k - period) end
 end
 
 function Timers.SetPeriod(p)
@@ -282,7 +294,7 @@ function Timers.SetPeriod(p)
 end
 
 function Timers.ClockEvidence(g, t)
-  local period = Timers.WavePeriod()
+  local period = Timers.WaveCycle()
   local c = Timers.clock
   if c and period and c.g ~= g then
     local shared = math.abs(Offset(t - c.at, period)) <= Timers.CLOCK_TOLERANCE
@@ -310,7 +322,7 @@ function Timers.NextWave(g, now)
   if not Timers.Available(g) then
     return nil
   end
-  local period = Timers.WavePeriod()
+  local period = Timers.WaveCycle()
   local shared, c = Timers.SharedClock(), Timers.clock
   if g.wave and not period then
     return g.wave >= now and g.wave or nil, g.conf == "shared"
@@ -330,9 +342,9 @@ function Timers.NextWave(g, now)
   end
   if period and g.bins and (g.votes or 0) >= 1.5 then
     -- Densest 3-second window of the vote histogram = wave phase.
-    local best, bestV = 0, -1
-    for b = 0, period - 1 do
-      local v = (g.bins[b] or 0) + (g.bins[(b + 1) % period] or 0) + (g.bins[(b - 1) % period] or 0)
+    local best, bestV, n = 0, -1, math.ceil(period)
+    for b = 0, n - 1 do
+      local v = (g.bins[b] or 0) + (g.bins[(b + 1) % n] or 0) + (g.bins[(b - 1) % n] or 0)
       if v > bestV then
         best, bestV = b, v
       end
@@ -366,7 +378,7 @@ end
 -- Interval vote: the wave happened somewhere in (t0, t1].
 function Timers.Vote(g, t0, t1)
   local len = t1 - t0
-  local period = Timers.WavePeriod()
+  local period = Timers.WaveCycle()
   if not period or len <= 0.5 or len > period or not Timers.Available(g) or g.stale then
     return false
   end

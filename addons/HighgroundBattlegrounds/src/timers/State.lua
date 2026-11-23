@@ -49,9 +49,50 @@ function Timers.RulesKey()
 end
 
 -- Configured period, unless this match's exact waves showed another one.
+-- It is the spirit healer's countdown, not the time between waves.
 function Timers.WavePeriod()
   local res = Timers.Rules().resurrection
   return Timers.periodOverride or (res and res.period)
+end
+
+-- Seconds from a wave until the next countdown starts. WoW Forever's spirit
+-- healers wait about 1.6 s, so waves come every 31.6 s while the game counts
+-- down 30. This match's exact waves replace the configured value.
+function Timers.Downtime()
+  local res = Timers.Rules().resurrection
+  return Timers.downtimeOverride or (res and res.downtime) or 0
+end
+
+-- Exact wave pairs that fit a whole number of cycles give a downtime
+-- sample each; the median of this match's samples replaces the configured
+-- downtime when it differs by more than timing noise. Early samples count
+-- as 0 rather than being dropped, so noise around a zero downtime stays 0.
+Timers.downtimes = {}
+Timers.MAX_DOWNTIME = 4
+Timers.DOWNTIME_NOISE = 0.5
+
+function Timers.NoteDowntime(sample)
+  if sample > Timers.MAX_DOWNTIME then return end
+  local list = Timers.downtimes
+  list[#list + 1] = math.max(0, sample)
+  if #list < 2 then return end
+  local sorted = {}
+  for i, v in ipairs(list) do sorted[i] = v end
+  table.sort(sorted)
+  local n = #sorted
+  local median = n % 2 == 1 and sorted[(n + 1) / 2] or (sorted[n / 2] + sorted[n / 2 + 1]) / 2
+  local res = Timers.Rules().resurrection
+  local configured = res and res.downtime or 0
+  local override = math.abs(median - configured) >= Timers.DOWNTIME_NOISE and math.floor(median * 10 + 0.5) / 10 or nil
+  if override == Timers.downtimeOverride then return end
+  Timers.downtimeOverride = override
+  for _, g in ipairs(Timers.gys) do g.bins, g.votes = nil, nil end -- phases were binned on the old cycle
+end
+
+-- Seconds between two waves of one clock.
+function Timers.WaveCycle()
+  local period = Timers.WavePeriod()
+  return period and period + Timers.Downtime()
 end
 
 function Timers.Enabled()

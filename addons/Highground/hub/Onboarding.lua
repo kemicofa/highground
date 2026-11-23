@@ -71,8 +71,10 @@ function O.Progress()
   return count, #O.steps
 end
 
-local function Hide()
+-- handOff keeps the Highground window's visit for the walkthrough's return.
+local function Hide(handOff)
   O.moving = true
+  if handOff then ns.Hub.Suspend() end
   ns.Hub.Release(O.win)
   if O.win then O.win:Hide() end
   O.moving = nil
@@ -100,7 +102,10 @@ function O.Dismiss()
   local state = O.State()
   state.dismissed, state.pending = true, nil
   O.StopExploring()
+  -- Back to game also closes the Highground window that hiding the guide returns to.
+  local hub = ns.Hub.win and ns.Hub.win:IsShown()
   Hide()
+  if not hub and ns.Hub.win and ns.Hub.win:IsShown() then ns.Hub.win:Hide() end
   if ns.Hub.RefreshHome then ns.Hub.RefreshHome() end
 end
 
@@ -146,14 +151,19 @@ function O.Back()
   if index > 1 then O.Go(O.steps[index - 1].key) end
 end
 
-function O.Return()
+-- Leaving a walkthrough returns to the Highground page that launched it,
+-- else the guide. toGuide (the Guides button) always shows the guide.
+function O.Return(toGuide)
+  local origin = O.origin
   O.StopExploring()
-  if O.inHub then ns.Hub.Open("addons") else O.Open() end
+  if O.inHub or toGuide and origin then ns.Hub.Open("addons")
+  elseif origin then ns.Hub.Open(origin)
+  else O.Open(); O.origin = nil end -- a page the guide opened is not where it started
 end
 
 function O.Visit(page)
   O.StopExploring()
-  Hide()
+  Hide(true)
   return ns.Hub.Open(page)
 end
 
@@ -190,8 +200,8 @@ function O.Explore(action)
   O.active = action.review or O.Current().key
   O.exploring = action.preview and "preview" or action.map and "map" or action.bounties and "bounties"
     or action.quickCalls and "calls" or action.native and "native" or "page"
-  Hide()
-  if O.exploring ~= "page" and ns.Hub.win then ns.Hub.win:Hide() end
+  Hide(true)
+  if O.exploring ~= "page" then ns.Hub.Suspend() end
   if action.preview then
     -- Placement owns cleanup, combat protection and lock restoration.
     ns.Setup.BeginPlacement(true)
@@ -234,6 +244,8 @@ function O.Open(embedded)
   state.current = O.Current().key
   state.offered, state.pending, state.dismissed = true, nil, nil
   O.inHub = embedded == true
+  local hub = not O.inHub and ns.Hub.win
+  O.origin = hub and hub:IsShown() and ns.Hub.GetRouter():Current() or nil
   if ns.Setup.placement then ns.Setup.EndPlacement(false) end
   local w = O.Build()
   Kit.AttachNavigation(w, O.GetRouter())

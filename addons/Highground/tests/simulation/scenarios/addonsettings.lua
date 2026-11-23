@@ -73,7 +73,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(other.child:IsVisible() and not page.child:IsVisible(), "only the selected addon is visible")
     H.Back(); calls = 0; H.win:Hide(); s:advance(0.02)
     equal(calls, 0, "closing cancels the pending layout")
-    H.Open(); calls = 0; s:advance(0.02)
+    H.Open("nearby"); calls = 0; s:advance(0.02)
     equal(calls, 1, "reopening finishes the selected page")
     local count = #s.frames
     for _ = 1, 3 do H.Open("bounty"); H.Open("nearby"); s:advance(0.02) end

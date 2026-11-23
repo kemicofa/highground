@@ -56,6 +56,7 @@ end
 -- band, bar and border, "accent"; the border is borderAccent by default),
 -- borderAlpha, crest (brand image beside the title), headerPadding,
 -- noClose, onClose(self), child (temporarily replace the active tool),
+-- host (tools opened from it return to it when closed),
 -- onResume(self) (restore a host's page when returning from a child dialog).
 -- beforeEnter/beforeLeave use the shared router's synchronous guard contract.
 -- Returns the frame with .header (Kit.Header), .head, .bar, .title, .sub, .close, .content and

@@ -66,10 +66,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     for _, disabled in ipairs({ false, true }) do
       local off = {}
       if disabled then for _, name in ipairs(F.names) do off[name:lower()] = true end end
-      local s = make(off, nil, { hubSection = "checklist" })
+      local s = make(off)
       local O, Hub = s.ns.Onboarding, s.ns.Hub
-      Hub.Open()
-      t.equal(Hub.current, "addons", "saved checklist section migrates to Addons")
+      s:command("config checklist")
+      t.equal(Hub.current, "addons", "old checklist link opens Addons")
       local entries = 0
       for _, button in ipairs(Hub.win.nav) do
         if button.section.key == "addons" then entries = entries + 1 end
@@ -113,7 +113,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       t.equal(C.steps[C.index].id, "visit", "the walkthrough resumes at Visit")
       assert(C.target == O.win.cards.battlegrounds.visit and C.target:IsVisible())
       O.Return()
-      assert(O.win:IsVisible() and not C.running and not s.ns.Setup.placement)
+      assert(s.ns.Hub.win:IsVisible() and not C.running and not s.ns.Setup.placement)
+      t.equal(s.ns.Hub.current, "module-battlegrounds", "leaving returns to the page that started it")
     end
     t.equal(#s.moduleWrites, 0, "demonstrating navigation never changes enable states")
     s:assertHealthy()

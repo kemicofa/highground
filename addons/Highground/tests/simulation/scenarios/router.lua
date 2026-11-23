@@ -45,18 +45,13 @@ test(client .. " hub history follows shortcuts, sidebar clicks, combat and reope
   sim:command("config tools")
   history(router, "home,addons,macros-settings,tools", 4)
   assert(not w.forward:IsEnabled(), "new branch retires forward history")
-  w:Hide()
-  assert(Hub.Open())
-  history(router, "home,addons,macros-settings,tools", 4)
-  equal(Hub.current, "tools", "reopened saved page")
-  assert(Hub.Back()); w:Hide(); assert(Hub.Open())
-  equal(sim.ns.Options.byKey["macros-settings"].frame:GetParent(), Hub.content, "reopened page borrowed again")
-  history(router, "home,addons,macros-settings,tools", 3)
+  assert(Hub.Back())
   click(sim.ns.Options.byKey["macros-settings"].openTool)
   equal(sim.ns.Macros.Window.win:GetParent(), sim.env.UIParent, "launcher opens the separate tool")
   assert(not Hub.win:IsVisible(), "configuration is hidden while working")
   assert(Hub.Open())
   history(router, "home,addons,macros-settings,tools", 3)
+  equal(sim.ns.Options.byKey["macros-settings"].frame:GetParent(), Hub.content, "reopened page borrowed again")
   for _, scale in ipairs({ 1, 1.5 }) do
     sim.ns.Core.SetFontScale(scale)
     local title, back, forward, close = sim.bounds(w.title), sim.bounds(w.back), sim.bounds(w.forward), sim.bounds(w.close)
@@ -66,6 +61,112 @@ test(client .. " hub history follows shortcuts, sidebar clicks, combat and reope
   assert(router:ClearHistory())
   assert(not w.back:IsEnabled() and not w.forward:IsEnabled(), "history event updates both controls")
   sim:assertHealthy()
+end)
+
+test(client .. " closing the hub starts the next visit fresh; dialogs and tools return to it", function()
+  local sim = setup()
+  local Hub = sim.ns.Hub
+  local function expanded()
+    local open = {}
+    for _, b in ipairs(Hub.win.navGroups) do if b.expanded then open[#open + 1] = b.groupTitle end end
+    return table.concat(open, ",")
+  end
+  sim:command("")
+  local w, router, bg = Hub.win, Hub.GetRouter(), sim.ns.Options.featurePages.battlegrounds
+  equal(Hub.current, "home", "/hg opens Home")
+  click(nav(w, "macros-settings")); click(nav(w, "battlegrounds-settings"))
+  bg.scroll:SetVerticalScroll(60)
+  local child = sim.ns.Kit.CopyBox(nil, { title = "Detail" })
+  child:Open(); click(child.done)
+  assert(w:IsShown(), "closing a dialog returns to the hub")
+  history(router, "home,macros-settings,battlegrounds-settings", 3)
+  click(w.back); click(sim.ns.Options.byKey["macros-settings"].openTool)
+  assert(not w:IsShown(), "the tool replaces the hub")
+  click(sim.ns.Macros.Window.win.close)
+  assert(w:IsShown(), "closing a tool launched from the hub returns to it")
+  equal(Hub.current, "macros-settings", "on the same page")
+  history(router, "home,macros-settings,battlegrounds-settings", 2)
+  w.scripts.OnHide(w)
+  assert(Hub.Open())
+  history(router, "home,macros-settings,battlegrounds-settings", 2)
+  local closes = { function() click(w.close) end, function() sim:command("") end,
+    function() sim.env.Highground_Hub() end, function() click(Hub.home.start) end }
+  for i, close in ipairs(closes) do
+    if i == #closes then Hub.Open("home") end
+    close()
+    assert(not w:IsShown(), "closed")
+    sim:command("")
+    equal(Hub.current, "home", "reopening starts at Home")
+    history(router, "home", 1)
+    assert(not w.back:IsEnabled() and not w.forward:IsEnabled(), "a new visit has no Back or Forward")
+    equal(expanded(), "", "sidebar groups start collapsed")
+    click(nav(w, "battlegrounds-settings"))
+    equal(bg.scroll:GetVerticalScroll(), 0, "pages start at the top")
+    bg.scroll:SetVerticalScroll(60)
+  end
+  click(w.close); sim:command("config nearby")
+  history(router, "nearby", 1)
+  equal(expanded(), "Nearby", "only the requested page's group opens")
+  sim:assertHealthy()
+end)
+
+test(client .. " guides and panel placement launched from the hub return to the same page", function()
+  local sim = setup()
+  local Hub, O, S = sim.ns.Hub, sim.ns.Onboarding, sim.ns.Setup
+  local C = O.Coach
+  local key = "battlegrounds-previews"
+  assert(Hub.Open("home")); assert(Hub.Open(key))
+  local w, router, page = Hub.win, Hub.GetRouter(), sim.ns.Options.byKey[key]
+  local function back(why)
+    assert(w:IsShown(), why .. " returns to the hub")
+    equal(Hub.current, key, why .. " keeps the page")
+    history(router, "home," .. key, 2)
+  end
+  for _, finish in ipairs({ "finish", "close", "back" }) do
+    click(page.arrange)
+    assert(S.placement and not w:IsShown(), "placement replaces the hub")
+    click(S.layoutBar[finish]); back("placement " .. finish)
+    assert(not S.placement)
+  end
+  click(page.arrange); sim:setCombat(true)
+  assert(not S.placement and not w:IsShown(), "combat ends placement without opening the hub")
+  sim:setCombat(false); sim:command("")
+  back("reopening after combat")
+  local sample, chooser
+  for _, link in ipairs(page.guides) do
+    click(link)
+    assert(not w:IsShown(), "the guide replaces the hub")
+    if C.running then sample = sample or link else chooser = chooser or link; click(O.win.close) end
+    if not C.running then back("closing the guide") else click(C.win.close); back("closing the walkthrough") end
+  end
+  assert(sample and chooser, "both guide kinds were exercised")
+  click(sample); C.win:Hide(); back("Escape")
+  click(sample); click(C.win.done)
+  equal(Hub.current, "addons", "Guides shows the guide in the hub")
+  history(router, "home," .. key .. ",addons", 3)
+  assert(router:Back()); equal(Hub.current, key, "Back reaches the launching page")
+  click(chooser); click(O.win.later)
+  assert(not w:IsShown() and not O.win:IsShown(), "Back to game closes both")
+  sim:command(""); history(router, "home", 1)
+  assert(Hub.Open(key)); history(router, "home," .. key, 2)
+  sim:assertHealthy()
+end)
+
+test(client .. " a reload from the hub reopens it on the same page once", function()
+  local sim = setup()
+  local Hub, reloads = sim.ns.Hub, 0
+  sim.env.ReloadUI = function() reloads = reloads + 1 end
+  assert(Hub.Reload()); equal(sim.ns.Core.db.hubReopen, nil, "a closed hub stays closed")
+  Hub.Open("module-nearby")
+  assert(Hub.Reload()); equal(reloads, 2)
+  equal(sim.ns.Core.db.hubReopen, "module-nearby", "page kept for the reload")
+  local again = new(client == "forever" and "retail" or client, { hubReopen = "module-nearby" }, function(s)
+    if client == "forever" then s.env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
+  end)
+  assert(again.ns.Hub.win:IsShown(), "reopened after the reload")
+  equal(again.ns.Hub.current, "module-nearby")
+  equal(again.ns.Core.db.hubReopen, nil, "only once")
+  sim:assertHealthy(); again:assertHealthy()
 end)
 
 test(client .. " registered components receive params and guards protect visible state", function()
@@ -96,18 +197,14 @@ test(client .. " registered components receive params and guards protect visible
   equal(ok, false, "unsaved draft blocks Back"); equal(err.message, "Save the draft", "reason returned")
   click(nav(Hub.win, "general"))
   equal(Hub.current, "example.detail", "sidebar cannot bypass the guard")
-  equal(sim.ns.Core.db.hubSection, "example.detail", "saved section remains correct")
   assert(Hub.win.sub:GetText():find("EXAMPLE DETAIL", 1, true), "custom label in header")
   history(router, "home,example.detail,example.detail", 2)
+  Hub.win:Hide(); assert(Hub.Open())
+  equal(frame.selected, 7, "a page that refuses to leave reopens with its draft")
+  history(router, "home,example.detail,example.detail", 2)
   dirty = false
-  assert(Hub.Forward()); Hub.win:Hide(); assert(Hub.Open())
-  equal(frame.selected, 8, "reopen restores current params")
-  equal(router:Current().state.tab, "notes", "reopen retains state")
+  assert(Hub.Forward())
   local location = router:Current()
-  Hub.win:Hide(); assert(Hub.Navigate(location))
-  assert(frame:IsVisible() and Hub.win:IsShown(), "Navigate remounts an identical page when the hub is closed")
-  Hub.win:Hide(); assert(Hub.Redirect(location))
-  assert(frame:IsVisible(), "Redirect also remounts an identical page")
   local child = sim.ns.Kit.CopyBox(nil, { title = "Edit detail" })
   child:Open(); assert(not Hub.win:IsShown(), "child dialog temporarily replaces the host")
   child:Hide()
@@ -115,7 +212,13 @@ test(client .. " registered components receive params and guards protect visible
   equal(frame.selected, 8, "child return restores the same detail")
   equal(router:Current().state.tab, "notes", "child return preserves per-visit state")
   history(router, "home,example.detail,example.detail", 3)
-  assert(Hub.Back()); assert(Hub.Back())
+  Hub.win:Hide(); assert(Hub.Navigate(location))
+  assert(frame:IsVisible() and Hub.win:IsShown(), "Navigate opens a closed hub on the requested page")
+  history(router, "example.detail", 1)
+  equal(router:Current().state.tab, "notes", "explicit state is kept")
+  Hub.win:Hide(); assert(Hub.Redirect(location))
+  assert(frame:IsVisible(), "Redirect also opens a closed hub")
+  assert(Hub.Navigate("home"))
   equal(frame:GetParent(), sim.env.UIParent, "leaving returns the borrowed component")
   assert(frame.close:IsShown(), "close button returned")
   sim:assertHealthy()

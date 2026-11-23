@@ -30,7 +30,7 @@ Only want macros? Disable the other modules in `/hg` → **Addons**, reload, the
 
 1. **Join a battleground.** The enemy list, timers and flag-carrier panels appear on their own, in rated and unrated matches.
 2. **Click an enemy's name** to target them. Right-click sets your *focus*, a second target you keep while selecting someone else. Highground suggests targets; it never casts for you.
-3. **Open `/hg` when you want to change something.** On **Home**, **Preview and move panels** shows sample panels you can drag outside a match; **Done** returns to the game.
+3. **Open `/hg` when you want to change something.** On **Home**, **Preview and move panels** shows sample panels you can drag outside a match; **Done** returns to Home.
 
 On your first login, Highground opens **Addons**, outside combat and instances. Each addon has a guide: **Start**, **Resume** or **Replay** it, or **Visit** the addon's settings. Guides use the real controls with sample data and never send messages or create real records. Reopen them with `/hg guide`, or jump to one with `/hg guide macros` or `/hg guide bounties`.
 

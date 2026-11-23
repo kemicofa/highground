@@ -123,7 +123,7 @@ local function client(flavor, points, disabledCooldowns)
   ns.SetUIScale = function(value) s.db.scale = value end
   ns.SetBgAlpha = function(value) s.db.bgAlpha = value end
   ns.SetCompact = function(on) s.compactApplied = on end
-  ns.Core, env.db = env, s.db
+  ns.Core, env.db, env.MAX_ROWS = env, s.db, 40
   -- Alert delivery and channel controls are exercised by full simulations.
   ns.Alerts = { categories = {} }
   for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Text.lua", "libs/core/Events.lua", "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Layout.lua", "libs/ui/kit/Blocks.lua", "libs/ui/Locale.lua", "libs/ui/kit/Workspace.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Header.lua", "libs/ui/kit/Navigation.lua", "libs/ui/kit/Windows.lua", "libs/ui/kit/Dialog.lua",

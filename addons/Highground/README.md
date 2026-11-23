@@ -20,7 +20,7 @@ Install **Highground** from [CurseForge](https://www.curseforge.com/projects/174
 
 ## Use
 
-Join a battleground and the panels appear automatically; no setup window or saved profile is required. New installations show five enemies, include unrated matches and use essential alerts. Click a name to select an enemy, then use your abilities as usual.
+Join a battleground and the panels appear automatically; no setup window or saved profile is required. New installations show the whole enemy team, include unrated matches and use essential alerts. Click a name to select an enemy, then use your abilities as usual.
 
 `/hg` and the minimap button open settings. **Preview and move panels** helps place them; each addon section keeps its settings, appearance controls and previews together. **Shared preferences** holds theme, fonts and master controls. **Addons** (`/hg guide`) brings addon switches and walkthroughs together. Use **Visit** beside the guide button to open an addon's overview; **Start**, **Resume** or **Replay** opens its walkthrough. A small crest and accent stripe identify subaddons in the sidebar. Existing installations keep their settings. See [getting started](docs/getting-started.md) and [commands](docs/commands.md).
 

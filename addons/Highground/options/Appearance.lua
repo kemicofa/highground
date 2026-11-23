@@ -206,7 +206,7 @@ elseif owner == "battlegrounds" then
 Check("highground.appearance.suggested_target_card.12115b", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
   function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
 Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.db.rows end,
-  function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return 5 end)
+  function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return Core.MAX_ROWS end)
 elseif owner == "nearby" then
   Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.O("nearbyRows") end,
     function(value) Options.Set({ kind = "option", key = "nearbyRows" }, value) end,

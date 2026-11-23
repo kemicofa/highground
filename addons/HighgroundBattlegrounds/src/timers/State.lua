@@ -95,6 +95,46 @@ function Timers.WaveCycle()
   return period and period + Timers.Downtime()
 end
 
+-- Seconds from the spirit healer's countdown reaching 0 until a ghost is
+-- alive. WoW Forever counts down in whole seconds and players come back
+-- about a second after the latest reading's end (0.3-1.3 s in one live
+-- match). Your own resurrections refine it: the median of the last
+-- REVIVE_SAMPLES, kept per game in Timers.LearnedDB().reviveLag.
+Timers.REVIVE_SAMPLES, Timers.MAX_REVIVE_LAG = 9, 3
+
+local function ReviveSamples()
+  local db = Timers.LearnedDB()
+  if not db then return nil end
+  if type(db.reviveLag) ~= "table" then db.reviveLag = {} end
+  local list = db.reviveLag
+  for i = #list, 1, -1 do
+    local v = list[i]
+    if type(v) ~= "number" or v ~= v or v < 0 or v > Timers.MAX_REVIVE_LAG then table.remove(list, i) end
+  end
+  return list
+end
+
+function Timers.ReviveLag()
+  local list = ReviveSamples()
+  local n = list and #list or 0
+  if n >= 3 then
+    local sorted = {}
+    for i, v in ipairs(list) do sorted[i] = v end
+    table.sort(sorted)
+    return n % 2 == 1 and sorted[(n + 1) / 2] or (sorted[n / 2] + sorted[n / 2 + 1]) / 2
+  end
+  local res = Timers.Rules().resurrection
+  return res and res.reviveLag or 0
+end
+
+function Timers.NoteReviveLag(sample)
+  if type(sample) ~= "number" or sample < 0 or sample > Timers.MAX_REVIVE_LAG then return end
+  local list = ReviveSamples()
+  if not list then return end
+  list[#list + 1] = math.floor(sample * 10 + 0.5) / 10
+  while #list > Timers.REVIVE_SAMPLES do table.remove(list, 1) end
+end
+
 function Timers.Enabled()
   return Timers.DB() and ns.Core.On("timers")
 end

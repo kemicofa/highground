@@ -199,7 +199,7 @@ test("WoW Forever Arathi Basin: the starts share a clock, a captured base starts
   sim:advance(0.5)
   local now = sim.env.GetTime()
   local wave = T.NextWave(mine, now)
-  assert(wave and math.abs(wave - (now + 11.5)) < 1, "your countdown times your start")
+  assert(wave and math.abs(wave - (now + 11.5 + T.ReviveLag())) < 1, "your countdown times your start")
   equal(T.NextWave(theirs, now), wave, "and the enemy's start, spawned with it")
   sim:advance(11.5)
   sim.units.player.ghost, sim.healerTime = false, nil -- resurrected on the wave
@@ -266,4 +266,73 @@ test("timing noise around exact 30-second waves learns no downtime", function()
   local t = sim.env.GetTime()
   for _, at in ipairs({ 0, 30.4, 60, 90.3, 120.4 }) do T.SetWave(g, t + at, "exact") end
   equal(T.WaveCycle(), 30, "early and late waves cancel out")
+end)
+
+-- A WoW Forever ghost: whole-second countdowns ending at `ends`, alive
+-- `lag` seconds later.
+local function reviveAt(sim, ends, lag)
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and math.max(0, math.floor(ends - sim.now)) or nil
+  end
+  sim.units.player.ghost = true
+  sim:advance(ends + lag - sim.now)
+  sim.units.player.ghost = false
+  sim:advance(1)
+end
+
+test("WoW Forever whole-second countdowns time the wave from the latest end plus the revive lag", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  equal(T.ReviveLag(), 0.9, "WoW Forever default")
+  local ends = sim.now + 12.6
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and math.max(0, math.floor(ends - sim.now)) or nil
+  end
+  sim.units.player.ghost = true
+  sim:advance(0.25)
+  local mine = T.SingleGY(T.MyTeam())
+  local first = T.NextWave(mine, sim.now)
+  assert(first < ends + 0.9, "the first reading is short")
+  sim:advance(3)
+  local waves = T.stats.waves
+  assert(math.abs(T.NextWave(mine, sim.now) - (ends + 0.9)) <= 0.3, "the latest end plus the lag")
+  sim:advance(5)
+  assert(T.stats.waves - waves <= 6, "an unchanged countdown does not set the wave again")
+  sim:assertHealthy()
+end)
+
+test("your own resurrections teach the revive lag, kept per game and repaired when damaged", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  local ends = sim.now + 10
+  for _ = 1, 3 do
+    reviveAt(sim, ends, 1.4)
+    ends = ends + 31.6
+  end
+  local lag = T.ReviveLag()
+  assert(lag >= 1.3 and lag <= 1.7, "learned from three resurrections: " .. lag)
+  equal(#T.LearnedDB().reviveLag, 3, "three samples")
+  local again = new("retail", sim.env.HighgroundDB, function(s) forever(s); s.rated, s.blitz = false, false end)
+  again:join(1460, 489, "Warsong Gulch")
+  equal(again.ns.Timers.ReviveLag(), lag, "kept across sessions")
+  again.ns.Timers.LearnedDB().reviveLag = { "x", -1, 99, 0 / 0, 0.5, 0.6, 0.7 }
+  equal(again.ns.Timers.ReviveLag(), 0.6, "damaged samples are dropped")
+  equal(#again.ns.Timers.LearnedDB().reviveLag, 3, "only the usable ones remain")
+  for i = 1, 12 do again.ns.Timers.NoteReviveLag(i / 10) end
+  equal(#again.ns.Timers.LearnedDB().reviveLag, again.ns.Timers.REVIVE_SAMPLES, "the newest samples only")
+  again:assertHealthy()
+end)
+
+test("WoW Forever's chat lockdown queues no shared waves", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:join(1460, 489, "Warsong Gulch")
+  sim.env.C_ChatInfo = sim.env.C_ChatInfo or {}
+  sim.env.C_ChatInfo.InChatMessagingLockdown = function() return true end
+  local T = sim.ns.Timers
+  reviveAt(sim, sim.now + 10, 0.9)
+  equal(#T.outbox, 0, "nothing queued")
+  equal(T.stats.unsent, 0, "nothing retried")
+  sim:assertHealthy()
 end)

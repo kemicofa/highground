@@ -176,5 +176,5 @@ test("base overview distinguishes fresh sightings and warns once for an urgent f
   T.AddOverview(rows, sim.now + 1)
   equal(#rows, 2, "capture row plus the uncontested Stables")
   equal(cap.text, "Farm · 1 seen 6s ago", "sightings join the capture row")
-  equal(rows[2].text, "Stables · no recent sightings")
+  equal(rows[2].text, "Stables", "a base without sightings shows only its name")
 end)

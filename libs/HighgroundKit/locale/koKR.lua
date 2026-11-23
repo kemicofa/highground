@@ -1709,7 +1709,6 @@ assert(ns.Locale:Register("koKR", {
   ["battlegrounds.overview.take_another_objective.d552f5"] = "다른 목표를 잡아라",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message} 현재 스코어링이 계속되고 진행 중인 캡처가 완료되었다고 가정합니다.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} 뷰 {age}초 전",
-  ["battlegrounds.overview.no_recent_sightings.5bf248"] = " · 최근 관측 없음",
   ["battlegrounds.overview.node_name_falls_in_value3.fd19ef"] = "{node_name}은 {value3}으로 떨어집니다",
   ["battlegrounds.rows.spot_unknown.a1b11c"] = "알 수 없는 점",
   ["battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a"] = "묘지 타이머를 기다리는 중",

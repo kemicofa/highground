@@ -1709,7 +1709,6 @@ assert(ns.Locale:Register("esMX", {
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Toma otro objetivo",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. Supone que la puntuación actual se mantiene y que las capturas en curso se completan.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} vistos hace {age}s",
-  ["battlegrounds.overview.no_recent_sightings.5bf248"] = " · no hay avistamientos recientes",
   ["battlegrounds.overview.node_name_falls_in_value3.fd19ef"] = "{node_name} cae en {value3}",
   ["battlegrounds.rows.spot_unknown.a1b11c"] = "punto desconocido",
   ["battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a"] = "Esperando un temporizador de cementerio",

@@ -1709,7 +1709,6 @@ assert(ns.Locale:Register("zhTW", {
   ["battlegrounds.overview.take_another_objective.d552f5"] = "採取另一個目標",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}號。假設當前評分繼續，正在進行的捕獲完成。",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} 檢視 {age}s 前",
-  ["battlegrounds.overview.no_recent_sightings.5bf248"] = " · 沒有最近的觀察",
   ["battlegrounds.overview.node_name_falls_in_value3.fd19ef"] = "{node_name}屬於{value3}",
   ["battlegrounds.rows.spot_unknown.a1b11c"] = "未知",
   ["battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a"] = "等待一個墓地計時器",

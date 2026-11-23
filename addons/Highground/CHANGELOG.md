@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Objectives panel: the overview's **Hold bases to win** row is gone; a plan only shows while your team is behind. Rows without a countdown (NEED, base names) use the clock's space, so "Alliance needs 3 bases" is no longer cut off. The flag row reads **Respawn** and shows a flag icon.
 - Resurrection map pins sit on the spirit healer once Highground has seen your release position there, also in later matches. Saved spots were drawn a little below, as for a graveyard known only from its base icon: in WoW Forever's Darkspear Islands, Shipwreck Cove's pin was south of its graveyard. A graveyard first placed at its base icon moves to the spirit healer the first time you release there.
 - Warsong Gulch counts down the flag respawn after a capture: **FLAG respawn** on the objectives window and a pin at both flag rooms on the map, as Eye of the Storm already did. WoW Forever starts at 11 seconds (measured in a live match), Cata at 23; elsewhere the first capture teaches it. Highground learns each map's respawn from "The flags are now placed at their bases." and, after three captures, uses what it measured. The winning capture shows no countdown. `/hg bg test` shows a sample.
 - WoW Forever: your specialization is the talent tree with the most points. It was always the first tree (Assassination, Arms, Balance...), so match history, automatic profiles and spec-based range used the wrong spec. Matches already recorded keep the spec they saved.

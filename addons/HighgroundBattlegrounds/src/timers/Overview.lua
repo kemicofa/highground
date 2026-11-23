@@ -40,19 +40,17 @@ function T.AddOverview(rows, now, pool)
     if row.kind == "NEED" and row.team == mine then need = row end
   end
   local plan
-  if win then
-    local ours = win.team == mine
+  -- Only a losing team gets a plan: the WIN row already says a lead holds.
+  if win and win.team ~= mine then
     local message
-    if ours then
-      message = ns.Locale:Get("battlegrounds.overview.hold_bases_to_win.b95577")
-    elseif need then
+    if need then
       holdArgs.k, holdArgs.word, holdArgs.value4 = string.format("%d", need.count), need.noun, need.count > 1 and "s" or ""
       message = ns.Locale:Format("battlegrounds.overview.hold_k_word_value4.62953b", holdArgs)
     else
       message = ns.Locale:Get("battlegrounds.overview.take_another_objective.d552f5")
     end
     plan = T.Tag(NewRow(pool), "PLAN")
-    plan.color, plan.text, plan.time = ns.Theme.Rgb(ours and "success" or "warning"), message, ""
+    plan.color, plan.text, plan.time = ns.Theme.Rgb("warning"), message, ""
     planArgs.message = message
     plan.detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", planArgs)
   end

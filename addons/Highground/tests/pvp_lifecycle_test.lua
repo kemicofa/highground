@@ -144,7 +144,7 @@ t.test("timer windows rewrite their row models in place and follow structural ch
   local T = sim.ns.Timers
   local rows = T.ObjectiveRows(sim.now)
   local win, cap = rowWith(rows, "WIN"), rowWith(rows, "CAP", "Blacksmith")
-  assert(win and cap and rowWith(rows, "PLAN"), "prediction, capture and plan rows")
+  assert(win and cap, "prediction and capture rows")
   local resRows = T.Rows(sim.now)
   local first = resRows[1]
   local again = T.ObjectiveRows(sim.now + 1)
@@ -170,7 +170,7 @@ t.test("timer windows rewrite their row models in place and follow structural ch
   sim:assertHealthy()
 end)
 
-t.test("translated objective rows keep their plan and cached text follows a language change", function()
+t.test("translated objective rows know the winner and cached text follows a language change", function()
   local sim = setup("cata", 40402)
   arathi(sim)
   local T, C, L = sim.ns.Timers, sim.ns.Core, sim.ns.Locale
@@ -179,8 +179,10 @@ t.test("translated objective rows keep their plan and cached text follows a lang
   local win
   for _, row in ipairs(rows) do if row.kind == "WIN" then win = row end end
   assert(win and win.tag == L:Get("battlegrounds.objectives.win.662fae"), "the WIN row carries translated text")
-  t.equal(rows[1].text, L:Get("battlegrounds.overview.hold_bases_to_win.b95577"),
-    "the plan reads the row kind and team, not translated names")
+  t.equal(win.team, T.MyTeam(), "your team leads")
+  for _, row in ipairs(rows) do
+    assert(row.kind ~= "PLAN", "a leading team gets no plan: the overview reads kind and team, not translated names")
+  end
   C.lastError = "test: shown"
   C.Tick()
   local german = C.subtitle.text

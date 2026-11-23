@@ -21,11 +21,14 @@ local function ResurrectionRows(me, them)
 end
 
 local function ObjectiveRows(me, them)
-  local name = { A = "Alliance", H = "Horde" }
+  local name = { A = ns.Locale:Get("shared.copy.alliance.a21193"), H = ns.Locale:Get("shared.copy.horde.cf9229") }
   return {
     Timers.Tag({ team = me, color = Timers.TeamColor(me), frac = 0.72, time = "3:10", text = name[me] .. "  1500-1180" }, "WIN"),
     Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
-    Timers.Tag({ color = Theme.Rgb("white"), text = ns.Locale:Get("battlegrounds.objectives.respawn.5a0bd4"), left = 8, total = 11 }, "FLAG"),
+    -- After CAP (the guide's capture target). No clock: the text uses its room.
+    Timers.Tag({ team = them, color = Timers.TeamColor(them), time = "", text = ns.Locale:Format("battlegrounds.objectives.value1_needs_k_word_value4.34ded4",
+      { value1 = name[them], k = "4", word = "base", value4 = "s" }) }, "NEED"),
+    Timers.Tag({ color = Theme.Rgb("white"), text = ns.Locale:Get("battlegrounds.objectives.respawn.1b63d8"), left = 8, total = 11, icon = Timers.FLAG_ICON }, "FLAG"),
     Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 }, "CAPPING"),
   }, Timers.Hex(Timers.TeamColor(me)) .. "1080|r  " .. Timers.Hex(Timers.TeamColor(them)) .. "940|r"
 end

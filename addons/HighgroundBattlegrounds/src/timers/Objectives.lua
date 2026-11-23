@@ -159,8 +159,8 @@ function Timers.ObjectiveRows(now)
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     local row = pool:Add()
     Timers.Tag(row, "FLAG")
-    row.color, row.left = ns.Theme.Rgb("white"), ns.flagRespawnAt - now
-    row.text = ns.Locale:Get("battlegrounds.objectives.respawn.5a0bd4")
+    row.color, row.left, row.icon = ns.Theme.Rgb("white"), ns.flagRespawnAt - now, Timers.FLAG_ICON
+    row.text = ns.Locale:Get("battlegrounds.objectives.respawn.1b63d8")
     row.total = Timers.FlagRespawnTime()
   end
   if Timers.AddOverview then Timers.AddOverview(out, now, pool) end

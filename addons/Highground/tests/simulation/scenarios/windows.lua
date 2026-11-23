@@ -260,8 +260,8 @@ test("the battleground preview opens its panels with an entrance and flashes the
   local res, obj = sim.ns.Timers.Windows()
   assert(M.IsPlaying(res) and M.IsPlaying(obj), "both windows open with an entrance")
   local function flashing(r) return r.flash.wbMotion ~= nil and r.flash.wbMotion.flash.group:IsPlaying() end
-  assert(not flashing(obj.rows[1]) and not flashing(obj.rows[2]) and not flashing(obj.rows[3]), "rows present on opening stay steady")
-  assert(obj.rows[4]:IsShown() and flashing(obj.rows[4]), "the capture in progress flashes once")
+  for i = 1, 4 do assert(not flashing(obj.rows[i]), "rows present on opening stay steady") end
+  assert(obj.rows[5]:IsShown() and flashing(obj.rows[5]), "the capture in progress flashes once")
   assert(not flashing(res.rows[1]), "static resurrection rows stay steady")
   assert(sim.ns.BattlegroundsPreview.Stop())
   assert(not obj:IsShown() and obj:GetAlpha() == 1, "stopping closes immediately and resets alpha")

@@ -276,14 +276,14 @@ function Timers.LayoutRow(w, r, i)
     Timers.Font(r.place, "rowNameSmall")
     r.place:SetPoint("TOPLEFT", 33, -3)
   end
-  r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
+  -- Text stops at the clock; a row without one (r.wide) uses its room.
+  if r.wide then r.place:SetPoint("RIGHT", compact and -5 or -7, compact and 0 or 1)
+  else r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0) end
 end
 
 function Timers.RowFrame(w, i)
   local r = w.rows[i]
-  if r then
-    return r
-  end
+  if r then return r end
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
   r.flash = Theme.Fill(r, "BORDER", "accent")
@@ -351,7 +351,7 @@ local function Fresh(w, tag, opening)
 end
 
 -- row = { tag, color, text, left + total (bar fills as it runs out) |
---         frac (bar as given), time (text, else from left), est, die }
+--         frac (bar as given), time (text, else from left), est, die, icon }
 function Timers.ShowRows(w, rows, info)
   local opening = not w:IsShown()
   if not w.tagSeen then w.tagSeen, w.tagCounts = {}, {} end
@@ -364,7 +364,7 @@ function Timers.ShowRows(w, rows, info)
     end
     r.data = row
     -- The crest says whose row it is; OURS / THEIRS would repeat it.
-    local crest = Timers.FactionIcon(r.faction, row.team)
+    local crest = Timers.FactionIcon(r.faction, row.team, row.icon)
     r.tag:SetText(crest and CREST_TAGS[row.kind] and "" or row.tag)
     Theme.Paint(r.tag, c)
     local frac = row.frac
@@ -373,7 +373,9 @@ function Timers.ShowRows(w, rows, info)
     end
     r.bar:SetValue(frac or 0)
     Timers.BarColor(r.bar, c, row.est and BAR_EST or BAR_LIVE)
-    r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--")
+    local clock = row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--"
+    r.time:SetText(clock)
+    if (clock == "") ~= r.wide then r.wide = clock == ""; Timers.LayoutRow(w, r, i) end
     local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
     r.edge:SetColor(urgent and "warning" or "border")
     r.glow:SetActive(urgent, urgent)

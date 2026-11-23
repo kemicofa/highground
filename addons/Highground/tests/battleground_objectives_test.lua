@@ -151,6 +151,12 @@ t.test("Eye of the Storm tracks the single flag and its respawn after a capture"
   assert(flag and flag.tag == "FLAGGE" and flag.text == "Wiedererscheinen",
     "German respawn row: " .. tostring(flag and flag.tag) .. " " .. tostring(flag and flag.text))
   sim.ns.Localization.SetPreference("enUS")
+  local T = sim.ns.Timers
+  for _, row in ipairs(T.ObjectiveRows(sim.now)) do if row.kind == "FLAG" then flag = row end end
+  equal(flag.text, "Respawn", "capitalised respawn")
+  local _, w = T.Windows()
+  T.ShowRows(w, { flag })
+  assert(w.rows[1].faction:IsShown() and w.rows[1].faction.texture == T.FLAG_ICON, "the row shows the flag icon")
   equal(next(Flags.carriers), nil, "capture clears the flags window")
   sim:advance(1)
   local pin
@@ -259,6 +265,20 @@ t.test("chat names match coloured, short and Forever first names but never an am
   sim:event("UPDATE_BATTLEFIELD_SCORE"); sim:advance(1)
   equal(Core.EnemyByChatName("Twin").key, "Twin-Elsewhere", "a unique short name from another realm")
   equal(Core.EnemyByChatName(nil), nil, "no name")
+end)
+
+t.test("objective text without a clock uses the clock's room", function()
+  local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  local T = sim.ns.Timers
+  local _, w = T.Windows()
+  local text, c = "Alliance needs 3 bases", T.TeamColor("A")
+  T.ShowRows(w, { T.Tag({ text = text, time = "", color = c }, "NEED"), T.Tag({ text = text, time = "1:00", color = c }, "WIN") })
+  local wide, clocked = w.rows[1].place:GetWidth(), w.rows[2].place:GetWidth()
+  assert(wide > clocked + 60, "no clock, wider text: " .. wide .. " vs " .. clocked)
+  T.LayoutWindow(w)
+  equal(w.rows[1].place:GetWidth(), wide, "a relayout keeps the room")
+  T.ShowRows(w, { T.Tag({ text = text, time = "0:30", color = c }, "NEED") })
+  equal(w.rows[1].place:GetWidth(), clocked, "a clock takes it back")
 end)
 
 t.finish("Battleground objectives: " .. t.tests .. " tests")

@@ -187,6 +187,29 @@ t.test("an unknown battleground is recorded and gets no objective or side rules"
   equal(rows(sim).WIN, nil, "no prediction")
 end)
 
+t.test("WoW Forever's Arathi Basin predicts at classic rates before any are learned", function()
+  local sim = new("retail", {}, function(s, env)
+    widgets(s, env)
+    env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end
+  end)
+  sim:enemy("Foe")
+  sim:join(1461, 529, "Arathi Basin")
+  sim.bars[1671] = { leftBarValue = 1140, rightBarValue = 1460, leftBarMax = 2000, rightBarMax = 2000 }
+  -- Alliance holds two bases (38: stables owned), Horde three (40).
+  sim.pois = {
+    { name = "Stables", position = { x = 0.37, y = 0.29 }, textureIndex = 38 },
+    { name = "Gold Mine", position = { x = 0.58, y = 0.31 }, textureIndex = 38 },
+    { name = "Blacksmith", position = { x = 0.46, y = 0.45 }, textureIndex = 40 },
+    { name = "Farm", position = { x = 0.56, y = 0.60 }, textureIndex = 40 },
+    { name = "Lumber Mill", position = { x = 0.40, y = 0.56 }, textureIndex = 40 },
+  }
+  sim:event("AREA_POIS_UPDATED")
+  equal(sim.ns.Timers.LearnedDB().rates, nil, "nothing learned yet")
+  local out = rows(sim)
+  equal(out.WIN.text, "Horde  1500-2000", "three bases outpace two")
+  equal(out.WIN.time, "5:24", "at the classic rates")
+end)
+
 t.test("graveyard pins follow ownership changes and name each clock's source", function()
   local sim = new("cata", {})
   sim:enemy("Foe")

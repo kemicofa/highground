@@ -10,6 +10,9 @@ local CLASSIC_ANCHORS = {
   ["lumber mill"] = { 0.4039, 0.5570 }, ["gold mine"] = { 0.5752, 0.3087 },
   ["trollbane hall"] = { 0.3286, 0.1911 }, ["defiler's den"] = { 0.6547, 0.6835 },
 }
+-- Classic points per second by bases held (10 every 12/9/6/3 s, 30 every
+-- second with all five), from BattlegroundAB.h; learned rates replace them.
+local CLASSIC_RATES = { [0] = 0, 0.8333, 1.1111, 1.6667, 3.3333, 30 }
 
 ns.RegisterBattleground({
   id = "arathi_basin", gameName = "Arathi Basin", kind = "nodes", size = 15,
@@ -21,6 +24,7 @@ ns.RegisterBattleground({
     -- the starts, so they are declared: an unplaced own resurrection is timed
     -- there instead of on an unnamed "spot unknown" row.
     forever = { ui = { 1461, 93 }, inst = { 529 }, rules = {
+      scoring = { seedRates = CLASSIC_RATES },
       map = { anchors = CLASSIC_ANCHORS },
       graveyards = { starts = {
         { team = "A", label = T"battlegrounds.darkspearislands.alliance_start.7669f4", x = 0.3286, y = 0.1911 },
@@ -30,7 +34,7 @@ ns.RegisterBattleground({
     cata = { ui = { 93, 1461 }, inst = { 529 }, rules = {
       -- Observed Cata calibration; learned capture times replace it (timers/Nodes.lua).
       capture = { seconds = 65 },
-      scoring = { seedRates = { [0] = 0, 0.8333, 1.1111, 1.6667, 3.3333, 30 } },
+      scoring = { seedRates = CLASSIC_RATES },
       map = { anchors = CLASSIC_ANCHORS },
     } },
   },

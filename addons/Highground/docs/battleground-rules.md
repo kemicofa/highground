@@ -4,7 +4,7 @@
 
 ## Find the matching configuration
 
-Start with the matching file in `addons/HighgroundBattlegrounds/src/config/battlegrounds/` from the repository root. Highground loads it through `features/battlegrounds/config/battlegrounds/`. For example, [ArathiBasin.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/ArathiBasin.lua) configures standard Retail's 60-second capture rule, Cata's observed 65 seconds, Forever's named start graveyards and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
+Start with the matching file in `addons/HighgroundBattlegrounds/src/config/battlegrounds/` from the repository root. Highground loads it through `features/battlegrounds/config/battlegrounds/`. For example, [ArathiBasin.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/ArathiBasin.lua) configures standard Retail's 60-second capture rule, Cata's observed 65 seconds, the classic point rates Cata and Forever share, Forever's named start graveyards and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
 
 The registry and resolver live in [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua). See [battleground coverage](battlegrounds.md) for implemented mechanics and remaining limits.
 

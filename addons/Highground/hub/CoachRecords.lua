@@ -28,7 +28,7 @@ function C.RecordSteps()
     { id = "result", title = ns.Locale:Get("highground.coachrecords.choose_a_match_to_inspect.91330e"), text = ns.Locale:Get("highground.coachrecords.select_warsong_gulch_or_arathi_basin_left.1fabad"),
       enter = Open, target = function() return data.win.rows[1] end, context = Context },
     { id = "summary", title = ns.Locale:Get("highground.coachrecords.read_the_match_summary.37a497"), text = ns.Locale:Get("highground.coachrecords.the_card_shows_the_result_your_specialization.b2cebf"),
-      enter = Open, target = function() return data.win.profile and data.win.profile.stats end, context = Context },
+      enter = Open, target = function() return data.win.profile and data.win.profile.hero end, context = Context },
     { id = "timeline", title = ns.Locale:Get("highground.coachrecords.open_the_recorded_timeline.0c1d7f"), text = ns.Locale:Get("highground.coachrecords.full_timeline_lists_the_objective_events_observed.333047"),
       enter = Open, target = function() return data.win.actions[1] end, context = Context,
       requireAction = true, advance = function() return data.timeline and data.timeline:IsVisible() end, hint = ns.Locale:Get("highground.coachrecords.click_full_timeline.66d8b7") },

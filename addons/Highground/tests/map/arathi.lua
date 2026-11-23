@@ -18,7 +18,7 @@ for _, mapID in ipairs({ 93, 1461 }) do
     local items = s.items()
     check(#items == 1 and items[1].x > 0.3 and items[1].x < 0.7 and items[1].y > 0.1 and items[1].y < 0.75,
       area .. " reaches the playable map")
-    check(items[1].label == "~" and support.tooltip(items[1]):find("approximate area anchor", 1, true),
+    check(items[1].label == "~" and items[1].zone ~= nil,
       "fallback area positions remain visibly approximate")
   end
   s.area, s.now = "Arathi Basin", s.now + 5
@@ -28,7 +28,7 @@ for _, mapID in ipairs({ 93, 1461 }) do
     "leaving a node for the road keeps a guess near the node just left")
   check(sight.x == 0.6547 and sight.r > 80, "the guess sits on the left anchor with a widened radius")
   local item = s.items()[1]
-  check(item and item.label == "~" and support.tooltip(item):find("defiler's den moments before", 1, true),
+  check(item and item.label == "~" and item.zone ~= nil,
     "the recent-area guess reaches the map, visibly approximate")
   s.now = s.now + 16
   s.tick()

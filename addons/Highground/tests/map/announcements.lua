@@ -20,7 +20,8 @@ for _, message in ipairs({
   check(sight.x == 0.35904251 and sight.y == 0.62878461, "remote enemy is placed at the announced capture flag")
   s.tick()
   check(ns.Test.intel[key] == sight, "first scan preserves event-driven intel")
-  check(support.tooltip(s.items()[1]):find("battleground announcement", 1, true), "tooltip identifies the source")
+  check(s.items()[1].zone and support.tooltip(s.items()[1]):find("last seen 0s ago", 1, true),
+    "an announced enemy sits in a circle whose tooltip says how long ago")
   check(ns.MapWhere(key):find("last seen", 1, true), "announcement is last-seen information even when fresh")
   s.now = s.now + 65
   s.nodeChat("The Horde has taken the lighthouse!")

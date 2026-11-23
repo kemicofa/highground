@@ -14,7 +14,8 @@ ASSETS = {
     **{f"libs/HighgroundKit/media/{name}": (("libs/HighgroundKit/ui/Style.lua", name),)
        for name in ("BarlowCondensed-Bold.ttf", "BarlowCondensed-SemiBold.ttf",
                     "BarlowCondensed-Medium.ttf", "JetBrainsMono-Bold.ttf",
-                    "HighgroundCrest.tga", "HighgroundIcon.tga", "ControlCorners.tga", "ProgressCircle.tga")},
+                    "HighgroundCrest.tga", "HighgroundIcon.tga", "ControlCorners.tga", "ProgressCircle.tga",
+                    "MapRing.tga")},
     **{f"libs/HighgroundKit/sounds/{name}.ogg": (("libs/HighgroundKit/core/Stealth.lua", name),)
        for name in ("stealth-enter", "stealth-exit")},
     "libs/HighgroundKit/sounds/nearby.ogg": (("libs/HighgroundKit/world/Nearby.lua", "nearby.ogg"),),

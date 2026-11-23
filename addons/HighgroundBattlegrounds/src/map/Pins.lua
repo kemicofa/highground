@@ -42,7 +42,7 @@ function PinMixin:OnLoad()
 end
 
 function PinMixin:OnAcquired(item)
-  self.item = item
+  self.item, item.pin = item, self
   local size = item.size or 22
   self:SetSize(size, size)
   if item.ring then
@@ -98,13 +98,14 @@ function PinMixin:OnMouseLeave()
 end
 
 -- Zone pins live in map units: no scaling limits, so they grow and shrink
--- with the map while enemy pins keep their screen size. Faint until hovered.
+-- with the map while enemy pins keep their screen size. A faint fill inside a
+-- thin outline in the theme's map colour (mapZone).
 local ZonePinMixin = CreateFromMixins(MapCanvasPinMixin)
 _G[(ns.FRAME_PREFIX or "Highground") .. "ZonePinMixin"] = ZonePinMixin
 
 function ZonePinMixin:OnLoad()
   self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
-  Theme.Tint(self.Rim, "black", 0.55) -- a soft dark edge around the faint fill
+  self.Rim:SetTexture(ns.Core.MAP_RING)
   -- How many enemies were last seen here; digits only, the map's font.
   self.Count:SetFont("Fonts\\ARIALN.TTF", ns.UIConfig.map.fontSize + 4, "OUTLINE")
   if self.SetMouseClickEnabled then self:SetMouseClickEnabled(false) end
@@ -115,20 +116,26 @@ function ZonePinMixin:OnAcquired(item)
   local canvas = self:GetMap():GetCanvas()
   local size = math.max(8, 2 * item.radius * canvas:GetWidth())
   self:SetSize(size, size)
-  Theme.Tint(self.Disc, item.ring or "mapLabel", 0.35)
+  Theme.Tint(self.Disc, item.ring or "mapZone", 1)
+  Theme.Tint(self.Rim, item.ring or "mapZone", 1)
   self.Count:SetText(item.count and item.count > 1 and tostring(item.count) or "")
   Theme.Paint(self.Count, "white")
   self:SetHighlight(false)
   self:SetPosition(item.x, item.y)
 end
 
--- Faint until hovered; the count stays readable, fading with age.
+-- Subtle even when hovered, older circles fainter still (item.alpha).
+-- Hovering also brings the enemies inside to full strength.
 function ZonePinMixin:SetHighlight(on)
-  local base = self.item and self.item.alpha or 0.3
+  local item = self.item
+  local base = item and item.alpha or 1
   self.highlighted = on
-  self.Disc:SetAlpha(on and 1 or base)
-  self.Rim:SetAlpha(on and 1 or base)
-  self.Count:SetAlpha(on and 1 or math.min(1, base * 2.5))
+  self.Disc:SetAlpha(on and 0.1 or 0.06 * base)
+  self.Rim:SetAlpha(on and 0.7 or 0.45 * base)
+  self.Count:SetAlpha(on and 1 or base)
+  for _, m in ipairs(item and item.members or {}) do
+    if m.pin and m.pin.item == m then m.pin:SetAlpha(on and 1 or m.alpha or 1) end
+  end
 end
 
 function ZonePinMixin:OnMouseEnter()

@@ -92,6 +92,8 @@ ns.Themes = {
       capPlateAlly = C("82b8f4"),
       mapMark = C("ffc47f"),
       mapLabel = C("bbc9dd"),
+      -- Enemy map circles: the theme's hue, light enough for any map art.
+      mapZone = C("f4bb48"),
       dead = C("a8b8cd"),
       -- The default "theme" marker ring. Colour themes give it their hue.
       sniperTheme = C("ffd36b"),

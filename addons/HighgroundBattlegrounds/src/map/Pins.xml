@@ -34,12 +34,13 @@
     <Size x="40" y="40"/>
     <Layers>
       <Layer level="BACKGROUND">
-        <Texture parentKey="Rim" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask">
-          <Anchors><Anchor point="TOPLEFT" x="-2" y="2"/><Anchor point="BOTTOMRIGHT" x="2" y="-2"/></Anchors>
+        <Texture parentKey="Disc" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask">
+          <Anchors><Anchor point="TOPLEFT" x="1" y="-1"/><Anchor point="BOTTOMRIGHT" x="-1" y="1"/></Anchors>
         </Texture>
       </Layer>
+      <!-- The outline (MapRing.tga) is set in Pins.lua: its path depends on the addon. -->
       <Layer level="BORDER">
-        <Texture parentKey="Disc" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask">
+        <Texture parentKey="Rim">
           <Anchors><Anchor point="TOPLEFT"/><Anchor point="BOTTOMRIGHT"/></Anchors>
         </Texture>
       </Layer>

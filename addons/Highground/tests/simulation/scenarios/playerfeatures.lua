@@ -257,3 +257,75 @@ test("cart and epic status uses observed widgets and messages without fabricated
   assert(event and event.text:find("delivered", 1, true))
   sim:leave(); sim:advance(1.1); equal(#M.rows, 0)
 end)
+
+test("match history shows a result card, scoreboard tiles and readable objectives", function()
+  local sim = new("retail", nil, function(s)
+    s.env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end -- WoW Forever hides ruleset suffixes
+    dofile("../../tools/wowsim/geometry.lua")(s)
+  end)
+  local H, Core = sim.ns.MatchHistory, sim.ns.Core
+  local spec = next(Core.specInfo)
+  local events = {}
+  for i = 1, 14 do
+    events[i] = { at = i * 61, text = "The Alliance Flag was picked up by Someone With A Long Surname, event " .. i .. "!" }
+  end
+  local list = H.All()
+  list[1] = { id = "full", name = "Warsong Gulch", result = "Win", character = "Me Myself-RP-PvP", game = "forever",
+    started = sim.env.time() - 600, duration = 932, spec = spec, events = events,
+    stats = { killingBlows = 2, honorableKills = 28, deaths = 3, honorGained = 269, damageDone = 5956, healingDone = 0, ratingChange = 0 } }
+  list[2] = { id = "empty", name = "Arathi Basin", result = "Left early", character = "Me Myself-RP-PvP", game = "forever",
+    started = sim.env.time() - 1200, duration = 250, stats = {}, events = {} }
+  local w = H.Open()
+  local p, row = w.profile, w.rows[1]
+  equal(row.label:GetText(), "Warsong Gulch")
+  equal(row.summary:GetText(), "Win · 15:32", "the row names the result and duration")
+  assert(row.icon:IsShown(), "the row shows the spec icon")
+  equal(p.state:GetText(), "WIN")
+  equal(p.name:GetText(), "Warsong Gulch")
+  equal(p.player:GetText(), Core.specInfo[spec].name .. " · Me Myself", "spec and player without the ruleset suffix")
+  assert(not p.when:GetText():find("forever", 1, true), "the raw game id is not shown")
+  assert(p.emblem:IsShown() and p.icon.texture == Core.specInfo[spec].icon, "the card shows the spec icon")
+  assert(not w.detail:IsShown(), "structured sections replace the plain-text block")
+  local values = {}
+  for _, cell in ipairs(p.metrics) do if cell:IsShown() then values[#values + 1] = cell.value:GetText() end end
+  equal(#values, 6, "a rating change of zero is left out")
+  equal(values[1], "2"); equal(values[2], "28"); equal(values[3], "3"); equal(values[6], "0")
+  equal(p.eventsNote:GetText(), "Latest 11 of 14. Full timeline lists them all.")
+  equal(p.events[1].text:GetText(), events[4].text, "the latest events are listed")
+  equal(p.events[11].text:GetText(), events[14].text)
+  local function contains(parent, child)
+    local a, b = sim.bounds(parent), sim.bounds(child)
+    assert(b[1] >= a[1] - 0.01 and b[1] + b[3] <= a[1] + a[3] + 0.01, "text stays within its section width")
+    assert(b[2] >= a[2] - 0.01 and b[2] + b[4] <= a[2] + a[4] + 0.01, "section includes every line of text")
+  end
+  local function fits()
+    for _, field in ipairs({ p.state, p.name, p.player, p.when }) do contains(p.hero, field) end
+    for _, cell in ipairs(p.metrics) do
+      if cell:IsShown() then contains(cell, cell.value); contains(cell, cell.label); contains(p.stats, cell) end
+    end
+    for _, line in ipairs(p.events) do
+      if line.text:IsShown() then
+        contains(w.detailBody, line.text)
+        assert(line.text:GetHeight() >= line.text:GetStringHeight(), "event text has enough height")
+        local at, text = sim.bounds(line.at), sim.bounds(line.text)
+        assert(at[1] + at[3] <= text[1], "times keep their own column")
+      end
+    end
+    local scroll, action = sim.bounds(w.detailScroll), sim.bounds(w.actions[1])
+    assert(scroll[2] + scroll[4] <= action[2], "fixed actions stay outside scrolling details")
+  end
+  for _, theme in ipairs(sim.ns.Theme.Names()) do
+    sim.ns.Theme.Use(theme)
+    for _, scale in ipairs({ 1, 1.5 }) do
+      Core.SetFontScale(scale)
+      w:SetWidth(620); w:Refresh(); fits()
+      w:SetWidth(800); w:Refresh(); fits()
+    end
+  end
+  w:Select("empty")
+  equal(p.state:GetText(), "LEFT EARLY")
+  assert(not p.stats:IsShown(), "no tiles without reported stats")
+  equal(p.eventsNote:GetText(), "No objective events were observed.")
+  assert(not p.events[1].text:IsShown())
+  w.search:SetText("Me Myself"); equal(#w.items, 2, "search uses the display name")
+end)

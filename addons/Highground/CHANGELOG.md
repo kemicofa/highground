@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Long enemy names, such as WoW Forever's first and last names, are cut off less often: a row's name now extends over empty slots on its right (no status chip, no spec text) and stops before anything the row shows. This helps most in Compact layout.
+
 ## [3.2.1] - 2026-11-23
 
 - Enemy rows no longer repeat a known spec as text beside its icon; the row's tooltip names a favorable or unfavorable matchup instead of the text's colour. With **Spec icon** off in Battlegrounds → Appearance, the spec shows as text again.

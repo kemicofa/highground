@@ -287,3 +287,33 @@ test("compact toggled in combat outside a battleground applies when combat ends"
   sim:setCombat(false)
   equal(sim.ns.Core.compact, true, "applied on leaving combat")
 end)
+
+test("long enemy names use the room of empty slots and stop before shown ones", function()
+  local sim = new("retail", nil, function(s)
+    s.env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end -- WoW Forever: first and last names
+    dofile("../../tools/wowsim/geometry.lua")(s)
+  end)
+  sim:enemy("Bartholomew Thistlewood", { classID = 8, specIndex = 3 })
+  sim:join()
+  sim:advance(1.5)
+  local C, r = sim.ns.Core, sim.ns.Core.rows[1]
+  local e = r.entry
+  local function right(f) local b = sim.bounds(f); return b[1] + b[3] end
+  local function left(f) return sim.bounds(f)[1] end
+  for _, compact in ipairs({ true, false }) do
+    local mode = compact and "compact" or "normal"
+    sim:command(compact and "compact on" or "compact off")
+    e.cc, e.carrier = nil, nil
+    C.Render()
+    equal(r.name:GetText(), "Bartholomew Thistlewood", mode)
+    assert(r.name:GetStringWidth() <= r.name:GetWidth(), mode .. ": the whole name fits beside empty slots")
+    if compact then assert(right(r.name) <= left(r.dist), "compact: the name stops before the distance") end
+    e.cc = true
+    C.Render()
+    assert(r.pip:IsShown() and right(r.name) <= left(r.pip), mode .. ": the name stops before a status chip")
+    e.cc, e.carrier = nil, true
+    C.Render()
+    assert(r.spec:GetText() ~= "", mode .. ": a carrier fills the spec slot")
+    if compact then assert(right(r.name) <= left(r.spec), "compact: the name stops before spec text") end
+  end
+end)

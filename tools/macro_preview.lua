@@ -144,6 +144,27 @@ if coach then
   if tonumber(arg[5]) then sim.ns.Onboarding.Coach.Go(tonumber(arg[5])) end
 end
 if arg[3] == "journal-window" then w:Hide(); extraWindow = sim.ns.EnemyJournal.Open() end
+if arg[3] == "history-window" then
+  w:Hide()
+  local now, list, spec = sim.env.time(), sim.ns.MatchHistory.All(), next(sim.ns.Core.specInfo)
+  local flags = { "The Horde flag was picked up by Ifyou Want!", "Ifyou Want captured the Horde flag!",
+    "The flags are now placed at their bases.", "The Alliance Flag was picked up by Ombrelovo Lovolovo!",
+    "The Alliance Flag was dropped by Ombrelovo Lovolovo!", "The Alliance Flag was returned to its base by Kawakai Pvp!",
+    "Sikko Moonshade captured the Horde flag!" }
+  for i, m in ipairs({
+    { "Warsong Gulch", "Loss", 730, { killingBlows = 0, honorableKills = 16, deaths = 2, honorGained = 19, damageDone = 3805, healingDone = 0, ratingChange = 0 }, 14 },
+    { "Arathi Basin", "Win", 1481, { killingBlows = 4, honorableKills = 31, deaths = 5, honorGained = 412, damageDone = 48211, healingDone = 3120 }, 6 },
+    { "Warsong Gulch", "Win", 932, { killingBlows = 2, honorableKills = 28, deaths = 3, honorGained = 269, damageDone = 5956, healingDone = 0 }, 9 },
+    { "Arathi Basin", "Loss", 1673, {}, 3 },
+    { "Darkspear Islands", "Left early", 549, {}, 0 },
+  }) do
+    local events = {}
+    for e = 1, m[5] do events[e] = { at = e * 53, text = flags[(e - 1) % #flags + 1] } end
+    list[i] = { id = "sample" .. i, name = m[1], result = m[2], character = "Rook Highground-RP-PvP", game = "forever",
+      started = now - i * 5400, duration = m[3], spec = spec, stats = m[4], events = events }
+  end
+  extraWindow = sim.ns.MatchHistory.Open()
+end
 if arg[3] == "journal-bounty" or arg[3] == "journal-note" then
   w:Hide()
   sim.ns.NearbyHistory.All()["Nightshade-Whitemane"] = {

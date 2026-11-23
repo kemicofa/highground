@@ -45,7 +45,7 @@ function Timers.Reset(mapID)
   wipe(Timers.outbox)
   wipe(Timers.track)
   Timers.dieAlertedFor = nil
-  Timers.clock, Timers.clockShared, Timers.periodOverride = nil, nil, nil
+  Timers.clock, Timers.clockShared, Timers.periodOverride, Timers.startClock, Timers.releaseGY = nil, nil, nil, nil, nil
   wipe(Timers.periodVotes)
   ns.flagRespawnAt = nil
   Timers.currentMap, Timers.currentRulesKey = mapID, mapID and Timers.RulesKey()
@@ -59,7 +59,7 @@ function Timers.Reset(mapID)
     local config = Timers.Rules().graveyards
     for _, g in ipairs(config.static or {}) do
       Timers.gys[#Timers.gys + 1] = { id = g.id, team = g.team, label = g.label,
-        x = g.x, y = g.y, configured = true }
+        x = g.x, y = g.y, configured = true, fromStart = true }
     end
     for _, g in ipairs(config.nodes or {}) do
       Timers.gys[#Timers.gys + 1] = { id = g.id, label = g.label, controlNode = g.node,
@@ -82,7 +82,7 @@ function Timers.Reset(mapID)
   -- from the map; never learned or reassigned.
   local graveyards = Timers.Rules().graveyards
   for _, s in ipairs(graveyards and graveyards.starts or {}) do
-    Timers.gys[#Timers.gys + 1] = { team = s.team, label = s.label, x = s.x, y = s.y, configured = true, start = true }
+    Timers.gys[#Timers.gys + 1] = { team = s.team, label = s.label, x = s.x, y = s.y, configured = true, start = true, fromStart = true }
   end
 end
 
@@ -286,7 +286,8 @@ function Timers.ClockEvidence(g, t)
   local c = Timers.clock
   if c and period and c.g ~= g then
     local shared = math.abs(Offset(t - c.at, period)) <= Timers.CLOCK_TOLERANCE
-    if Timers.clockShared ~= shared then
+    local res = Timers.Rules().resurrection
+    if Timers.clockShared ~= shared and not (res and res.shared ~= nil) then -- declared: no votes
       Timers.clockShared = shared
       local v = Verdicts()
       if v then
@@ -320,6 +321,10 @@ function Timers.NextWave(g, now)
   if c and period and shared == true then
     return Cycle(c.at, now, period), false
   end
+  local start = Timers.startClock
+  if start and period and g.fromStart and start.g ~= g then
+    return Cycle(start.at, now, period), false
+  end
   if g.wave then
     return Cycle(g.wave, now, period), true
   end
@@ -346,6 +351,8 @@ function Timers.SetWave(g, t, conf)
   if conf == "exact" or conf == "guide" or conf == "shared" then
     if g.wave and (g.conf == "exact" or g.conf == "guide") then Timers.CheckPeriod(t - g.wave) end
     Timers.ClockEvidence(g, t)
+    local res = Timers.Rules().resurrection
+    if g.fromStart and res and res.startClock then Timers.startClock = { g = g, at = t } end
   end
   -- Exact sources replace estimates; equal-rank sources refresh.
   local rank = { exact = 3, guide = 3, shared = 2, cap = 1 }

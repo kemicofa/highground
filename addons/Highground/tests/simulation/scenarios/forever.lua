@@ -361,7 +361,7 @@ test("WoW Forever Warsong Gulch times both base graveyards from your own wave", 
   sim:enemy("Enemy With Surname")
   sim:join(1460, 489, "Warsong Gulch")
   local T = sim.ns.Timers
-  equal(T.SharedClock(), true, "Forever runs one clock per battleground")
+  equal(T.SharedClock(), false, "Forever: a clock per spirit guide; the starts share one")
   local function row(label)
     for _, r in ipairs(sim.env.HighgroundTimersFrame.rows) do
       if r:IsShown() and r.place.text == label then return r end

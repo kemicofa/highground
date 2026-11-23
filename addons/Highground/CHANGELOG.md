@@ -8,6 +8,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Enemy map circles are a thin outline in your theme's colour around a faint fill, instead of a dark grey disc, and stay subtle when hovered. Hovering a circle shows its enemies at full strength.
 - Class icons in a circle fade less with age. Hovering one shows only the enemy's name, class or spec icon, and how long ago they were seen.
 - Objective overview: a base with no recent sightings shows only its name, without the "no recent sightings" note that was usually cut off.
+- WoW Forever: enemy history and bounties count honorable kills when the kill message adds a realm to the enemy's name. These kills were missed, so history could show 0 kills.
 
 ## [3.2.1] - 2026-11-23
 

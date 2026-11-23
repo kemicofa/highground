@@ -139,7 +139,8 @@ do
   local s, ns, e = client({ unit = "nameplate1" })
   e.plateUnit = "nameplate1"
   s.tick()
-  check(ns.Test.intel[key] and ns.Test.intel[key].r == 40, "visible nameplates permit rough local sightings")
+  local it = ns.Test.intel[key]
+  check(it and it.how == "unknown" and it.x == nil, "a nameplate alone (often 60+ yards away) is seen but not placed near you")
 end
 
 do

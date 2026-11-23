@@ -105,6 +105,8 @@ _G[(ns.FRAME_PREFIX or "Highground") .. "ZonePinMixin"] = ZonePinMixin
 function ZonePinMixin:OnLoad()
   self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
   Theme.Tint(self.Rim, "black", 0.55) -- a soft dark edge around the faint fill
+  -- How many enemies were last seen here; digits only, the map's font.
+  self.Count:SetFont("Fonts\\ARIALN.TTF", ns.UIConfig.map.fontSize + 4, "OUTLINE")
   if self.SetMouseClickEnabled then self:SetMouseClickEnabled(false) end
 end
 
@@ -113,13 +115,20 @@ function ZonePinMixin:OnAcquired(item)
   local canvas = self:GetMap():GetCanvas()
   local size = math.max(8, 2 * item.radius * canvas:GetWidth())
   self:SetSize(size, size)
-  Theme.Tint(self.Disc, item.ring or "mapLabel", 0.22)
+  Theme.Tint(self.Disc, item.ring or "mapLabel", 0.35)
+  self.Count:SetText(item.count and item.count > 1 and tostring(item.count) or "")
+  Theme.Paint(self.Count, "white")
   self:SetHighlight(false)
   self:SetPosition(item.x, item.y)
 end
 
+-- Faint until hovered; the count stays readable, fading with age.
 function ZonePinMixin:SetHighlight(on)
-  self:SetAlpha(on and 1 or (self.item and self.item.alpha or 0.3))
+  local base = self.item and self.item.alpha or 0.3
+  self.highlighted = on
+  self.Disc:SetAlpha(on and 1 or base)
+  self.Rim:SetAlpha(on and 1 or base)
+  self.Count:SetAlpha(on and 1 or math.min(1, base * 2.5))
 end
 
 function ZonePinMixin:OnMouseEnter()

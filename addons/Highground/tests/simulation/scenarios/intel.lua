@@ -46,35 +46,35 @@ test("approximate sightings share a faint circle that holds their enemies on bot
     sim.area = area
     sim:advance(2.5)
     for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
-      local zones, enemies, more = {}, {}, 0
+      local zones, enemies = {}, {}
       for _, pin in ipairs(canvas.pins) do
         if pin.item.radius then zones[#zones + 1] = pin end
         if pin.item.icon == "classicon-mage" then enemies[#enemies + 1] = pin end
-        if pin.item.label and pin.item.label:match("^%+%d+$") then more = more + tonumber(pin.item.label:sub(2)) end
       end
       equal(#zones, 1, "enemies seen in one area share one circle")
       local zone = zones[1]
       local radius = zone:GetWidth() / 2
-      assert(zone.item.alpha < 1, "the circle is faint until hovered")
-      equal(#enemies + more, 15, "every enemy is drawn or counted")
+      equal(zone.Count.text, "15", "the circle shows how many were seen there")
+      assert(#enemies <= 15, "icons only for the enemies that fit")
       for i, pin in ipairs(enemies) do
         local dx = (pin.x - zone.x) * canvas:GetWidth()
         local dy = (pin.y - zone.y) * canvas:GetHeight()
-        assert(math.sqrt(dx * dx + dy * dy) <= radius + 0.5, "enemies sit inside their circle")
+        local d = math.sqrt(dx * dx + dy * dy)
+        assert(d <= radius + 0.5 and d >= radius / 3, "icons sit on the inside of the ring, clear of the count")
         equal(pin.item.label, "", "ages move to the circle's tooltip")
         for j = 1, i - 1 do
           local ox = (pin.x - enemies[j].x) * canvas:GetWidth()
           local oy = (pin.y - enemies[j].y) * canvas:GetHeight()
-          assert(math.sqrt(ox * ox + oy * oy) >= pin.item.size * 0.6, "icons inside a circle do not pile up")
+          assert(math.sqrt(ox * ox + oy * oy) >= pin.item.size * 0.9, "icons are spread evenly, not piled up")
         end
       end
       zone.scripts.OnEnter(zone)
-      equal(zone:GetAlpha(), 1, "hover brings the circle up")
+      equal(zone.highlighted, true, "hover brings the circle up")
       zone.scripts.OnLeave(zone)
-      assert(zone:GetAlpha() < 1, "and it fades again")
+      equal(zone.highlighted, false, "and it fades again")
       if #enemies > 0 then
         enemies[1].scripts.OnEnter(enemies[1])
-        equal(zone:GetAlpha(), 1, "hovering an enemy brings up its circle")
+        equal(zone.highlighted, true, "hovering an enemy brings up its circle")
         enemies[1].scripts.OnLeave(enemies[1])
       end
       local lines = {}

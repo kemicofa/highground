@@ -65,14 +65,19 @@ function Intel.Scan()
     elseif e.unit then
       local x, y = Intel.UnitXY(mapID, e.unit)
       local yards = Intel.plain(e.yards) and type(e.yards) == "number" and e.yards >= 0 and e.yards or nil
-      local nearby = e.plateUnit or (yards and yards <= 40)
       local recorded
       if x then
         recorded = Intel.Record(key, x, y, 3, Intel.myName, now, nil, "coords")
-      elseif nearby then
+      elseif yards and yards <= 40 then
+        -- Only a spell range proves how close the enemy is. Where it can be:
+        -- your own position's uncertainty plus that distance.
         local how = mhow == "coords" and "nearby" or mhow
-        local r = how == "recent" and mextra or how == "area" and 80 or yards or 40
-        recorded = Intel.Record(key, mx, my, r, Intel.myName, now, marea, how, mnear)
+        local own = how == "recent" and mextra or how == "area" and 80 or 0
+        recorded = Intel.Record(key, mx, my, own + yards, Intel.myName, now, marea, how, mnear)
+      elseif e.plateUnit then
+        -- A nameplate alone can be 60 yards or more away, beyond your own
+        -- area: seen now, but no position.
+        recorded = Intel.Record(key, nil, nil, 0, Intel.myName, now, nil, "unknown")
       end
       if recorded then
         Intel.mine[key] = true

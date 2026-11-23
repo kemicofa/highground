@@ -105,7 +105,8 @@ function Intel.Receive(text, sender)
   end
 end
 
--- Short text for tooltips / the hero card, or nil when unknown.
+-- Short text for tooltips / the hero card, or nil when unknown. The second
+-- value is false when the enemy was seen without coordinates.
 function Intel.Where(key)
   local it = Intel.intel[key]
   if not it or it.dead or not Intel.Enabled() then
@@ -123,12 +124,13 @@ function Intel.Where(key)
       .. (it.how == "recent" and it.near or it.area or Intel.Place(it.x, it.y))
     if it.how == "area" or it.how == "objective" or it.how == "recent" then where = ns.Locale:Format("battlegrounds.sharing.where_approx.065606", { where = where }) end
   end
+  local placed = it.x ~= nil
   if it.how == "objective" then
-    return ns.Locale:Format("battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26", { where = string.format("%s", where), age = string.format("%d", age) })
+    return ns.Locale:Format("battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26", { where = string.format("%s", where), age = string.format("%d", age) }), placed
   end
   if age < Intel.FRESH then
-    return where .. (it.by ~= Intel.myName and (" (" .. it.by .. ")") or "")
+    return where .. (it.by ~= Intel.myName and (" (" .. it.by .. ")") or ""), placed
   end
-  return ns.Locale:Format("battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4", { where = string.format("%s", where), age = string.format("%d", age) })
+  return ns.Locale:Format("battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4", { where = string.format("%s", where), age = string.format("%d", age) }), placed
 end
 ns.MapWhere = Intel.Where

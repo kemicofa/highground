@@ -18,6 +18,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - WoW Forever: enemy history and bounties count honorable kills when the kill message adds a realm to the enemy's name. These kills were missed, so history could show 0 kills.
 - WoW Forever: resurrection timers no longer drift early. Its spirit healers count down 30 seconds, then wait about 1.6 seconds before the next countdown starts, so waves come every 31.6 seconds; timers counted 30 and fell further behind with each wave until the next resurrection was seen. `/hg timers` shows the wait as **30+1.6s**.
 - On any server, a wait between countdowns is learned during the match from the waves Highground sees exactly.
+- WoW Forever: your resurrection at a base no longer also resets your start's timer, which made both start rows show your base's countdown. Teammates coming back at an unknown base no longer switch timers to 45-second waves for a while. A newly captured base's estimated waves come about 4 seconds later, as measured in Arathi Basin.
 - Enemy row tooltips are shorter. An unknown spec shows just the class, an enemy seen without a position gets no location line, and the click help is one line: **Shift-click: call in chat**. Left-click targets and right-click focuses, as before.
 
 ## [3.2.1] - 2026-11-23

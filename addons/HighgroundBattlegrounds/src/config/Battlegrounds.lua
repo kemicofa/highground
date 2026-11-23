@@ -46,11 +46,15 @@ end
 -- starts, so waves come every period + downtime.
 -- resurrection.reviveLag: seconds from the latest spirit-healer countdown
 -- reading's end until ghosts are alive, until your own resurrections tell.
+-- resurrection.captureDelay: a captured base's waves (ghosts alive) come
+-- this many seconds after the capture, plus whole cycles.
 local GAME_DEFAULTS = {
   -- WoW Forever, observed 2026-11-23: 30 s countdowns, waves every ~31.6 s
   -- (64 waves in one Arathi Basin match); whole-second countdowns, with
   -- players back ~0.9 s after the latest reading's end (Warsong Gulch).
-  forever = { resurrection = { startClock = true, shared = false, downtime = 1.6, reviveLag = 0.9 } },
+  -- Players at a captured base came back 4.0-4.8 s after the capture plus
+  -- whole cycles (two Arathi Basin bases).
+  forever = { resurrection = { startClock = true, shared = false, downtime = 1.6, reviveLag = 0.9, captureDelay = 4.4 } },
 }
 
 local PRIORITY = {

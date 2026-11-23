@@ -90,6 +90,17 @@ test("WoW Forever recordings measure waves on the 31.6-second cycle", function()
   sim:assertHealthy()
 end)
 
+test("map POIs without an icon field are recorded without errors", function()
+  local sim = horde()
+  sim:command("bg profiler start")
+  sim:join(1460, 489, "Warsong Gulch")
+  sim:poi(nil)
+  sim:advance(1.5)
+  local s = sim.env.HighgroundDB.bgProfiles[1]
+  assert(find(s, " poi 1 Stables|nil|nil at="), "a POI with neither atlas nor texture")
+  sim:assertHealthy()
+end)
+
 test("a reload inside the battleground continues the same recording", function()
   local sim = horde()
   sim:join(1460, 489, "Warsong Gulch")

@@ -19,9 +19,11 @@ function Util.plain(v)
   return not Util.secret(v) and v ~= nil
 end
 
--- The value when readable, otherwise nil.
+-- The value when readable, otherwise nil. Always one result, so
+-- tostring(Util.value(v)) and format arguments get nil, not nothing.
 function Util.value(v)
   if Util.plain(v) then return v end
+  return nil
 end
 
 -- pcall that returns the results, or nothing when fn is missing or errors.

@@ -1,4 +1,4 @@
-<!-- Highground 3.1.0 -->
+<!-- Highground 3.2.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -24,10 +24,10 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### ⚔️ Battlegrounds
 
-- **Enemy list:** every enemy with its kill priority. Left-click to target, right-click to focus, even in combat.
+- **Enemy list:** every enemy with its kill priority and spec, which you can tag when the game hides it. Left-click to target, right-click to focus.
 - **Target and healer markers:** a sight over your recommended target and crosses over enemy and friendly healers.
 - **Objective timers:** graveyard waves, base capture countdowns and win predictions.
-- **Flag carriers and map intel:** carrier health and debuffs, plus last-seen enemy positions on the map, shared with teammates.
+- **Flag carriers and map intel:** carrier health and debuffs, plus where enemies were last seen as circles on the map, shared with teammates.
 - **Quick callouts and history:** one-click calls to battleground chat, and saved results for every match.
 
 ### 🎯 Arena and duels
@@ -63,7 +63,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **One window:** settings, previews and tools behind `/hg` or the minimap button.
 - **Modules:** switch Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros on or off.
-- **Make it yours:** six themes, alert presets and shareable profiles.
+- **Make it yours:** six themes, alert presets and sounds, and shareable profiles.
 - **Languages:** English and nine other languages.
 
 ### 🔥 Extra on Cataclysm Classic

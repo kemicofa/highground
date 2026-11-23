@@ -33,7 +33,7 @@ test("battleground profiler waits outside, records a match and offers a reload o
   sim.env.GetAreaSpiritHealerTime = function() return sim.units.player.ghost and math.max(0, rezAt - sim.now) or nil end
   sim.units.player.ghost = true
   sim:advance(1.5)
-  assert(find(s, " me healer left=1%d%.%d gy="), "the game's countdown")
+  assert(find(s, " me healer left=1%d%.%d gyNext=[%d%.%-]+ gy=Horde Base Graveyard$"), "the game's countdown")
   assert(find(s, " wave exact H Horde Base Graveyard at=1%d%.%d err=%- kept=true was=%-"), "first exact wave")
   assert(find(s, " gy H Horde Base Graveyard next="), "graveyard clock change")
   sim:advance(rezAt - sim.now)
@@ -52,6 +52,7 @@ test("battleground profiler waits outside, records a match and offers a reload o
   equal(sim.ns.Timers.SetWave, setWave, "timers restored")
   local w = sim.ns.Profiler.win
   assert(w and w:IsShown(), "reload offered")
+  assert(w.body:GetText():find("events in Warsong Gulch", 1, true), "offer names the battleground")
   local reloads = 0
   sim.env.ReloadUI = function() reloads = reloads + 1 end
   click(w.reload)
@@ -76,8 +77,12 @@ test("a reload inside the battleground continues the same recording", function()
   assert(find(s, " resume runtime="), "resume row")
   again:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Alliance flag was picked up by Buddy!")
   assert(find(s, " chat H The Alliance flag was picked up by Buddy!"), "keeps recording")
+  again:setCombat(true)
   again:leave()
   assert(s.ended and s.stop == "left", "leaving stops it")
+  assert(not (again.ns.Profiler.win and again.ns.Profiler.win:IsShown()), "no dialog in combat")
+  again:setCombat(false)
+  assert(again.ns.Profiler.win:IsShown(), "offered after combat")
   again:assertHealthy()
 end)
 

@@ -153,6 +153,8 @@ When the live client still grows or stutters after a simulated fix, reload so th
 
 Keep WoW in the foreground: a background client runs far fewer callbacks and its FPS is not comparable. The capture is off by default, keeps one report (at most 64 callback rows and eight samples) and never changes garbage-collection settings. Callback allocations are lower bounds when collection runs inside a call, and they cover only guarded Highground callbacks.
 
+For a whole battleground, `/hg bg profiler start` keeps guarded stage times, memory and frame-rate samples with each recording; `python3 scripts/bg_profile.py` lists the slowest stages ([battleground recordings](../addons/Highground/docs/saved-data.md#battleground-recordings)).
+
 A rising addon memory counter is not by itself a leak: temporary allocations accumulate until Lua collects them. Simulator results are not FPS predictions; confirm frame times in WoW with the affected player's client, organizations, saved data and addon set before claiming a fix.
 
 ## Battleground, arena and duel observers

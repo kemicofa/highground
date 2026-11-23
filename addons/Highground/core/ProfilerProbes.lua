@@ -78,8 +78,11 @@ local function POIs(mapID)
     local info = id and U.call(A.GetAreaPOIInfo, mapID, id)
     if type(info) == "table" then
       now[id] = true
-      local pos = U.value(info.position)
-      local x, y = pos and U.call(pos.GetXY, pos)
+      local pos, x, y = U.value(info.position), nil, nil
+      if type(pos) == "table" then
+        x, y = U.call(pos.GetXY, pos)
+        if not x then x, y = U.value(pos.x), U.value(pos.y) end
+      end
       local sig = table.concat({ tostring(U.value(info.name)), tostring(U.value(info.atlasName)),
         tostring(U.value(info.textureIndex)) }, "|")
       if Changed("poi:" .. id, sig) then

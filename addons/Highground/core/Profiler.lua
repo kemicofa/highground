@@ -122,8 +122,8 @@ function P.PollMe(now)
     local at = now + left
     if not death.healerAt or math.abs(at - death.healerAt) > 1.5 then
       death.healerAt = at
-      P.Add("me", string.format("healer left=%s gy=%s gyNext=%s", P.Num(left), death.gy or GYName(g),
-        P.Num(death.gyNext and death.gyNext - now)))
+      P.Add("me", string.format("healer left=%s gyNext=%s gy=%s", P.Num(left), P.Num(death.gyNext and death.gyNext - now),
+        death.gy or GYName(g)))
     end
   end
 end

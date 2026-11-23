@@ -29,6 +29,24 @@ Battleground upgrade markers use `Saved.Migrate`. Remembered enemy specs keep th
 
 `Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped`; every new message still sets `Core.lastError` for the panel notice. `/hg err` shows the dropped count and `/hg clearerr` resets both. Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing.
 
+## Battleground recordings
+
+`/hg bg profiler start` ([core/Profiler.lua](../core/Profiler.lua), [core/ProfilerProbes.lua](../core/ProfilerProbes.lua)) records into `bgProfiles`: the newest three sessions, newest first, each at most 4,000 rows (later rows are only counted in `dropped`), 63 stage timings and 30 errors. `bgProfilerOn` keeps it armed across reloads; an open session continues after a reload in the same battleground and is closed as `lost` otherwise. Loading keeps only well-formed sessions and string rows. Nothing is registered or hooked while it is off.
+
+Rows are `<seconds since start> <kind> <text>`. `python3 scripts/bg_profile.py <SavedVariables/Highground.lua>` reports on them; `--timeline --kinds wave,me` prints rows and `--json` the sessions.
+
+| Kind | Recorded |
+| --- | --- |
+| `start`, `resume`, `end`, `map` | Session boundaries, instance, the resolved battleground and rules key, whether Highground tracks it |
+| `chat` | Battleground (`A`/`H`/`N`), boss, monster and system lines; `=> English` when the translation tables matched a localized line |
+| `match` | Match state changes and the result |
+| `me` | Your deaths: death events, the game's spirit-healer countdown, and on resurrection the error against that countdown (`healerErr`) and against Highground's clock (`gyErr`) |
+| `wave` | Each resurrection wave Highground learns (`exact`, `guide`, `shared`, `cap`), with `err` = the wave minus the prediction it replaced |
+| `gy`, `clock`, `advice` | Graveyard clock changes, period/shared-clock changes and "die now" advice |
+| `node`, `poi`, `widget`, `vignette`, `flag` | Base ownership and capture timers, raw map POIs and icons, widget text (numbers alone at most every 15 s), vignettes, flag carriers and respawn |
+| `res`, `obj` | What the resurrection and objective windows show, on a change of rows and every 10 s |
+| `comms`, `area`, `summary` | Chat lockdown and send blocks, your subzone, and a 30 s roster, timer-statistics, memory and frame-rate summary |
+
 ## Standalone hosts
 
 Retained standalone hosts check their catalog settings on load (`Standalone.Schema()` in [libs/standalone/Main.lua](../../../libs/HighgroundKit/standalone/Main.lua)): a value of the wrong type, NaN or out of range is cleared so its default applies.

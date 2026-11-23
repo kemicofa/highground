@@ -231,6 +231,17 @@ t.test("diagnostic and bounty-tour controls start, stop and preserve live state"
   t.equal(s.ns.Util.RunGuarded, guarded, "automatic stop restores callbacks")
   click(control(s, "cap probe", "battlegrounds")); assert(db.capProbeOn)
   click(control(s, "cap probe", "battlegrounds")); assert(not db.capProbeOn)
+  click(control(s, "bg profiler start", "battlegrounds")); assert(db.bgProfilerOn, "profiler waits for a battleground")
+  click(control(s, "bg profiler stop", "battlegrounds")); assert(not db.bgProfilerOn and not db.bgProfiles, "nothing recorded")
+  s:join()
+  click(control(s, "bg profiler start", "battlegrounds")); assert(s.ns.Profiler.Recording(), "records inside")
+  t.equal(#db.bgProfiles, 1, "one recording")
+  click(control(s, "bg profiler stop", "battlegrounds")); assert(not s.ns.Profiler.Recording(), "stopped")
+  t.equal(s.ns.Util.RunGuarded, guarded, "profiler restores callbacks")
+  local offer = s.ns.Profiler.win
+  assert(offer and offer:IsShown(), "reload offered")
+  click(offer.reload); t.equal(s.reloads, 1, "the offer reloads")
+  s:leave()
   local count, sent = #B.All(), #s.sent
   click(control(s, "bounty guide", "bounties"))
   O.commandForm.fields[1].select:SetValue("board", true); click(O.commandForm.apply)

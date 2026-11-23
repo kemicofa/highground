@@ -42,7 +42,7 @@ function Bounty.Sound()
 end
 
 function Bounty.PlaySound()
-  if not (Core.On("sound") and Core.O("bountySound")) then return end
+  if not Core.On("sound") then return end
   if ns.Alerts then ns.Alerts.Play("bounty") else Bounty.Sound() end
 end
 

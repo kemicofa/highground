@@ -8,7 +8,7 @@ return function(addon, contexts)
   local exit = "Interface\\AddOns\\" .. addon .. "\\libs\\sounds\\stealth-exit.ogg"
 
   local function setup(client, build, context, saved)
-    local sim = new(client, saved or { nearbySound = true }, function(s, env)
+    local sim = new(client, saved or {}, function(s, env)
       s.addon = addon
       s.manifest = addon .. (client == "cata" and "_Cata" or "") .. ".toc"
       env.GetBuildInfo = function() return "x", "1", "Nov 1 2026", build end
@@ -47,7 +47,7 @@ return function(addon, contexts)
       equal(sim.sounds[#sim.sounds], enter, "entry sample uses this host's live sound file")
       row.play:Click(); D.Accept(2)
       equal(sim.sounds[#sim.sounds], exit, "exit sample uses this host's live sound file")
-      equal(A.Settings().mode, "quiet", "audition preserves alert level")
+      equal(A.Preset(A.Settings()), "quiet", "audition preserves the switches")
       equal(sim.ns.Core.On("sound"), false, "audition preserves master mute")
       equal(next(A.pending), nil, "audition does not queue an event")
       equal(next(A.last), nil, "audition does not consume a live cooldown")
@@ -82,23 +82,33 @@ return function(addon, contexts)
     test(context .. ": both stealth cues respect sound settings and per-enemy muting", function()
       local cases = {
         { sound = false }, { alerts = { mode = "quiet" } },
-        { alerts = { channels = { stealth = { sound = false } } }, nearbySound = false },
+        -- Nearby enemy off too: the world sighting has its own chime.
+        { alerts = { channels = { stealth = { sound = false }, nearby = { sound = false } } } },
       }
       if context == "world" then
-        cases[#cases + 1] = { nearbySound = false }
-        cases[#cases + 1] = { nearbyStealth = false, nearbySound = false }
-        cases[#cases + 1] = { nearbySound = true, enemyHistory = {
+        cases[#cases + 1] = { nearbyStealth = false, alerts = { channels = { nearby = { sound = false } } } }
+        cases[#cases + 1] = { enemyHistory = {
           ["Sneak-Realm"] = { muted = true, times = 1, killedMe = 0, killedThem = 0 },
         } }
       end
-      for _, saved in ipairs(cases) do
+      for i, saved in ipairs(cases) do
         local sim = setup("cata", 40402, context, saved)
         for name, entry in pairs(saved.enemyHistory or {}) do sim.ns.NearbyHistory.All()[name] = entry end
         log(sim, "SPELL_AURA_APPLIED", 1784)
         sim:advance(2)
         log(sim, "SPELL_AURA_REMOVED", 1784)
         sim:advance(0.2)
-        equal(#sim.sounds, 0, "muted on application and removal")
+        equal(#sim.sounds, 0, "muted on application and removal: case " .. i)
+      end
+      if context == "world" then
+        -- One switch per sound: Nearby enemy's switch leaves stealth alone,
+        -- including an older save's nearby sound option.
+        for _, saved in ipairs({ { alerts = { channels = { nearby = { sound = false } } } }, { nearbySound = false } }) do
+          local sim = setup("cata", 40402, context, saved)
+          log(sim, "SPELL_AURA_APPLIED", 1784)
+          sim:advance(2)
+          equal(#sim.sounds, 1, "the Nearby enemy switch does not mute stealth")
+        end
       end
     end)
 

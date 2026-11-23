@@ -219,18 +219,19 @@ Core.SNIPER_SOUNDS = {
   ns.Localization.Define({ id = 76995, name = ns.Locale:Get("alerts.sound.prestige") }, { name = "alerts.sound.prestige" }), -- UI_PVP_HONOR_PRESTIGE_OPEN_WINDOW
 }
 
+-- The chosen sound; muting is the lock-on Sound switch (ns.Alerts).
 function Core.SniperSound()
-  local snd = Core.SNIPER_SOUNDS[Core.db.sniperSound or 0]
-  if snd and snd.file then
+  local snd = Core.SNIPER_SOUNDS[Core.db.sniperSound] or Core.SNIPER_SOUNDS[1]
+  if snd.file then
     -- New files are only visible after a full client restart; until then
     -- PlaySoundFile returns false, so fall back to a built-in chime.
     if not PlaySoundFile(snd.file, "Master") then
       PlaySound(37666, "Master")
     end
-  elseif snd then
+  else
     PlaySound(snd.id, "Master")
   end
-  return snd ~= nil
+  return true
 end
 
 local function SniperSound() if Core.On("sound") then Core.SniperSound() end end

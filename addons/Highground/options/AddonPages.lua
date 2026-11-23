@@ -105,7 +105,12 @@ function O.AddAlertControls(page, owner)
     local offset = contentY + page.content:GetHeight() / 2 - bodyY - page.child:GetHeight() / 2 + alertOffset
     page.scroll:SetVerticalScroll(math.max(0, math.min(offset, page.content:GetHeight() - page.scroll:GetHeight())))
   end
-  O.Section(page, ns.Locale:Get("highground.hub.alerts.d0efe0"), ns.Locale:Get("highground.addonpages.text_and_sound_follow_your_shared_alert.ae59f1"), "highground.hub.alerts.d0efe0", "highground.addonpages.text_and_sound_follow_your_shared_alert.ae59f1")
+  local titleY = page.y
+  O.Section(page, ns.Locale:Get("highground.hub.alerts.d0efe0"), ns.Locale:Get("alerts.addon_hint"), "highground.hub.alerts.d0efe0", "alerts.addon_hint")
+  -- Master sound mutes every Sound switch below; say so beside the title.
+  page.alertNote = ns.Theme.Text(page.child, "body", "warning")
+  page.alertNote:SetPoint("TOPLEFT", 160, titleY - 12); page.alertNote:SetPoint("TOPRIGHT", -24, titleY - 12)
+  page.alertNote:SetJustifyH("RIGHT"); page.alertNote:SetWordWrap(false)
   page.alertRows = {}
   for _, def in ipairs(definitions) do
     local row = { key = def.key, def = def }
@@ -114,11 +119,7 @@ function O.AddAlertControls(page, owner)
     label:SetJustifyH("LEFT"); label:SetWordWrap(true); ns.Localization.BindField(label, def, "label")
     for _, channel in ipairs({ "text", "sound" }) do
       row[channel] = Kit.Toggle(page.child, channel == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = channel == "text" and 90 or 104,
-        onChange = function(_, on)
-          local prefs = ns.Alerts.Settings()
-          prefs.channels[def.key] = prefs.channels[def.key] or {}
-          prefs.channels[def.key][channel] = on
-        end })
+        onChange = function(_, on) ns.Alerts.SetChannel(def.key, channel, on) end })
       row[channel]:SetPoint("TOPRIGHT", channel == "text" and -294 or -174, page.y)
     end
     row.play = ns.Alerts.SoundButton(page.child, def)
@@ -147,16 +148,16 @@ function O.AddAlertControls(page, owner)
       page.y = page.y - 44
     end
   end
-  O.Link(page, ns.Locale:Get("highground.addonpages.shared_alert_level_and_sound.d6f941"), function() ns.Hub.Open("alerts") end)
+  O.Link(page, ns.Locale:Get("alerts.presets_link"), function() ns.Hub.Open("alerts") end)
   local refresh = page.RefreshBehavior
   page.RefreshBehavior = function()
     if refresh then refresh() end
-    local prefs = ns.Alerts.Settings()
+    local sounds = Core.On("sound")
+    page.alertNote:SetText(sounds and "" or ns.Locale:Get("alerts.master_off"))
     for _, row in ipairs(page.alertRows) do
-      local channels = prefs.channels[row.key] or {}
-      row.text:SetChecked(channels.text ~= false, true); row.sound:SetChecked(channels.sound ~= false, true)
-      row.sound:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "sound", Core.On("sound")))
-      row.text:SetEnabled(ns.Alerts.AllowedFor({ mode = prefs.mode }, row.key, "text", true))
+      row.text:SetChecked(ns.Alerts.ChannelOn(row.key, "text"), true)
+      row.sound:SetChecked(ns.Alerts.ChannelOn(row.key, "sound"), true)
+      row.sound:SetEnabled(sounds)
       if row.cue then
         row.cue:SetChoices(ns.Alerts.SoundChoices(row.key)); row.cue:SetValue(ns.Alerts.Sound(row.key), true)
       end

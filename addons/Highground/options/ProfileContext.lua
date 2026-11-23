@@ -40,7 +40,6 @@ local function Comparable(snap, tuningOnly)
     setup.preferences.theme = setup.preferences.theme or ns.DEFAULT_THEME
     setup.preferences.locked = setup.preferences.locked == true
     setup.preferences.reducedMotion = setup.preferences.reducedMotion == true
-    setup.alerts.mode = setup.alerts.mode or "everything"
     setup.alerts.channels = setup.alerts.channels or {}
     for _, def in ipairs(ns.Alerts.categories) do
       local channel = setup.alerts.channels[def.key] or {}

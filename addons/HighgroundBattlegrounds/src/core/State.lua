@@ -110,7 +110,7 @@ Core.DEFAULTS = {
   markMode = ns.Caps.pings and "ping" or "icon", -- "ping" (team ping, Midnight client only) or "icon" (raid target icon)
   pingType = "attack",
   sniperScale = 1,
-  sniperSound = 1, -- index into SNIPER_SOUNDS; 0 = off
+  sniperSound = 1, -- index into SNIPER_SOUNDS; the lock-on Sound switch mutes it
   soundVersion = 2,
 }
 

@@ -224,10 +224,13 @@ end
 -- Older saves filtered the switches through a saved alert level and had
 -- separate bounty, nearby and lock-on sound switches. Fold them into the
 -- per-alert switches; safe to repeat. Essentials only muted lock-on, so it
--- folds as Everything. prefs holds the sound options (the saved database or
--- a profile's preferences).
-function A.Upgrade(alerts, prefs)
-  if type(alerts) ~= "table" then return end
+-- folds as Everything. owner holds .alerts (the saved database or a profile
+-- setup) and prefs the sound options (the database or the setup's
+-- preferences). False when the old level was unknown.
+function A.Upgrade(owner, prefs)
+  if owner.alerts == nil then owner.alerts = {} end
+  local alerts = owner.alerts
+  if type(alerts) ~= "table" then return true end
   if alerts.channels == nil then alerts.channels = {} end
   local function Off(category, channel)
     if type(alerts.channels) ~= "table" then return end
@@ -235,7 +238,8 @@ function A.Upgrade(alerts, prefs)
     if switches == nil then switches = {}; alerts.channels[category] = switches end
     if type(switches) == "table" then switches[channel] = false end
   end
-  local allows = PRESETS[alerts.mode]
+  local mode = alerts.mode
+  local allows = PRESETS[mode]
   alerts.mode = nil
   if allows then
     for _, def in ipairs(A.categories) do
@@ -244,11 +248,13 @@ function A.Upgrade(alerts, prefs)
       end
     end
   end
-  if type(prefs) ~= "table" then return end
-  if prefs.bountySound == false then Off("bounty", "sound") end
-  if prefs.nearbySound == false then Off("nearby", "sound") end
-  prefs.bountySound, prefs.nearbySound = nil, nil
-  if prefs.sniperSound == 0 then Off("lockon", "sound"); prefs.sniperSound = 1 end
+  if type(prefs) == "table" then
+    if prefs.bountySound == false then Off("bounty", "sound") end
+    if prefs.nearbySound == false then Off("nearby", "sound") end
+    prefs.bountySound, prefs.nearbySound = nil, nil
+    if prefs.sniperSound == 0 then Off("lockon", "sound"); prefs.sniperSound = 1 end
+  end
+  return mode == nil or mode == "essential" or allows ~= nil
 end
 
 -- An explicit audition uses the same cue as gameplay, without creating an

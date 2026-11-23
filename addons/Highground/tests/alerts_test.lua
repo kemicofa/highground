@@ -14,8 +14,10 @@ local function Fixture()
     return f
   end
   env.print = function(line) s.said[#s.said + 1] = line end
+  env.wipe = function(t) for k in pairs(t) do t[k] = nil end; return t end
   s.db = {}
-  s.ns = { Core = { db = s.db, On = function() return true end }, Scope = { Listen = function() end } }
+  s.ns = { Core = { db = s.db, On = function() return true end }, Scope = { Listen = function() end },
+    Saved = { Table = function(t, key) if type(t[key]) ~= "table" then t[key] = {} end; return t[key] end } }
   dofile("../../tests/locale_fixture.lua")(s.ns, env)
   for _, file in ipairs({ "Util", "Events", "Alerts" }) do
     setfenv(assert(loadfile("libs/core/" .. file .. ".lua")), env)("Highground", s.ns)
@@ -81,6 +83,64 @@ t.test("muted sound channels and failing sounds stay contained", function()
   s.ns.Util.Notify("capture", "z", nil, s:sound("capture"))
   s:advance(0.15)
   t.equal(s.played[1], "capture", "later alerts still flush")
+end)
+
+t.test("target lock plays straight after another alert sound", function()
+  local s = Fixture()
+  local U = s.ns.Util
+  assert(U.Notify("capture", "a", nil, s:sound("capture")))
+  s:advance(0.15)
+  assert(U.Notify("lockon", "target", nil, s:sound("lockon")))
+  s:advance(0.15)
+  t.equal(s.played[2], "lockon", "lock-on skips the gap between sounds")
+end)
+
+t.test("presets set every switch and keep nothing of their own", function()
+  local s = Fixture()
+  local A = s.ns.Alerts
+  s.db.alerts = { channels = {} }
+  assert(A.SetMode("critical"))
+  t.equal(s.db.alerts.mode, nil, "no saved level")
+  t.equal(A.Allowed("capture", "sound"), true, "critical keeps captures")
+  t.equal(A.Allowed("lockon", "sound"), false, "critical turns target lock off")
+  t.equal(A.Preset(s.db.alerts), "critical", "the switches match Critical only")
+  A.SetChannel("lockon", "sound", true)
+  t.equal(A.Allowed("lockon", "sound"), true, "a ticked switch plays")
+  t.equal(A.Preset(s.db.alerts), "custom", "a changed switch shows Custom")
+  assert(A.SetMode("everything"))
+  t.equal(A.Preset(s.db.alerts), "everything", "a preset replaces every switch")
+  t.equal(A.SetMode("essential"), false, "Essentials is gone")
+end)
+
+t.test("old alert levels and sound options fold into the switches once", function()
+  local A = Fixture().ns.Alerts
+  -- Essentials muted only target lock behind its ticked switch.
+  local alerts = { mode = "essential", channels = {} }
+  t.equal(A.Upgrade({ alerts = alerts }, { sniperSound = 1 }), true, "Essentials is a known level")
+  t.equal(alerts.mode, nil, "the level is removed")
+  t.equal(A.AllowedFor(alerts, "lockon", "sound", true), true, "Essentials becomes Everything")
+  alerts = { mode = "objectives", channels = { capture = { text = false } } }
+  A.Upgrade({ alerts = alerts })
+  t.equal(A.AllowedFor(alerts, "capture", "text", true), false, "own switches stay off")
+  t.equal(A.AllowedFor(alerts, "capture", "sound", true), true, "the level's choices stay on")
+  t.equal(A.AllowedFor(alerts, "go", "text", true), false, "the level's filter becomes switches")
+  local before = A.Preset(alerts)
+  A.Upgrade({ alerts = alerts })
+  t.equal(A.Preset(alerts), before, "repeating changes nothing")
+  -- Older saves may have sound options before any alert settings.
+  local db = { bountySound = false, nearbySound = true, sniperSound = 0 }
+  A.Upgrade(db, db)
+  alerts = db.alerts
+  local prefs = db
+  t.equal(A.AllowedFor(alerts, "bounty", "sound", true), false, "bounty sound option becomes its switch")
+  t.equal(A.AllowedFor(alerts, "nearby", "sound", true), true, "an enabled option leaves the switch on")
+  t.equal(A.AllowedFor(alerts, "lockon", "sound", true), false, "Silent becomes the lock-on switch")
+  t.equal(prefs.sniperSound, 1, "and the chosen sound is a real one")
+  t.equal(prefs.bountySound == nil and prefs.nearbySound == nil, true, "old options are removed")
+  t.equal(A.Upgrade({ alerts = { mode = "loud" } }), false, "an unknown level is reported")
+  alerts = { mode = "quiet" }
+  A.Upgrade({ alerts = alerts }, { bountySound = false })
+  t.equal(A.Preset(alerts), "quiet", "Text only stays Text only")
 end)
 
 t.finish("Alerts: " .. t.tests .. " tests, " .. t.checks .. " checks")

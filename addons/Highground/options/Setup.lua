@@ -6,7 +6,7 @@ Setup.presets = {
   minimal = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.minimal.a711cc"), hint = ns.Locale:Get("highground.setup.keep_battleground_panels_focused_on_objectives_and.07100e"),
     killorder = false, healerMarks = false, alert = "critical" }, { label = "highground.setup.minimal.a711cc", hint = "highground.setup.keep_battleground_panels_focused_on_objectives_and.07100e" }),
   damage = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.damage.7bf6d1"), hint = ns.Locale:Get("highground.setup.suggested_enemies_to_attack_a_target_crosshair.becacd"),
-    killorder = true, sniper = true, healerMarks = true, alert = "essential" }, { label = "highground.setup.damage.7bf6d1", hint = "highground.setup.suggested_enemies_to_attack_a_target_crosshair.becacd" }),
+    killorder = true, sniper = true, healerMarks = true, alert = "everything" }, { label = "highground.setup.damage.7bf6d1", hint = "highground.setup.suggested_enemies_to_attack_a_target_crosshair.becacd" }),
   healer = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.healer.6cad85"), hint = ns.Locale:Get("highground.setup.carriers_objectives_and_teammate_pressure_with_a.180005"),
     killorder = false, sniper = false, healerMarks = true, pressure = true, alert = "objectives" }, { label = "highground.setup.healer.6cad85", hint = "highground.setup.carriers_objectives_and_teammate_pressure_with_a.180005" }),
   carrier = ns.Localization.Define({ label = ns.Locale:Get("highground.setup.flag_carrier.9e4a71"), hint = ns.Locale:Get("highground.setup.carriers_and_objectives_stay_visible_resurrection_advice.b9a035"),
@@ -39,7 +39,7 @@ function Setup.ProfileSnapshot(role)
   for key in pairs(roleDefaults) do
     if snap.setup.features[key] ~= nil then snap.setup.features[key] = RoleValue(preset, key) end
   end
-  snap.setup.alerts.mode = preset.alert
+  ns.Alerts.ApplyPreset(snap.setup.alerts, preset.alert)
   return snap
 end
 

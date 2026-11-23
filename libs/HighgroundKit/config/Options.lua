@@ -8,7 +8,7 @@ local _, ns = ...
 ns.OptionsConfig = {
   -- Applied only when no saved settings exist. Nil on an older installation
   -- still means the historical default; upgrading must not change its setup.
-  firstRun = { alerts = { mode = "essential", channels = {} } },
+  firstRun = {},
   pointAliases = {},
   pages = {
     general = ns.Localization.Define({ name = ns.Locale:Get("shared.options.shared_preferences.74ed51"), order = -1, stepper = false, hint = ns.Locale:Get("preferences.hint") }, { name = "shared.options.shared_preferences.74ed51", hint = "preferences.hint" }),

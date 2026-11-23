@@ -73,9 +73,9 @@ ns.Standalone.Start({
   end,
   settings = ns.Localization.Define({
     hint = ns.Locale:Get("nearby.main.hostile_players_you_have_seen_in_the.2fc13d"),
-    basic = { "nearby", "nearbyRows", "nearbySound" },
-    keys = { "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory",
-      "bounty", "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold", "bountySound", "bountyAnnounce",
+    basic = { "nearby", "nearbyRows" },
+    keys = { "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbyStealth", "nearbyHistory",
+      "bounty", "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold", "bountyAnnounce",
       "bountySuggestions", "bountyDeathShare", "bountySuggestionPersonal", "bountySuggestionGuildDeaths",
       "bountySuggestionVictims", "bountySuggestionWindow", "bountySuggestionCooldown" },
     buttons = { ns.Localization.Define({ ns.Locale:Get("nearby.main.preview_the_list.c52d30"), Preview }, { [1] = "nearby.main.preview_the_list.c52d30" }), ns.Localization.Define({ ns.Locale:Get("highground.hub.bounty_board.f37f61"), function() ns.Bounty.Board.Open() end, advanced = true }, { [1] = "highground.hub.bounty_board.f37f61" }),

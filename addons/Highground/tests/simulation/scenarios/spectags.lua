@@ -58,7 +58,8 @@ test("WoW Forever: hovering an unidentified enemy offers its trees; a click tags
   picker.buttons[3]:Click()
   equal(e.specSrc, "tag")
   equal(e.specID, C.classSpecs.MAGE[3], "the third tree is tagged")
-  assert(r.spec:GetText() ~= "", "the row names the tagged spec")
+  local icon = C.specInfo[e.specID].icon
+  assert(icon and r.icon.texture == icon, "the row's icon shows the tagged spec")
   assert(picker.buttons[3].ring:IsShown() and not picker.buttons[1].ring:IsShown(), "the tagged icon stands out")
   local msgs = sentOn(sim, "HighgroundS")
   equal(msgs[#msgs].message, "1:" .. e.key .. ",MAGE,3", "the team hears the tag")

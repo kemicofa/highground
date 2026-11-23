@@ -117,7 +117,11 @@ local handlers = {
   PLAYER_ENTERING_WORLD = OnZone,
   ZONE_CHANGED_NEW_AREA = OnZone,
   UPDATE_BATTLEFIELD_SCORE = OnScore,
-  PVP_MATCH_COMPLETE = function() Core.HarvestHistory() end,
+  PVP_MATCH_COMPLETE = function()
+    -- The winning capture respawns no flag.
+    ns.flagRespawnAt, Core.flagCapturedAt = nil, nil
+    Core.HarvestHistory()
+  end,
   PLAYER_REGEN_ENABLED = OnRegen,
   PLAYER_TARGET_CHANGED = OnTarget,
   NAME_PLATE_UNIT_REMOVED = OnPlateRemoved,

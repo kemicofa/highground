@@ -8,6 +8,8 @@ local BASE_GRAVEYARDS = {
   { id = 771, team = "A", label = T"battlegrounds.twinpeaks.alliance_base_graveyard.e51d07", x = 0.41622721, y = 0.28830137 },
   { id = 772, team = "H", label = T"battlegrounds.twinpeaks.horde_base_graveyard.2c965b", x = 0.57999419, y = 0.73959668 },
 }
+-- Flag spawns from BattlegroundWS.h, same projection: Silverwing, Warsong.
+local FLAG_ROOMS = { { 0.48903, 0.11335 }, { 0.52998, 0.93000 } }
 ns.RegisterBattleground({
   id = "warsong_gulch", gameName = "Warsong Gulch", kind = "ctf", size = 10,
   coverage = T"battlegrounds.warsonggulch.carrier_tracking_and_stacks_one_fixed_cata.fefd99",
@@ -15,16 +17,20 @@ ns.RegisterBattleground({
     retail = { ui = { 1339, 1460 }, inst = { 2106, 489 } },
     -- Map 1460 confirmed live. Both base graveyards from the start: they
     -- share the start clock, so your own countdown times the enemy's too.
-    forever = { ui = { 1460 }, inst = { 489 }, rules = { graveyards = { static = BASE_GRAVEYARDS } } },
+    -- Flags came back 10.9-12.6 s after each capture in a live match.
+    forever = { ui = { 1460 }, inst = { 489 }, rules = {
+      graveyards = { static = BASE_GRAVEYARDS },
+      flags = { respawnSeconds = 11, spawns = FLAG_ROOMS },
+    } },
+    -- Flags respawn 23 s after a capture (BG_WS_FLAG_RESPAWN_TIME).
     cata = { ui = { 1339, 1460 }, inst = { 489 }, rules = {
-      flags = { firstStackSeconds = 180, stackInterval = 60, maxStacks = 10 },
+      flags = { firstStackSeconds = 180, stackInterval = 60, maxStacks = 10, respawnSeconds = 23, spawns = FLAG_ROOMS },
       graveyards = {
         static = BASE_GRAVEYARDS,
       },
-      -- Flag rooms: flag spawns from BattlegroundWS.h, same projection.
       map = { anchors = {
-        ["silverwing flag room"] = { 0.48903, 0.11335 },
-        ["warsong flag room"] = { 0.52998, 0.93000 },
+        ["silverwing flag room"] = FLAG_ROOMS[1],
+        ["warsong flag room"] = FLAG_ROOMS[2],
       } },
     } },
   },

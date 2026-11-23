@@ -12,13 +12,12 @@ local Line = ns.Theme.TipLine
 
 local AddLayer = ns.MapPins and ns.MapPins.Add or function() end -- Pins.xml failed to load: intel still runs
 
--- Approximate sightings become zones: a faint circle where the enemy can
--- be, growing with time unseen. Circles that largely overlap merge, and
--- their enemies are laid out inside, shrinking to fit; exact positions keep
--- single pins. Yards convert with the map's world size when the client
--- gives it.
-local SPEED, MAX_REACH, MERGE = 7, 250, 0.6 -- yards a second, yards, overlap
-local MIN_ICON, GOLDEN = 12, 2.39996323
+-- Approximate sightings become zones: a faint circle roughly where the
+-- enemy was last seen. It keeps its size; age shows by fading, as on pins.
+-- Circles that largely overlap merge; exact positions keep single pins.
+-- Yards convert with the map's world size when the client gives it.
+local MAX_REACH, MERGE = 40, 0.6 -- yards, overlap
+local MIN_ICON = 12
 local function WorldSize(mapID)
   local c = Intel.Corners and Intel.Corners(mapID)
   local w, h = c and math.abs(c.width or 0), c and math.abs(c.height or 0)
@@ -29,39 +28,37 @@ end
 local function ZoneTooltip(zone)
   return function(tt)
     Line(tt, ns.Locale:Get("battlegrounds.layer.somewhere_in_this_circle.c30a0e"), "white")
-    Line(tt, ns.Locale:Get("battlegrounds.layer.last_seen_here_they_can_be_anywhere.f91d88"), "textDim")
+    Line(tt, ns.Locale:Get("battlegrounds.layer.last_seen_roughly_here.0aba2e"), "textDim")
     for _, m in ipairs(zone.members) do
       Line(tt, ns.Locale:Format("battlegrounds.layer.name_age_s_ago.e1ea19", { name = m.name, age = string.format("%d", m.age) }), m.class or "white")
     end
   end
 end
 
+-- One enemy: its icon at the centre. Several: the circle shows how many,
+-- with their icons spread evenly around the inside of the ring, as many
+-- as fit; the tooltip lists everyone.
 local function Place(zone, worldW, width, height)
   local members, n = zone.members, #zone.members
   table.sort(members, function(a, b) return (a.sortKey or "") < (b.sortKey or "") end)
+  if n == 1 then
+    members[1].x, members[1].y = zone.x, zone.y
+    return
+  end
+  zone.count = n
   local radius = zone.reach / worldW * width -- pixels on this canvas
-  local size = math.max(MIN_ICON, math.min(24, math.floor(2 * radius / (math.ceil(math.sqrt(n)) + 0.5))))
-  local inner = math.max(0, radius - size / 2 - 2)
-  local room = math.max(1, math.floor(0.7 * ((inner + size / 2) / (size / 2)) ^ 2))
-  local shown = n <= room and n or room - 1
-  local more = n - shown
-  if more > 0 then -- the rest are counted on one "+N" marker
-    zone.extra = { ring = "textDim", label = "+" .. more, labelColor = "mapLabel", zone = zone, tooltip = zone.tooltip }
+  local size = math.max(MIN_ICON, math.min(20, math.floor(2 * math.pi * radius / (n * 1.2))))
+  local ring = radius - size / 2 - 1
+  local shown = ring >= size and math.min(n, math.floor(2 * math.pi * ring / (size * 1.05))) or 0
+  for i, m in ipairs(members) do
+    local a = -math.pi / 2 + 2 * math.pi * (i - 1) / math.max(1, shown)
+    local x, y = zone.x + ring * math.cos(a) / width, zone.y + ring * math.sin(a) / height
+    if i <= shown and x > 0 and x < 1 and y > 0 and y < 1 then -- off the map edge: counted only
+      m.x, m.y, m.size, m.label = x, y, math.min(m.size or 24, size), ""
+    else
+      m.hidden = true
+    end
   end
-  local slots = shown + (more > 0 and 1 or 0)
-  -- Near the map edge, lay the icons out where the whole spiral fits.
-  local edgeX, edgeY = (inner + size / 2) / width, (inner + size / 2) / height
-  local cx = math.max(math.min(edgeX, 0.5), math.min(1 - math.min(edgeX, 0.5), zone.x))
-  local cy = math.max(math.min(edgeY, 0.5), math.min(1 - math.min(edgeY, 0.5), zone.y))
-  for i = 1, slots do
-    local item = i <= shown and members[i] or zone.extra
-    local r, a = slots > 1 and inner * math.sqrt((i - 0.5) / slots) or 0, i * GOLDEN
-    item.x = math.max(0, math.min(1, cx + r * math.cos(a) / width))
-    item.y = math.max(0, math.min(1, cy + r * math.sin(a) / height))
-    item.size = math.min(item.size or 24, size)
-    if i <= shown and n > 1 then item.label = "" end -- a crowd's ages are in the circle's tooltip
-  end
-  for i = shown + 1, n do members[i].hidden = true end
 end
 
 local function Zones(items, mapID, width, height)
@@ -135,8 +132,7 @@ function Intel.Pins(mapID, width, height, sample)
       local by, area, how, near = it.by or "?", it.area, it.how, it.near
       items[#items + 1] = {
         sortKey = key, name = e.display, class = c, age = age,
-        -- Where it can be now: the sighting's radius plus walking since.
-        reach = approximate and math.min(MAX_REACH, (it.r or 80) + SPEED * math.max(0, age - Intel.FRESH)) or nil,
+        reach = approximate and math.min(MAX_REACH, it.r or MAX_REACH) or nil, -- roughly where, in yards
         x = it.x, y = it.y,
         size = fresh and 24 or math.floor(22 - 6 * fade),
         ring = c and (fresh and { c.r, c.g, c.b } or { Ring(c.r), Ring(c.g), Ring(c.b) }) or "textDim",
@@ -191,13 +187,10 @@ function Intel.Pins(mapID, width, height, sample)
       end
     end
   end
-  -- Visible enemies, "+N" markers, then circles (drawn below by frame level).
+  -- Visible enemies, then circles (drawn below them by frame level).
   local out = {}
   for _, item in ipairs(items) do
     if not item.hidden then out[#out + 1] = item end
-  end
-  for _, z in ipairs(zones) do
-    if z.extra then out[#out + 1] = z.extra end
   end
   for _, z in ipairs(zones) do out[#out + 1] = z end
   return out

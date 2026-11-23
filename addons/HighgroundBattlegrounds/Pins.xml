@@ -44,6 +44,11 @@
           <Anchors><Anchor point="TOPLEFT"/><Anchor point="BOTTOMRIGHT"/></Anchors>
         </Texture>
       </Layer>
+      <Layer level="OVERLAY">
+        <FontString parentKey="Count" inherits="GameFontNormalOutline">
+          <Anchors><Anchor point="CENTER"/></Anchors>
+        </FontString>
+      </Layer>
     </Layers>
   </Frame>
 </Ui>

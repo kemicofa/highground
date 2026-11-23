@@ -12,13 +12,13 @@ for _, position in ipairs({ { 0.5, 0.5 }, { 0.99, 0.99 }, { false, false } }) do
   end
   for _, size in ipairs({ { 1000, 667 }, { 300, 200 } }) do
     local items, again = s.items(unpack(size)), s.items(unpack(size))
-    local enemies, counted = {}, 0
+    local enemies = {}
     for _, item in ipairs(items) do
-      if item.sortKey then enemies[#enemies + 1] = item
-      elseif item.label and item.label:match("^%+%d+$") then counted = counted + tonumber(item.label:sub(2)) end
+      if item.sortKey then enemies[#enemies + 1] = item end
     end
-    check(#enemies + counted == (position[1] and 15 or 0), position[1] and "every stacked enemy is drawn or counted"
-      or "enemies without a position get no pins")
+    local zone = s.zones(unpack(size))[1]
+    check(position[1] and zone.count == 15 or not position[1] and zone == nil,
+      position[1] and "the circle counts every stacked enemy" or "enemies without a position get no pins")
     check(#s.zones(unpack(size)) == (position[1] and 1 or 0), "one shared circle for one area")
     local prior = {}
     for _, item in ipairs(again) do if item.sortKey then prior[item.sortKey] = item end end
@@ -28,11 +28,24 @@ for _, position in ipairs({ { 0.5, 0.5 }, { 0.99, 0.99 }, { false, false } }) do
       check(item.label == "", "a crowd's ages move to the circle's tooltip")
       for j = 1, i - 1 do
         local dx, dy = (item.x - enemies[j].x) * size[1], (item.y - enemies[j].y) * size[2]
-        check(math.sqrt(dx * dx + dy * dy) >= item.size * 0.6, "icons in a circle do not pile up on either canvas size")
+        check(math.sqrt(dx * dx + dy * dy) >= item.size * 0.9, "icons around a circle do not pile up on either canvas size")
       end
     end
   end
   for key, it in pairs(ns.Test.intel) do
     check(it.x == (position[1] or nil) and it.y == (position[2] or nil), "display spacing never changes recorded locations")
   end
+end
+
+do -- A circle marks roughly where an enemy was last seen: it never grows.
+  local s, ns = support.client()
+  s.tick()
+  local key = "Roamer-Realm"
+  ns.enemies[key] = { key = key, display = "Roamer", class = "ROGUE" }
+  ns.Test.RecordSighting(key, 0.5, 0.5, 80, "Me", s.now, "same area", "area")
+  local fresh = s.zones(1000, 667)[1]
+  s.now = s.now + 100
+  local old = s.zones(1000, 667)[1]
+  check(fresh and old and fresh.radius == old.radius, "the circle keeps its size as the sighting ages")
+  check(fresh.radius * 1000 <= 40.5, "and stays within about 40 yards")
 end

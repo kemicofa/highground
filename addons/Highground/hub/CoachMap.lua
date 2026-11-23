@@ -85,7 +85,7 @@ function C.MapSteps()
     { id = "old", title = ns.Locale:Get("highground.coachmap.older_sightings_fade.039a3d"), target = function() return M.Pin("old") end, event = "OnEnter",
       text = ns.Locale:Get("highground.coachmap.this_faded_mage_was_last_seen_36.2fe437") },
     { id = "rough", title = ns.Locale:Get("highground.coachmap.a_location_can_be_approximate.08cdfb"), target = function() return M.Pin("rough") end, event = "OnEnter",
-      text = ns.Locale:Get("highground.coachmap.a_faint_circle_means_an_approximate_position.8de52e") },
+      text = ns.Locale:Get("highground.coachmap.a_faint_circle_marks_roughly_where_an.47c0a0") },
     { id = "share", feature = "intelShare", title = ns.Locale:Get("highground.coachmap.use_the_whole_picture.b9e5f8"), target = Canvas,
       text = ns.Locale:Get("highground.coachmap.compare_fresh_pins_older_sightings_and_the.a2fa1f") },
   }

@@ -1,7 +1,8 @@
 local _, ns = ...
-ns.RegisterBattleground(ns.Localization.Define({
+local T = ns.BattlegroundText
+ns.RegisterBattleground({
   id = "battle_for_gilneas", gameName = "Battle for Gilneas", kind = "nodes", size = 10,
-  clients = {
+  games = {
     retail = { ui = { 275 }, inst = { 761 } },
     cata = { ui = { 275 }, inst = { 761 }, rules = {
       -- Starting gate positions from BattlegroundBFG.h, projected with
@@ -16,18 +17,18 @@ ns.RegisterBattleground(ns.Localization.Define({
         -- 1798/1799 are prematch spawn points, not the match's starting GYs.
         -- Live graveyardID coordinates override these original client fallbacks.
         static = {
-          ns.Localization.Define({ id = 1740, team = "A", label = ns.Locale:Get("battlegrounds.battleforgilneas.alliance_starting_graveyard.0f30b9"), x = 0.31275517, y = 0.80102750 }, { label = "battlegrounds.battleforgilneas.alliance_starting_graveyard.0f30b9" }),
-          ns.Localization.Define({ id = 1739, team = "H", label = ns.Locale:Get("battlegrounds.battleforgilneas.horde_starting_graveyard.df2741"), x = 0.59036796, y = 0.23342345 }, { label = "battlegrounds.battleforgilneas.horde_starting_graveyard.df2741" }),
+          { id = 1740, team = "A", label = T"battlegrounds.battleforgilneas.alliance_starting_graveyard.0f30b9", x = 0.31275517, y = 0.80102750 },
+          { id = 1739, team = "H", label = T"battlegrounds.battleforgilneas.horde_starting_graveyard.df2741", x = 0.59036796, y = 0.23342345 },
         },
         -- Capture flags and their graveyards occupy different map positions.
         -- Node positions also identify localized POIs without English names.
         nodes = {
-          ns.Localization.Define({ id = 1736, label = ns.Locale:Get("battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6"), x = 0.31507454, y = 0.65536308,
-            node = { name = "Lighthouse", x = 0.35904251, y = 0.62878461 } }, { label = "battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6" }),
-          ns.Localization.Define({ id = 1738, label = ns.Locale:Get("battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"), x = 0.62092516, y = 0.82485021,
-            node = { name = "Waterworks", x = 0.61219299, y = 0.71837309 } }, { label = "battlegrounds.battleforgilneas.waterworks_graveyard.fe8083" }),
-          ns.Localization.Define({ id = 1735, label = ns.Locale:Get("battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"), x = 0.69833187, y = 0.40510693,
-            node = { name = "Mine", x = 0.60478025, y = 0.40649971 } }, { label = "battlegrounds.battleforgilneas.mine_graveyard.8f5ed6" }),
+          { id = 1736, label = T"battlegrounds.battleforgilneas.lighthouse_graveyard.b78ff6", x = 0.31507454, y = 0.65536308,
+            node = { name = "Lighthouse", x = 0.35904251, y = 0.62878461 } },
+          { id = 1738, label = T"battlegrounds.battleforgilneas.waterworks_graveyard.fe8083", x = 0.62092516, y = 0.82485021,
+            node = { name = "Waterworks", x = 0.61219299, y = 0.71837309 } },
+          { id = 1735, label = T"battlegrounds.battleforgilneas.mine_graveyard.8f5ed6", x = 0.69833187, y = 0.40510693,
+            node = { name = "Mine", x = 0.60478025, y = 0.40649971 } },
         },
       },
     } },
@@ -47,5 +48,5 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldSafeLocs.dbc",
     "https://github.com/jenascore/DBC-Maps-Vmaps-430/blob/master/dbc/WorldMapArea.dbc",
   },
-  coverage = ns.Locale:Get("battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"),
-}, { coverage = "battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f" }))
+  coverage = T"battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f",
+})

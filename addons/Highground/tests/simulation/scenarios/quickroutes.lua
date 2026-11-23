@@ -60,11 +60,13 @@ test(game .. " WSG and Twin Peaks routes work in midfield without carrier observ
     equal(sim.chat[i].text, "EFC going " .. route)
     equal(sim.chat[i].channel, "INSTANCE_CHAT")
   end
-  sim:leave(); sim:join(206, 726, "Twin Peaks")
-  equal(w.routeButtons[3].label.text, "Water")
-  for i, route in ipairs({ "ramp", "graveyard", "water" }) do
-    send(sim, w.routeButtons[i])
-    equal(sim.chat[3 + i].text, "EFC going " .. route)
+  if game ~= "forever" then -- Forever has no Twin Peaks
+    sim:leave(); sim:join(206, 726, "Twin Peaks")
+    equal(w.routeButtons[3].label.text, "Water")
+    for i, route in ipairs({ "ramp", "graveyard", "water" }) do
+      send(sim, w.routeButtons[i])
+      equal(sim.chat[3 + i].text, "EFC going " .. route)
+    end
   end
   C.SetFeature("quickCallsRoutes", false)
   assert(not w:IsShown())
@@ -75,7 +77,7 @@ test(game .. " WSG and Twin Peaks routes work in midfield without carrier observ
   sim:joinArena(); assert(not w:IsShown())
   sim:leave(); sim:join()
   assert(not w:IsShown(), "flag routes never appear on a base map")
-  equal(#sim.chat, 6)
+  equal(#sim.chat, game == "forever" and 3 or 6, "one call per route button pressed")
   sim:assertHealthy()
 end)
 end

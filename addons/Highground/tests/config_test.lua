@@ -13,25 +13,31 @@ local function bg(ns, instance, mode)
   return assert(ns.ResolveBattleground(nil, instance, ns.CLIENT, mode))
 end
 
--- The registry contains 17 definitions: 15 Retail, Forever's Darkspear
--- Islands (on the retail client) and all 8 original Cata BGs.
-local definitions, clients = 0, { retail = 0, cata = 0 }
+-- The registry contains 17 definitions: 15 on Retail, 4 on WoW Forever
+-- (Warsong Gulch, Arathi Basin, Alterac Valley, Darkspear Islands) and all 8
+-- original Cata battlegrounds.
+local definitions, games = 0, { retail = 0, forever = 0, cata = 0 }
 for _, config in pairs(retail.BattlegroundConfigs) do
   definitions = definitions + 1
   check(type(config.coverage) == "string", config.id .. " needs documented coverage")
-  for client, maps in pairs(config.clients) do
-    clients[client] = clients[client] + 1
+  for game, maps in pairs(config.games) do
+    games[game] = games[game] + 1
+    local client = game == "forever" and "retail" or game
     for _, id in ipairs(maps.inst or {}) do
-      local resolved = retail.ResolveBattleground(nil, id, client, nil, maps.game)
-      check(resolved and resolved.id == config.id, "instance mapping " .. id)
+      local resolved = retail.ResolveBattleground(nil, id, client, nil, game)
+      check(resolved and resolved.id == config.id and resolved.game == game, "instance mapping " .. id)
     end
     for _, id in ipairs(maps.ui or {}) do
-      local resolved = retail.ResolveBattleground(id, nil, client, nil, maps.game)
+      local resolved = retail.ResolveBattleground(id, nil, client, nil, game)
       check(resolved and resolved.id == config.id, "UI map mapping " .. id)
     end
   end
 end
-check(definitions == 17 and clients.retail == 16 and clients.cata == 8, "BG coverage")
+check(definitions == 17 and games.retail == 15 and games.forever == 4 and games.cata == 8, "BG coverage")
+check(forever.ResolveBattleground(nil, 566) == nil, "Forever resolves only the battlegrounds it lists")
+check(bg(forever, 30).rulesKey == bg(retail, 30).rulesKey, "Forever keeps the learned-state keys it saved under retail")
+check(bg(forever, 529).rules.map.anchors.stables[1] == bg(cata, 529).rules.map.anchors.stables[1],
+  "Forever's Arathi Basin uses the classic map's positions")
 check(cata.ResolveBattleground(417, 998) == nil, "Cata must not resolve Retail Temple")
 check(retail.ResolveBattleground(128, 607) == nil, "Retail must not resolve retired Strand")
 check(retail.ResolveBattleground(2444, nil) == nil, "outdoor Slayer's Rise is not the BG")
@@ -120,10 +126,13 @@ for _, instance in ipairs({ 727, 1803, 2656 }) do
   check(rules.graveyards.mode == "none", "resource/cart POIs must not become graveyards")
   check(not rules.capture.seconds and not rules.scoring.predict, "unsupported objectives must not get invented timers")
 end
-local ok = pcall(retail.RegisterBattleground, { id = "arathi_basin", name = "Duplicate", kind = "nodes", clients = { retail = {} } })
+local ok = pcall(retail.RegisterBattleground, { id = "arathi_basin", name = "Duplicate", kind = "nodes", games = { retail = {} } })
 check(not ok, "duplicate config must fail at load time")
+ok = pcall(retail.RegisterBattleground, { id = "old_shape", name = "Old", kind = "nodes", size = 10, clients = { retail = {} } })
+check(not ok, "the old clients table is refused with a hint")
 retail.RegisterBattleground({ id = "fixture", name = "Fixture", kind = "nodes", size = 10,
-  clients = { retail = { inst = { 999999 }, rules = { graveyards = { names = {} }, capture = { seconds = false } } } },
+  coverage = retail.BattlegroundText("battlegrounds.ashran.roster_resurrection_waves_visible_event_lane_status.9f1dbc"),
+  games = { retail = { inst = { 999999 }, rules = { graveyards = { names = {} }, capture = { seconds = false } } } },
   rules = { graveyards = { mode = "names", names = { "old" } }, capture = { seconds = 60 } },
 })
 local fixture = bg(retail, 999999).rules

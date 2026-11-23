@@ -1,4 +1,5 @@
 local _, ns = ...
+local T = ns.BattlegroundText
 -- WoW Forever's own battleground: four capture points and a central flag
 -- carried to a base your team holds; first to 2000 points. Each base is a
 -- graveyard, as in Arathi Basin: Shipwreck Cove (NW) and Abandoned Tower
@@ -7,11 +8,11 @@ local _, ns = ...
 -- start graveyards nobody captures. Base names, 60-second captures and
 -- 30-second waves were reported from the game (2026-11-22); learned
 -- capture times replace the configured one.
-ns.RegisterBattleground(ns.Localization.Define({
+ns.RegisterBattleground({
   id = "darkspear_islands", gameName = "Darkspear Islands", kind = "carry", size = 15,
   -- Instance 2997 from a Forever beta match capture (build 70338), confirmed
   -- live with UI map 2524 (2026-11-22).
-  clients = { retail = { ui = { 2524 }, inst = { 2997 }, game = "forever" } },
+  games = { forever = { ui = { 2524 }, inst = { 2997 } } },
   rules = {
     callouts = { destinations = { "Abandoned Tower", "Shipwreck Cove", "Ruins", "Camp" } },
     objective = "carry",
@@ -34,10 +35,8 @@ ns.RegisterBattleground(ns.Localization.Define({
       -- unplaced own resurrection is at your start. Spots are estimated from
       -- the world map (2026-11-22): Horde camp south, Alliance fort north.
       starts = {
-        ns.Localization.Define({ team = "H", label = ns.Locale:Get("battlegrounds.darkspearislands.horde_start.6ee922"), x = 0.53, y = 0.82 },
-          { label = "battlegrounds.darkspearislands.horde_start.6ee922" }),
-        ns.Localization.Define({ team = "A", label = ns.Locale:Get("battlegrounds.darkspearislands.alliance_start.7669f4"), x = 0.50, y = 0.28 },
-          { label = "battlegrounds.darkspearislands.alliance_start.7669f4" }),
+        { team = "H", label = T"battlegrounds.darkspearislands.horde_start.6ee922", x = 0.53, y = 0.82 },
+        { team = "A", label = T"battlegrounds.darkspearislands.alliance_start.7669f4", x = 0.50, y = 0.28 },
       } },
     scoring = { bases = 4, noun = "base", predict = true },
   },
@@ -46,5 +45,5 @@ ns.RegisterBattleground(ns.Localization.Define({
     "https://conquestcapped.com/guides/wow-forever/wow-forever-darkspear-islands-battleground/",
     "https://github.com/gallardoS/addon.rbgs.io/blob/main/tools/fixtures/capture-70338-final.sanitized.json",
   },
-  coverage = ns.Locale:Get("battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"),
-}, { coverage = "battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb" }))
+  coverage = T"battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb",
+})

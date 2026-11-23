@@ -229,7 +229,7 @@ test("WoW Forever two-part names learn your capture spell and the assaulting tea
 end)
 
 test("WoW Forever two-part names keep the flag carrier's team and identity", function()
-  local sim = twoPartMatch(112, 566, "Eye of the Storm")
+  local sim = twoPartMatch(2524, 2997, "Darkspear Islands")
   local F = sim.ns.Flags
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Ally Person has taken the flag!")
   local me = sim.ns.Timers.MyTeam()

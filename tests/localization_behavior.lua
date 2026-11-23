@@ -53,7 +53,7 @@ local function checkMapLookups()
   T.Rules = function() return configs.eye_of_the_storm.rules end
   assert(T.HasGraveyard("Fel Reaver Ruins") and T.HasGraveyard("Blood Elf Tower"))
   I.Landmarks = function() return {} end
-  ns.GetBG = function() return { ui = { 275 }, rules = configs.battle_for_gilneas.clients.cata.rules } end
+  ns.GetBG = function() return { ui = { 275 }, rules = configs.battle_for_gilneas.games.cata.rules } end
   local x, y = I.AreaXY(275, "Lighthouse")
   assert(x == 0.35904251 and y == 0.62878461, "capture fallback locations preserve game matching names")
   T.Rules = function() return configs.twin_peaks.rules end

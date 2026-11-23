@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- WoW Forever, Arathi Basin: enemies seen in a named area (Stables, Farm, the starts…) are placed with the classic map's positions instead of Retail's, so their map pins land on the right spot.
 - WoW Forever, Arathi Basin: dying at your start times **Alliance start** (Trollbane Hall) or **Horde start** (Defiler's Den), with its pin on the map, instead of an unnamed "spot unknown" row.
 - Enemy map circles stay small (about 40 yards) and no longer grow over time; they fade with age like other pins.
 - Several enemies seen in one place share a circle showing their number in the middle, with their class or spec icons around its edge.

@@ -2,11 +2,22 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [3.2.0] - 2026-11-23
 
+- **Enemy map circles:** an enemy placed only by area shows as a faint circle where they can be, growing while they stay unseen. Enemies seen in one place share a circle, shrinking to fit with a **+N** for the rest; hover it to see who was seen there and when.
+- **Faction crests:** resurrection and objective rows show the team's Alliance or Horde crest instead of OURS/THEIRS, and each flag carrier's class icon carries their crest.
+- Quick callouts send as game macros, so they reach battleground chat in WoW Forever matches. In combat the panel keeps its area and destination until combat ends.
+- The enemy list shows the whole team by default, and setups still on the old five- or ten-row default switch to all. Choose fewer under **Battlegrounds → Appearance → Enemies shown**.
 - **Tag enemy specs:** when the game doesn't reveal an enemy's spec (always the case on WoW Forever, whose scoreboard only names the class), hover their row and click one of the spec icons on the right. Click the tagged icon again to remove it. Teammates with Highground see your tags while **Share observations** is on, and tags are remembered for later matches. A spec the game identifies replaces a tag.
-- WoW Forever: class names from the scoreboard are no longer saved as specs, and ones saved earlier are cleared at the end of your next match.
+- Enemy rows show a spec only once it is identified or tagged, never the class name. On WoW Forever, class names from the scoreboard are no longer saved as specs, and ones saved earlier are cleared at the end of your next match.
+- Russian, Korean and Chinese player names display in Highground's panels.
+- **Sound for each alert:** base capture, objective, resurrection and sap alerts have their own sounds, and every alert can use any Highground cue or a game sound from its addon's alert settings or `/hg alerts sound`. Feature guides offer the feature's switch on every step and let you try its sounds.
+- WoW Forever: every battleground runs one resurrection clock, so your own countdown also times the enemy's graveyards. Warsong Gulch lists both base graveyards from the start.
+- WoW Forever, Darkspear Islands: bases start neutral and show their real owner, the starts are named **Horde start** and **Alliance start**, a captured base shows one graveyard, and the flag gets a respawn countdown once its timing has been seen.
+- The objectives panel drops its fixed goal line and lists a base under attack once, and the board header shows only the enemy count.
+- Each death notes the next resurrection wave in the match history.
 - Players' right-click menus no longer break in WoW Forever battlegrounds. Highground's **put a bounty** and **Highground Reputation** entries stay out of them in battlegrounds, arenas, combat and other restricted play.
+- Sightings, resurrection waves and captures the game refuses to share with teammates are kept and sent with the next update.
 
 ## [3.1.0] - 2026-11-22
 

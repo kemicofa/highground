@@ -34,6 +34,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
 | `capture.icons` | This battleground's own POI icon states: `neutral` (`[index] = true`), `owned` and `contested` (`[index] = "A"`/`"H"`). Listed icons win over the shared icon families |
+| `graveyards.starts` | Permanent start graveyards for maps without game graveyard IDs: `{ team, label, x, y }`. Your own resurrection with no release position or named area is timed at your start; unplaced teammate resurrections still feed the clock but get no "spot unknown" row |
 | `graveyards.mode`, `iconFamilies`, `names`, `exclude` | Which POIs may create a graveyard; numeric icon families support localized names; `none` still permits observed spirit-guide locations |
 | `graveyards.static` | Permanent graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
 | `graveyards.nodes` | Graveyards enabled by owned, uncontested capture nodes; separate graveyard and capture-point coordinates |

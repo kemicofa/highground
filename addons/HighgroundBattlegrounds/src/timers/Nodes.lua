@@ -234,6 +234,11 @@ function Timers.NodeGY(n, team)
     end
     return nil
   end
+  -- A graveyard already named after the base (saved from an earlier match
+  -- at the spirit healer, away from the base icon) is the same graveyard.
+  for _, g in ipairs(Timers.gys) do
+    if not g.configured and g.label and g.label:lower() == n.name:lower() then return g end
+  end
   return Timers.GetGY(nil, n.x, n.y, nil, n.name) or Timers.GetGY(team, n.x, n.y, true, n.name)
 end
 

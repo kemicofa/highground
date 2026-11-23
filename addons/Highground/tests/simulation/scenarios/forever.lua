@@ -307,3 +307,48 @@ test("WoW Forever times Darkspear Islands bases and 300-second Alterac Valley ca
   byMap:join(2524, 0, "Darkspear Islands")
   equal(byMap.ns.Core.currentBG and byMap.ns.Core.currentBG.id, "darkspear_islands", "the UI map alone identifies Darkspear Islands")
 end)
+
+test("WoW Forever names Darkspear start graveyards and keeps one graveyard per base", function()
+  local sim = twoPartMatch(2524, 2997, "Darkspear Islands")
+  local T = sim.ns.Timers
+  local me, them = T.MyTeam(), T.Other(T.MyTeam())
+  local function rows(name)
+    local n = 0
+    for _, r in ipairs(sim.env.HighgroundTimersFrame.rows) do
+      if r:IsShown() and r.place.text == name then n = n + 1 end
+    end
+    return n
+  end
+  equal(T.StartGY("H").label, "Horde start", "the Horde start is named")
+  equal(T.StartGY("A").label, "Alliance start", "the Alliance start is named")
+  -- A base graveyard saved at its spirit healer, then the base is captured:
+  -- its icon is elsewhere, but it stays one graveyard.
+  T.gys[#T.gys + 1] = { team = them, x = 0.5722, y = 0.7018, label = "Ruins", learned = true }
+  sim.pois[1] = { name = "Ruins", position = { x = 0.6, y = 0.62 }, textureIndex = 215 }
+  sim:event("AREA_POIS_UPDATED")
+  sim.pois[1].textureIndex = me == "H" and 219 or 218
+  sim:event("AREA_POIS_UPDATED")
+  sim.pois[1].textureIndex = me == "H" and 216 or 215
+  sim:advance(61); sim:event("AREA_POIS_UPDATED")
+  local ruins = 0
+  for _, g in ipairs(T.gys) do if g.label == "Ruins" then ruins = ruins + 1 end end
+  equal(ruins, 1, "the capture reuses the saved Ruins graveyard")
+  -- Dead at the start: no named area, and the game gives a countdown but no
+  -- release position.
+  sim.env.GetSubZoneText = function() return "" end
+  sim.env.GetMinimapZoneText = function() return "Darkspear Islands" end
+  sim.units.player.ghost, sim.healerTime = true, 12
+  sim:advance(0.5)
+  equal(T.StartGY(me).conf, "exact", "with a base owned, your unplaced countdown still times your start")
+  equal(rows("Horde start"), 1, "the Horde start has a row")
+  equal(rows("Alliance start"), 1, "and so does the Alliance start")
+  equal(rows("spot unknown"), 0, "no unnamed graveyard")
+  sim.units.player.ghost, sim.healerTime = false, nil
+  sim:advance(1)
+  -- A teammate comes back somewhere unknown: it times the clock, no row.
+  sim.units.raid1.ghost = true; sim:advance(0.5)
+  sim.units.raid1.ghost = false; sim:advance(1)
+  equal(rows("spot unknown"), 0, "an unplaced teammate resurrection adds no unnamed row")
+  equal(rows("Ruins"), 1, "one Ruins row")
+  sim:assertHealthy()
+end)

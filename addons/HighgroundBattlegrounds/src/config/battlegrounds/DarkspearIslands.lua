@@ -29,7 +29,16 @@ ns.RegisterBattleground(ns.Localization.Define({
     -- names are a fallback. "camp" must not match the Horde encampment.
     graveyards = { mode = "names", iconFamilies = { 31, 145, 150, 215 }, names = { "abandoned tower", "shipwreck cove", "ruins", "camp" },
       exclude = { "encampment", "alliance", "horde" },
-      mapLabels = { ["abandoned tower"] = "AT", ["shipwreck cove"] = "SC", ruins = "Ruins", camp = "Camp" } },
+      mapLabels = { ["abandoned tower"] = "AT", ["shipwreck cove"] = "SC", ruins = "Ruins", camp = "Camp" },
+      -- Start graveyards: the game gives no release position there, so an
+      -- unplaced own resurrection is at your start. Spots are estimated from
+      -- the world map (2026-11-22): Horde camp south, Alliance fort north.
+      starts = {
+        ns.Localization.Define({ team = "H", label = ns.Locale:Get("battlegrounds.darkspearislands.horde_start.6ee922"), x = 0.53, y = 0.82 },
+          { label = "battlegrounds.darkspearislands.horde_start.6ee922" }),
+        ns.Localization.Define({ team = "A", label = ns.Locale:Get("battlegrounds.darkspearislands.alliance_start.7669f4"), x = 0.50, y = 0.28 },
+          { label = "battlegrounds.darkspearislands.alliance_start.7669f4" }),
+      } },
     scoring = { bases = 4, noun = "base", predict = true },
   },
   sources = {

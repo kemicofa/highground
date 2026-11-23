@@ -96,8 +96,8 @@ function Timers.LiveGYs(mapID, now, withUnlocated)
   for _, it in ipairs(candidates) do
     local g, dup = it.g, false
     for _, p in ipairs(placed) do
-      if not (g.configured or p.g.configured)
-        and (p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2 then
+      if not (g.configured or p.g.configured) and ((p.g.x - g.x) ^ 2 + (p.g.y - g.y) ^ 2 < 0.035 ^ 2
+        or g.label and p.g.label and not (g.fromPlace or p.g.fromPlace) and g.label:lower() == p.g.label:lower()) then
         dup = true
         break
       end
@@ -108,8 +108,12 @@ function Timers.LiveGYs(mapID, now, withUnlocated)
     end
   end
   if withUnlocated then
+    -- With named starts and bases, an unplaced resurrection is one of them:
+    -- it still times the shared clock but gets no "spot unknown" row.
+    local graveyards = Timers.Rules().graveyards
+    local hideUnplaced = graveyards and graveyards.starts
     for _, g in ipairs(Timers.gys) do
-      if not g.x and Timers.Available(g) then
+      if not g.x and Timers.Available(g) and not (hideUnplaced and g.unplaced) then
         local nw, est = Timers.NextWave(g, now)
         if nw or g.configured then
           placed[#placed + 1] = Item(g, nw, est)

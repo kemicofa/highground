@@ -1596,6 +1596,8 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Кладбище у водокачки",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Кладбище у рудников",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Захваты точек и изученные скорости прироста ресурсов; в Cata два постоянных стартовых кладбища и три кладбища у точек, зависящие от владельца.",
+  ["battlegrounds.darkspearislands.horde_start.6ee922"] = "Старт Орды",
+  ["battlegrounds.darkspearislands.alliance_start.7669f4"] = "Старт Альянса",
   ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "Флагоносец, захват баз, кладбища и динамика ресурсов; будущие доставки флага предсказать нельзя.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Жетоны носителей, замеченные волны воскрешения, ориентиры тележек, видимые виджеты целей и недавние объявления. Прибытие тележек и время возрождения кристаллов не вычисляются.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Современная карта с пятью базами; старый вариант с тремя базами и тележками намеренно не распознается.",

@@ -1590,6 +1590,8 @@ assert(ns.Locale:Register("deDE", {
   ["battlegrounds.battleforgilneas.waterworks_graveyard.fe8083"] = "Wasserwerk-Friedhof",
   ["battlegrounds.battleforgilneas.mine_graveyard.8f5ed6"] = "Minen-Friedhof",
   ["battlegrounds.battleforgilneas.node_captures_and_learned_resource_rates_cata.45874f"] = "Basiseroberungen und erlernte Ressourcenraten; Cata hat zwei permanente Startfriedhöfe plus drei besitzabhängige Basisfriedhöfe.",
+  ["battlegrounds.darkspearislands.horde_start.6ee922"] = "Start der Horde",
+  ["battlegrounds.darkspearislands.alliance_start.7669f4"] = "Start der Allianz",
   ["battlegrounds.darkspearislands.carrier_base_captures_graveyards_and_resource_trend.1883fb"] = "Flaggenträger, Basiseroberungen, Friedhöfe und Ressourcentrend; künftige Flaggenabgaben sind nicht vorhersagbar.",
   ["battlegrounds.deephaulravine.carrier_tokens_observed_resurrection_waves_cart_landmarks.618e85"] = "Träger-Token, beobachtete Wiederbelebungswellen, Loren-Wegpunkte, sichtbare Ziel-Widgets und aktuelle Ankündigungen. Keine abgeleitete Lorenankunft oder Kristall-Respawn-Dauer.",
   ["battlegrounds.deepwindgorge.modern_five_base_map_legacy_three_base.fcd80c"] = "Moderne Fünf-Basen-Karte; alte Drei-Basen-/Loren-Variante wird absichtlich nicht erkannt.",

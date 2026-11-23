@@ -94,6 +94,7 @@ return function(sim, env)
   methods.IsShown = function(f) return f.shown end
   methods.IsMouseOver = function(f) return sim.mouseOver == f end
   methods.GetStringWidth = function(f) return #(f.text or "") * 7 end -- about the code font
+  methods.GetUnboundedStringWidth = methods.GetStringWidth
   methods.IsVisible = function(f) return f.shown and (type(f.parent) ~= "table" or f.parent:IsVisible()) end
   methods.IsForbidden = function() return false end
   methods.SetAttribute = function(f, key, value) mutable(f, "SetAttribute"); f.attrs[key] = value end

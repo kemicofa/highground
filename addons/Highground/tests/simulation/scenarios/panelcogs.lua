@@ -232,6 +232,9 @@ test("HUD header controls fit normal, compact and enlarged text layouts", functi
           assert(gear[2] >= frame[2] and gear[2] + gear[4] <= frame[2] + header + 0.001,
             w.key .. ": cog does not intercept the first row")
           assert(title[3] > 0 and title[1] + title[3] < gear[1], "title reserves space for the cog")
+          if (w.info:GetText() or "") == "" then
+            assert(w.title:GetStringWidth() * sim.geometryScale(w.title) <= title[3], w.key .. ": title is not cut short")
+          end
           if w.info:IsShown() then
             local info = sim.bounds(w.info)
             assert(info[1] + info[3] < gear[1], "live count stays beside the cog")

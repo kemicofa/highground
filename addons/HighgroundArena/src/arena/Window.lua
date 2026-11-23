@@ -272,7 +272,7 @@ function Arena.Update()
   for i = 1, Arena.shownCount or 0 do Arena.UpdateRow(Arena.rows[i]) end
   if Arena.shownCount ~= before then Arena.UpdateTrinkets() end
   Arena.win.title:SetText(Arena.DuelMode() and ns.Locale:Get("highground.home.duel.c539e2") or ns.Locale:Get("highground.home.arena.28ee94"))
-  Arena.win.info:SetText(Arena.preview and ns.Locale:Get("arena.window.preview.f1fbb2") or
+  Hud.SetInfo(Arena.win, Arena.preview and ns.Locale:Get("arena.window.preview.f1fbb2") or
     (Arena.DuelMode() and Arena.DuelStatus() or string.format("%dv%d", count, count)))
   Timers.SecureShow(Arena.win)
 end

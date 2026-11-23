@@ -352,7 +352,7 @@ function Nearby.Update()
     for i = 1, #list do
       if not shown[list[i].name] then extra = extra + 1 end
     end
-    Nearby.win.info:SetText(extra > 0 and (ns.Locale:Format("shared.nearby.extra_after_combat.eabe51", { extra = extra })) or "")
+    Hud.SetInfo(Nearby.win, extra > 0 and (ns.Locale:Format("shared.nearby.extra_after_combat.eabe51", { extra = extra })) or "")
   else
     for i, r in ipairs(Nearby.rows) do
       local e = i <= count and list[i]
@@ -370,7 +370,7 @@ function Nearby.Update()
     Nearby.shownCount = count
     local _, top, pad, gap = Timers.Geometry(Nearby.win)
     Nearby.win:SetHeight(top + count * (Nearby.ROW_H + gap) + Nearby.ACTION_H + pad)
-    Nearby.win.info:SetText((Nearby.test or Nearby.preview) and ns.Locale:Get("shared.nearby.preview.eb2264") or (#list > count and ("+" .. (#list - count)) or ""))
+    Hud.SetInfo(Nearby.win, (Nearby.test or Nearby.preview) and ns.Locale:Get("shared.nearby.preview.eb2264") or (#list > count and ("+" .. (#list - count)) or ""))
   end
   Timers.SecureShow(Nearby.win)
 end

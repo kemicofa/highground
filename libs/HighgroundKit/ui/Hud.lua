@@ -195,6 +195,16 @@ function Hud.UnitRow(parent, name, opts)
   return r
 end
 
+-- A window header's info line takes only the width its text needs, up to
+-- infoMax; the title gets the rest, all of it when there is no info.
+function Hud.SetInfo(w, text)
+  local info = w.info
+  info:SetText(text or "")
+  local width = (info.GetUnboundedStringWidth or info.GetStringWidth)(info)
+  width = math.min(w.infoMax, math.ceil(width) + 1)
+  if width ~= w.infoWidth then w.infoWidth = width; info:SetWidth(width) end
+end
+
 ---------------------------------------------------------------------------
 -- Target and focus by name. Secure attributes: call out of combat only.
 ---------------------------------------------------------------------------

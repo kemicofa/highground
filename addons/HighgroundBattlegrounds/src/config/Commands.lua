@@ -30,6 +30,8 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   C.Tool("history", "battlegrounds.commands.review_saved_pvp_results_and_observed_objective.8f8151", "history", "highground.toursteps.open_match_history.2cef7d"),
   L("bg test", "battlegrounds.commands.start_or_stop_battleground_enemy_rows_timers.3af8e3", "battlegrounds-previews", "battlegrounds.commands.battleground_panel_preview_controls.629df4"),
   A("bg test stop", "battlegrounds.commands.stop_the_battleground_panel_previews.be5439", "battlegrounds.commands.stop_battleground_previews.6dc499"),
+  A("bg profiler start", "battlegrounds.commands.record_a_battleground_for_analysis_events_timers.225e86", "battlegrounds.commands.start_battleground_profiler.326d35"),
+  A("bg profiler stop", "battlegrounds.commands.stop_the_battleground_profiler_reload_then_saves.727517", "battlegrounds.commands.stop_battleground_profiler.111cb0"),
   A("intel", "battlegrounds.commands.show_enemy_map_and_sharing_status.e17a40", "battlegrounds.commands.show_map_sharing_status.c2a4ec"),
   L("intel on", "battlegrounds.commands.enable_or_disable_enemy_map_positions.31c9da", "battlegrounds-settings", "battlegrounds.commands.map_position_switch.b73ecc", { aliases = { "intel off" } }),
   L("intel share", "battlegrounds.commands.enable_or_disable_sharing_map_positions_with.4056fd", "battlegrounds-settings", "battlegrounds.commands.map_sharing_switch.5fe210", { usage = "on|off" }),

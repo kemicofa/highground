@@ -49,6 +49,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `layout` | Compact layout and docking, background opacity, appearance settings, spec icons, health and mana, hiding the kill-target card |
 | `panelcontrols` | Unlocking after setup through the cogwheel, Home and minimap controls, Frameless drag handles, saved positions, compact combat restrictions and large text |
 | `capping` | Capture casts learned from announcements, visible and combat-log captures, alerts, the base you are in |
+| `profiler` | `/hg bg profiler`: waiting outside, recording a match, resurrection countdowns and WoW Forever's 31.6-second cycle, resuming after a reload, auto-stop and reload offer on leaving, row and session caps, damaged saved recordings |
 | `objectives` | Cata, Retail and Blitz capture durations, map pins, flag pickups, secure carrier controls, assault stacks and resets |
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
 | `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, retired callout links, alert priority, restricted health, carrier advice, journals, claims, macro recovery/import choices, localized messages and observed objective widgets |

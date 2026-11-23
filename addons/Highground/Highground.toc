@@ -120,6 +120,7 @@ core/PeerTransport.lua
 core/PeerRoster.lua
 libs/core/Chat.lua
 features/battlegrounds/core/CapShare.lua
+features/battlegrounds/core/SpecTags.lua
 features/battlegrounds/core/SapCall.lua
 core/Bursts.lua
 libs/core/Alerts.lua
@@ -169,6 +170,7 @@ ui/BurstMarks.lua
 core/Calling.lua
 ui/Tooltip.lua
 ui/Rows.lua
+ui/SpecPicker.lua
 ui/Health.lua
 ui/Layout.lua
 core/Targeting.lua

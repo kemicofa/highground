@@ -38,6 +38,10 @@ function Core.ShowTooltip(self)
   if si then
     GameTooltip:AddLine(ns.SpecLabel(e, si.name) .. " " .. cls .. (e.specSrc == "hist" and ns.Locale:Format("highground.tooltip.dim_from_history_r.128b4b", { dim = dim }) or ""),
       RGB("textMuted"))
+    if e.specSrc == "tag" then
+      Theme.TipLine(GameTooltip, e.specBy and ns.Locale:Format("highground.tooltip.spec_tagged_by", { name = e.specBy })
+        or ns.Locale:Get("highground.tooltip.spec_tagged_by_you"), "info", true)
+    end
     if e.specReason then
       local r, g, b = RGB("warning")
       GameTooltip:AddLine((e.specSrc == "cast" and ns.Locale:Get("highground.tooltip.identified_from.4c20d5") or ns.Locale:Get("highground.tooltip.estimated_from.1f8ae0")) .. e.specReason, r, g, b, true)
@@ -75,6 +79,9 @@ function Core.ShowTooltip(self)
     for _, d in ipairs(downs) do
       GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], Core.Clock(d[2]), dr, dg, db, dr, dg, db)
     end
+  end
+  if Core.SpecTaggable(e) and self ~= Core.heroBtn then
+    Theme.TipLine(GameTooltip, ns.Locale:Get("highground.tooltip.spec_tag_hint"), "textMuted", true)
   end
   local key = Theme.TipHex("success")
   GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.key_left_r_target_key_3_right.fe5d55", { key = key, key_3 = key, key_5 = key }), RGB("textMuted"))

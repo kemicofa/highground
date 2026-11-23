@@ -10,8 +10,8 @@ end
 
 t.test("all networking packages load the registry and advertise only their loaded features", function()
   local expected = {
-    Highground = { "users", "intel", "timers", "capture", "guild", "offer", "claim", "deaths", "reputation", "profiles" },
-    HighgroundBattlegrounds = { "intel", "timers", "capture" },
+    Highground = { "users", "intel", "timers", "capture", "spectags", "guild", "offer", "claim", "deaths", "reputation", "profiles" },
+    HighgroundBattlegrounds = { "intel", "timers", "capture", "spectags" },
     HighgroundBounties = { "guild", "offer", "claim", "deaths" },
     HighgroundNearby = { "guild", "offer", "claim", "deaths" },
     HighgroundReputation = { "reputation" },

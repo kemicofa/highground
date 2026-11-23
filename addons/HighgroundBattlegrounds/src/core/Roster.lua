@@ -223,6 +223,7 @@ function Core.RefreshRoster()
         e.specID = Core.HistoricSpec(r.key, r.class)
         e.specSrc = e.specID and "hist" or nil
       end
+      if e.specSrc ~= "tag" and Core.ApplySpecTag then Core.ApplySpecTag(e) end
     end
   end
   for key in pairs(Core.enemies) do
@@ -238,10 +239,21 @@ Core.HISTORY_MAX, Core.HISTORY_DAYS = 4000, 120
 local function Seen(h) return type(h) == "table" and tonumber(h.t) or -math.huge end
 local function OldestFirst(a, b) return a[2] < b[2] end
 local prunedMatch
+-- WoW Forever's scoreboard names the class where the spec goes, and
+-- earlier versions saved that as history: it is no spec, so it goes too.
+local function ClassOnly(h)
+  if type(h) ~= "table" or type(h.spec) ~= "string" or type(h.class) ~= "string" then return false end
+  local spec = h.spec:lower()
+  local female = LOCALIZED_CLASS_NAMES_FEMALE and LOCALIZED_CLASS_NAMES_FEMALE[h.class]
+  for _, name in ipairs({ ns.Util.ClassName(h.class), female or false }) do
+    if type(name) == "string" and spec == name:lower() then return true end
+  end
+  return false
+end
 function Core.PruneHistory(history, now)
   local cutoff, count = now - Core.HISTORY_DAYS * 86400, 0
   for key, h in pairs(history) do
-    if Seen(h) < cutoff then history[key] = nil else count = count + 1 end
+    if Seen(h) < cutoff or ClassOnly(h) then history[key] = nil else count = count + 1 end
   end
   if count <= Core.HISTORY_MAX then return end
   local list = {}
@@ -257,11 +269,13 @@ function Core.HarvestHistory()
     if info then
       local key = Core.Canon(info.name)
       local class, spec = info.classToken, info.talentSpec
-      if key and Core.plain(class) and Core.plain(spec) and type(spec) == "string" and spec ~= "" then
+      local id = key and Core.plain(class) and Core.plain(spec) and type(spec) == "string"
+        and Core.specByName[class] and Core.specByName[class][spec]
+      -- Only a spec this client knows: WoW Forever reports the class there.
+      if id then
         ns.Scope.Saved("history", "social")[key] = { class = class, spec = spec, t = time() }
         local e = Core.enemies[key]
-        local id = Core.specByName[class] and Core.specByName[class][spec]
-        if e and id then Core.RecordSpecMana(e, id) end
+        if e then Core.RecordSpecMana(e, id) end
         if e and (e.maxMana or e.maxHP) and not e.fingerprinted then
           e.fingerprinted = true
           local fingerprints = ns.Scope.Saved("fingerprints", "rules")
@@ -279,5 +293,6 @@ function Core.HarvestHistory()
   if prunedMatch ~= (ns.MatchSerial or 0) then
     prunedMatch = ns.MatchSerial or 0
     Core.PruneHistory(ns.Scope.Saved("history", "social"), time())
+    Core.PruneHistory(ns.Scope.Saved("specTags", "social"), time())
   end
 end

@@ -93,6 +93,7 @@ function Core.StartTest(guided, enemies)
   Core.testMode, Core.guidedTest = true, guided == true
   Core.killNow = nil
   wipe(Core.enemies)
+  Core.ClearPreviewSpecTags()
   if enemies then
     for key, enemy in pairs(enemies) do Core.enemies[key] = enemy end
   else

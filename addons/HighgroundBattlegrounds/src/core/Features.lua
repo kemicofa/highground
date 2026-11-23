@@ -58,6 +58,7 @@ function Core.StopTest()
   Core.testMode, Core.guidedTest = false, nil
   Core.SetActive(false)
   wipe(Core.enemies)
+  if Core.ClearPreviewSpecTags then Core.ClearPreviewSpecTags() end
   Core.CheckZone()
   return true
 end

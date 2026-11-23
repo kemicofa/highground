@@ -178,7 +178,7 @@ test("remembered specs stay bounded, age out and tolerate damaged entries", func
   env.ns.MatchSerial = (env.ns.MatchSerial or 0) + 1
   core.HarvestHistory()
   core.PruneHistory = prune
-  assert(runs == 1, "the next match prunes once")
+  assert(runs == 2, "the next match prunes history and spec tags once each")
 end)
 
 test("Retail never infers specs or trains the Cata mana samples", function()

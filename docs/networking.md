@@ -17,6 +17,7 @@ Load `core/Util.lua`, `core/Events.lua`, your `ns.Core`, `core/Names.lua`, `core
 | `wire` | Shared fragmented transport | 1 | 1 |
 | `users` | `HighgroundU` presence | 1 | 1 |
 | `capture` | `HighgroundC` | 1 | 1 |
+| `spectags` | `HighgroundS` spec tags | 1 | 1 |
 | `intel` | `HighgroundI` | 3 | 2, 3 |
 | `timers` | `HighgroundT` | 2 | 2 |
 | `guild` | `HighgroundB` | 1, 2, 4, 5, 6, 7 | 1, 2, 4, 5, 6, 7 |

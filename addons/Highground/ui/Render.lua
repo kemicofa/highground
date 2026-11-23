@@ -320,6 +320,7 @@ function Core.Render()
   end
   Core.UpdateHero(recommended, recommendedGo)
   Core.RefreshTooltip()
+  Core.RefreshSpecPicker()
 
   -- Header: live dot while there's a roster; map tag + count on the right.
   local hasRoster = #Core.order > 0

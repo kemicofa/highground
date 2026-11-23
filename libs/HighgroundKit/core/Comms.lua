@@ -5,6 +5,7 @@ local _, ns = ...
 -- CHAT_MSG_ADDON frame that hands each message to its prefix's listener.
 -- Prefixes in use (wire formats live with their modules):
 --   HighgroundC  capture probes   core/CapShare.lua
+--   HighgroundS  spec tags        core/SpecTags.lua
 --   HighgroundT  timers           timers/Sharing.lua
 --   HighgroundI  map intel        map/Sharing.lua
 --   HighgroundB  guild bounties   bounty/Sync.lua

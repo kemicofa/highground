@@ -52,7 +52,7 @@ local function client(saved)
   }, { __index = _G })
   env._G = env
   ns.ProximityBonus = {}
-  ns.Alerts = { categories = {} }
+  ns.Alerts = { categories = {}, Upgrade = function() return true end }
   setfenv(assert(loadfile("core/Modules.lua")), env)("Highground", ns)
   for path in io.lines("Highground_Cata.toc") do
     if path:match("^libs/locale/") then setfenv(assert(loadfile(path)), env)("Highground", ns) end

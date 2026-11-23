@@ -1,12 +1,27 @@
 local _, ns = ...
 local A, Kit, Theme = ns.Alerts, ns.Kit, ns.Theme
 local modes = {
-  ns.Localization.Define({ key = "essential", label = ns.Locale:Get("shared.alerts.essentials.06580f"), hint = ns.Locale:Get("shared.alerts.objective_warnings_attack_openings_nearby_enemies_enemy.11600d") }, { label = "shared.alerts.essentials.06580f", hint = "shared.alerts.objective_warnings_attack_openings_nearby_enemies_enemy.11600d" }),
   ns.Localization.Define({ key = "everything", label = ns.Locale:Get("shared.alerts.everything.4a66d1"), hint = ns.Locale:Get("shared.alerts.allow_every_alert_category_including_sightings_and.a001be") }, { label = "shared.alerts.everything.4a66d1", hint = "shared.alerts.allow_every_alert_category_including_sightings_and.a001be" }),
   ns.Localization.Define({ key = "critical", label = ns.Locale:Get("highground.profilesummary.critical_only.e1206b"), hint = ns.Locale:Get("shared.alerts.focus_on_captures_objective_changes_resurrection_and.fc44e0") }, { label = "highground.profilesummary.critical_only.e1206b", hint = "shared.alerts.focus_on_captures_objective_changes_resurrection_and.fc44e0" }),
   ns.Localization.Define({ key = "objectives", label = ns.Locale:Get("shared.battlegrounds.objectives.24d505"), hint = ns.Locale:Get("shared.alerts.focus_on_bases_carriers_resurrection_and_sap.18351b") }, { label = "shared.battlegrounds.objectives.24d505", hint = "shared.alerts.focus_on_bases_carriers_resurrection_and_sap.18351b" }),
   ns.Localization.Define({ key = "quiet", label = ns.Locale:Get("highground.profilesummary.text_only.9ccbd0"), hint = ns.Locale:Get("shared.alerts.show_written_alerts_without_alert_sounds.8b71bd") }, { label = "highground.profilesummary.text_only.9ccbd0", hint = "shared.alerts.show_written_alerts_without_alert_sounds.8b71bd" }),
+  -- Shown when the switches match no preset; choosing it changes nothing.
+  ns.Localization.Define({ key = "custom", label = ns.Locale:Get("alerts.preset.custom"), hint = ns.Locale:Get("alerts.preset.custom_hint") }, { label = "alerts.preset.custom", hint = "alerts.preset.custom_hint" }),
 }
+-- Presets a player can choose (not Custom), for /hg alerts preset.
+function A.PresetChoices()
+  local choices = {}
+  for _, def in ipairs(modes) do
+    if def.key ~= "custom" then choices[#choices + 1] = { key = def.key, label = def.label } end
+  end
+  return choices
+end
+
+function A.PresetLabel(key)
+  for _, def in ipairs(modes) do if def.key == key then return def.label end end
+  return key
+end
+
 local function Describe(w, mode)
   for _, def in ipairs(modes) do
     if def.key == mode then w.description:SetText(def.label .. "\n\n" .. def.hint); return end
@@ -57,7 +72,8 @@ function A.Open(embedded)
     w.mode = Kit.Select(w, { width = 220, menu = true, choices = modes, onPreview = function(_, value)
       Describe(w, value)
     end, onChange = function(_, value)
-      A.SetMode(value); w:Refresh()
+      if value ~= "custom" then A.SetMode(value) end
+      w:Refresh()
     end })
     w.mode:SetPoint("TOPLEFT", 24, -140)
     w.description = Theme.Text(w, "bodyLarge", "text")
@@ -103,9 +119,7 @@ function A.Open(embedded)
         for _, channel in ipairs({ "text", "sound" }) do
           local key = channel
           row[key] = Kit.Toggle(w.body, key == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = key == "text" and 90 or 104, onChange = function(_, on)
-            local settings = A.Settings()
-            settings.channels[def.key] = settings.channels[def.key] or {}
-            settings.channels[def.key][key] = on
+            A.SetChannel(def.key, key, on); w:Refresh()
           end })
           row[key]:SetPoint("TOPRIGHT", key == "text" and -270 or -150, -y)
         end
@@ -125,12 +139,13 @@ function A.Open(embedded)
     end }), "highground.coach.done.e9b450")
     w.done:SetPoint("BOTTOMRIGHT", -24, 20)
     function w:Refresh()
-      local settings, mode = A.Settings(), A.Settings().mode or "everything"
+      local mode, sounds = A.Preset(A.Settings()), ns.Core.On("sound")
       self.mode:SetValue(mode, true)
       Describe(self, mode)
       for _, row in ipairs(self.rows) do
-        local v = settings.channels[row.key] or {}
-        if row.text then row.text:SetChecked(v.text ~= false, true); row.sound:SetChecked(v.sound ~= false, true) end
+        row.text:SetChecked(A.ChannelOn(row.key, "text"), true)
+        row.sound:SetChecked(A.ChannelOn(row.key, "sound"), true)
+        row.sound:SetEnabled(sounds)
       end
       local extra = 96 * math.max(0, ns.Core.FontScale() - 1)
       if self.addonLinks then
@@ -144,7 +159,8 @@ function A.Open(embedded)
         self.scroll:SetPoint("TOPLEFT", 24, -378 - extra)
       end
       self:SetHeight((self.addonLinks and 580 or self.expanded and 620 or 460) + footer + extra)
-      self.status:SetText((self.addonLinks or self.expanded) and ns.Locale:Get("shared.alerts.your_shared_alert_level_also_applies_to.6fbd59") or ns.Locale:Get("shared.alerts.you_can_change_this_any_time.70dffb"))
+      self.status:SetText(not sounds and ns.Locale:Get("alerts.master_off")
+        or (self.addonLinks or self.expanded) and ns.Locale:Get("alerts.preset.status") or ns.Locale:Get("shared.alerts.you_can_change_this_any_time.70dffb"))
       self.done:SetText(ns.Onboarding and ns.Onboarding.active == "alerts" and ns.Locale:Get("shared.alerts.use_these_alerts.cf6988") or ns.Locale:Get("highground.coach.done.e9b450"))
     end
     w:HookScript("OnShow", function() w:Refresh() end)

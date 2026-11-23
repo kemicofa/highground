@@ -38,7 +38,7 @@ test("full profiles restore appearance, toggles, tracking and positions after co
   sim:setCombat(false)
   equal(C.db.sniper, false); equal(C.db.theme, "parchment")
   equal(C.db.style.fontScale, 1.1); equal(C.pos.arenaPoint[3], 20)
-  assert(C.db.disabledCooldowns[45438]); equal(C.db.alerts.mode, "quiet")
+  assert(C.db.disabledCooldowns[45438]); equal(sim.ns.Alerts.Preset(C.db.alerts), "quiet")
   local bad = P.Snapshot(); bad.setup.positions.arenaPoint[3] = math.huge
   local before = C.db.style
   equal(P.Prepare(bad), nil); equal(C.db.style, before, "invalid setup is atomic")
@@ -98,6 +98,18 @@ test("alert arbitration chooses urgent sound and honors channel preferences", fu
   local count = #sim.messages
   A.Emit("nearby", "second", "Should be hidden")
   equal(#sim.messages, count)
+  -- A switch turned on after a preset wins: nothing filters it again.
+  A.SetChannel("lockon", "sound", true)
+  equal(A.Preset(A.Settings()), "custom")
+  sim:command("alerts preset loud")
+  equal(A.Preset(A.Settings()), "custom", "an unknown preset changes nothing")
+  assert(sim.messages[#sim.messages]:find("quiet = Text only", 1, true), "and lists the presets")
+  sim:command("alerts preset quiet")
+  equal(A.Preset(A.Settings()), "quiet", "the command sets every switch like the Alerts window")
+  A.SetChannel("lockon", "sound", true)
+  A.Emit("lockon", "target", nil, function() played[#played + 1] = "lockon" end)
+  sim:advance(0.2)
+  equal(played[#played], "lockon")
 end)
 
 test("secret arena and flag health goes straight to the display widget", function()

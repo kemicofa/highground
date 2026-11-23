@@ -311,7 +311,8 @@ function p.BeginReviewExample()
   -- Use an owned snapshot rather than modifying the immutable baseline.
   local after = P.ParseString(P.ExportString(P.EnsureDefault()))
   after.setup.features.sniper = not after.setup.features.sniper
-  after.setup.alerts.mode = "objectives"
+  after.setup.alerts.channels = after.setup.alerts.channels or {}
+  after.setup.alerts.channels.lockon = { text = true, sound = false }
   after.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
   p.example = { after = after }
   p.showAll = false; p.RefreshProfiles(); p.profileScroll:Scroll(0)

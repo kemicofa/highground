@@ -58,10 +58,10 @@ ns.Standalone.Start({
   default = Bounty,
   settings = {
     hint = ns.Locale:Get("bounties.main.alerts_when_a_bounty_target_shows_up.bc398a"),
-    basic = { "bounty", "bountySound", "nearby" },
-    keys = { "bounty", "bountyMarks", "bountySound", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
+    basic = { "bounty", "nearby" },
+    keys = { "bounty", "bountyMarks", "bountyAnnounce", "bountyTellGroup", "bountyAnyPlayer",
       "bountyShare", "bountyRealert", "bountyOfficerRank", "bountyDays",
-      "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbySound", "nearbyStealth", "nearbyHistory", "sound",
+      "nearby", "nearbyRows", "nearbyFade", "nearbyForget", "nearbyStealth", "nearbyHistory", "sound",
       "bountyReceive", "bountyPublish", "bountyMinGold", "bountyDurationHours", "bountyAccountGold", "bountyRequireGold",
       "bountySuggestions", "bountyDeathShare", "bountySuggestionPersonal", "bountySuggestionGuildDeaths",
       "bountySuggestionVictims", "bountySuggestionWindow", "bountySuggestionCooldown" },

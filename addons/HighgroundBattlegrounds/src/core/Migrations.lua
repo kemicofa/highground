@@ -81,6 +81,14 @@ function Core.LoadSaved()
     if not ns.SAVED_VARIABLE then db.locked = true end
   end
   MigrateSniper(db)
+  -- Alert levels and the separate sound options became per-alert switches.
+  if ns.Alerts then
+    ns.Alerts.Upgrade(db, db)
+    for _, profile in pairs(type(db.profiles) == "table" and db.profiles or {}) do
+      local setup = type(profile) == "table" and profile.setup
+      if type(setup) == "table" then ns.Alerts.Upgrade(setup, setup.preferences) end
+    end
+  end
   for k, v in pairs(Core.DEFAULTS) do
     if db[k] == nil then
       db[k] = type(v) == "table" and {} or v

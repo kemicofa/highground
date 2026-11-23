@@ -205,8 +205,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
           s:command("sniper sound 3"); O.RefreshPage(O.featurePages[owner])
           equal(row.cue:GetValue(), 3, "command and UI share the saved choice")
           click(row.play); equal(s.sounds[#s.sounds], 37666)
-          row.cue:SetValue(0); n = #s.sounds; click(row.play)
-          equal(#s.sounds, n, "Silent has useful feedback instead of a different cue")
+          equal(row.cue:SetValue(0), false, "no Silent choice: the Sound switch mutes target lock")
         end
       end
     end

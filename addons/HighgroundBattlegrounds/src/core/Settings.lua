@@ -153,7 +153,7 @@ Core.SavedDefs = {
   markMode = { type = "string", oneOf = { ping = true, icon = true } },
   pingType = { type = "string", oneOf = { attack = true, warning = true, assist = true, onmyway = true } },
   sniperScale = { type = "number", min = 0.5, max = 3 },
-  sniperSound = { type = "number", min = 0, integer = true,
+  sniperSound = { type = "number", min = 1, integer = true,
     max = function() return Core.SNIPER_SOUNDS and #Core.SNIPER_SOUNDS end },
   minimapAngle = { type = "number", min = -360, max = 360 },
   hubSection = { type = "string" },

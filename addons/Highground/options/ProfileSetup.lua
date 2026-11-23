@@ -43,7 +43,7 @@ end
 
 function P.DefaultSetup()
   local setup = { features = {}, preferences = { reducedMotion = false, locked = false }, positions = {},
-    style = {}, alerts = { mode = "everything", channels = {} }, disabledCooldowns = {}, burstModes = {} }
+    style = {}, alerts = { channels = {} }, disabledCooldowns = {}, burstModes = {} }
   for key in pairs(Features()) do setup.features[key] = Core.DEFAULTS[key] ~= false end
   for key in pairs(Core.SavedDefs) do
     if key ~= "hubSection" then setup.preferences[key] = Core.DEFAULTS[key] end
@@ -113,6 +113,8 @@ function P.PrepareSetup(source)
     for _, key in ipairs({ "features", "preferences", "positions", "style", "alerts", "disabledCooldowns", "burstModes" }) do
       assert(type(setup[key] or {}) == "table", "invalid " .. key); setup[key] = setup[key] or {}
     end
+    -- Older setups carry an alert level and separate sound options.
+    assert(ns.Alerts.Upgrade(setup, setup.preferences), "invalid alert preset")
     local features = Features()
     for key, value in pairs(setup.features) do
       assert(type(value) == "boolean", "invalid switch")
@@ -138,7 +140,6 @@ function P.PrepareSetup(source)
     Style(setup.style)
     Core.NormalizePanelStyle(setup.style, setup.features.compact or setup.preferences.compact)
     local alerts = setup.alerts
-    assert(alerts.mode == nil or ({ essential = true, everything = true, critical = true, objectives = true, quiet = true })[alerts.mode], "invalid alert preset")
     assert(type(alerts.channels or {}) == "table", "invalid alert channels")
     local known = {}; for _, def in ipairs(ns.Alerts.categories) do known[def.key] = true end
     for key, value in pairs(alerts.channels or {}) do

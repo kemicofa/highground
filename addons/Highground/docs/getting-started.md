@@ -41,7 +41,7 @@ More places to start:
 - **A first macro:** open `/hg macros` → **For my class**, choose a target, click **Use macro**, then **Open WoW macros** and drag the saved icon to an action bar.
 - **Help:** **Home → Join Discord** shows the [Highground Discord](https://discord.gg/xu3VsxRjca) invite to copy. On WoW Forever, each character is offered it once; **Not now** dismisses it.
 
-New installations show five enemies, include unrated battlegrounds, enable the target crosshair and Nearby enemies (five rows, sounds on), use the **Essentials** alert level and keep panels locked. Burst markers, pressure shields, sap calls, the objective overview and low-health resurrection reminders start off. Updates keep your existing choices.
+New installations show five enemies, include unrated battlegrounds, enable the target crosshair and Nearby enemies (five rows, sounds on), turn on every alert's text and sound and keep panels locked. Burst markers, pressure shields, sap calls, the objective overview and low-health resurrection reminders start off. Updates keep your existing choices.
 
 Markers above players need visible nameplates: V for enemies, Shift+V for friends.
 

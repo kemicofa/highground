@@ -107,7 +107,7 @@ test("settings page and own names from the TOC", function()
   local page = ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 23, "nearby, shared bounty, account gold and suggestion settings")
+  equal(#page.rows, 21, "nearby, shared bounty, account gold and suggestion settings")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.nearby, false, "switch saved")
   plate(sim, 1, "Ganker", 4)
@@ -155,7 +155,7 @@ test("a new installation shows five enemies with sounds and all settings", funct
   local sim = standalone("cata", 40402)
   local C, page = sim.ns.Core, sim.ns.StandaloneSettings.frame
   equal(C.db.nearbyRows, 5, "small list for a fresh install")
-  equal(C.db.nearbySound, true, "nearby sounds start enabled")
+  equal(sim.ns.Alerts.Allowed("nearby", "sound"), true, "nearby sounds start enabled")
   page:SetSize(640, 600); page:Show()
   local rows = {}
   for _, row in ipairs(page.rows) do rows[row.key] = row end
@@ -172,13 +172,13 @@ test("a new installation shows five enemies with sounds and all settings", funct
   equal(#shownRows(sim), 1, "standalone Nearby remains enabled")
 end)
 test("damaged saved settings fall back to their defaults and keep valid choices", function()
-  local saved = { nearbyRows = 999, nearbyFade = "slow", nearbySound = "yes", nearby = 1, nearbyForget = 120,
+  local saved = { nearbyRows = 999, nearbyFade = "slow", nearbyStealth = "yes", nearby = 1, nearbyForget = 120,
     positions = "broken", alerts = 3 }
   local sim = standalone("cata", 40402, saved)
   local C = sim.ns.Core
   equal(C.O("nearbyRows"), 10, "out-of-range number uses its default")
   equal(C.O("nearbyFade"), 60, "wrong type uses its default")
-  equal(C.O("nearbySound"), true, "damaged switch uses its default")
+  equal(C.O("nearbyStealth"), true, "damaged switch uses its default")
   equal(C.On("nearby"), true, "damaged feature switch counts as on")
   equal(C.O("nearbyForget"), 120, "valid choice kept")
   equal(type(sim.ns.GetPositions()), "table", "positions repaired")

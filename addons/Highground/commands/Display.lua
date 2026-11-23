@@ -215,11 +215,16 @@ function Commands.sniper(arg, msg, say)
     Core.SetSniperNumber("sniperScale", tonumber(val))
     say(ns.Locale:Format("highground.display.sniper_size_x_core_db_sniperscale.cd3631", { Core_db_sniperScale = Core.db.sniperScale }))
   elseif sub == "sound" then
+    -- 0 turns off the lock-on Sound switch; a sound number picks it and
+    -- turns the switch back on.
     local n = tonumber(val)
-    if n and n >= 0 and n <= #Core.SNIPER_SOUNDS then
-      Core.db.sniperSound = n
-      Core.PlaySniperSound()
-      say(ns.Locale:Format("highground.display.lock_on_sound_value2.598f52", { value2 = (Core.SNIPER_SOUNDS[n] and Core.SNIPER_SOUNDS[n].name or "off") }))
+    if n == 0 then
+      ns.Alerts.SetChannel("lockon", "sound", false)
+      say(ns.Locale:Format("highground.display.lock_on_sound_value2.598f52", { value2 = ns.Locale:Get("highground.profileassignments.off.e3de5a") }))
+    elseif n and ns.Alerts.SetSound("lockon", n) then
+      ns.Alerts.SetChannel("lockon", "sound", true)
+      ns.Alerts.Play("lockon")
+      say(ns.Locale:Format("highground.display.lock_on_sound_value2.598f52", { value2 = Core.SNIPER_SOUNDS[n].name }))
     else
       local list = {}
       for i, snd in ipairs(Core.SNIPER_SOUNDS) do

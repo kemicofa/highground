@@ -41,7 +41,7 @@ local function Notify(e, spell, faded, nearby)
   local who = e.name:match("^[^-]+") .. (class and (" (" .. class .. ")") or "")
   local text = faded and (ns.Locale:Format("shared.stealth.who_spell_faded.bf78ab", { who = who, spell = spell }))
     or (ns.Locale:Format("shared.stealth.who_used_spell_value4.f03a6c", { who = who, spell = spell, value4 = (nearby and ns.Locale:Get("shared.stealth.nearby.22c34d") or "") }))
-  local sound = (not nearby or Core.O("nearbySound")) and (faded and S.ExitSound or S.EnterSound) or nil
+  local sound = faded and S.ExitSound or S.EnterSound
   if U.Notify then U.Notify("stealth", e.name .. (faded and ":faded" or ""), text, sound)
   else
     U.Say(text, "warning")

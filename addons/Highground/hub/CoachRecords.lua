@@ -6,10 +6,11 @@ function C.RecordSteps()
   local data = C.matchSample or {}; C.matchSample = data
   data.records = {
     { id = "warsong", name = "Warsong Gulch", result = "Win", character = "Example", game = "Sample",
-      started = time() - 3600, duration = 840, specName = "Example", stats = { killingBlows = 3, deaths = 2 },
+      started = time() - 3600, duration = 840, spec = 71, stats = { killingBlows = 3, honorableKills = 12, deaths = 2,
+        honorGained = 240, damageDone = 48500, healingDone = 3200 },
       events = { { at = 0, text = ns.Locale:Get("highground.coachrecords.joined_warsong_gulch.06bcbe") }, { at = 242, text = ns.Locale:Get("highground.coachrecords.your_team_captured_the_flag.27a3c4") }, { at = 840, text = ns.Locale:Get("highground.coachrecords.victory.e71f15") } } },
     { id = "arathi", name = "Arathi Basin", result = "Left early", character = "Example", game = "Sample",
-      started = time() - 7200, duration = 250, specName = "Example", stats = {},
+      started = time() - 7200, duration = 250, spec = 71, stats = {},
       events = { { at = 0, text = ns.Locale:Get("highground.coachrecords.joined_arathi_basin.aa8cb9") }, { at = 250, text = ns.Locale:Get("highground.coachrecords.left_before_the_result_was_observed.305ce8") } } },
   }
   data.entries = function()
@@ -26,6 +27,8 @@ function C.RecordSteps()
       enter = Open, target = function() return data.win.search end, context = Context },
     { id = "result", title = ns.Locale:Get("highground.coachrecords.choose_a_match_to_inspect.91330e"), text = ns.Locale:Get("highground.coachrecords.select_warsong_gulch_or_arathi_basin_left.1fabad"),
       enter = Open, target = function() return data.win.rows[1] end, context = Context },
+    { id = "summary", title = ns.Locale:Get("highground.coachrecords.read_the_match_summary.37a497"), text = ns.Locale:Get("highground.coachrecords.the_card_shows_the_result_your_specialization.b2cebf"),
+      enter = Open, target = function() return data.win.profile and data.win.profile.stats end, context = Context },
     { id = "timeline", title = ns.Locale:Get("highground.coachrecords.open_the_recorded_timeline.0c1d7f"), text = ns.Locale:Get("highground.coachrecords.full_timeline_lists_the_objective_events_observed.333047"),
       enter = Open, target = function() return data.win.actions[1] end, context = Context,
       requireAction = true, advance = function() return data.timeline and data.timeline:IsVisible() end, hint = ns.Locale:Get("highground.coachrecords.click_full_timeline.66d8b7") },

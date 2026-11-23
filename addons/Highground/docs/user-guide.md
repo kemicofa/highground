@@ -206,7 +206,7 @@ Drag the panel header while panels are unlocked; its position is saved per chara
 
 ### Match history
 
-`/hg history` keeps the last 100 observed PvP matches on the account. Search by map, result, character or specialization. Entries show duration, available personal scoreboard statistics and rating change, plus up to 200 observed objective events. **Full timeline** opens the events for copying. Leaving before an observed result is recorded as **Left early**; unavailable stats remain absent. The displayed win rate counts recorded wins and losses. **Undo delete** restores the most recently deleted entry while the window is available.
+`/hg history` keeps the last 100 observed PvP matches on the account. Search by map, result, character or specialization. Rows show the map, result, duration and date, with your spec icon when known. The selected match shows a card with the result, your specialization, when you joined and how long it lasted; tiles for the personal scoreboard statistics the game reported (rating change only when it moved); and the latest 11 of up to 200 observed objective events. **Full timeline** opens the events for copying. Leaving before an observed result is recorded as **Left early**; unavailable stats remain absent. The displayed win rate counts recorded wins and losses. **Undo delete** restores the most recently deleted entry while the window is available.
 
 ## Arena panel
 

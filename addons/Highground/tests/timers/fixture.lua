@@ -47,6 +47,7 @@ local function scenario(config)
         self.attrs[key] = value
       end,
       SetText = function(self, text) self.text = text end,
+      GetUnboundedStringWidth = function(self) return #(self.text or "") * 7 end,
       SetAlpha = function(self, alpha) self.alpha = alpha end,
       GetAlpha = function(self) return self.alpha end,
       GetStatusBarTexture = function(self) return self.fillTexture end,

@@ -233,10 +233,11 @@ function Timers.LayoutWindow(w)
   ns.PanelControls.Layout(w, top, pad)
   w.info:ClearAllPoints()
   w.info:SetPoint("RIGHT", w.gear, "LEFT", -S("sm"), 0)
-  w.info:SetWidth(math.max(40, width - (compact and 100 or 128) - w.gear:GetWidth() - S("sm")))
+  w.infoMax = math.max(40, width - (compact and 100 or 128) - w.gear:GetWidth() - S("sm"))
   w.title:SetPoint("RIGHT", w.info, "LEFT", -S("sm"), 0)
   w.title:SetWordWrap(false)
   w.info:SetWordWrap(false)
+  Hud.SetInfo(w, w.info:GetText())
   for i, r in ipairs(w.rows) do Timers.LayoutRow(w, r, i) end
   if w.relayout then w.relayout() end
 end
@@ -386,7 +387,7 @@ function Timers.ShowRows(w, rows, info)
     w.rows[i]:Hide()
   end
   w.tagSeen, w.tagCounts = w.tagCounts, w.tagSeen
-  w.info:SetText(info or "")
+  Hud.SetInfo(w, info)
   w:SetHeight(Timers.TOP + #rows * (Timers.ROW_H + Timers.WIN_GAP) - Timers.WIN_GAP + Timers.WIN_PAD)
   if not InCombatLockdown() and w:GetScale() ~= Timers.WinScale(w) then
     w:SetScale(Timers.WinScale(w))

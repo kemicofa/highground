@@ -1,4 +1,4 @@
-local _, ns = ...
+local addon, ns = ...
 local Util = ns.Util
 
 -- Guarded calls, error records, event frames and interval timers on ns.Util.
@@ -15,10 +15,19 @@ local function Trace(e)
   return tostring(e) .. "\n" .. (debugstack and debugstack(2, 6, 0) or "")
 end
 
+-- The host addon's version, read once the client API wrapper has loaded.
+local version
+local function Version()
+  if version == nil and ns.Api then version = Util.value(ns.Api.AddOnMetadata(addon, "Version")) or false end
+  return version or nil
+end
+
 -- Store a failure in HighgroundDB.errors (read after /reload and by /hg err):
--- errors["stage: first line"] = { count, first = "HH:MM:SS", trace }, at most
--- 64 keys (later new ones only count in errorsDropped). Every new message,
--- saved or not, sets Core.lastError. No saved table yet: stats only.
+-- errors["stage: first line"] = { count, first = "YYYY-MM-DD HH:MM:SS",
+-- version, trace }, at most 64 keys (later new ones only count in
+-- errorsDropped). Records stay until /hg clearerr, so the date and version
+-- tell old ones apart. Every new message, saved or not, sets Core.lastError.
+-- No saved table yet: stats only.
 function Util.RecordError(stage, err)
   stage = tostring(stage or "?")
   local key = stage .. ": " .. tostring(err):match("^[^\n]*")
@@ -35,7 +44,8 @@ function Util.RecordError(stage, err)
   for _ in pairs(db.errors) do kept = kept + 1 end
   if Core then Core.lastError = key end
   if rec == nil and kept >= 64 then db.errorsDropped = (tonumber(db.errorsDropped) or 0) + 1; return end
-  db.errors[key] = { count = 1, first = date and date("%H:%M:%S") or "", trace = tostring(err) }
+  db.errors[key] = { count = 1, first = date and date("%Y-%m-%d %H:%M:%S") or "", version = Version(),
+    trace = tostring(err) }
 end
 
 -- Forget recorded failures (saved errors, Core.lastError, GuardStats).

@@ -9,7 +9,10 @@ local Timers, Comms = ns.Timers, ns.Comms
 -- x/y in 1/10000 of the map, 0 = unknown; area is the sub-zone name.
 ---------------------------------------------------------------------------
 -- A full outbox (messages kept while sending is refused) drops its oldest.
+-- WoW Forever locks chat for a whole match: nothing could go out, so
+-- nothing is queued or retried.
 function Timers.Queue(msg)
+  if Comms.Blocked() == "chat_lockdown" then return end
   if #Timers.outbox >= 10 then
     table.remove(Timers.outbox, 1)
   end

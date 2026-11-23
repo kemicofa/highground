@@ -33,7 +33,12 @@ function Timers.ScanTeam()
       local start = own and Timers.StartGY(Timers.MyTeam())
       local g = own and Timers.releaseGY
         or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
-      if own then Timers.releaseGY = nil end
+      if own then
+        Timers.releaseGY = nil
+        -- How long after the countdown's end you came back.
+        if Timers.healerEnd and t - Timers.healerAt < 5 then Timers.NoteReviveLag(t - Timers.healerEnd) end
+        Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
+      end
       Timers.SetWave(g, t, "exact")
       if g and g.x then
         Timers.Learn(g)
@@ -82,7 +87,13 @@ function Timers.ScanTeam()
           left = string.format("%d", math.floor(left + 0.5)),
           place = g and g.label or area or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c") }))
       end
-      Timers.SetWave(g, now + left, "exact")
+      -- A whole-second countdown reads up to a second short: the latest end
+      -- seen this death is the closest. The wave is when ghosts come back.
+      local reading = now + left
+      local moved = not Timers.healerEnd or reading > Timers.healerEnd + 0.05 or g ~= Timers.healerG
+      if not Timers.healerEnd or reading > Timers.healerEnd then Timers.healerEnd = reading end
+      Timers.healerAt, Timers.healerG = now, g
+      if moved then Timers.SetWave(g, Timers.healerEnd + Timers.ReviveLag(), "exact") end
       ns.ShareWave(g)
     end
   end

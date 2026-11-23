@@ -75,12 +75,15 @@ test("WoW Forever recordings measure waves on the 31.6-second cycle", function()
   sim:join(1460, 489, "Warsong Gulch")
   local s = sim.env.HighgroundDB.bgProfiles[1]
   assert(find(s, " clock period=30 downtime=1%.6 "), "period and downtime")
-  local rezAt
-  sim.env.GetAreaSpiritHealerTime = function() return sim.units.player.ghost and math.max(0, rezAt - sim.now) or nil end
+  -- As live: whole-second countdowns, ghosts back 0.9 s after the end.
+  local ends
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and math.max(0, math.floor(ends - sim.now)) or nil
+  end
   for _, delay in ipairs({ 12, 31.6 }) do
-    rezAt = (rezAt or sim.now) + delay
+    ends = (ends or sim.now) + delay
     sim.units.player.ghost = true
-    sim:advance(rezAt - sim.now)
+    sim:advance(ends + 0.9 - sim.now)
     sim.units.player.ghost = false
     sim:event("PLAYER_UNGHOST")
     sim:advance(1)
@@ -90,12 +93,14 @@ test("WoW Forever recordings measure waves on the 31.6-second cycle", function()
     if row:find(" wave exact ") then exact = exact + 1 end
   end
   equal(exact, 2, "one row per wave, not per countdown second")
-  local second
+  local last
   for _, row in ipairs(s.rows) do
-    if row:find(" wave exact ") and not row:find("err=%- ") then second = row end
+    if row:find(" me rez ") then last = row end
   end
-  local err = second and tonumber(second:match("err=(%-?[%d.]+)"))
-  assert(err and math.abs(err) <= 0.3, "the next wave was predicted a cycle later: " .. tostring(second))
+  local err = last and tonumber(last:match("gyErr=(%-?[%d.]+)"))
+  assert(err and math.abs(err) <= 0.3, "the next wave a cycle later, after the revive lag: " .. tostring(last))
+  local lag = tonumber(last:match("healerErr=(%-?[%d.]+)"))
+  assert(lag and lag >= 0.8 and lag <= 1.2, "back about 0.9 s after the countdown's end: " .. last)
   sim:assertHealthy()
 end)
 

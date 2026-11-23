@@ -246,6 +246,8 @@ end
 
 -- true / false once known (this match first, then earlier ones), else nil.
 function Timers.SharedClock()
+  local res = Timers.Rules().resurrection
+  if res and res.shared ~= nil then return res.shared end -- known for this game
   if Timers.clockShared ~= nil then return Timers.clockShared end
   local v = Verdicts()
   if v and v.yes >= 2 and v.yes > 2 * v.no then return true end

@@ -352,3 +352,24 @@ test("WoW Forever names Darkspear start graveyards and keeps one graveyard per b
   equal(rows("Ruins"), 1, "one Ruins row")
   sim:assertHealthy()
 end)
+
+test("WoW Forever Warsong Gulch times both base graveyards from your own wave", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:enemy("Enemy With Surname")
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  equal(T.SharedClock(), true, "Forever runs one clock per battleground")
+  local function row(label)
+    for _, r in ipairs(sim.env.HighgroundTimersFrame.rows) do
+      if r:IsShown() and r.place.text == label then return r end
+    end
+  end
+  assert(row("Alliance Base Graveyard") and row("Horde Base Graveyard"), "both base graveyards are listed from the start")
+  sim.units.player.ghost, sim.healerTime = true, 12
+  sim:advance(0.5)
+  local ours, theirs = row("Alliance Base Graveyard"), row("Horde Base Graveyard")
+  if T.MyTeam() == "H" then ours, theirs = theirs, ours end
+  assert(ours.time.text:find("1[12]s"), "your wave: " .. ours.time.text)
+  equal(theirs.time.text, ours.time.text, "the enemy graveyard shares the wave")
+  sim:assertHealthy()
+end)

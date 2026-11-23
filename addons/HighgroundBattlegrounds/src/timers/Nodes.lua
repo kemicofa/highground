@@ -251,13 +251,14 @@ function Timers.NodeCaptured(n, team, t)
   if not n.hasGraveyard then
     return
   end
-  -- The base's graveyard starts its clock at capture.
+  -- The base's graveyard starts its clock at capture (plus the game's delay).
   local g = Timers.NodeGY(n, team)
   Timers.InvalidateNode(n) -- evidence from the previous spirit guide is no longer valid
   if g then
     g.team, g.node, g.fromStart = team, n.name, nil -- a new spirit guide, its own clock
     if not g.configured then g.label = n.name end
-    Timers.SetWave(g, t, "cap")
+    local res = Timers.Rules().resurrection
+    Timers.SetWave(g, t + (res and res.captureDelay or 0), "cap")
   end
 end
 

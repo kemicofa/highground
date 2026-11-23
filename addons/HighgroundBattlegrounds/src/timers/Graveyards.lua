@@ -199,7 +199,8 @@ function Timers.GetGY(team, x, y, create, area)
 end
 
 -- A wave seen for a team with no location at all: the team's only
--- graveyard if it has one, else a "somewhere" graveyard for that team.
+-- graveyard if it has one, else (unless each guide has its own clock) a
+-- "somewhere" graveyard for that team.
 function Timers.TeamGY(team)
   -- Multi-graveyard maps need an identified destination. An unlocated wave
   -- cannot be assigned to either guide or create a third, phantom graveyard.
@@ -213,6 +214,9 @@ function Timers.TeamGY(team)
   if n == 1 then
     return only
   end
+  -- A clock per spirit guide: a wave at one of several graveyards, unknown
+  -- which, times none of them and would mix their clocks.
+  if Timers.SharedClock() == false then return nil end
   for _, g in ipairs(Timers.gys) do
     if g.team == team and g.unplaced then
       return g

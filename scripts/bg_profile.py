@@ -174,21 +174,28 @@ def errors_line(values: list[float]) -> str:
             f"within 1.5s={sum(a <= 1.5 for a in absolute)}/{len(values)}")
 
 
+WAVE = re.compile(r"^(\S+) (\S) (.*?) ?at=")
+
+
 def resurrection(session: dict) -> list[str]:
-    out, by_conf, misses = [], defaultdict(list), []
+    out, by_conf, by_gy, misses = [], defaultdict(list), defaultdict(list), []
     rez, jumps, clocks, advice = [], Counter(), [], 0
     for t, kind, text in rows(session):
         f = fields(text)
         if kind == "wave":
-            conf = text.split(" ", 1)[0]
+            match = WAVE.match(text)
+            conf = match.group(1) if match else text.split(" ", 1)[0]
             err = number(f.get("err"))
             by_conf[conf].append(err)
+            if match:
+                by_gy[conf, f"{match.group(2)} {match.group(3) or '(no graveyard)'}"].append(err)
             if err is not None and abs(err) > 1.5:
                 misses.append(f"  {clock(t)} {text}")
         elif kind == "me" and text.startswith("rez "):
             rez.append((t, f))
         elif kind == "gy":
-            jumps[text.split(" next=")[0]] += 1
+            gy = text.split(" next=")[0].rstrip()
+            jumps[gy if " " in gy else f"{gy} (no graveyard)"] += 1
         elif kind == "clock":
             clocks.append(f"  {clock(t)} {text}")
         elif kind == "advice":
@@ -202,6 +209,11 @@ def resurrection(session: dict) -> list[str]:
     for conf, values in sorted(by_conf.items()):
         measured = [v for v in values if v is not None]
         out.append(f"  waves {conf}: {len(values)} seen; prediction before them: {errors_line(measured)}")
+        # Per graveyard: one clock mixing several graveyards shows up here.
+        for (gy_conf, name), gy_values in sorted(by_gy.items()):
+            if gy_conf == conf:
+                gy_measured = [v for v in gy_values if v is not None]
+                out.append(f"    {name}: {len(gy_values)} seen; {errors_line(gy_measured)}")
     if misses:
         out.append("  predictions off by more than 1.5s:")
         out.extend(misses[:12])
@@ -219,12 +231,19 @@ def bases(session: dict) -> list[str]:
             continue
         name = text.split(" owner=")[0]
         f = fields(text)
-        if f.get("assault", "-") != "-" and name not in assault_at:
-            assault_at[name] = (t, number(f.get("capLeft")))
-        elif f.get("assault", "-") == "-" and name in assault_at:
-            started, predicted = assault_at.pop(name)
-            captures.append(f"  {name}: assault at {clock(started)} ended after {t - started:.0f}s "
-                            f"(timer said {predicted if predicted is not None else '-'}s), owner {f.get('owner')}")
+        owner, assault = f.get("owner", "-"), f.get("assault", "-")
+        if name in assault_at and assault != assault_at[name][2]:
+            started, predicted, team, before = assault_at.pop(name)
+            head = f"  {name}: {team} assault at {clock(started)}"
+            if assault != "-":
+                captures.append(f"{head} taken over by {assault} after {t - started:.0f}s")
+            elif owner == before and owner != "-":
+                captures.append(f"{head} defended by {owner} after {t - started:.0f}s")
+            else:
+                captures.append(f"{head} captured after {t - started:.0f}s "
+                                f"(timer said {predicted if predicted is not None else '-'}s), owner {owner}")
+        if assault != "-" and name not in assault_at:
+            assault_at[name] = (t, number(f.get("capLeft")), assault, owner)
     out.extend(captures or ["  no assaults seen"])
     return out
 

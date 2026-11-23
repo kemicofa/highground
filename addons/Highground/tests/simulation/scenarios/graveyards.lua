@@ -214,8 +214,51 @@ test("WoW Forever Arathi Basin: the starts share a clock, a captured base starts
   T.NodeCaptured(farm, me, captured)
   local g = T.NodeGY(farm, me)
   local next = T.NextWave(g, captured + 1)
-  assert(next and math.abs(next - (captured + period)) < 0.5, "the Farm's waves run from its capture")
-  equal(T.NextWave(mine, captured + 1), next - 7, "the starts keep their own clock")
+  assert(next and math.abs(next - (captured + 4.4)) < 0.01, "the Farm's first wave comes 4.4 s after its capture")
+  assert(math.abs(T.NextWave(g, next + 0.1) - (next + period)) < 0.01, "then every cycle")
+  assert(math.abs(T.NextWave(mine, captured + 1) - (captured - 7 + period)) < 0.01, "the starts keep their own clock")
+  sim:assertHealthy()
+end)
+
+-- Live Arathi Basin recording (2026-11-23): you are listed under your first
+-- name, your full name and a raid token, so each of your resurrections at a
+-- base was also timed at your start.
+test("WoW Forever Arathi Basin: your resurrection at a base times that base only", function()
+  local sim = new("retail", nil, function(s)
+    forever(s)
+    s.rated, s.blitz, s.regionalNames = false, false, true
+    s.units.player.name, s.scores[1].name = "Me Myself", "Me Myself-Realm"
+  end)
+  sim.raid, sim.members = true, 2
+  sim.units.raid1 = { name = "Ally Person", classID = 1 }
+  sim.units.raid2 = sim.units.player
+  sim:enemy("Enemy With Surname")
+  sim:join(93, 529, "Arathi Basin")
+  local T = sim.ns.Timers
+  local me = T.MyTeam()
+  sim.pois[1] = { name = "Farm", position = { x = 0.56, y = 0.6 }, textureIndex = 16 }
+  sim:event("AREA_POIS_UPDATED")
+  T.NodeCaptured(T.nodes.Farm, me, sim.env.GetTime())
+  local farm = T.NodeGY(T.nodes.Farm, me)
+  sim.releasePosition = { x = farm.x, y = farm.y }
+  sim.units.player.ghost, sim.healerTime = true, 12
+  sim:advance(0.5)
+  equal(T.releaseGY, farm, "you released at the Farm")
+  sim:advance(11.5)
+  sim.units.player.ghost, sim.healerTime, sim.releasePosition = false, nil, nil
+  sim:advance(1)
+  equal(farm.conf, "exact", "your resurrection times the Farm")
+  equal(T.StartGY(me).wave, nil, "and not your start")
+  equal(T.startClock, nil, "the starts keep no clock from it")
+  -- A teammate comes back somewhere unknown, three times 93.2 s apart: two
+  -- 46.6 s cycles each, but those waves can belong to different graveyards.
+  local count = #T.gys
+  for _ = 1, 3 do
+    sim.units.raid1.ghost = true; sim:advance(0.5)
+    sim.units.raid1.ghost = false; sim:advance(92.7)
+  end
+  equal(#T.gys, count, "no unnamed graveyard collects them")
+  equal(T.WavePeriod(), 30, "and they cannot vote for 45-second waves")
   sim:assertHealthy()
 end)
 

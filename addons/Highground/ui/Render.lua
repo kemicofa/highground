@@ -126,7 +126,7 @@ function Core.Render()
       else
         Paint(r.spec, "textMuted")
       end
-      local cap = not e.dead and Core.Capping(e)
+      local cap, specText = not e.dead and Core.Capping(e), true
       if cap then
         Paint(r.spec, "pending")
         r.spec:SetText(ns.Locale:Format("highground.render.cap_value1_value2.fa74a0", Fill(CAP, "value1", string.format("%s", cap.est and "~" or ""), "value2", string.format("%.1f", math.max(0, cap.finish - now)))))
@@ -138,13 +138,16 @@ function Core.Render()
       elseif e.specID then
         -- A spec icon already names the spec: text only when there's none.
         local p = ns.Specs[e.specID]
-        r.spec:SetText(showIcon and si and si.icon and ""
-          or ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and ns.Text.Upper(si.name)) or ""))
+        specText = not (showIcon and si and si.icon)
+        r.spec:SetText(specText
+          and ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and ns.Text.Upper(si.name)) or "") or "")
       elseif not (type(e.specLive) == "string" and pcall(r.spec.SetText, r.spec, e.specLive)) then
         -- Live spec is secret mid-match: the game can draw it, we can't read it.
         -- Unknown: blank, as the class already shows in the icon and colour.
         r.spec:SetText("")
+        specText = false
       end
+      r.specText = specText
 
       Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, e.testHp or e.hpPct),
         not e.dead and e.testHp or nil)
@@ -221,6 +224,7 @@ function Core.Render()
         r.marker:Hide()
       end
       Core.RenderTrinket(r, e)
+      Core.FitRowName(r)
       local allies = e.allyCount or 0
       r.allyText:SetText(allies > 0 and ("x" .. allies) or "")
       Paint(r.allyText, allies >= 3 and "pending" or "text")

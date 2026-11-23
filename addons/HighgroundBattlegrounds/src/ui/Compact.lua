@@ -162,28 +162,38 @@ function Core.LayoutRow(r, i, compact)
   r.rangeDot:SetShown(S("distance"))
   Place(r.arrow, "RIGHT", r, "LEFT", -Core.PAD - 1, 0)
   local textX = (S("rank") and Core.TILE_W or 0) + 3 + (S("icon") and icon + 11 or 6)
+  -- Left edge of each right-side slot, measured from the row's right edge.
+  local room = r.nameRoom or {}
+  r.nameRoom, r.compactRow = room, compact
   if compact then
-    r.dist:SetWidth(S("distance") and 22 or NONE)
+    local distW, pipW, specW = S("distance") and 22 or NONE, S("status") and 40 or NONE, S("spec") and 54 or NONE
+    local hpW, trinketW = hpText and 30 or NONE, S("trinket") and 14 or NONE
+    r.dist:SetWidth(distW)
     Place(r.dist, "RIGHT", -4, 0)
-    r.pip:SetSize(S("status") and 40 or NONE, 12)
+    r.pip:SetSize(pipW, 12)
     Place(r.pip, "RIGHT", r.dist, "LEFT", S("distance") and -4 or 0, 0)
-    r.spec:SetWidth(S("spec") and 54 or NONE)
+    r.spec:SetWidth(specW)
     r.spec:SetJustifyH("RIGHT")
     Place(r.spec, "RIGHT", r.pip, "LEFT", S("status") and -4 or 0, 0)
     r.eye:SetSize(9, 9)
     Place(r.eye, "BOTTOMRIGHT", r.icon, "BOTTOMRIGHT", 2, -2)
-    r.hpText:SetWidth(hpText and 30 or NONE)
+    r.hpText:SetWidth(hpW)
     Place(r.hpText, "RIGHT", r.spec, "LEFT", -3, 0)
-    r.trinket:SetSize(S("trinket") and 14 or NONE, 14)
+    r.trinket:SetSize(trinketW, 14)
     Place(r.trinket, "RIGHT", r.hpText, "LEFT", -3, 0)
     Place(r.name, "LEFT", r.icon, "RIGHT", 4, 0)
-    r.name:SetPoint("RIGHT", r.trinket, "LEFT", -3, 0)
+    room.dist = 4 + distW
+    room.pip = room.dist + (S("distance") and 4 or 0) + pipW
+    room.spec = room.pip + (S("status") and 4 or 0) + specW
+    room.hp = room.spec + 3 + hpW
+    room.trinket = room.hp + 3 + trinketW
   else
     r.gap:SetWidth(S("gap") and 42 or NONE)
     Place(r.gap, "BOTTOMRIGHT", -6, 5)
     r.dist:SetWidth(S("distance") and 28 or NONE)
     Place(r.dist, "RIGHT", r.gap, "LEFT", S("gap") and -10 or 0, 0)
-    r.pip:SetSize(S("status") and 54 or NONE, 15)
+    local pipW, trinketW, hpW = S("status") and 54 or NONE, S("trinket") and 18 or NONE, hpText and 42 or NONE
+    r.pip:SetSize(pipW, 15)
     Place(r.pip, "TOPRIGHT", -5, -3)
     r.spec:SetWidth(80)
     r.spec:SetJustifyH("LEFT")
@@ -191,12 +201,39 @@ function Core.LayoutRow(r, i, compact)
     r.eye:SetSize(11, 11)
     Place(r.eye, "LEFT", r.allyText, "RIGHT", 2, 0)
     -- Vertically centred between the two lines, left of the distance column.
-    r.trinket:SetSize(S("trinket") and 18 or NONE, 18)
-    Place(r.trinket, "RIGHT", r, "RIGHT", (S("gap") and -54 or -6) - (S("distance") and 38 or 0), 0)
-    r.hpText:SetWidth(hpText and 42 or NONE)
+    local trinketX = (S("gap") and 54 or 6) + (S("distance") and 38 or 0)
+    r.trinket:SetSize(trinketW, 18)
+    Place(r.trinket, "RIGHT", r, "RIGHT", -trinketX, 0)
+    r.hpText:SetWidth(hpW)
     Place(r.hpText, "RIGHT", r.trinket, "LEFT", -4, 0)
     Place(r.name, "TOPLEFT", textX, -3)
-    r.name:SetPoint("RIGHT", r.hpText, "LEFT", -4, 0)
+    room.pip = 5 + pipW
+    room.trinket = trinketX + trinketW
+    room.hp = room.trinket + 4 + hpW
+  end
+  r.nameEdge = nil
+  Core.FitRowName(r)
+end
+
+-- The name runs up to the first right-side slot the row shows, so long
+-- names (WoW Forever's first and last names) get the room of empty slots.
+-- Slots keep their places. Normal rows keep the name clear of the bounty
+-- coin in the top-right corner.
+function Core.FitRowName(r)
+  local room, edge = r.nameRoom
+  if r.compactRow then
+    edge = r.trinket:IsShown() and room.trinket or r.hpText:IsShown() and room.hp
+      or r.specText and r.spec:IsShown() and room.spec or r.pip:IsShown() and room.pip
+      or r.dist:IsShown() and room.dist
+    edge = edge and edge + 3 or 4
+  else
+    edge = r.hpText:IsShown() and room.hp or r.trinket:IsShown() and room.trinket
+      or r.pip:IsShown() and room.pip
+    edge = edge and edge + 4 or 14
+  end
+  if edge ~= r.nameEdge then
+    r.nameEdge = edge
+    r.name:SetPoint("RIGHT", r, "RIGHT", -edge, 0)
   end
 end
 

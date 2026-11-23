@@ -80,7 +80,7 @@ Some elements depend on your client, current observations and Appearance switche
 | --- | --- |
 | Class-coloured background and narrow strip | The enemy's class. Highground and Class Colors keep the whole row tinted independently of health; Class Colors uses stronger tinting. |
 | Number at the left | **Priority rank**, with 1 highest; this is not a score or a fixed row number. Ranks update while row positions stay fixed. By default they use base priority; the live-score option includes current combat signals. A brief green/red flash means the rank improved/worsened. |
-| Name | Enemy player, with the local realm omitted. Other realms remain visible except on Forever, which hides realm suffixes. A faded name means no current unit observation. |
+| Name | Enemy player, with the local realm omitted. Other realms remain visible except on Forever, which hides realm suffixes. A faded name means no current unit observation. A long name extends over empty slots on its right and stops before anything the row shows. |
 | Icon | Specialization when known; otherwise class. It becomes grey when dead. |
 | Skull, cross or other marker over the icon | The team's raid target marker. |
 | Spec text, such as `FROST`, `DISC` or `ARMS` | Short specialization name, only when the icon can't show it: **Spec icon** is off (Battlegrounds → Appearance), or the game draws a spec addons can't read. `~` before the spec means estimated on Cata. Green/red indicates a favorable/unfavorable modeled matchup for your spec; muted text is neutral. With the icon shown, the tooltip names the matchup instead. |

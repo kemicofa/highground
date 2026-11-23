@@ -68,11 +68,13 @@ end })
 local function Activate(frame)
   if Windows.switching or not frame:IsVisible() then return end
   local root, entry, previous = Root(frame), Windows.entries[frame], Windows.active
+  local opener = previous and Root(previous)
   local target, router = Location(frame), Windows.router
   local ok, failure
   if root ~= frame then
     ok, failure = router:Replace(target) -- hosted pages occupy their owner's slot
-  elseif entry.child and previous and Root(previous) ~= root then
+  elseif opener and opener ~= root and (entry.child or Windows.entries[opener].host) then
+    -- Children, and any tool opened from a host window, return to it.
     ok, failure = router:Navigate(target)
   elseif previous == frame then
     ok, failure = router:Navigate(target, { refresh = true })
@@ -99,7 +101,8 @@ local function Closed(frame)
     end
   end
   local ok
-  if Windows.entries[root].child and router:CanGo(-1) then
+  -- Only children and tools opened from a host add history.
+  if router:CanGo(-1) then
     Windows.restoring = true
     ok = router:Back()
     Windows.restoring = nil
@@ -115,7 +118,7 @@ function Windows.Register(frame, opts)
   opts = opts or {}
   Windows.serial = Windows.serial + 1
   local name = "window:" .. Windows.serial
-  Windows.entries[frame] = { route = name, child = opts.child, resume = opts.onResume }
+  Windows.entries[frame] = { route = name, child = opts.child, host = opts.host, resume = opts.onResume }
   Windows.frames[name] = frame
   Windows.router:Register(name, { enter = Present, beforeEnter = opts.beforeEnter, beforeLeave = opts.beforeLeave,
     meta = { label = opts.title or (frame.GetName and frame:GetName()) or name } })

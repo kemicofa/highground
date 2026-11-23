@@ -48,9 +48,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       assert(w.close:IsVisible(), "workspace has its own close button")
       equal(#H.router:History(), history, "launch does not add config visits")
       click(w.close)
-      assert(not w:IsVisible() and not H.win:IsVisible(), "close does not resurrect configuration")
-      H.Open()
-      equal(H.current, key, "reopening configuration returns to its settings")
+      assert(not w:IsVisible() and H.win:IsVisible(), "closing returns to the configuration that launched it")
+      equal(H.current, key, "on its settings")
       s:setCombat(true); click(page.openTool); s:setCombat(false)
       assert(w:IsVisible(), "ordinary working windows open in combat")
       H.Open("module-" .. entry[1])
@@ -158,13 +157,13 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy()
   end)
 
-  test(client .. " saved workspace sections migrate to configuration and disabled tools stay closed", function()
+  test(client .. " old workspace sections open their configuration and disabled tools stay closed", function()
     local destinations = { macros = "macros-settings", reputation = "reputation-settings", bountyboard = "bounty",
       journal = "nearby", history = "battlegrounds-settings" }
     for key, destination in pairs(destinations) do
-      local s = make({ hubSection = key })
-      s.ns.Hub.Open()
-      equal(s.ns.Hub.current, destination, "saved workspace resolves to its configuration")
+      local s = make()
+      s:command("config " .. key)
+      equal(s.ns.Hub.current, destination, "old workspace link resolves to its configuration")
       s:assertHealthy()
     end
     local s = make(nil, { macros = true, reputation = true, bounties = true, nearby = true, battlegrounds = true })

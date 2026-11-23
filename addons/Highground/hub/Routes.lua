@@ -52,6 +52,8 @@ local function Enter(section, to)
   Hub.activeFrame = frame
   local page = ns.Options.byKey[section.key]
   if page then
+    -- Each visit starts a settings page at the top; Back/Forward keep its scroll.
+    if page.visit ~= Hub.visit and page.scroll then page.visit = Hub.visit; page.scroll:SetVerticalScroll(0) end
     ns.Options.RefreshPage(page)
     if to.params.section == "alerts" and page.ScrollToAlerts then page.ScrollToAlerts() end
   end
@@ -73,7 +75,6 @@ local function Changed(event)
   local selected = Find(w, key)
   local changed = Hub.current ~= key
   Hub.current = key
-  if Core.db then Core.db.hubSection = key end
   if selected and selected.groupButton then Hub.SetGroupExpanded(selected.groupButton, true) end
   for _, b in ipairs(w.nav) do Kit.Paint(b, b == selected and "selected" or "panel") end
   Hub.LayoutNav(w)
@@ -97,6 +98,7 @@ function Hub.BuildRoutes(w)
   router:Register("checklist", { redirect = "addons" })
   for key, target in pairs(workspaces) do Register(router, key, { redirect = target }) end
   router:On("change", Changed)
+  router:On("cancel", function(event) Hub.refusal = event.stage end)
   w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 80, Theme.Size("control"), { onClick = function() Hub.Back() end }), "highground.coachview.back.b52b36")
   w.forward = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.routes.forward.ba4e72"), 100, Theme.Size("control"), { onClick = function() Hub.Forward() end }), "highground.routes.forward.ba4e72")
   Kit.Tooltip(w.back, function() return { "Back", ns.Locale:Get("highground.routes.return_to_the_previous_page_in_this.0afe99") } end)
@@ -114,10 +116,26 @@ end
 -- The router is initialized lazily with the settings pages and their frames.
 function Hub.GetRouter() Hub.Build(); return Hub.router end
 function Hub.RegisterRoute(name, opts) return Register(Hub.GetRouter(), name, opts) end
-function Hub.Navigate(target, opts)
+
+-- Opening the hub after it was closed starts a new visit (hub/Hub.lua).
+local function Go(target, opts)
   local router = Hub.GetRouter()
+  if Hub.ended and not Hub.win:IsShown() then
+    Hub.visit = Hub.visit + 1
+    Hub.ResetNav(Hub.win)
+    Hub.refusal = nil
+    local ok, failure = router:Reset(target)
+    -- A page that refuses to leave (an unsaved draft) reopens instead.
+    if ok or Hub.refusal ~= "guard" or not router:Current() then return ok, failure end
+    target = router:Current()
+  end
+  return router:Navigate(target, opts)
+end
+
+function Hub.Navigate(target, opts)
+  local w = Hub.Build()
   opts = opts or {}
-  return router:Navigate(target, { replace = opts.replace, refresh = opts.refresh or not Hub.win:IsShown() })
+  return Go(target, { replace = opts.replace, refresh = opts.refresh or not w:IsShown() })
 end
 function Hub.Redirect(target) return Hub.Navigate(target, { replace = true }) end
 function Hub.Back()
@@ -139,12 +157,12 @@ function Hub.Show(key)
     target = selected and selected.section.key or (Hub.router:Has(key) and key) or "home"
   end
   -- Reopening a returned page must mount it again, without pushing a duplicate.
-  return Hub.router:Navigate(target, { refresh = true })
+  return Go(target, { refresh = true })
 end
 
 function Hub.Open(key)
   local router = Hub.GetRouter()
-  return Hub.Show(key or router:Current() or (Core.db and Core.db.hubSection) or "home")
+  return Hub.Show(key or not Hub.ended and router:Current() or "home")
 end
 
 function Hub.Toggle(key)
@@ -153,3 +171,18 @@ function Hub.Toggle(key)
   local selected = b and b.section.key or key
   if w:IsShown() and (not key or selected == Hub.current) then w:Hide() else return Hub.Open(key) end
 end
+
+-- A reload started from the hub reopens it on the same page.
+function Hub.Reload()
+  if Core.db and Hub.win and Hub.win:IsShown() then Core.db.hubReopen = Hub.current end
+  local ok, problem = ns.Modules.Reload()
+  if not ok and Core.db then Core.db.hubReopen = nil end
+  return ok, problem
+end
+
+ns.Util.Events({ PLAYER_LOGIN = function()
+  local key = Core.db and Core.db.hubReopen
+  if not key then return end
+  Core.db.hubReopen = nil
+  Hub.Open(key)
+end }, "hub reopen")

@@ -99,6 +99,16 @@ function Hub.LayoutNav(w)
   w.LayoutHeader()
 end
 
+-- A new visit starts with every group collapsed and the sidebar at the top.
+function Hub.ResetNav(w)
+  for _, b in ipairs(w.navGroups) do
+    Motion.Finish(b)
+    b.expanded, b.expansion = false, 0
+  end
+  Hub.LayoutNav(w)
+  w.navScroll:Scroll(0)
+end
+
 function Hub.SetGroupExpanded(b, expanded)
   expanded = not not expanded
   if b.expanded == expanded then return end

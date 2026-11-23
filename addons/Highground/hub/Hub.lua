@@ -188,16 +188,37 @@ function Hub.Release(f)
   if borrowed and borrowed.frame == f and Hub.win then Hub.win:Hide(); Return() end
 end
 
+-- Visits ------------------------------------------------------------------------
+-- Closing the hub ends its visit: the next open starts at Home or the
+-- requested page, without Back/Forward history. Another window taking
+-- over, or a guide or tool launched from it, keeps the visit so finishing
+-- returns to the same page.
+Hub.visit = 0
+local suspending
+
+-- Hide the hub for a walkthrough or placement launched from it. It stays
+-- down, even when a window above it closes, until Hub.Open().
+function Hub.Suspend()
+  Hub.held = true
+  if not (Hub.win and Hub.win:IsShown()) then return end
+  suspending = true
+  Hub.win:Hide()
+  suspending = nil
+end
+
 -- Window ---------------------------------------------------------------------
 function Hub.Build()
   if Hub.win then return Hub.win end
   local w = Kit.Dialog("HighgroundHub", { title = "HIGHGROUND", crest = true, width = Hub.W, height = Hub.H,
-    onResume = function() Hub.Open() end,
-    strata = "HIGH", savedKey = "hub", onClose = function()
+    host = true, onResume = function() if not Hub.held then Hub.Open() end end,
+    strata = "HIGH", savedKey = "hub", onClose = function(self)
       ns.Motion.Stop(Hub.content, 1)
+      if self:IsShown() then return end -- hidden with the interface (Alt+Z)
+      if not (Kit.Windows.switching or suspending) then Hub.ended = true end
       if not Kit.Windows.switching then Return() end
     end })
   Hub.win = w
+  w:HookScript("OnShow", function() Hub.ended, Hub.held = nil, nil end)
 
   Hub.content = w.content
   Hub.content:ClearAllPoints()

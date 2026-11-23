@@ -220,7 +220,7 @@ t.test("/hg config opens a named page or the Blizzard panel", function()
   equal(sim.ns.Hub.current, "behavior", "named page selected")
   sim.env.HighgroundHub:Hide()
   run(sim, "config")
-  equal(sim.ns.Hub.current, "behavior", "plain config reopens the last page")
+  equal(sim.ns.Hub.current, "home", "plain config after closing starts at Home")
 end)
 
 t.finish("Settings commands: " .. t.tests .. " tests")

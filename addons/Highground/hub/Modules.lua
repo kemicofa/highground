@@ -91,7 +91,7 @@ function Hub.BuildModules(key)
   p.status:SetPoint("BOTTOMLEFT", 20, 18); p.status:SetPoint("RIGHT", -202, 0)
   p.status:SetHeight(40); p.status:SetJustifyH("LEFT"); p.status:SetWordWrap(true)
   p.reload = ns.Localization.Bind(Kit.Button(p, ns.Locale:Get("highground.modules.reload_to_apply.1f4e74"), 172, 34, { tone = "accent", onClick = function()
-    local ok, problem = M.Reload()
+    local ok, problem = Hub.Reload()
     p.problem = not ok and problem or nil
     p.Refresh()
   end }), "highground.modules.reload_to_apply.1f4e74")

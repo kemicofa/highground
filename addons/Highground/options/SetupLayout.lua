@@ -53,7 +53,10 @@ local function BuildBar()
   local w = ns.Localization.BindWidget(Kit.Dialog("HighgroundSetupPlacement", { title = ns.Locale:Get("highground.setuplayout.place_your_panels.4330ba"), titleRole = "title",
     sub = ns.Locale:Get("highground.setuplayout.example_data_drag_headers_to_move.e7c352"), width = 540, height = 206 + ns.Options.Profiles.CONTEXT_HEIGHT, savedKey = "setupPlacement",
     point = { "BOTTOMLEFT", "BOTTOMLEFT", 24, 40 }, onClose = function()
-      if S.placement and not S.guided then S.EndPlacement(false) end
+      local state = S.placement
+      if not state or S.guided then return end
+      S.EndPlacement(false)
+      if state.hub and not Kit.Windows.switching then ns.Hub.Open() end
     end }), { title = "highground.setuplayout.place_your_panels.4330ba", sub = "highground.setuplayout.example_data_drag_headers_to_move.e7c352" })
   S.layoutBar = w
   w.hint = Theme.Text(w, "body", "text")
@@ -70,12 +73,15 @@ local function BuildBar()
     -- Closing the examples is the end of placement, with no extra setup
     -- completion screen or request to save a named profile.
     S.stage = nil
+    if state.hub then ns.Hub.Open() end
   end }), "highground.coach.done.e9b450")
   w.finish:SetPoint("BOTTOMRIGHT", -20, 16)
   w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 80, 26, { onClick = function()
     local state = S.placement
     if not state then return end
     S.EndPlacement(false, true)
+    -- Back leaves placement for the Highground page that started it.
+    if state.hub and not state.inHub then return ns.Hub.Open() end
     S.ShowStage("role", state.inHub)
   end }), "highground.coachview.back.b52b36")
   w.back:SetPoint("BOTTOMLEFT", 20, 16)
@@ -89,10 +95,11 @@ function S.BeginPlacement(guided)
   if S.placement then return true end
   if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   local w, style = S.win, Core.StyleDB()
+  local hub = ns.Hub and ns.Hub.win
   local state = { locked = Core.db.locked, style = style, frameless = style.frameless,
-    inHub = ns.Hub and w and w:GetParent() == ns.Hub.content }
+    inHub = hub and w and w:GetParent() == ns.Hub.content, hub = hub and hub:IsShown() }
   S.transitioning = true
-  if ns.Hub then ns.Hub.Release(w); if ns.Hub.win then ns.Hub.win:Hide() end end
+  if ns.Hub then ns.Hub.Suspend(); ns.Hub.Release(w) end
   if w then w:Hide() end
   S.transitioning = nil
   S.placement, S.stage, S.guided = state, "place", guided == true

@@ -12,7 +12,7 @@ The library loads from `libs/core/Router.lua`, then `libs/core/RouterNavigation.
 
 | Surface | Router and behavior |
 | --- | --- |
-| Main hub | `ns.Hub.GetRouter()`: sidebar, settings pages, shortcuts and custom components. Header Back/Forward first traverse the active feature's history, then the hub's history. |
+| Main hub | `ns.Hub.GetRouter()`: sidebar, settings pages, shortcuts and custom components. Header Back/Forward first traverse the active feature's history, then the hub's history. Closing the hub ends its history; anything launched from it returns to the same page. |
 | Addon settings | `ns.Options.addonPages` maps each owner to its settings, appearance and preview destinations. They use hub routes; Back/Forward restores the page and its scroll position. Pages retain their expanded controls. Disabled owners redirect to Overview and enable. |
 | Bounties | `ns.Bounty.Navigation.GetRouter()`: My bounties, Guild & communities, Shared board, Suggestions, editor, claims, alert preferences and suggestion reports. Page buttons, review filters and help use this router; claim selections share its history. History captures each draft, query, page and scroll position. Sample boards use an independent router with the same behavior. |
 | Macros | `ns.Macros.Window.GetRouter()`: catalog tabs, PvP/PvE/ranks modes and individual editors. Captures form options, manually edited code, destination, filters and scroll positions. The feature uses `Macros.Host.Router`. |
@@ -25,7 +25,7 @@ The library loads from `libs/core/Router.lua`, then `libs/core/RouterNavigation.
 
 `Kit.Browser` creates an independent router by default. A feature can pass `router` and `route` to join a registered page, as Claims & payments does. The route's `capture` calls `frame:CaptureNavigation()`; its `enter` mounts the browser and calls `frame:RestoreNavigation(to.state)`. Use `frame:Select(key)` or `frame:GoPage(delta)` for programmatic navigation, and `frame:ResetNavigation()` when replacing a review session. Search edits and scrolling remain local UI state captured when leaving a visit.
 
-Opening a primary tool resets the window coordinator's history. Opening a `Kit.Dialog` with `child = true` pushes a return path; closing or Escape returns to its owner and removes the closed forward branch. Completing a review can call `Kit.Windows.Close(hiddenEditor)` to retire that editor. `Kit.Windows.Forget(frame)` discards stale return paths during a data-scope change. Legacy `Show`/`Hide` calls are observed by the coordinator, so existing commands and buttons use the router too.
+Opening a primary tool resets the window coordinator's history, unless it opens over a window registered with `host = true` (the Highground window). Opening a tool from a host, or a `Kit.Dialog` with `child = true`, pushes a return path; closing or Escape returns to its owner and removes the closed forward branch. Completing a review can call `Kit.Windows.Close(hiddenEditor)` to retire that editor. `Kit.Windows.Forget(frame)` discards stale return paths during a data-scope change. Legacy `Show`/`Hide` calls are observed by the coordinator, so existing commands and buttons use the router too.
 
 Feature Back/Forward preserves drafts without saving or publishing them. Explicit **Back to board**, save and discard actions retire the editor history. Bounty scope changes clear feature history; history is never serialized to SavedVariables. Native Blizzard windows and gameplay HUD visibility retain their game-owned lifecycles.
 
@@ -61,7 +61,9 @@ Hub.Redirect("journal") -- replace the current entry
 
 The hub handles parenting, anchors, close buttons, dragging, transitions and returning the frame to its original parent. Register only ordinary UI pages here; secure gameplay frames keep their existing combat rules. Registration makes a page addressable from any shortcut; permanent sidebar placement remains in `hub/Hub.lua`'s `LAYOUT` and `Hub.Sections`.
 
-`Hub.GetRouter()` initializes and returns the hub router. `Hub.Navigate` uses exact route names. Existing `Hub.Open`, `Hub.Show` and `/hg config` also accept case-insensitive sidebar labels and settings page names, with Home as the fallback for a removed saved page. Reopening the hub remounts its current page without adding a duplicate history entry. `Hub.RegisterRoute(name, { redirect = target })` also supports aliases implemented as redirects.
+`Hub.GetRouter()` initializes and returns the hub router. `Hub.Navigate` uses exact route names. Existing `Hub.Open`, `Hub.Show` and `/hg config` also accept case-insensitive sidebar labels and settings page names, with Home as the fallback for an unknown page.
+
+Closing the hub (close button, Escape, `/hg`, the key binding, the minimap button or **Back to game**) ends its visit. The next open resets its history to Home or the requested page, collapses the sidebar groups and starts each settings page at the top. A page whose `beforeLeave` refuses (an unsaved draft) reopens with its history instead. The hub is only suspended when another window takes over through the coordinator, or a guide or panel placement calls `Hub.Suspend()`; finishing those returns to the same page and history. `Hub.Suspend()` keeps the hub down until the next `Hub.Open()`, even when a window above it closes. `Hub.Reload()` reloads through `ns.Modules.Reload()` and reopens the hub on its page once after login. `Hub.RegisterRoute(name, { redirect = target })` also supports aliases implemented as redirects.
 
 ## Use an independent router
 
@@ -181,7 +183,7 @@ Highground already hosts many settings and feature windows. A shared router remo
 
 The design borrows named locations, redirects and guards from [Vue Router's named routes](https://router.vuejs.org/guide/essentials/named-routes.html), [redirects](https://router.vuejs.org/guide/essentials/redirect-and-alias.html) and [navigation guards](https://router.vuejs.org/guide/advanced/navigation-guards.html). Its bounded in-memory history and push/replace/pop actions draw on [React Router's memory router](https://reactrouter.com/api/data-routers/createMemoryRouter) and [navigation types](https://reactrouter.com/api/hooks/useNavigationType). These are design references; no JavaScript runtime or dependency is bundled.
 
-There is no browser URL, path-pattern matcher, nested outlet system or asynchronous data loader. History lasts for the UI session; the hub continues saving only its last section name across reloads. Components own their data and rendering, and secure combat rules still govern protected game actions.
+There is no browser URL, path-pattern matcher, nested outlet system or asynchronous data loader. History lasts until its window closes and is never saved, except the one page a hub reload reopens. Components own their data and rendering, and secure combat rules still govern protected game actions.
 
 ## Validation
 
@@ -193,4 +195,4 @@ luajit tests/simulation_test.lua router
 luajit tests/ui_navigation_test.lua
 ```
 
-The pure tests cover history semantics, capture, retirement, guards, redirects, malformed locations, failures, listener cleanup and state isolation. Integration scenarios exercise the hub and standalone features on Retail, Cata and Forever: drafts, filters, mode changes, nested dialogs, organization redirects, scope cleanup, combat, custom routes and reopening. `ui_navigation_test.lua` also runs from HighgroundBounties, HighgroundNearby and HighgroundMacros; Reputation has `tests/navigation_test.lua`. Run `bash tests/run.sh` from the repository root for all addon and packaging checks.
+The pure tests cover history semantics, capture, retirement, guards, redirects, malformed locations, failures, listener cleanup and state isolation. Integration scenarios exercise the hub and standalone features on Retail, Cata and Forever: drafts, filters, mode changes, nested dialogs, organization redirects, scope cleanup, combat, custom routes, closing and reopening, and returns from guides, placement, dialogs and tools. `ui_navigation_test.lua` also runs from HighgroundBounties, HighgroundNearby and HighgroundMacros; Reputation has `tests/navigation_test.lua`. Run `bash tests/run.sh` from the repository root for all addon and packaging checks.

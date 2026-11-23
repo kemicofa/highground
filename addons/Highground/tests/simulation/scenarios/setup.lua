@@ -208,7 +208,7 @@ test("setup refuses to change presets during combat or a match", function()
   assert(S.placement); sim:event("PLAYER_LOGOUT"); stopped(sim)
 end)
 
-test("hub setup returns to the game after placement with no completion screen", function()
+test("hub setup returns to its page after placement with no completion screen", function()
   local sim = new("cata")
   local S, H = sim.ns.Setup, sim.ns.Hub
   H.Open("setup"); S.win.role:SetValue("healer"); click(S.win.primary)
@@ -216,7 +216,8 @@ test("hub setup returns to the game after placement with no completion screen", 
   click(S.layoutBar.back)
   assert(H.win:IsShown() and S.win.choose:IsVisible())
   click(S.win.primary); click(S.layoutBar.finish)
-  assert(not H.win:IsShown() and not S.win:IsVisible())
+  assert(H.win:IsShown() and H.current == "setup", "Done returns to the page that started placement")
+  assert(S.win.choose:IsVisible(), "no completion screen")
   H.Open("profiles"); assert(H.win:IsShown(), "optional profiles remain available")
   sim:assertHealthy()
 end)

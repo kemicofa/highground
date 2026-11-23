@@ -102,14 +102,13 @@ Network latency and graveyard routing can still affect estimates. Recorded local
 | Label | Meaning |
 | --- | --- |
 | **YOU** | Your reported resurrection destination |
-| **OURS** | Another available friendly graveyard, or a friendly graveyard when your destination is unknown |
-| **THEIRS** | An enemy graveyard |
+| Alliance or Horde crest | The team holding the graveyard; **OURS** or **THEIRS** while the team is unknown |
 | `~` | Estimated countdown |
 | `--` | Unknown countdown |
 
-Timer colors follow the factions, as on Blizzard's map: Alliance blue and Horde red, whichever side you are on. The **YOU**, **OURS** and **THEIRS** tags say which side is yours.
+Timer colors follow the factions, as on Blizzard's map: Alliance blue and Horde red, whichever side you are on. The crests and the **YOU** tag say which side is yours.
 
-Cata Twin Peaks and Gilneas require the game's explicit destination before marking **YOU** or giving death-timing advice, because their routing cannot be inferred reliably from the nearest location. Without that information, friendly graveyards remain **OURS**. A known destination can show **YOU** with `--` while its wave timer is still unknown.
+Cata Twin Peaks and Gilneas require the game's explicit destination before marking **YOU** or giving death-timing advice, because their routing cannot be inferred reliably from the nearest location. Without that information, no friendly graveyard is marked **YOU**. A known destination can show **YOU** with `--` while its wave timer is still unknown.
 
 ## Retail Silvershard Mines
 

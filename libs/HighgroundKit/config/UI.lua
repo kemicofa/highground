@@ -57,7 +57,7 @@ ns.UIConfig = {
     elements = {
       ns.Localization.Define({ key = "rank", label = ns.Locale:Get("shared.ui.priority_rank.689cfb"), desc = ns.Locale:Get("shared.ui.1_is_highest_ranks_update_even_when.0dc10e") }, { label = "shared.ui.priority_rank.689cfb", desc = "shared.ui.1_is_highest_ranks_update_even_when.0dc10e" }),
       ns.Localization.Define({ key = "icon", label = ns.Locale:Get("shared.ui.spec_icon.01b283"), desc = ns.Locale:Get("shared.ui.class_icon_until_the_spec_is_known.63e7fe") }, { label = "shared.ui.spec_icon.01b283", desc = "shared.ui.class_icon_until_the_spec_is_known.63e7fe" }),
-      ns.Localization.Define({ key = "spec", label = ns.Locale:Get("shared.ui.spec_text.1b31ca") }, { label = "shared.ui.spec_text.1b31ca" }),
+      ns.Localization.Define({ key = "spec", label = ns.Locale:Get("shared.ui.spec_text.1b31ca"), desc = ns.Locale:Get("shared.ui.capture_timers_flag_carriers_and_the_spec.f5a475") }, { label = "shared.ui.spec_text.1b31ca", desc = "shared.ui.capture_timers_flag_carriers_and_the_spec.f5a475" }),
       ns.Localization.Define({ key = "health", label = ns.Locale:Get("shared.ui.health_bar.ed43a3") }, { label = "shared.ui.health_bar.ed43a3" }),
       ns.Localization.Define({ key = "healthText", label = ns.Locale:Get("shared.ui.health.e2324e"), cata = true }, { label = "shared.ui.health.e2324e" }),
       ns.Localization.Define({ key = "mana", label = ns.Locale:Get("shared.ui.mana_bar.a532dd"), desc = ns.Locale:Get("shared.ui.mana_users_once_seen.62442b"), cata = true }, { label = "shared.ui.mana_bar.a532dd", desc = "shared.ui.mana_users_once_seen.62442b" }),

@@ -32,7 +32,7 @@ local function Objectives()
       feature = "timers", settingLabel = ns.Locale:Get("highground.coachsamples.enable_battleground_timers_in_game.e230d9"),
       text = ns.Locale:Get("highground.coachsamples.you_marks_your_graveyard_stables_here_the.13aa3a") },
     { id = "estimate", title = ns.Locale:Get("highground.coachsamples.means_an_estimate.324005"), target = function() return ns.Timers.resWin.rows[3] end,
-      text = ns.Locale:Get("highground.coachsamples.theirs_is_the_enemy_wave_ours_is.813de5") },
+      text = ns.Locale:Get("highground.coachsamples.the_crest_shows_whose_graveyard_it_is.066ede") },
     { id = "capture", sound = "capture", title = ns.Locale:Get("highground.coachsamples.a_base_is_changing_hands.727ef3"), target = function() return ns.Timers.objWin.rows[2] end, event = "OnEnter",
       feature = "objectives", settingLabel = ns.Locale:Get("highground.coachsamples.enable_objective_timers_in_game.015f04"),
       text = ns.Locale:Get("highground.coachsamples.cap_is_the_countdown_after_a_base.cf7dc3") },

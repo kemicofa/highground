@@ -83,9 +83,9 @@ Some elements depend on your client, current observations and Appearance switche
 | Name | Enemy player, with the local realm omitted. Other realms remain visible except on Forever, which hides realm suffixes. A faded name means no current unit observation. |
 | Icon | Specialization when known; otherwise class. It becomes grey when dead. |
 | Skull, cross or other marker over the icon | The team's raid target marker. |
-| Spec text, such as `FROST`, `DISC` or `ARMS` | Short specialization name, blank while unknown (the class already shows in the icon and colour); `~` before the spec means estimated on Cata. Green/red indicates a favorable/unfavorable modeled matchup for your spec; muted text is neutral. |
+| Spec text, such as `FROST`, `DISC` or `ARMS` | Short specialization name, only when the icon can't show it: **Spec icon** is off (Battlegrounds → Appearance), or the game draws a spec addons can't read. `~` before the spec means estimated on Cata. Green/red indicates a favorable/unfavorable modeled matchup for your spec; muted text is neutral. |
 | Spec icons at the right edge (while hovering) | Shown when the game hasn't identified the spec. Click one to tag it; click the tagged icon again to remove the tag. Teammates with Highground receive tags while **Share observations** is on (Battlegrounds → Settings → Map and sharing), and tags are kept for later matches. A spec the game identifies this match (scoreboard, a talent-tree cast, or a Cata estimate) replaces a tag; a tag replaces earlier matches' history. The tooltip says who tagged it. |
-| `CAP 3.2` / `CAP ~3.2` | Capturing a base, with seconds remaining; `~` marks an estimated timer. Replaces the spec text. |
+| `CAP 3.2` / `CAP ~3.2` | Capturing a base, with seconds remaining; `~` marks an estimated timer. Shown in the spec text's place. |
 | `FLAG`, `FLAG x3`, `ORB 30%` | Carrier information replaces the spec: flag carrier, flag debuff stacks, or extra damage taken from carrying an orb. |
 | Health fill or thin line | Health when observable; a faded full bar means unknown health, not confirmed full health. |
 | `TGT`, `FOC`, `T/F` | Your target, focus, or both. An ivory target edge and blue focus edge remain separate from class identity and the gold recommendation. Labels sit below the rank in expanded rows; compact rows keep the edges. |

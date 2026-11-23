@@ -109,14 +109,15 @@ function Core.Render()
         r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
         r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
       end
-      r.icon:SetShown(Core.ShowsElement("icon"))
+      local showIcon = Core.ShowsElement("icon")
+      r.icon:SetShown(showIcon)
       r.icon:SetDesaturated(e.dead)
 
       r.name:SetText(Core.ShortName(e))
       Paint(r.name, "text", not e.unit and 0.6 or nil)
       if ns.Bounty then ns.Bounty.MarkRow(r, not Core.testMode and e.key or nil) end
 
-      -- Spec tag, tinted by matchup: green = good for you, red = bad.
+      -- Spec text, tinted by matchup: green = good for you, red = bad.
       local edge = e.edge or 0
       if edge > 0.05 then
         Paint(r.spec, "success")
@@ -135,8 +136,10 @@ function Core.Render()
         r.spec:SetText(Core.obj.mode == "orb" and ns.Locale:Format("highground.render.orb_value1.c2d0ce", Fill(ORB, "value1", string.format("%d", stacks or 30)))
           or (stacks and ns.Locale:Format("highground.hero.flag_x_stacks.037f27", Fill(FLAG, "stacks", string.format("%d", stacks))) or ns.Locale:Get("highground.render.flag.aaabc0")))
       elseif e.specID then
+        -- A spec icon already names the spec: text only when there's none.
         local p = ns.Specs[e.specID]
-        r.spec:SetText(ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and ns.Text.Upper(si.name)) or ""))
+        r.spec:SetText(showIcon and si and si.icon and ""
+          or ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and ns.Text.Upper(si.name)) or ""))
       elseif not (type(e.specLive) == "string" and pcall(r.spec.SetText, r.spec, e.specLive)) then
         -- Live spec is secret mid-match: the game can draw it, we can't read it.
         -- Unknown: blank, as the class already shows in the icon and colour.

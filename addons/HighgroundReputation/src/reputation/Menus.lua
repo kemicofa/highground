@@ -9,13 +9,19 @@ function W.MenuTarget(context)
   return W.Target(U.value(context.name), U.value(context.server), U.value(context.guid), true)
 end
 
+-- The selected organization, or the first enabled one.
+local function Default()
+  local c = W.Get()
+  if W.Joined(c) then return c end
+  return W.List()[1]
+end
+
 -- One entry opens the report for the selected organization. With several
 -- enabled organizations it becomes a submenu: one per organization, then all.
 local function ReportEntry(target)
   local list = W.List()
   if #list < 2 then
-    local c = W.Get()
-    if not W.Joined(c) then c = list[1] end
+    local c = Default()
     local own = c and W.OwnReport(c, target)
     return { text = own and ns.Locale:Get("reputation.menus.edit_your_report.d57ff8") or W.CanModerate(c) and ns.Locale:Get("reputation.menus.add_to_blacklist.214e95") or ns.Locale:Get("reputation.menus.report_player.4fb75f"),
       run = function() W.OpenReport(target, c) end }
@@ -75,7 +81,7 @@ function W.InstallMenus()
       target = W.Copy(target)
       -- One level only; the report form chooses the organization, or all.
       local info = UIDropDownMenu_CreateInfo()
-      info.text, info.notCheckable, info.func = ns.Locale:Get("reputation.menus.highground_reputation.9b4583"), true, function() W.OpenReport(target) end
+      info.text, info.notCheckable, info.func = ns.Locale:Get("reputation.menus.highground_reputation.9b4583"), true, function() W.OpenReport(target, Default()) end
       UIDropDownMenu_AddButton(info, 1)
     end)
     W.menusInstalled = true

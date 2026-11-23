@@ -10,6 +10,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 - An enemy you can see only by its nameplate is no longer placed next to you: one of your spells must be in range, as nameplates show from much farther away.
 - WoW Forever: starting graveyards share one resurrection clock, so dying at your start also times the enemy's start. A captured base's graveyard gets its own clock from the capture instead of joining every other graveyard's wave.
 - The match history's resurrection notes name the graveyard.
+- Cyrillic and Asian player names (flag carriers, enemy list) no longer show as boxes with the default font.
 
 ## [3.2.0] - 2026-11-23
 

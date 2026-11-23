@@ -1665,6 +1665,7 @@ assert(ns.Locale:Register("zhTW", {
   ["battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786"] = "近似值：觀察員離開{value1}秒前",
   ["battlegrounds.layer.approximate_near_the_observer.9c0a92"] = "近似：觀察者附近",
   ["battlegrounds.observations.battleground_announcement.632533"] = "戰場公告",
+  ["battlegrounds.observations.resurrection_wave_in_left_s.16501b"] = "{left} 秒後復活波次",
   ["battlegrounds.sharing.value1_position_unknown.65a2ee"] = "{value1}職位不明",
   ["battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26"] = "最後一次檢視 {where}, {age}s 前 （節點公告）",
   ["battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4"] = "上次檢視 {where}, {age}秒前",

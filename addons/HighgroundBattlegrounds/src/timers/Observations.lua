@@ -39,9 +39,17 @@ function Timers.ScanTeam()
   end
   -- You, dead at a spirit healer: the game says when the next wave is,
   -- and (if the client tells) exactly where that spirit healer is.
+  if not UnitIsGhost("player") then Timers.waveNoted = nil end
   if UnitIsGhost("player") and GetAreaSpiritHealerTime then
     local ok, left = pcall(GetAreaSpiritHealerTime)
     if ok and Timers.plain(left) and left > 0 then
+      -- Once per death, into the match history: with the gate-opening
+      -- announcement it shows how waves line up with the match start.
+      if not Timers.waveNoted and ns.MatchHistory then
+        Timers.waveNoted = true
+        ns.MatchHistory.Note(ns.Locale:Format("battlegrounds.observations.resurrection_wave_in_left_s.16501b",
+          { left = string.format("%d", math.floor(left + 0.5)) }))
+      end
       -- The countdown can't exceed the period: a longer one is a rated 45 s.
       local period = Timers.WavePeriod()
       if period and left > period + 1 then

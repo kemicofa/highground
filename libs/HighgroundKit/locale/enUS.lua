@@ -1665,6 +1665,7 @@ assert(ns.Locale:Register("enUS", {
   ["battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786"] = "Approximate: observer left {value1} moments before",
   ["battlegrounds.layer.approximate_near_the_observer.9c0a92"] = "Approximate: near the observer",
   ["battlegrounds.observations.battleground_announcement.632533"] = "battleground announcement",
+  ["battlegrounds.observations.resurrection_wave_in_left_s.16501b"] = "Resurrection wave in {left}s",
   ["battlegrounds.sharing.value1_position_unknown.65a2ee"] = "{value1}position unknown",
   ["battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26"] = "last seen {where}, {age}s ago (node announcement)",
   ["battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4"] = "last seen {where}, {age}s ago",

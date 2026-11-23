@@ -155,3 +155,25 @@ test("rated battlegrounds resurrect every 45 seconds", function()
   sim:join(1460, 489, "Warsong Gulch")
   equal(sim.ns.Timers.WavePeriod(), 30, "unrated games stay at 30 seconds")
 end)
+
+test("each death notes its resurrection countdown once in the match history", function()
+  local sim = horde()
+  sim:join(1460, 489, "Warsong Gulch")
+  local function notes()
+    local found = {}
+    for _, event in ipairs(sim.ns.MatchHistory.current.events) do
+      if event.text:find("^Resurrection wave in") then found[#found + 1] = event.text end
+    end
+    return found
+  end
+  sim.units.player.ghost, sim.healerTime = true, 12.4
+  sim:advance(0.5); sim.healerTime = 11.4; sim:advance(1)
+  equal(#notes(), 1, "one note per death")
+  equal(notes()[1], "Resurrection wave in 12s", "the countdown as first seen")
+  sim.units.player.ghost, sim.healerTime = false, nil
+  sim:advance(1)
+  sim.units.player.ghost, sim.healerTime = true, 30
+  sim:advance(0.5)
+  equal(#notes(), 2, "the next death is noted again")
+  sim:assertHealthy()
+end)

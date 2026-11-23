@@ -1671,6 +1671,7 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786"] = "Приблизительно: наблюдатель только что ушел (область: {value1})",
   ["battlegrounds.layer.approximate_near_the_observer.9c0a92"] = "Приблизительно: вблизи наблюдателя",
   ["battlegrounds.observations.battleground_announcement.632533"] = "объявление поля боя",
+  ["battlegrounds.observations.resurrection_wave_in_left_s.16501b"] = "Волна воскрешения через {left} с",
   ["battlegrounds.sharing.value1_position_unknown.65a2ee"] = "{value1}положение неизвестно",
   ["battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26"] = "последний раз видели {where}, {age}с назад (объявление о точке)",
   ["battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4"] = "последний раз видели {where}, {age}с назад",

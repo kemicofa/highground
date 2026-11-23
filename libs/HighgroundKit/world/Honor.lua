@@ -37,17 +37,25 @@ local function Cached(fmt)
   return pattern or nil
 end
 
--- Raw victim name, with spaces and any explicit realm preserved. Honor
--- awards without a named victim must never imply a kill on our target.
+-- Forever names are unique across the region, and its keys carry the
+-- ruleset, not a realm. Drop a realm the line adds so it still matches.
+local function Victim(name)
+  if not name or name == "" then return end
+  if ns.Caps and ns.Caps.hideRealmNames then name = name:match("^[^-]+") end
+  return name
+end
+
+-- Raw victim name, with spaces and any explicit realm preserved (except on
+-- Forever). Honor awards without a named victim must never imply a kill on
+-- our target.
 function Honor.Name(message)
   message = ns.Util.value(message)
   if type(message) ~= "string" then return end
   for _, key in ipairs(FORMATS) do
     local pattern = Cached(_G[key])
-    local name = pattern and message:match(pattern)
-    if name and name ~= "" then return name end
+    local name = Victim(pattern and message:match(pattern))
+    if name then return name end
   end
   -- Older clients may omit the localized globals but still send this line.
-  local name = message:match("^(.-) dies, honorable kill")
-  return name and name ~= "" and name or nil
+  return Victim(message:match("^(.-) dies, honorable kill"))
 end

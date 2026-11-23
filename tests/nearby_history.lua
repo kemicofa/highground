@@ -94,6 +94,11 @@ return function(addon)
       honor(sim, "Twin dies (Honorable Kill).")
       equal(H.Get("Twin-Realm").killedThem, 0, "ambiguous short name cannot credit the local realm")
       equal(H.Get("Twin-OtherRealm").killedThem, 0, "ambiguous short name cannot credit the other realm")
+      if build < 100000 then
+        honor(sim, "Twin-OtherRealm dies (Honorable Kill).")
+        equal(H.Get("Twin-OtherRealm").killedThem, 0, "Forever names are unique: a realm cannot separate them")
+        H.All()["Twin-Realm"], N.seen["Twin-Realm"] = nil, nil
+      end
       honor(sim, "Twin-OtherRealm dies (Honorable Kill).")
       equal(H.Get("Twin-OtherRealm").killedThem, 1, "explicit realm identifies the right enemy")
       sim.env.COMBATLOG_HONORGAIN_NO_RANK = "You gain %d Honor Points."
@@ -107,10 +112,27 @@ return function(addon)
       sim:join()
       honor(sim, "Twin-OtherRealm dies, honorable kill Rank: Scout (10.00 Honor Points)")
       equal(H.Get("Twin-OtherRealm").killedThem, 1, "only named open-world kills with history enabled count")
-      equal(H.Get("Twin-Realm").killedThem, 0, "other enemies remain unchanged")
+      if build >= 100000 then equal(H.Get("Twin-Realm").killedThem, 0, "other enemies remain unchanged") end
       sim:assertHealthy()
     end)
   end
+
+  t.test("16001: Forever honor lines that add a realm still credit history and bounties", function()
+    local sim = setup("retail", 16001)
+    sim.regionalNames = true
+    local key = target(sim, "Bitter Plot")
+    local B, H = sim.ns.Bounty, sim.ns.NearbyHistory
+    assert(B.Add(key, 0))
+    honor(sim, "Bitter Plot-Zandalar dies, honorable kill Rank: Scout (10.00 Honor Points)")
+    equal(H.Get(key).killedThem, 1, "the realm suffix does not hide the enemy")
+    equal(H.All()["Bitter Plot-Zandalar"], nil, "no duplicate realm-named record")
+    equal(#B.Kills.History(), 1, "bounty records the same honor award")
+    equal(B.Kills.History()[1].name, sim.ns.Core.Canon(key), "bounty proof names the tracked identity")
+    sim:advance(6)
+    honor(sim, "Lone Stranger-Zandalar dies (Honorable Kill).")
+    equal(H.Get("Lone Stranger"), nil, "unknown names still do not invent an encounter")
+    sim:assertHealthy()
+  end)
 
   t.test("saved mute preferences work without the journal UI or history recording", function()
     local sim = new("retail", { nearbyHistory = false, enemyHistory = {

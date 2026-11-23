@@ -137,7 +137,7 @@ return function(sim)
     local b = bounds(f)
     return (b[1] + b[3] / 2) / scale(f), (env.UIParent:GetHeight() - b[2] - b[4] / 2) / scale(f)
   end
-  methods.GetStringWidth = textWidth
+  methods.GetStringWidth, methods.GetUnboundedStringWidth = textWidth, textWidth
   methods.GetStringHeight = function(f) return textHeight(f, f:GetWidth()) end
   env.UIParent:SetSize(1280, 820)
 end

@@ -60,7 +60,7 @@ function Commands.err(arg, msg, say)
   for key, rec in pairs(type(Core.db.errors) == "table" and Core.db.errors or {}) do
     if type(rec) == "table" then
       n = n + 1
-      say(ns.Locale:Format("highground.diagnostics.value1_key_r_x_rec_count_since.e8bb92", { value1 = string.format("%s", Hex("danger")), key = string.format("%s", tostring(key)), rec_count = string.format("%d", tonumber(rec.count) or 0), rec_first = string.format("%s", tostring(rec.first)) }))
+      say(ns.Locale:Format("highground.diagnostics.value1_key_r_x_rec_count_since.e8bb92", { value1 = string.format("%s", Hex("danger")), key = string.format("%s", tostring(key)), rec_count = string.format("%d", tonumber(rec.count) or 0), rec_first = tostring(rec.first) .. (rec.version and (" · v" .. tostring(rec.version)) or "") }))
     end
   end
   if dropped > 0 then say(ns.Locale:Format("commands.err.dropped", { count = dropped, limit = 64 })) end

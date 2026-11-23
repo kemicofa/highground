@@ -23,11 +23,11 @@ SavedVariables can hold anything after a bad import, a manual edit or a differen
 
 ## Bounded stores
 
-Battleground upgrade markers use `Saved.Migrate`. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
+Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.rules[…].reviveLag`) keep the last nine samples, each 0-3 seconds. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
 
 ## Errors and diagnostics
 
-`Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped`; every new message still sets `Core.lastError` for the panel notice. `/hg err` shows the dropped count and `/hg clearerr` resets both. Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing.
+`Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped`. Each record keeps its count, the date and time it first happened, the addon version and a trace; records stay until cleared, so `/hg err` shows the date and version to tell old ones apart; every new message still sets `Core.lastError` for the panel notice. `/hg err` shows the dropped count and `/hg clearerr` resets both. Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing.
 
 ## Battleground recordings
 

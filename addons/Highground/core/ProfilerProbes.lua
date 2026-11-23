@@ -37,9 +37,10 @@ local function Graveyards(T, now)
   local shared = T.SharedClock and U.call(T.SharedClock)
   local start = T.startClock and T.startClock.g and T.GYName(T.startClock.g)
   local samples = type(T.downtimes) == "table" and #T.downtimes or 0
-  if Changed("clock", table.concat({ tostring(period), tostring(downtime), tostring(shared), tostring(start), samples }, "|")) then
-    P.Add("clock", string.format("period=%s downtime=%s shared=%s start=%s downtimeSamples=%d", tostring(period),
-      tostring(downtime or 0), tostring(shared), tostring(start or "-"), samples))
+  local lag = T.ReviveLag and U.call(T.ReviveLag)
+  if Changed("clock", table.concat({ tostring(period), tostring(downtime), tostring(shared), tostring(start), samples, tostring(lag) }, "|")) then
+    P.Add("clock", string.format("period=%s downtime=%s shared=%s start=%s downtimeSamples=%d reviveLag=%s", tostring(period),
+      tostring(downtime or 0), tostring(shared), tostring(start or "-"), samples, Num(lag)))
   end
   for _, g in ipairs(T.gys or {}) do
     if T.Available(g) then
@@ -105,9 +106,10 @@ local function POIs(mapID)
 end
 
 local GETTERS = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
-  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
+  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetDoubleStatusBarWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
   "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo", "GetScenarioHeaderTimerWidgetVisualizationInfo" }
-local FIELDS = { "text", "leftText", "rightText", "overrideBarText", "barValue", "barMax", "barMaxValue", "timerValue", "shownState" }
+local FIELDS = { "text", "leftText", "rightText", "overrideBarText", "leftBarValue", "rightBarValue", "leftBarMax", "rightBarMax",
+  "barValue", "barMax", "barMaxValue", "timerValue", "shownState" }
 local function WidgetText(W, id)
   for _, key in ipairs(GETTERS) do
     local data = U.call(W[key], id)

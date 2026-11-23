@@ -36,8 +36,9 @@ end
 local function menu(sim, tag, unit)
   local root = { buttons = {} }
   function root:CreateDivider() self.divider = true end
+  function root:CreateTitle() end
   function root:CreateButton(text, run)
-    local button = { text = text, run = run, CreateButton = function() end } -- other addons add submenus
+    local button = { text = text, run = run, CreateButton = function() end, CreateDivider = function() end } -- other addons add submenus
     self.buttons[#self.buttons + 1] = button
     return button
   end

@@ -218,9 +218,9 @@ function C.ReputationSteps()
       function() Open("overview"); U.window.updateCheck:Cancel(); U.window.updateCheck.state = "idle"; U.window.sync:RefreshBusy() end,
       function() return U.window.sync end,
       function() return U.window.updateCheck.state == "succeeded" end, ns.Locale:Get("highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3")), { title = "highground.coachrecords.wait_for_an_update_check.da8d86", text = "highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2" }),
-    ns.Localization.Define(Step("report_open", ns.Locale:Get("highground.coachrecords.open_the_report_form.7db0de"), ns.Locale:Get("highground.coachrecords.report_player_opens_the_same_form_used.de1668"),
+    ns.Localization.Define(Step("report_open", ns.Locale:Get("highground.coachrecords.open_the_report_form.7db0de"), ns.Locale:Get("highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"),
       function() Open("blacklist") end, function() return U.window.add end,
-      function() return Visible(U.report) end, ns.Locale:Get("highground.coachrecords.click_report_player.a03a47")), { title = "highground.coachrecords.open_the_report_form.7db0de", text = "highground.coachrecords.report_player_opens_the_same_form_used.de1668" }),
+      function() return Visible(U.report) end, ns.Locale:Get("highground.coachrecords.click_report_player.a03a47")), { title = "highground.coachrecords.open_the_report_form.7db0de", text = "highground.coachrecords.report_player_opens_the_same_form_used.1b3e97" }),
     ns.Localization.Define(Step("proposal", ns.Locale:Get("highground.coachrecords.submit_a_proposal.5b9a99"), ns.Locale:Get("highground.coachrecords.check_the_player_category_and_note_then.309f30"),
       function()
         R.Ensure(); R.submissionStart = R.data.submissions

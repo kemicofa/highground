@@ -699,7 +699,7 @@ assert(ns.Locale:Register("esES", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "Buscar actualizaciones muestra un indicador de carga y desactiva las comprobaciones repetidas hasta que llega una respuesta o se agota el tiempo. Este ejemplo termina en local; las comprobaciones reales necesitan un moderador conectado.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Haz clic en Buscar actualizaciones y espera a que termine la carga.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Abrir el formulario de informe",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "Denunciar jugador abre el mismo formulario que se usa desde el retrato de un jugador o su nombre en el chat.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "Denunciar jugador abre el mismo formulario que se usa desde el retrato de un jugador o su nombre en el chat. Con varias hermandades o comunidades, puedes elegir una o todas.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Haz clic en Denunciar jugador.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Enviar una propuesta",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Revisa el jugador, la categoría y la nota, y luego envíalo. El informe de un miembro queda a la espera de la decisión de un moderador.",

@@ -699,7 +699,7 @@ assert(ns.Locale:Register("zhTW", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "檢查更新 顯示載入程式並禁用重複檢查，直到收到響應或檢查超時。此範例在本地完成；真正的檢查需要線上調解員。",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "單擊檢查更新 並等待載入程式完成。",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "開啟報告表單",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "舉報玩家 開啟與玩家肖像或聊天名稱相同的表單。",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "舉報玩家 開啟與玩家肖像或聊天名稱相同的表單。如果有多個公會或社群，可以選擇其中一個或全部。",
   ["highground.coachrecords.click_report_player.a03a47"] = "點選報告玩家。",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "提交一份提案",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "檢查播放器、類別和註釋，然後提交。會員的舉報正在等待管理員的決定。",

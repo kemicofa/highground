@@ -699,7 +699,7 @@ assert(ns.Locale:Register("zhCN", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "检查更新 显示加载程序并禁用重复检查，直到收到响应或检查超时。此示例在本地完成；真正的检查需要在线调解员。",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "单击检查更新 并等待加载程序完成。",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "打开报告表单",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "举报玩家 打开与玩家肖像或聊天名称相同的表单。",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "举报玩家 打开与玩家肖像或聊天名称相同的表单。如果有多个公会或社区，可以选择其中一个或全部。",
   ["highground.coachrecords.click_report_player.a03a47"] = "点击报告玩家。",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "提交一份提案",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "检查播放器、类别和注释，然后提交。会员的举报正在等待管理员的决定。",

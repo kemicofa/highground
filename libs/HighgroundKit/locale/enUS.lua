@@ -699,7 +699,7 @@ assert(ns.Locale:Register("enUS", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "Check for updates shows a loader and disables repeated checks until a reply arrives or the check times out. This sample finishes locally; real checks need an online moderator.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Click Check for updates and wait for the loader to finish.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Open the report form",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "Report player opens the same form used from a player's portrait or chat name.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "Report player opens the same form used from a player's portrait or chat name. With several guilds or communities, you can choose one or all of them.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Click Report player.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Submit a proposal",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Check the player, category and note, then submit. A member's report awaits a moderator's decision.",

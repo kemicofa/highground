@@ -699,7 +699,7 @@ assert(ns.Locale:Register("frFR", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "Vérifier les mises à jour affiche un indicateur de chargement et désactive les vérifications répétées jusqu'à ce qu'une réponse arrive ou que la vérification expire. Cet exemple se termine localement ; les vraies vérifications nécessitent un modérateur en ligne.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Cliquez sur Vérifier les mises à jour et attendez la fin du chargement.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Ouvrir le formulaire de rapport",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "Signaler le joueur ouvre le même formulaire que depuis le portrait d'un joueur ou son nom dans le chat.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "Signaler le joueur ouvre le même formulaire que depuis le portrait d'un joueur ou son nom dans le chat. Avec plusieurs guildes ou communautés, vous pouvez en choisir une ou toutes.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Cliquez sur Signaler le joueur.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Soumettre une proposition",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Vérifiez le joueur, la catégorie et la note, puis soumettez. Le rapport d'un membre attend la décision d'un modérateur.",

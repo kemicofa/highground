@@ -703,7 +703,7 @@ assert(ns.Locale:Register("ruRU", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "«Проверить обновления» показывает индикатор загрузки и отключает повторные проверки, пока не придет ответ или не истечет время. Этот пример завершается локально; для настоящих проверок нужен модератор в сети.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Нажмите «Проверить обновления» и дождитесь окончания загрузки.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Открыть форму отчета",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "«Пожаловаться на игрока» открывает ту же форму, что и портрет игрока или имя в чате.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "«Пожаловаться на игрока» открывает ту же форму, что и портрет игрока или имя в чате. Если у вас несколько гильдий или сообществ, можно выбрать одно или все.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Нажмите «Пожаловаться на игрока».",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Отправьте предложение",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Проверьте игрока, категорию и заметку, затем отправьте. Сообщение участника ожидает решения модератора.",

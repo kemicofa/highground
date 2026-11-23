@@ -699,7 +699,7 @@ assert(ns.Locale:Register("deDE", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "Nach Updates suchen zeigt eine Ladeanzeige und deaktiviert wiederholte Prüfungen, bis eine Antwort eintrifft oder die Prüfung abläuft. Dieses Beispiel endet lokal; echte Prüfungen benötigen einen Moderator, der online ist.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Klicken Sie auf Nach Updates suchen und warten Sie, bis die Ladeanzeige fertig ist.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Öffnen Sie das Berichtsformular",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "Spieler melden öffnet das gleiche Formular wie beim Portrait oder Chatnamen eines Spielers.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "Spieler melden öffnet das gleiche Formular wie beim Portrait oder Chatnamen eines Spielers. Bei mehreren Gilden oder Communitys können Sie eine oder alle auswählen.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Klicken Sie auf Spieler melden.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Einen Vorschlag einreichen",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Überprüfen Sie Spieler, Kategorie und Notiz und senden Sie dann ab. Die Meldung eines Mitglieds wartet auf die Entscheidung eines Moderators.",

@@ -699,7 +699,7 @@ assert(ns.Locale:Register("ptBR", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "Verificar atualizações mostra um indicador de carregamento e desativa verificações repetidas até chegar uma resposta ou a verificação expirar. Este exemplo termina localmente; verificações reais precisam de um moderador online.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Clique em Verificar atualizações e aguarde o indicador de carregamento terminar.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Abra o formulário de relatório",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "Denunciar jogador abre o mesmo formulário usado a partir do retrato de um jogador ou do nome dele no chat.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "Denunciar jogador abre o mesmo formulário usado a partir do retrato de um jogador ou do nome dele no chat. Com várias guildas ou comunidades, você pode escolher uma ou todas.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Clique em Denunciar jogador.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Enviar uma proposta",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Verifique o jogador, a categoria e a nota e depois envie. O relatório de um membro aguarda a decisão de um moderador.",

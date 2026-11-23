@@ -699,7 +699,7 @@ assert(ns.Locale:Register("itIT", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "Controlla aggiornamenti mostra un indicatore di caricamento e disabilita i controlli ripetuti finché non arriva una risposta o il controllo scade. Questo esempio termina in locale; i controlli reali richiedono un moderatore online.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "Fai clic su Controlla aggiornamenti e attendi che il caricamento finisca.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "Apri il modulo di segnalazione",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "Segnala giocatore apre lo stesso modulo usato dal ritratto di un giocatore o dal suo nome in chat.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "Segnala giocatore apre lo stesso modulo usato dal ritratto di un giocatore o dal suo nome in chat. Con più gilde o comunità, puoi sceglierne una o tutte.",
   ["highground.coachrecords.click_report_player.a03a47"] = "Fai clic su Segnala giocatore.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "Invia una proposta",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "Controlla il giocatore, la categoria e la nota, quindi invia. La segnalazione di un membro attende la decisione di un moderatore.",

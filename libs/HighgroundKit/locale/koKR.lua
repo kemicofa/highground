@@ -699,7 +699,7 @@ assert(ns.Locale:Register("koKR", {
   ["highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"] = "업데이트 확인은 로더를 표시하고 응답이 도착하거나 검사 시간이 끝날 때까지 반복 검사를 비활성화합니다. 이 예시는 로컬로 끝납니다. 실제 검사는 온라인 중재자가 필요합니다.",
   ["highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3"] = "업데이트 확인 을 클릭하고 로더가 완료될 때까지 기다립니다.",
   ["highground.coachrecords.open_the_report_form.7db0de"] = "보고서 양식 열기",
-  ["highground.coachrecords.report_player_opens_the_same_form_used.de1668"] = "플레이어 신고는 플레이어의 사진이나 채팅 이름에서 사용되는 동일한 양식을 엽니다.",
+  ["highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"] = "플레이어 신고는 플레이어의 사진이나 채팅 이름에서 사용되는 동일한 양식을 엽니다. 길드나 커뮤니티가 여러 개라면 하나 또는 전부를 선택할 수 있습니다.",
   ["highground.coachrecords.click_report_player.a03a47"] = "플레이어 신고를 클릭합니다.",
   ["highground.coachrecords.submit_a_proposal.5b9a99"] = "제안서 제출하기",
   ["highground.coachrecords.check_the_player_category_and_note_then.309f30"] = "플레이어, 카테고리 및 노트를 확인한 다음 제출하십시오. 회원의 신고는 관리자의 결정을 기다리고 있습니다.",

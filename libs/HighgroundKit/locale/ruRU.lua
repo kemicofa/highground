@@ -1715,7 +1715,6 @@ assert(ns.Locale:Register("ruRU", {
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Захватите еще одну цель",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. При условии, что текущий счет сохранится, а начатые захваты завершатся.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} замечено {age}с назад",
-  ["battlegrounds.overview.no_recent_sightings.5bf248"] = " · нет недавних обнаружений",
   ["battlegrounds.overview.node_name_falls_in_value3.fd19ef"] = "{node_name}: захват через {value3}",
   ["battlegrounds.rows.spot_unknown.a1b11c"] = "место неизвестно",
   ["battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a"] = "Ожидание таймера кладбища",

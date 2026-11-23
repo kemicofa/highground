@@ -1709,7 +1709,6 @@ assert(ns.Locale:Register("zhCN", {
   ["battlegrounds.overview.take_another_objective.d552f5"] = "采取另一个目标",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}号。假设当前评分继续，正在进行的捕获完成。",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} 查看 {age}s 前",
-  ["battlegrounds.overview.no_recent_sightings.5bf248"] = " · 没有最近的观察",
   ["battlegrounds.overview.node_name_falls_in_value3.fd19ef"] = "{node_name}属于{value3}",
   ["battlegrounds.rows.spot_unknown.a1b11c"] = "未知",
   ["battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a"] = "等待一个墓地计时器",

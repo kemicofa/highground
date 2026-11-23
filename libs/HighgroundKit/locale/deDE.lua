@@ -1709,7 +1709,6 @@ assert(ns.Locale:Register("deDE", {
   ["battlegrounds.overview.take_another_objective.d552f5"] = "Erobern Sie ein weiteres Ziel",
   ["battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696"] = "{message}. Annahme: Die aktuelle Punktewertung läuft weiter und laufende Eroberungen werden abgeschlossen.",
   ["battlegrounds.overview.count_seen_age_s_ago.3861e1"] = " · {count} vor {age}s gesehen",
-  ["battlegrounds.overview.no_recent_sightings.5bf248"] = " · keine aktuellen Sichtungen",
   ["battlegrounds.overview.node_name_falls_in_value3.fd19ef"] = "{node_name} fällt in {value3}",
   ["battlegrounds.rows.spot_unknown.a1b11c"] = "Ort unbekannt",
   ["battlegrounds.rows.waiting_for_a_graveyard_timer.1c576a"] = "Warten auf einen Friedhofs-Timer",

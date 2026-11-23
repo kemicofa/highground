@@ -73,6 +73,8 @@ Resurrection countdowns combine direct observations with estimates. Captured or 
 
 An enemy seen alive again within one wave period of dying gives a vote: their wave came in between. A sighting with a known position or named area votes only for a graveyard there. A sighting with no location at all votes for the enemy's graveyard when their faction has only one. Deaths followed by a player's resurrection, Reincarnation or Feign Death get no vote.
 
+Each death notes your first spirit healer countdown in the match history ("Resurrection wave in 12s"). With the gate-opening announcement already there, it shows where waves fall relative to the match start, to test whether the first waves can be predicted before anyone dies.
+
 Waves come every 30 seconds, or every 45 seconds in rated battlegrounds. If the match shows another period, the timers switch to it for that match. The signs are a spirit healer countdown longer than the period, or two pairs of exact waves spaced to fit it.
 
 **One clock or one per graveyard.** Some servers run a single resurrection clock for the whole battleground. Every graveyard and both teams share the wave timing, and capturing a base does not restart it. Others time each spirit guide separately. Highground tells which by comparing exact waves seen at two different graveyards, for example your own spirit healer countdown and an enemy spirit guide's cast. The verdict is saved across matches. Once one shared clock is confirmed, a single exact observation times every graveyard on the map, including the enemy's, and capture-time estimates are ignored. Until it is confirmed, a graveyard never borrows another's clock. `/hg timers` shows the period and the clock verdict.

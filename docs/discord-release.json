@@ -1,13 +1,12 @@
 {
   "releases": {
-    "Highground": "3.2.0"
+    "Highground": "3.2.1"
   },
   "changes": [
-    "Enemies placed only by area appear on the map as faint circles where they can be, growing while unseen. Hover a circle to see who was seen there and when.",
-    "Tag an enemy's spec when the game hides it (always on WoW Forever): hover their row and click a spec icon. Teammates with Share observations on see your tags.",
-    "Rows show Alliance and Horde crests instead of OURS/THEIRS and ALLY/ENEMY, the enemy list shows the whole team by default, and Russian, Korean and Chinese names display.",
-    "Quick callouts now reach battleground chat in WoW Forever matches, and each alert can have its own sound: choose it in the alert settings or with /hg alerts sound.",
-    "WoW Forever: your resurrection countdown also times the enemy's graveyards, and Darkspear Islands reads base owners, names both starts and learns the flag respawn."
+    "Enemy map circles stay small and no longer grow. Several enemies seen in one place share a circle with their number in the middle and their icons around the edge.",
+    "An enemy you can see only by its nameplate is no longer placed next to you: one of your spells must be in range.",
+    "WoW Forever: the starting graveyards share one resurrection clock, and a captured base's graveyard keeps its own. In Arathi Basin, dying at your start names Alliance start or Horde start.",
+    "Cyrillic and Asian player names no longer show as boxes, and enemy rows no longer repeat a spec as text beside its icon."
   ],
-  "notice": "Fully quit and restart WoW after updating: this release adds new addon files. CurseForge files may still be in moderation."
+  "notice": ""
 }

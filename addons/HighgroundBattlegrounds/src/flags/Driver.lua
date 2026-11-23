@@ -3,41 +3,58 @@ local Timers = ns.Timers
 local Flags = ns.Flags
 local Util, Core, Guard = ns.Util, ns.Core, ns.Util.Guard
 
--- Blizzard's quest tracker and carrier frames, hidden in battlegrounds.
-local trackerHidden = false
+-- Quest trackers and carrier frames, hidden in battlegrounds. Questie
+-- builds its tracker after login and shows it again on quest updates, so
+-- its frame is looked up each time and re-hidden from its OnShow.
 local arenaHidden
-function Flags.Tracker()
-  return WatchFrame or ObjectiveTrackerFrame
+local function QuestieShow(tr)
+  local loader = QuestieLoader
+  local ok, tracker = pcall(function() return loader and loader:ImportModule("QuestieTracker") end)
+  -- Questie's own Show keeps its tracker setting and its in-instance hide.
+  if not (ok and type(tracker) == "table" and tracker.Show and pcall(tracker.Show, tracker)) then tr:Show() end
+end
+local TRACKERS = {
+  { frame = function() return WatchFrame or ObjectiveTrackerFrame end, show = function(tr)
+    tr:Show()
+    if tr == WatchFrame and WatchFrame_Update then pcall(WatchFrame_Update, WatchFrame) end
+  end },
+  { frame = function() return Questie_BaseFrame end, show = QuestieShow },
+}
+local function ApplyTracker(t, hide)
+  local tr = t.frame()
+  if not tr then return end
+  if not t.hooked then
+    t.hooked = true
+    tr:HookScript("OnShow", function()
+      if Flags.InBG() then Flags.ApplyBlizzard() end
+    end)
+  end
+  if hide and tr:IsShown() then
+    -- Questie's quest item buttons are secure: in combat, fade only.
+    if InCombatLockdown() then
+      tr:SetAlpha(0)
+    else
+      tr:Hide()
+      tr:SetAlpha(1)
+    end
+    t.hidden = true
+  elseif not hide and t.hidden then
+    tr:SetAlpha(1)
+    if not InCombatLockdown() then
+      t.hidden = false
+      t.show(tr)
+    end
+  end
 end
 function Flags.ApplyBlizzard()
   local db = Timers.DB()
   local inBG = Flags.InBG()
-  local tr = Flags.Tracker()
-  if tr then
-    local hide = inBG and ns.IsActive and ns.IsActive() and db and Core.On("hideTracker")
-    if hide and tr:IsShown() then
-      if InCombatLockdown() then
-        tr:SetAlpha(0)
-      else
-        tr:Hide()
-        tr:SetAlpha(1)
-      end
-      trackerHidden = true
-    elseif not hide and trackerHidden then
-      tr:SetAlpha(1)
-      if not InCombatLockdown() then
-        trackerHidden = false
-        tr:Show()
-        if tr == WatchFrame and WatchFrame_Update then
-          pcall(WatchFrame_Update, WatchFrame)
-        end
-      end
-    end
-  end
+  local hide = inBG and ns.IsActive and ns.IsActive() and db and Core.On("hideTracker")
+  for _, t in ipairs(TRACKERS) do ApplyTracker(t, hide) end
   local af = ArenaEnemyFrames
   if af then
-    local hide = inBG and Flags.FlagsEnabled() and db and Core.On("hideCarrierFrames") and Flags.FlagBG() and Flags.flagWin and Flags.flagWin:IsShown()
-    if hide then
+    local hideArena = inBG and Flags.FlagsEnabled() and db and Core.On("hideCarrierFrames") and Flags.FlagBG() and Flags.flagWin and Flags.flagWin:IsShown()
+    if hideArena then
       if af:IsShown() then
         arenaHidden = arenaHidden or { shown = true, alpha = af:GetAlpha() }
         if InCombatLockdown() then
@@ -59,15 +76,6 @@ end
 
 local hooked = {}
 function Flags.Hook()
-  local tr = Flags.Tracker()
-  if tr and not hooked.tr then
-    hooked.tr = true
-    tr:HookScript("OnShow", function()
-      if Flags.InBG() then
-        Flags.ApplyBlizzard()
-      end
-    end)
-  end
   if ArenaEnemyFrames_UpdateVisible and not hooked.arena then
     hooked.arena = true
     hooksecurefunc("ArenaEnemyFrames_UpdateVisible", Flags.ApplyBlizzard)

@@ -138,3 +138,34 @@ test("battleground size switches turn Highground off for 10v10, 15v15 or epic ma
   equal(retail.ns.Core.SizeBracket(35), "bg40", "Ashran counts as epic")
   equal(retail.ns.Core.SizeBracket(8), "bg10", "Blitz counts as 10v10")
 end)
+
+test("Hide quest tracker covers Blizzard's and Questie's trackers and restores both", function()
+  local sim = new("retail")
+  local env = sim.env
+  sim.ns.Core.db.hideTracker = true
+  -- Questie builds its tracker after login; its own Show restores it.
+  local questie = env.CreateFrame("Frame", "Questie_BaseFrame", env.UIParent)
+  env.Questie_BaseFrame = questie
+  local shownByQuestie = 0
+  local tracker = { Show = function() shownByQuestie = shownByQuestie + 1; questie:Show() end }
+  env.QuestieLoader = { ImportModule = function(_, name) return name == "QuestieTracker" and tracker or nil end }
+  sim:enemy("Enemy")
+  sim:join()
+  sim:advance(0.5)
+  equal(env.WatchFrame:IsShown(), false, "Blizzard's tracker hidden")
+  equal(questie:IsShown(), false, "Questie's tracker hidden")
+  questie:Show() -- Questie shows it again on a quest update
+  equal(questie:IsShown(), false, "Questie's re-show is hidden again")
+  sim:setCombat(true)
+  questie:Show()
+  equal(questie:GetAlpha(), 0, "in combat it only fades: its item buttons are secure")
+  sim:setCombat(false)
+  sim:advance(0.5)
+  equal(questie:IsShown(), false, "hidden once combat ends")
+  equal(questie:GetAlpha(), 1, "alpha back for the next show")
+  sim:leave()
+  sim:advance(0.5)
+  equal(env.WatchFrame:IsShown(), true, "Blizzard's tracker restored")
+  equal(shownByQuestie, 1, "Questie restores its own tracker")
+  equal(questie:IsShown(), true, "Questie's tracker back after the battleground")
+end)

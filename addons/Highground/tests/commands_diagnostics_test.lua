@@ -64,12 +64,17 @@ t.test("/hg err lists recorded errors, health errors and counters; clearerr empt
   assert(has(out, "no errors recorded"), "clean start")
   assert(has(out, "roster: ok | active=true enemies=1"), "roster line")
   local db = sim.env.HighgroundDB
-  db.errors = { ["render: boom"] = { count = 3, first = "10:00", trace = "trace" } }
+  db.errors = { ["render: boom"] = { count = 3, first = "10:00", trace = "trace" },
+    ["sync: late"] = { count = 1, first = "2026-11-20 18:50:47", version = "3.2.0", trace = "trace" } }
+  sim.ns.Util.RecordError("live", "now")
+  assert(sim.metadata.Version, "the TOC version is loaded")
+  equal(db.errors["live: now"].version, sim.metadata.Version, "new records keep the addon version")
   db.healthErr = "bar rejected"
   db.apiMissing = { "C_PvP.GetScoreInfo" }
   out = direct(sim, "err")
   assert(has(out, "missing on this client: C_PvP.GetScoreInfo"), "missing APIs")
-  assert(has(out, "render: boom x3 (since 10:00)"), "error with count and first time")
+  assert(has(out, "render: boom x3 (since 10:00)"), "older records without a date or version still show")
+  assert(has(out, "sync: late x1 (since 2026-11-20 18:50:47 · v3.2.0)"), "date and version tell old errors apart")
   assert(has(out, "full traces saved"), "where traces are")
   assert(has(out, "health error: bar rejected"), "health error")
   assert(has(out, "health: "), "live counters")

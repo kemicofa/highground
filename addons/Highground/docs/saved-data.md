@@ -27,7 +27,7 @@ Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.r
 
 ## Errors and diagnostics
 
-`Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped`; every new message still sets `Core.lastError` for the panel notice. `/hg err` shows the dropped count and `/hg clearerr` resets both. Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing.
+`Util.RecordError` keeps at most 64 distinct messages in `errors` and counts later new ones in `errorsDropped`. Each record keeps its count, the date and time it first happened, the addon version and a trace; records stay until cleared, so `/hg err` shows the date and version to tell old ones apart; every new message still sets `Core.lastError` for the panel notice. `/hg err` shows the dropped count and `/hg clearerr` resets both. Diagnostics, alert settings, scoped storage and the burst diagnosis list repair damaged values instead of failing.
 
 ## Battleground recordings
 

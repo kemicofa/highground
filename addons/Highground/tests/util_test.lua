@@ -6,7 +6,7 @@ local printed, played, frames = {}, {}, {}
 local env
 env = setmetatable({
   print = function(line) printed[#printed + 1] = line end,
-  date = function() return "12:00:00" end,
+  date = function(fmt) return fmt == "%Y-%m-%d %H:%M:%S" and "2026-11-23 12:00:00" or "12:00:00" end,
   PlaySound = function(id, channel) played[#played + 1] = { id, channel } end,
   GetSubZoneText = function() return env and env.subzone end,
   GetZoneText = function() return env and env.zone end,
@@ -50,6 +50,7 @@ ns.Theme = nil
 -- Guard
 local db = {}
 ns.Core = { db = db }
+ns.Api = { AddOnMetadata = function(name, field) return name == "Highground" and field == "Version" and "3.2.1" or nil end }
 local ok, a, b, c = Util.Guard("sum", function(x, y, z) return x + y, nil, z end, 1, 2, "z")
 equal(ok, true, "Guard ok")
 equal(a, 3, "Guard passes args and returns results")
@@ -63,7 +64,8 @@ end
 equal(a:match("^[^\n]*"), "bad thing", "Guard returns the traceback")
 local rec = db.errors["boom: bad thing"]
 equal(rec and rec.count, 3, "repeats counted under one key")
-equal(rec.first, "12:00:00", "first time recorded")
+equal(rec.first, "2026-11-23 12:00:00", "first date and time recorded")
+equal(rec.version, "3.2.1", "host addon version recorded")
 equal(rec.trace:match("^[^\n]*"), "bad thing", "trace stored")
 equal(ns.Core.lastError, "boom: bad thing", "Core.lastError set")
 equal(Util.GuardStats.boom.errors, 3, "stage stats count")

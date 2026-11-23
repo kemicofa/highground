@@ -63,6 +63,8 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |
 | `/hg bg test` | Start or stop battleground enemy rows, timers, objectives and flag carrier samples. | Battleground panel preview controls → `battlegrounds-previews` |
 | `/hg bg test stop` | Stop the battleground panel previews. | Stop battleground previews |
+| `/hg bg profiler start` | Record a battleground for analysis: events, timers and what Highground concluded. Stops when you leave. | Start battleground profiler |
+| `/hg bg profiler stop` | Stop the battleground profiler; /reload then saves the recording. | Stop battleground profiler |
 | `/hg intel` | Show enemy map and sharing status. | Show map sharing status |
 | `/hg intel on` · `/hg intel off` | Enable or disable enemy map positions. | Map position switch → `battlegrounds-settings` |
 | `/hg intel share on\|off` | Enable or disable sharing map positions with teammates. | Map sharing switch → `battlegrounds-settings` |

@@ -216,6 +216,8 @@ features/battlegrounds/core/CombatLog.lua
 features/battlegrounds/core/Migrations.lua
 features/battlegrounds/core/Events.lua
 core/Diagnostics.lua
+core/Profiler.lua
+core/ProfilerProbes.lua
 commands/Diagnostics.lua
 commands/Settings.lua
 libs/bounty/Commands.lua

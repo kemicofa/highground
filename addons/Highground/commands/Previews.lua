@@ -123,7 +123,10 @@ function Commands.test(arg, msg, say)
 end
 
 function Commands.bg(arg, msg, say)
-  if arg ~= "test" and arg ~= "test stop" then return say(ns.Locale:Get("highground.previews.hg_bg_test_stop_preview_battleground_panels.bc9a74")) end
+  -- /hg bg profiler start|stop: core/Profiler.lua.
+  if arg == "profiler start" then return ns.Profiler.Start(say) end
+  if arg == "profiler stop" then return ns.Profiler.Stop(say) end
+  if arg ~= "test" and arg ~= "test stop" then return say(ns.Locale:Get("highground.previews.hg_bg_test_stop_preview_battleground_panels.837295")) end
   if InGuide() then return say(ns.Locale:Get(GUIDE_HINT)) end
   if arg == "test stop" or P.Active("bg test") then
     StopBattlegrounds(); return say(ns.Locale:Get("highground.previews.battleground_previews_off.fde282"))

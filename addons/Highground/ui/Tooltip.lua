@@ -53,10 +53,12 @@ function Core.ShowTooltip(self)
         edge > 0 and "success" or "danger", true)
     end
   else
-    GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.cls_dim_specialization_unknown_r.da59cc", { cls = cls, dim = dim }), RGB("textMuted"))
+    GameTooltip:AddLine(cls, RGB("textMuted"))
   end
-  local where = ns.MapWhere and ns.MapWhere(e.key)
-  if where then
+  -- An enemy seen without coordinates gets no line.
+  local where, placed
+  if ns.MapWhere then where, placed = ns.MapWhere(e.key) end
+  if where and placed then
     GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.location_where.bde69d", { where = where }), RGB("info"))
   end
   if e.cast then
@@ -86,15 +88,9 @@ function Core.ShowTooltip(self)
       GameTooltip:AddDoubleLine(Core.IconText(d[1], Theme.Size("icon")) .. " " .. d[1][4], Core.Clock(d[2]), dr, dg, db, dr, dg, db)
     end
   end
-  if Core.SpecTaggable(e) and self ~= Core.heroBtn then
-    Theme.TipLine(GameTooltip, ns.Locale:Get("highground.tooltip.spec_tag_hint"), "textMuted", true)
-  end
-  local key = Theme.TipHex("success")
-  GameTooltip:AddLine(ns.Locale:Format("highground.tooltip.key_left_r_target_key_3_right.fe5d55", { key = key, key_3 = key, key_5 = key }), RGB("textMuted"))
-  Theme.TipLine(GameTooltip, ns.Locale:Get("highground.tooltip.focus_keeps_a_second_target_selected_for.cffc19"), "textMuted", true)
-  if self == Core.heroBtn and InCombatLockdown() then
-    Theme.TipLine(GameTooltip, ns.Locale:Get("highground.tooltip.this_click_stays_on_the_displayed_name.117980"), "info", true)
-  end
+  -- Left/right click and spec tagging are taught by the guide; shift-click
+  -- has no other in-game hint.
+  GameTooltip:AddLine(ns.Locale:Get("highground.tooltip.shift_click_call_in_chat.74c6c2"), RGB("textMuted"))
   GameTooltip:Show()
 end
 

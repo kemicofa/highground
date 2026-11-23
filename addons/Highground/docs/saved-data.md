@@ -23,7 +23,7 @@ SavedVariables can hold anything after a bad import, a manual edit or a differen
 
 ## Bounded stores
 
-Battleground upgrade markers use `Saved.Migrate`. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
+Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.rules[…].reviveLag`) keep the last nine samples, each 0-3 seconds. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
 
 ## Errors and diagnostics
 
@@ -38,10 +38,10 @@ Rows are `<seconds since start> <kind> <text>`. `python3 scripts/bg_profile.py <
 | Kind | Recorded |
 | --- | --- |
 | `start`, `resume`, `end`, `map` | Session boundaries, instance, the resolved battleground and rules key, whether Highground tracks it |
-| `chat` | Battleground (`A`/`H`/`N`), boss, monster and system lines; `=> English` when the translation tables matched a localized line |
+| `chat` | Battleground (`A`/`H`/`N`), boss, monster and system lines; `=> English` when the translation tables matched a localized line. Lines whose text the game withholds (WoW Forever's chat lockdown) are only counted as `chat hidden` |
 | `match` | Match state changes and the result |
 | `me` | Your deaths: death events, the game's spirit-healer countdown, and on resurrection the error against that countdown (`healerErr`) and against Highground's clock (`gyErr`) |
-| `wave` | Each resurrection wave Highground learns (`exact`, `guide`, `shared`, `cap`), with `err` = the wave minus the prediction it replaced |
+| `wave` | Each resurrection wave Highground learns (`exact`, `guide`, `shared`, `cap`), with `err` = the wave minus the prediction it replaced; repeats within 1.5 s are the same wave |
 | `gy`, `clock`, `advice` | Graveyard clock changes, period, downtime and shared-clock changes, and "die now" advice |
 | `node`, `poi`, `widget`, `vignette`, `flag` | Base ownership and capture timers, raw map POIs and icons, widget text (numbers alone at most every 15 s), vignettes, flag carriers and respawn |
 | `res`, `obj` | What the resurrection and objective windows show, on a change of rows and every 10 s |

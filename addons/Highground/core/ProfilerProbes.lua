@@ -37,9 +37,10 @@ local function Graveyards(T, now)
   local shared = T.SharedClock and U.call(T.SharedClock)
   local start = T.startClock and T.startClock.g and T.GYName(T.startClock.g)
   local samples = type(T.downtimes) == "table" and #T.downtimes or 0
-  if Changed("clock", table.concat({ tostring(period), tostring(downtime), tostring(shared), tostring(start), samples }, "|")) then
-    P.Add("clock", string.format("period=%s downtime=%s shared=%s start=%s downtimeSamples=%d", tostring(period),
-      tostring(downtime or 0), tostring(shared), tostring(start or "-"), samples))
+  local lag = T.ReviveLag and U.call(T.ReviveLag)
+  if Changed("clock", table.concat({ tostring(period), tostring(downtime), tostring(shared), tostring(start), samples, tostring(lag) }, "|")) then
+    P.Add("clock", string.format("period=%s downtime=%s shared=%s start=%s downtimeSamples=%d reviveLag=%s", tostring(period),
+      tostring(downtime or 0), tostring(shared), tostring(start or "-"), samples, Num(lag)))
   end
   for _, g in ipairs(T.gys or {}) do
     if T.Available(g) then
@@ -105,9 +106,10 @@ local function POIs(mapID)
 end
 
 local GETTERS = { "GetIconAndTextWidgetVisualizationInfo", "GetTextWithStateWidgetVisualizationInfo",
-  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
+  "GetDoubleIconAndTextWidgetVisualizationInfo", "GetDoubleStatusBarWidgetVisualizationInfo", "GetStatusBarWidgetVisualizationInfo",
   "GetCaptureBarWidgetVisualizationInfo", "GetDoubleStateIconRowVisualizationInfo", "GetScenarioHeaderTimerWidgetVisualizationInfo" }
-local FIELDS = { "text", "leftText", "rightText", "overrideBarText", "barValue", "barMax", "barMaxValue", "timerValue", "shownState" }
+local FIELDS = { "text", "leftText", "rightText", "overrideBarText", "leftBarValue", "rightBarValue", "leftBarMax", "rightBarMax",
+  "barValue", "barMax", "barMaxValue", "timerValue", "shownState" }
 local function WidgetText(W, id)
   for _, key in ipairs(GETTERS) do
     local data = U.call(W[key], id)
@@ -209,19 +211,27 @@ local function Summary(T)
     Num(heap, 0), Num(U.read(GetFramerate), 0), tostring(U.read(InCombatLockdown) == true)))
 end
 
+-- The player's map can be unknown for a moment after entering; the
+-- battleground's configured map stands in.
+local function MapID(bg)
+  local id = ns.CurrentMapID and ns.CurrentMapID()
+  return id or bg and type(bg.ui) == "table" and bg.ui[1] or nil
+end
+
 local function Poll()
   local s, now, T = P.Session(), GetTime(), ns.Timers
   if not s then return end
   local bg = ns.GetBG and ns.GetBG()
-  if bg and s.map.id ~= bg.id then
+  local live = ns.CurrentMapID and ns.CurrentMapID()
+  if bg and Changed("map", tostring(bg.id) .. tostring(live)) then
     s.map.id, s.map.kind, s.map.mode, s.map.size, s.map.rulesKey = bg.id, bg.kind, bg.mode, bg.size, bg.rulesKey
     P.Add("map", string.format("%s kind=%s mode=%s size=%s rules=%s ui=%s", tostring(bg.id), tostring(bg.kind),
-      tostring(bg.mode), tostring(bg.size), tostring(bg.rulesKey), tostring(ns.CurrentMapID and ns.CurrentMapID())))
+      tostring(bg.mode), tostring(bg.size), tostring(bg.rulesKey), tostring(live)))
   end
   P.PollMe(now)
   Lockdown()
   if T and T.gys then Graveyards(T, now); Nodes(T, now) end
-  POIs(ns.CurrentMapID and ns.CurrentMapID())
+  POIs(MapID(bg))
   Widgets(now)
   Vignettes()
   Flags(now)
@@ -291,8 +301,9 @@ local function InstallHooks()
       local predicted = cycle and T.Available(g) and U.call(T.NextWave, g, t - cycle / 2)
       local was, before = g.conf, g.wave
       original(g, t, conf, ...)
-      -- A ghost's countdown confirms the same wave four times a second.
-      if was == conf and before and math.abs(t - before) <= 0.5 then return end
+      -- The same wave again: a ghost's whole-second countdown four times a
+      -- second, or teammates coming back up to ~1.5 s apart.
+      if was == conf and before and math.abs(t - before) <= 1.5 then return end
       P.Add("wave", string.format("%s %s %s at=%s err=%s kept=%s was=%s", tostring(conf), Team(g.team), T.GYName(g),
         Num(t - GetTime()), Num(predicted and t - predicted), tostring(g.wave == t), tostring(was or "-")))
     end

@@ -372,7 +372,7 @@ test("WoW Forever Warsong Gulch times both base graveyards from your own wave", 
   sim:advance(0.5)
   local ours, theirs = row("Alliance Base Graveyard"), row("Horde Base Graveyard")
   if T.MyTeam() == "H" then ours, theirs = theirs, ours end
-  assert(ours.time.text:find("1[12]s"), "your wave: " .. ours.time.text)
+  assert(ours.time.text == "13s", "your wave, the countdown plus the revive lag: " .. ours.time.text)
   equal(theirs.time.text, ours.time.text, "the enemy graveyard shares the wave")
   sim:assertHealthy()
 end)

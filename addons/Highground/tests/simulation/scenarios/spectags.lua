@@ -51,7 +51,12 @@ test("WoW Forever: hovering an unidentified enemy offers its trees; a click tags
   local picker = C.specPicker
   assert(not picker:IsShown(), "hidden until the row is hovered")
   hover(sim, r)
-  assert(table.concat(sim.env.GameTooltip.lines, "\n"):find("click a spec icon", 1, true), "the row tooltip explains the icons")
+  local tip = sim.env.GameTooltip.lines
+  equal(table.concat(tip, "|"), "Classonly|" .. sim.ns.Util.ClassName("MAGE") .. "|Location: at Stables (approx.)|Shift-click: call in chat",
+    "the tooltip names the class without explaining the missing spec or the clicks")
+  sim.ns.Test.intel[e.key] = { t = sim.env.GetTime(), how = "unknown", by = "Buddy" }
+  hover(sim, r)
+  equal(#sim.env.GameTooltip.lines, 3, "an enemy seen without a position gets no location line")
   assert(picker:IsShown(), "hovering the row shows the picker")
   equal(shownButtons(picker), 3, "one icon per classic talent tree")
 

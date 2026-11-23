@@ -186,12 +186,13 @@ for _, case in ipairs(CASES) do
     local row = sim.env.HighgroundBattlegroundsFlagRow2
     equal(row and row.name.text, "Carrier", "flag window shows the carrier")
     assert(sim.env.HighgroundBattlegroundsFlagsFrame:IsShown(), "flag window shown")
-    -- Dead: the spirit healer's countdown reaches the resurrection window.
+    -- Dead: the spirit healer's countdown reaches the resurrection window,
+    -- plus WoW Forever's revive lag.
     sim.units.player.ghost, sim.healerTime = true, 12
     sim:advance(0.5)
-    local clock
+    local clock, shown = nil, case[3] == "forever" and "13s" or "12s"
     for _, r in ipairs(sim.env.HighgroundBattlegroundsTimersFrame.rows) do
-      if r:IsShown() and r.time.text == "12s" then clock = r end
+      if r:IsShown() and r.time.text == shown then clock = r end
     end
     assert(clock, "resurrection countdown shown")
   end)

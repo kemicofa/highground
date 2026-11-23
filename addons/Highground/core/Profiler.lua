@@ -48,6 +48,12 @@ function P.Add(kind, text)
   s.rows[#s.rows + 1] = string.format("%.1f %s %s", GetTime() - s.t0, kind, P.Clean(text))
 end
 
+-- Counted without a row, for events whose text the game withholds.
+function P.Count(kind)
+  local s = session
+  if s then s.counts[kind] = (s.counts[kind] or 0) + 1 end
+end
+
 -- Seconds as text for rows; "-" when unknown.
 function P.Num(v, places)
   if type(v) ~= "number" or v ~= v or v == math.huge or v == -math.huge then return "-" end
@@ -100,6 +106,12 @@ end
 
 local function Revived(now)
   if not death.since then return end
+  -- The timers read the countdown four times a second: a closer end.
+  local T = ns.Timers
+  local closer = T and T.healerEnd
+  if type(closer) == "number" and death.healerAt and closer > death.healerAt and closer - death.healerAt < 1.5 then
+    death.healerAt = closer
+  end
   P.Add("me", string.format("rez after=%s healerErr=%s gyErr=%s gy=%s", P.Num(now - death.since),
     P.Num(death.healerAt and now - death.healerAt), P.Num(death.gyNext and now - death.gyNext), death.gy or "-"))
   wipe(death)
@@ -113,10 +125,11 @@ function P.PollMe(now)
     return
   end
   death.since = death.since or now
+  -- The latest prediction before you come back, not the next cycle's once
+  -- the predicted moment has passed.
   local g = T and T.releaseGY
-  if g and not death.gyNext then
-    death.gyNext, death.gy = NextWave(g, now), GYName(g)
-  end
+  local nw = g and NextWave(g, now)
+  if nw and not (death.gyNext and nw > death.gyNext + 10) then death.gyNext, death.gy = nw, GYName(g) end
   local left = U.read(GetAreaSpiritHealerTime)
   if type(left) == "number" and left > 0 then
     local at = now + left
@@ -124,6 +137,8 @@ function P.PollMe(now)
       death.healerAt = at
       P.Add("me", string.format("healer left=%s gyNext=%s gy=%s", P.Num(left), P.Num(death.gyNext and death.gyNext - now),
         death.gy or GYName(g)))
+    elseif at > death.healerAt then
+      death.healerAt = at -- a whole-second countdown: the latest end read is the closest
     end
   end
 end
@@ -148,7 +163,7 @@ local CHANNEL = {
 local function OnChat(event, msg, sender)
   msg = U.value(msg)
   local channel = CHANNEL[event]
-  if type(msg) ~= "string" then return P.Add("chat", channel .. " ?") end
+  if type(msg) ~= "string" then return P.Count("chat hidden") end -- WoW Forever hides system text in lockdown
   local text = channel .. " " .. msg
   sender = U.value(sender)
   if channel == "yell" or channel == "emote" or channel == "say" then text = text .. " <" .. tostring(sender) .. ">" end

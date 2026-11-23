@@ -29,6 +29,10 @@ test("battleground profiler waits outside, records a match and offers a reload o
   assert(sim.ns.Util.RunGuarded ~= guarded and sim.ns.Timers.SetWave ~= setWave, "hooks while recording")
   sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The battle for Warsong Gulch has begun!")
   assert(find(s, " chat N The battle for Warsong Gulch has begun!$"), "announcement kept verbatim")
+  local rows = #s.rows
+  sim:event("CHAT_MSG_SYSTEM", { secret = true })
+  equal(#s.rows, rows, "withheld text adds no row")
+  equal(s.counts["chat hidden"], 1, "withheld text is counted")
   local rezAt = sim.now + 12
   sim.env.GetAreaSpiritHealerTime = function() return sim.units.player.ghost and math.max(0, rezAt - sim.now) or nil end
   sim.units.player.ghost = true
@@ -71,22 +75,32 @@ test("WoW Forever recordings measure waves on the 31.6-second cycle", function()
   sim:join(1460, 489, "Warsong Gulch")
   local s = sim.env.HighgroundDB.bgProfiles[1]
   assert(find(s, " clock period=30 downtime=1%.6 "), "period and downtime")
-  local rezAt
-  sim.env.GetAreaSpiritHealerTime = function() return sim.units.player.ghost and math.max(0, rezAt - sim.now) or nil end
+  -- As live: whole-second countdowns, ghosts back 0.9 s after the end.
+  local ends
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and math.max(0, math.floor(ends - sim.now)) or nil
+  end
   for _, delay in ipairs({ 12, 31.6 }) do
-    rezAt = (rezAt or sim.now) + delay
+    ends = (ends or sim.now) + delay
     sim.units.player.ghost = true
-    sim:advance(rezAt - sim.now)
+    sim:advance(ends + 0.9 - sim.now)
     sim.units.player.ghost = false
     sim:event("PLAYER_UNGHOST")
     sim:advance(1)
   end
-  local second
+  local exact = 0
   for _, row in ipairs(s.rows) do
-    if row:find(" wave exact ") and not row:find("err=%- ") then second = row end
+    if row:find(" wave exact ") then exact = exact + 1 end
   end
-  local err = second and tonumber(second:match("err=(%-?[%d.]+)"))
-  assert(err and math.abs(err) <= 0.3, "the next wave was predicted a cycle later: " .. tostring(second))
+  equal(exact, 2, "one row per wave, not per countdown second")
+  local last
+  for _, row in ipairs(s.rows) do
+    if row:find(" me rez ") then last = row end
+  end
+  local err = last and tonumber(last:match("gyErr=(%-?[%d.]+)"))
+  assert(err and math.abs(err) <= 0.3, "the next wave a cycle later, after the revive lag: " .. tostring(last))
+  local lag = tonumber(last:match("healerErr=(%-?[%d.]+)"))
+  assert(lag and lag >= 0.8 and lag <= 1.2, "back about 0.9 s after the countdown's end: " .. last)
   sim:assertHealthy()
 end)
 

@@ -4,7 +4,8 @@ local Timers = ns.Timers
 ---------------------------------------------------------------------------
 -- Bases window: captures in progress + who wins, and when.
 -- Like Capping's bars and score predictor, plus:
---   * the max score is read from the scoreboard (not assumed 1600)
+--   * the max score is read from the scoreboard (not assumed 1600), as
+--     "Bases: 3  Resources: 1210/1600" text or a modern double score bar
 --   * points per second for each base count are measured live (and saved
 --     per battleground), seeded with Arathi Basin's known table
 --   * "IF" = the result if every capture in progress lands
@@ -38,10 +39,28 @@ do
       return tonumber(s), tonumber(m), tonumber(b)
     end
   end
+  -- Modern scoreboards (retail, and WoW Forever's client): one double
+  -- status bar, Alliance left and Horde right, out of leftBarMax. It has no
+  -- base counts; the map's bases give those. 1671 on most maps.
+  local BAR_WIDGETS = { 1671, 2074, 5153, 1689 }
+  local function Number(v) return Timers.plain(v) and type(v) == "number" and v or nil end
+  local function Bar(id)
+    local W = C_UIWidgetManager
+    local f = W and W.GetDoubleStatusBarWidgetVisualizationInfo
+    if not f then return nil end
+    local ok, info = pcall(f, id)
+    if not (ok and type(info) == "table") then return nil end
+    local a, h, m = Number(info.leftBarValue), Number(info.rightBarValue), Number(info.leftBarMax)
+    if a and h and m and m > 0 then return a, h, m end
+  end
   -- One reused reading: Scores runs four times a second while the
   -- objectives window is open; callers use it before the next refresh.
   local reading, counts = { A = {}, H = {} }, {}
   local function Fill(side, s, m, b) side.s, side.m, side.b = s, m, b; return side end
+  local function FillBar(a, h, m)
+    reading.A, reading.H = Fill(reading.A, a, m, nil), Fill(reading.H, h, m, nil)
+    return reading
+  end
   local function Read()
     for _, pair in ipairs(SCORE_WIDGETS) do
       local as, am, ab = Parse(WidgetText(pair[1]))
@@ -51,13 +70,23 @@ do
         return reading
       end
     end
-    -- Any other scoreboard: the first two "x/y" widgets at the top of the screen.
+    for _, id in ipairs(BAR_WIDGETS) do
+      local a, h, m = Bar(id)
+      if a then return FillBar(a, h, m) end
+    end
+    -- Any other scoreboard: a score bar at the top of the screen, else the
+    -- first two "x/y" widgets there.
     local W = C_UIWidgetManager
     if W and W.GetTopCenterWidgetSetID and W.GetAllWidgetsBySetID then
       local okS, set = pcall(W.GetTopCenterWidgetSetID)
       local okL, list = pcall(W.GetAllWidgetsBySetID, okS and set or 0)
+      list = okL and type(list) == "table" and list or {}
+      for _, wi in ipairs(list) do
+        local a, h, m = Bar(wi.widgetID)
+        if a then return FillBar(a, h, m) end
+      end
       local found = {}
-      for _, wi in ipairs(okL and type(list) == "table" and list or {}) do
+      for _, wi in ipairs(list) do
         local s, m, b = Parse(WidgetText(wi.widgetID))
         if s then
           found[#found + 1] = { id = wi.widgetID, s = s, m = m, b = b }

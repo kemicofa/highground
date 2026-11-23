@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Reputation: a player's right-click menu shows **Add to blacklist** directly under a **Highground Reputation** heading. With several enabled guilds and communities it opens a list to pick one, or **All guilds and communities**. The report form offers the same **All** choice and saves a blacklist decision where you moderate and a proposal everywhere else.
 - `/hg bg profiler start` records a battleground for troubleshooting: announcements, your deaths and the resurrection countdowns, each graveyard clock and how far its prediction was off, bases, flags and what the timer windows showed. Leaving the battleground stops it and offers a reload to save it; `/hg bg profiler stop` ends it early. Both are also on Battlegrounds → Commands.
 - Long enemy names, such as WoW Forever's first and last names, are cut off less often: a row's name now extends over empty slots on its right (no status chip, no spec text) and stops before anything the row shows. This helps most in Compact layout.
 - Enemy map circles are a thin outline in your theme's colour around a faint fill, instead of a dark grey disc, and stay subtle when hovered. Hovering a circle shows its enemies at full strength.

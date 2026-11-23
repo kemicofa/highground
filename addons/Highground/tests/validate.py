@@ -63,7 +63,7 @@ colour_literals = [
     re.compile(r"\|c[fF]{2}[0-9a-fA-F]{6}"),
 ]
 # Number lists that are not colours: (file, text on the line).
-colour_allowed = {("libs/bounty/Alerts.lua", "ICON_CROP")}
+colour_allowed = {("libs/bounty/Alerts.lua", "ICON_CROP"), ("features/battlegrounds/timers/Prediction.lua", "BAR_WIDGETS")}
 theme_files = {"libs/config/Theme.lua"} | {p.relative_to(root).as_posix() for p in (root / "libs/config/themes").glob("*.lua")}
 literals = []
 for name in sorted(runtime_lua - theme_files):

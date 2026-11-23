@@ -4,18 +4,43 @@
 
 ## Find the matching configuration
 
-Start with the matching file in `addons/HighgroundBattlegrounds/src/config/battlegrounds/` from the repository root. Highground loads it through `features/battlegrounds/config/battlegrounds/`. For example, [ArathiBasin.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/ArathiBasin.lua) configures standard Retail's 60-second capture rule, Cata's observed 65 seconds, and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
+Start with the matching file in `addons/HighgroundBattlegrounds/src/config/battlegrounds/` from the repository root. Highground loads it through `features/battlegrounds/config/battlegrounds/`. For example, [ArathiBasin.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/ArathiBasin.lua) configures standard Retail's 60-second capture rule, Cata's observed 65 seconds, Forever's named start graveyards and Blitz's 30-second capture/45-second ownership/5-second reset cycle. [EyeOfTheStorm.lua](../../HighgroundBattlegrounds/src/config/battlegrounds/EyeOfTheStorm.lua) distinguishes normal instance 566 from rated instance 968.
 
 The registry and resolver live in [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua). See [battleground coverage](battlegrounds.md) for implemented mechanics and remaining limits.
+
+## One file, three games
+
+Every file has the same shape. `games` lists each game the battleground exists in — `retail`, `forever` and `cata` — with that game's map and instance IDs and its own `rules`. A game without an entry never resolves the battleground, and no game borrows another's entry: WoW Forever runs the Retail client but has its own entries (Warsong Gulch, Arathi Basin, Alterac Valley and Darkspear Islands).
+
+```lua
+local _, ns = ...
+local T = ns.BattlegroundText
+
+ns.RegisterBattleground({
+  id = "arathi_basin", gameName = "Arathi Basin", kind = "nodes", size = 15,
+  coverage = T"battlegrounds.arathibasin.node_captures_and_graveyards_standard_score_prediction.ac63b3",
+  games = {
+    retail  = { ui = { 1366, 93, 1461 }, inst = { 2107, 529 } },
+    forever = { ui = { 1461, 93 }, inst = { 529 }, rules = { graveyards = { starts = { … } } } },
+    cata    = { ui = { 93, 1461 }, inst = { 529 }, rules = { capture = { seconds = 65 } } },
+  },
+  rules = { capture = { seconds = 60 }, … },   -- every game
+  blitz = { capture = { seconds = 30 } },      -- Blitz matches (Retail)
+})
+```
+
+- **Text players read** (labels, routes, coverage) is written as `T"catalog.key"`. Registration swaps each marker for the translated text and keeps the key, so a language change rewrites it. Map names, POI names and destinations matched against the client stay plain English strings.
+- **Map positions belong to one UI map.** Retail's Arathi Basin (1366) and the classic map Cata and Forever use (93/1461) need different `x`/`y` values. Keep each set in the rules of the games that show that map, and say in a comment which map and projection it uses; a shared local table (such as `CLASSIC_ANCHORS`) avoids copying it.
+- **Learned values override configured ones** during play: observed capture times, graveyard spots and resource rates. After changing a configured value, an earlier learned one can still win until it is relearned.
 
 ## Rule precedence
 
 Overrides apply in this order:
 
-1. Shared defaults.
-2. Battleground `rules`.
-3. Client `rules`.
-4. Game rules (`games.forever` for WoW Forever, which runs the retail client).
+1. Shared defaults (30-second waves, no capture timer, no graveyards).
+2. The game's defaults (WoW Forever: one shared resurrection clock).
+3. Battleground `rules`.
+4. The game's `rules` (`games.<game>.rules`).
 5. Instance `variants`.
 6. `blitz` for Blitz matches, or a 45-second resurrection period and then `rated` for rated matches.
 
@@ -26,10 +51,9 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | Field | Meaning |
 | --- | --- |
 | `size` | Players per team (10, 15, 35 or 40). Picks the 10v10, 15v15 or epic switch; rated play counts as 10 and Blitz as 8 |
-| `clients.retail`, `clients.cata` | Supported client and its `ui`/`inst` IDs; absence means unsupported |
-| `clients.<client>.variants[instanceID]` | Named instance variant and its overrides |
-| `clients.<client>.game` | Only this game uses these IDs, such as a WoW Forever battleground on the retail client |
-| `games.<game>` | Rule overrides for one game on a shared client, such as Forever's 300-second Alterac Valley captures |
+| `games.retail`, `games.forever`, `games.cata` | A game the battleground exists in and its `ui`/`inst` IDs; absence means unsupported there |
+| `games.<game>.rules` | This game's rule overrides, such as Forever's 300-second Alterac Valley captures |
+| `games.<game>.variants[instanceID]` | Named instance variant and its overrides |
 | `capture.seconds` | Time from an observed assault to ownership |
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
@@ -50,12 +74,12 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 
 ## Adding or changing a battleground
 
-Add new battleground files to both TOCs of **Highground Battlegrounds** (`src/config/battlegrounds/...`) and both TOCs of **Highground** (`features/battlegrounds/config/battlegrounds/...`). The client list inside each file controls availability. Numeric map IDs and instance variants should come from the target client or a verified source, not from an outdoor zone with the same name.
+Add new battleground files to both TOCs of **Highground Battlegrounds** (`src/config/battlegrounds/...`) and both TOCs of **Highground** (`features/battlegrounds/config/battlegrounds/...`). The `games` table inside each file controls availability. Numeric map IDs and instance variants should come from the target client or a verified source, not from an outdoor zone with the same name.
 
 Run [the test suite](development.md#validation) after changing rules.
 
 ## Learned state and resets
 
-Learned resource rates are keyed by client, battleground, instance variant and mode. Each game keeps its own saved variables, so the key does not include the game. Old rates indexed only by battleground name are intentionally not reused. Match-local clocks reset on map/mode changes and world entry.
+Learned resource rates are keyed by client, battleground, instance variant and mode. Each game keeps its own saved variables, so the key does not include the game; WoW Forever's keys start with `retail`, as before Forever had its own entries. Old rates indexed only by battleground name are intentionally not reused. Match-local clocks reset on map/mode changes and world entry.
 
 See [observations and timers](observations.md) for position quality, graveyard ownership, clock invalidation and destination handling.

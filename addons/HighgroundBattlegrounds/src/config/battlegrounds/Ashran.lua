@@ -1,7 +1,8 @@
 local _, ns = ...
-ns.RegisterBattleground(ns.Localization.Define({
+local T = ns.BattlegroundText
+ns.RegisterBattleground({
   id = "ashran", gameName = "Ashran", kind = "epic", size = 35,
-  clients = { retail = { ui = { 1478, 588 }, inst = { 1191 } } },
+  games = { retail = { ui = { 1478, 588 }, inst = { 1191 } } },
   rules = { graveyards = { mode = "names", names = { "graveyard" } } },
-  coverage = ns.Locale:Get("battlegrounds.ashran.roster_resurrection_waves_visible_event_lane_status.9f1dbc"),
-}, { coverage = "battlegrounds.ashran.roster_resurrection_waves_visible_event_lane_status.9f1dbc" }))
+  coverage = T"battlegrounds.ashran.roster_resurrection_waves_visible_event_lane_status.9f1dbc",
+})

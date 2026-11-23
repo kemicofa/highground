@@ -25,8 +25,8 @@ test("Retail upgrades activate in every unrated battleground", function()
   local sim = new("retail", { allBGs = false }, function(s) s.rated, s.blitz = false, false end)
   sim:enemy("Enemy")
   for id, config in pairs(sim.ns.BattlegroundConfigs) do
-    local maps = config.clients.retail
-    if maps and not maps.game then
+    local maps = config.games.retail
+    if maps then
       sim:join(maps.ui and maps.ui[1] or 0, maps.inst[1], config.name)
       assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible(), config.name .. " activates after upgrade")
       equal(sim.ns.Core.currentBG.id, id, "correct battleground detected")

@@ -4,7 +4,7 @@
 
 ## Supported battlegrounds and remaining work
 
-The registry covers all eight standard Cataclysm battlegrounds, fifteen Retail battlegrounds including Slayer's Rise, and WoW Forever's Darkspear Islands. Forever uses the Retail entries for Warsong Gulch, Arathi Basin and Alterac Valley, with its own 300-second Alterac Valley captures. Registration does not imply a complete objective simulation.
+The registry covers all eight standard Cataclysm battlegrounds, fifteen Retail battlegrounds including Slayer's Rise, and WoW Forever's four: Warsong Gulch, Arathi Basin, Alterac Valley and Darkspear Islands. Forever's entries are its own: classic map positions, 300-second Alterac Valley captures, named start graveyards and one shared resurrection clock. Registration does not imply a complete objective simulation.
 
 | Battlegrounds | Implemented scope | Remaining limits |
 | --- | --- | --- |

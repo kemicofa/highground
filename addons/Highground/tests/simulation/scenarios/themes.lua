@@ -256,3 +256,18 @@ test("Highground chrome follows themes, opacity and frameless preferences withou
   C.SetFrameless(false)
   near(trim:GetAlpha(), T.Alpha("ornament") * 0.5 * 0.65, "leaving frameless restores idle trim")
 end)
+
+test("theme text keeps its face and lets the game draw Cyrillic, Korean and Chinese names", function()
+  local sim = new("retail", {})
+  local fs = sim.ns.Core.subtitle
+  local family = fs.fontObject
+  assert(family and family.members, "themed text uses a font family")
+  local files = {}
+  for _, member in ipairs(family.members) do files[member.alphabet] = member.file end
+  equal(files.roman, (fs:GetFont()), "Latin text keeps the theme face")
+  equal(files.russian, "Fonts\\FRIZQT___CYR.TTF", "Cyrillic names use the game's Cyrillic font")
+  assert(files.korean and files.simplifiedchinese and files.traditionalchinese, "Korean and Chinese names have fonts")
+  sim.ns.Core.SetFontScale(1.5)
+  assert(fs.fontObject.members[1].height > family.members[1].height, "text size changes follow the family")
+  sim:assertHealthy()
+end)

@@ -50,6 +50,7 @@ libs/config/Options.lua
 libs/config/catalog/Macros.lua
 libs/standalone/Core.lua
 libs/core/Alerts.lua
+libs/ui/Fonts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Motion.lua

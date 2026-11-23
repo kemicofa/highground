@@ -238,9 +238,20 @@ return function(sim, env)
   methods.SetVertexColor = function(f, r, g, b, a) f.vertexColor = { r, g, b, a or 1 } end
   methods.SetFont = function(f, file, size, flags) f.font = { file, size, flags }; return true end
   methods.GetFont = function(f) if f.font then return unpack(f.font) end end
+  -- A font family draws Latin text with its roman member.
+  methods.SetFontObject = function(f, object)
+    f.fontObject = object
+    local roman = type(object) == "table" and object.members and object.members[1]
+    if roman then f.font = { roman.file, roman.height, roman.flags } end
+  end
   methods.EnableMouseWheel = function(f, on) f.wheel = on end
   methods.GetOwner = function(f) return f.owner end
   env.CreateFrame = create
+  env.CreateFontFamily = function(name, members)
+    local family = { name = name, members = members }
+    env[name] = family
+    return family
+  end
   env.UIParent = create("Frame", "UIParent")
   env.PlayerFrame = create("Frame", "PlayerFrame", env.UIParent)
   env.Minimap = create("Frame", "Minimap", env.UIParent)

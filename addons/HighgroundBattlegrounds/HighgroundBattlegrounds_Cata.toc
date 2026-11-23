@@ -102,6 +102,7 @@ src/core/CapShare.lua
 src/core/SapCall.lua
 libs/core/Alerts.lua
 libs/core/Stealth.lua
+libs/ui/Fonts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Motion.lua

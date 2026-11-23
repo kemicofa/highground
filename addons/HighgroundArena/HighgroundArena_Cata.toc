@@ -51,6 +51,7 @@ libs/config/catalog/Arena.lua
 libs/standalone/Core.lua
 libs/core/Alerts.lua
 libs/core/Stealth.lua
+libs/ui/Fonts.lua
 libs/ui/Style.lua
 libs/ui/Theme.lua
 libs/ui/Motion.lua

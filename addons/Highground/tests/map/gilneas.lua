@@ -26,7 +26,9 @@ for _, area in ipairs({ "Lighthouse", "Waterworks", "Mine", "Mines" }) do
   check(control and sight.x == control.x and sight.y == control.y, "enemy pin uses the known capture point")
   local item = s.items()[1]
   check(item and item.x == control.x and item.y == control.y and item.label == "~", "capture point estimate reaches the map")
-  check(support.tooltip(item):find("approximate area anchor", 1, true), "estimated enemy position is clearly labeled")
+  local tip = support.tooltip(item)
+  check(item.zone and tip:find("last seen %d+s ago") and not tip:find(" by ", 1, true),
+    "an estimate is drawn as a circle; its enemy's tooltip gives only who and how long ago")
   check(ns.AreaXY(1461, area) == nil, "Gilneas capture positions cannot leak into another map")
 end
 

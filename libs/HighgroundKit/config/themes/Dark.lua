@@ -31,6 +31,7 @@ ns.DefineTheme("dark", ns.Localization.Define({
     bounty = C("b9a5ff"),
     hudBg = C("0b0b0d"),
     sniperTheme = C("b08cff"),
+    mapZone = C("b9a5ff"),
     mapLabel = C("b6b6c0"),
     dead = C("a6a6b1"),
   },

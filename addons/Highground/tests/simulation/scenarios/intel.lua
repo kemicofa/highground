@@ -21,7 +21,9 @@ test("remote node announcements place last-seen enemies and ownership does not r
     equal(pin.y, 0.62878461, "announcement selects Lighthouse capture flag")
     local lines = {}
     pin.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
-    assert(table.concat(lines, " "):find("battleground announcement", 1, true))
+    local tip = table.concat(lines, " ")
+    assert(tip:find("Scout", 1, true) and tip:find("Last seen %d+s ago") and not tip:find(" by ", 1, true),
+      "a circled enemy's tooltip gives only who and how long ago")
   end
   sim:advance(65)
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "The Horde has taken the lighthouse!")
@@ -68,10 +70,15 @@ test("approximate sightings share a faint circle that holds their enemies on bot
           assert(math.sqrt(ox * ox + oy * oy) >= pin.item.size * 0.9, "icons are spread evenly, not piled up")
         end
       end
+      if #enemies > 0 then enemies[1].item.alpha = 0.4 end
       zone.scripts.OnEnter(zone)
       equal(zone.highlighted, true, "hover brings the circle up")
+      equal(zone.Rim.texture, sim.ns.Core.MAP_RING, "a thin outline, not a dark disc under the fill")
+      assert(zone.Disc.alpha < 0.5, "the fill stays see-through while hovered")
+      if #enemies > 0 then equal(enemies[1].alpha, 1, "hover shows its enemies at full strength") end
       zone.scripts.OnLeave(zone)
       equal(zone.highlighted, false, "and it fades again")
+      if #enemies > 0 then equal(enemies[1].alpha, 0.4, "and lets them fade with age again") end
       if #enemies > 0 then
         enemies[1].scripts.OnEnter(enemies[1])
         equal(zone.highlighted, true, "hovering an enemy brings up its circle")

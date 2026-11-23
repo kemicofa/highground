@@ -43,6 +43,7 @@ TEXTURES = {
 GENERATED = {
     "libs/HighgroundKit/media/ControlCorners.tga": ("tools/control_corners.py", 32, 16),
     "libs/HighgroundKit/media/ProgressCircle.tga": ("tools/progress_circle.py", 64, 64),
+    "libs/HighgroundKit/media/MapRing.tga": ("tools/map_ring.py", 128, 128),
 }
 
 

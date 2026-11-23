@@ -105,9 +105,14 @@ function Core.SetFace(fs, face, size, flags)
     local current, currentSize, currentFlags = fs:GetFont()
     if current == file and currentSize and math.abs(currentSize - size) < 0.001 and currentFlags == (flags or "") then return end
   end
+  -- A bundled font loads only after a full client restart: use the game font.
   local okCall, ok = pcall(fs.SetFont, fs, file, size, flags or "")
-  if not (okCall and ok) then
-    fs:SetFont(STANDARD_TEXT_FONT or FONT_FALLBACK, size, flags or "")
+  if not (okCall and ok) then file = STANDARD_TEXT_FONT or FONT_FALLBACK end
+  local family = fs.SetFontObject and ns.FontFamily and ns.FontFamily(file, size, flags or "")
+  if family then
+    fs:SetFontObject(family)
+  elseif not (okCall and ok) then
+    fs:SetFont(file, size, flags or "")
   end
 end
 

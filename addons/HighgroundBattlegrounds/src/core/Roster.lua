@@ -204,8 +204,14 @@ function Core.RefreshRoster()
       e.class = r.class
       local spec = r.spec
       -- Raw scoreboard spec, possibly secret: only ever handed to SetText.
+      -- A class name repeats the row's icon and colour, so it is not kept;
+      -- WoW Forever reports the class there, readable or not.
       e.specLive = nil
-      if type(spec) == "string" then e.specLive = spec end
+      local className = ns.Util.ClassName(r.class)
+      if type(spec) == "string" and ns.GAME ~= "forever" and not (Core.plain(spec) and className
+        and spec:lower() == tostring(className):lower()) then
+        e.specLive = spec
+      end
       if Core.plain(spec) and type(spec) == "string" and spec ~= "" and Core.specByName[r.class] then
         local id = Core.specByName[r.class][spec]
         if id then

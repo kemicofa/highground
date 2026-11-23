@@ -83,7 +83,7 @@ Some elements depend on your client, current observations and Appearance switche
 | Name | Enemy player, with the local realm omitted. Other realms remain visible except on Forever, which hides realm suffixes. A faded name means no current unit observation. |
 | Icon | Specialization when known; otherwise class. It becomes grey when dead. |
 | Skull, cross or other marker over the icon | The team's raid target marker. |
-| Spec text, such as `FROST`, `DISC` or `ARMS` | Short specialization name. `?` means unknown; `~` before the spec means estimated on Cata. Green/red indicates a favorable/unfavorable modeled matchup for your spec; muted text is neutral. |
+| Spec text, such as `FROST`, `DISC` or `ARMS` | Short specialization name, blank while unknown (the class already shows in the icon and colour); `~` before the spec means estimated on Cata. Green/red indicates a favorable/unfavorable modeled matchup for your spec; muted text is neutral. |
 | `CAP 3.2` / `CAP ~3.2` | Capturing a base, with seconds remaining; `~` marks an estimated timer. Replaces the spec text. |
 | `FLAG`, `FLAG x3`, `ORB 30%` | Carrier information replaces the spec: flag carrier, flag debuff stacks, or extra damage taken from carrying an orb. |
 | Health fill or thin line | Health when observable; a faded full bar means unknown health, not confirmed full health. |

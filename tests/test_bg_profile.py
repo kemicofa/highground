@@ -48,8 +48,14 @@ HighgroundDB = {
 				"52.0 me healer left=8.0 gyNext=9.0 gy=Farm Graveyard", -- [8]
 				"60.0 me rez after=12.0 healerErr=0.2 gyErr=-1.0 gy=Farm Graveyard", -- [9]
 				"65.0 node Stables owner=A assault=- capLeft=- icon=10 gy=true", -- [10]
-				"90.0 match complete winner=1 mine=A duration=95 runtime=95000", -- [11]
-				"95.5 end left", -- [12]
+				"66.0 node Mine owner=- assault=A capLeft=60.0 icon=17 gy=true", -- [11]
+				"70.0 wave exact H  at=-0.2 err=9.0 kept=true was=exact", -- [12]
+				"71.0 gy H  next=30.8 est=false conf=exact votes=-", -- [13]
+				"75.0 node Mine owner=- assault=H capLeft=60.0 icon=19 gy=true", -- [14]
+				"76.0 node Farm owner=H assault=A capLeft=60.0 icon=32 gy=true", -- [15]
+				"86.0 node Farm owner=H assault=- capLeft=- icon=35 gy=true", -- [16]
+				"90.0 match complete winner=1 mine=A duration=95 runtime=95000", -- [17]
+				"95.5 end left", -- [18]
 			},
 		}, -- [1]
 	},
@@ -80,9 +86,14 @@ class BgProfileTests(unittest.TestCase):
         session = bg_profile.load_sessions(self.saved())[0]
         text = bg_profile.report(session)
         self.assertIn("your rez 1:00: dead 12.0s at Farm Graveyard; vs game countdown 0.2s, vs Highground's clock -1.0s", text)
-        self.assertIn("waves exact: 2 seen; prediction before them: n=2 mean|err|=2.2s max|err|=4.0s within 1.5s=1/2", text)
+        self.assertIn("waves exact: 3 seen; prediction before them: n=3 mean|err|=4.5s max|err|=9.0s within 1.5s=1/3", text)
+        self.assertIn("    H Farm: 2 seen; n=2 mean|err|=2.2s max|err|=4.0s within 1.5s=1/2", text)
+        self.assertIn("    H (no graveyard): 1 seen; n=1", text)
+        self.assertIn("clock changes H (no graveyard): 1", text)
         self.assertIn("0:40 exact H Farm at=3.0 err=-4.0", text)
-        self.assertIn("Stables: assault at 0:05 ended after 60s (timer said 60.0s), owner A", text)
+        self.assertIn("Stables: A assault at 0:05 captured after 60s (timer said 60.0s), owner A", text)
+        self.assertIn("Mine: A assault at 1:06 taken over by H after 9s", text)
+        self.assertIn("Farm: A assault at 1:16 defended by H after 10s", text)
         self.assertIn("0:41 predicts A: 1500 - 900", text)
         self.assertIn("no English form", text)
         self.assertIn("1x N Die Schlacht hat begonnen!", text.split("no English form")[1])

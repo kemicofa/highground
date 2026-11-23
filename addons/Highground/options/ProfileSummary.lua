@@ -62,7 +62,6 @@ local preferences = {
   sniperSound = Message("highground.profilesummary.target_lock_sound.d66b25"), minimapAngle = Message("highground.profilesummary.minimap_button_angle.ca1744"), theme = Message("highground.appearance.theme.a797e3"), reducedMotion = Message("highground.appearance.reduced_motion.789804"),
   locked = Message("highground.profilesummary.lock_panel_positions.b7b489"),
 }
-local modes = { essential = Message("shared.alerts.essentials.06580f"), everything = Message("shared.alerts.everything.4a66d1"), critical = Message("highground.profilesummary.critical_only.e1206b"), objectives = Message("profiles.panel.objectives"), quiet = Message("highground.profilesummary.text_only.9ccbd0") }
 local positions = { point = "profiles.panel.enemies", timersPoint = "profiles.panel.timers", basesPoint = "profiles.panel.objectives",
   flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena", nearbyPoint = "profiles.panel.nearby",
   quickCallsPoint = "profiles.panel.callouts" }
@@ -92,7 +91,6 @@ local function Entries(snap)
       end
     end
     local alert = setup.alerts
-    Add("Alerts", "alerts.mode", ns.Locale:Get("highground.profilesummary.alert_level.4222a5"), alert.mode or "everything", modes[alert.mode or "everything"])
     for _, def in ipairs(ns.Alerts.categories) do
       local channels = (alert.channels or {})[def.key] or {}
       Add("Alerts", "alerts." .. def.key .. ".text", Message("profiles.label.text", { label = def.label }), channels.text ~= false)

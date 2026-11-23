@@ -71,7 +71,7 @@ if arg[3] == "config" and arg[4] == "profiles" and arg[5] ~= "" then
   local profiles, panel, core = sim.ns.Options.Profiles, sim.ns.Options.panel, sim.ns.Core
   local candidate = profiles.ParseString(profiles.ExportString(profiles.EnsureDefault()))
   candidate.setup.features.sniper = false
-  candidate.setup.alerts.mode = "objectives"
+  sim.ns.Alerts.ApplyPreset(candidate.setup.alerts, "objectives")
   candidate.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
   profiles.SaveProfile("Battlegrounds", candidate)
   panel.SelectProfile("Battlegrounds")

@@ -214,15 +214,20 @@ test("feature guides keep their switch on every step, enable parents and offer a
   O.Return(); sim:assertHealthy()
 end)
 
-test("a guide says when the alert level mutes an enabled sound", function()
-  local sim = new("cata", { alerts = { mode = "essential", channels = {} } }, geometry)
-  local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach
+test("a ticked target-lock switch plays even with an old Essentials level saved", function()
+  local sim = new("cata", { alerts = { mode = "essential", channels = {} }, sniperSound = 1 }, geometry)
+  local O, C, Core = sim.ns.Onboarding, sim.ns.Onboarding.Coach, sim.ns.Core
   sim.ns.Hub.Open("checklist"); O.Go("enemies"); O.Explore(O.Current().actions[1])
   for i, step in ipairs(C.steps) do if step.id == "crosshair" then C.Go(i) end end
   equal(C.sound, "lockon"); equal(C.win.sound:GetChecked(), true)
-  assert(C.win.soundNote:GetText():find("alert level", 1, true), "explains the Essentials mute")
-  for i, step in ipairs(C.steps) do if step.id == "opening" then C.Go(i) end end
-  equal(C.sound, "go"); equal(C.win.soundNote:GetText(), "", "the kill window plays in Essentials")
+  equal(C.win.soundNote:GetText(), "", "nothing mutes a ticked switch")
+  local before = #sim.sounds
+  Core.PlaySniperSound(); sim:advance(0.2)
+  equal(#sim.sounds, before + 1, "lock-on plays through the alert queue")
+  click(C.win.sound)
+  equal(sim.ns.Alerts.ChannelOn("lockon", "sound"), false, "the guide switch is the alert's Sound switch")
+  sim:advance(2); Core.PlaySniperSound(); sim:advance(0.2)
+  equal(#sim.sounds, before + 1, "unticked, it stays quiet")
   O.Return(); sim:assertHealthy()
 end)
 

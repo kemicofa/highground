@@ -64,7 +64,7 @@ local soundByKey = {}
 for _, sound in ipairs(A.sounds) do soundByKey[sound.key] = sound end
 
 -- Every category except stealth (an enter/leave pair) and lock-on (the
--- marker's own sniperSound list) starts with the cue named after it.
+-- marker's own SNIPER_SOUNDS list) starts with the cue named after it.
 local function Choosable(category) return soundByKey[category] ~= nil and category ~= "stealth" and category ~= "lockon" end
 A.Choosable = Choosable
 
@@ -76,8 +76,8 @@ end
 -- Choices available in this host, the category's own cue first.
 function A.SoundChoices(category)
   if category == "lockon" then
-    local choices = { { key = 0, label = ns.Locale:Get("alerts.sample.silent_choice") } }
-    for i, sound in ipairs(ns.Core.SNIPER_SOUNDS or {}) do choices[#choices + 1] = { key = i, label = sound.name } end
+    local choices = {}
+    for i, sound in ipairs(ns.Core.SNIPER_SOUNDS or {}) do choices[i] = { key = i, label = sound.name } end
     return choices
   end
   if not Choosable(category) then return {} end
@@ -97,7 +97,7 @@ end
 -- The chosen sound, or the category's own when none is saved or the saved
 -- one is unavailable in this host.
 function A.Sound(category)
-  if category == "lockon" then return ns.Core.db and ns.Core.db.sniperSound or 0 end
+  if category == "lockon" then return ns.Core.db and ns.Core.db.sniperSound or 1 end
   local key = Saved()[category]
   local sound = key and soundByKey[key]
   return sound and sound.player() and key or category
@@ -106,7 +106,7 @@ end
 function A.SetSound(category, key)
   if category == "lockon" then
     key = tonumber(key)
-    if not (key and key == math.floor(key) and key >= 0 and key <= #(ns.Core.SNIPER_SOUNDS or {})) then return false end
+    if not (key and key == math.floor(key) and key >= 1 and key <= #(ns.Core.SNIPER_SOUNDS or {})) then return false end
     ns.Core.db.sniperSound = key
     return true
   end
@@ -133,25 +133,36 @@ end
 
 function A.Settings()
   local db = ns.GetDB and ns.GetDB() or ns.Core.db
-  if not db then return { mode = "everything", channels = {} } end
+  if not db then return { channels = {} } end
   local alerts = ns.Saved.Table(db, "alerts")
   ns.Saved.Table(alerts, "channels")
   return alerts
 end
 
+-- Each alert's text and sound switches alone decide what it shows and plays;
+-- the master sound switch mutes every sound. A preset sets all switches at
+-- once and keeps nothing of its own.
+local CHANNELS = { "text", "sound" }
+local PRESETS = {
+  everything = function() return true end,
+  critical = function(def) return def.priority >= 4 end,
+  objectives = function(def) return def.objective == true end,
+  quiet = function(_, channel) return channel == "text" end,
+}
+A.PRESETS = { "everything", "critical", "objectives", "quiet" }
+
+local function Category(key)
+  for _, def in ipairs(A.categories) do if def.key == key then return def end end
+end
+
+local function Switch(settings, category, channel)
+  local channels = type(settings.channels) == "table" and settings.channels[category]
+  return not (type(channels) == "table" and channels[channel] == false)
+end
+
 -- Evaluate an isolated preference set as well as the live settings.
 function A.AllowedFor(settings, category, channel, sounds)
-  local definition
-  for _, d in ipairs(A.categories) do if d.key == category then definition = d end end
-  if not definition then return false end
-  local mode = settings.mode or "everything"
-  -- Keep sightings in Essentials without giving them priority over bounties.
-  if mode == "essential" and definition.priority < 2 and category ~= "nearby" then return false end
-  if mode == "critical" and definition.priority < 4 then return false end
-  if mode == "objectives" and not definition.objective then return false end
-  if mode == "quiet" and channel == "sound" then return false end
-  local channels = type(settings.channels) == "table" and settings.channels[category]
-  if type(channels) == "table" and channels[channel] == false then return false end
+  if not Category(category) or not Switch(settings, category, channel) then return false end
   return channel ~= "sound" or sounds ~= false
 end
 
@@ -162,24 +173,97 @@ function A.Allowed(category, channel)
   return A.AllowedFor(settings, category, channel, ns.Core.On("sound"))
 end
 
+-- One alert's switch, ignoring the master sound switch.
+function A.ChannelOn(category, channel)
+  local db = ns.GetDB and ns.GetDB() or ns.Core.db
+  return Switch(db and type(db.alerts) == "table" and db.alerts or EMPTY, category, channel)
+end
+
+function A.SetChannel(category, channel, on)
+  if not Category(category) or (channel ~= "text" and channel ~= "sound") then return false end
+  local channels = A.Settings().channels
+  channels[category] = type(channels[category]) == "table" and channels[category] or {}
+  channels[category][channel] = on and true or false
+  return true
+end
+
+-- The preset matching every switch in settings, or "custom".
+function A.Preset(settings)
+  for _, key in ipairs(A.PRESETS) do
+    local allows, match = PRESETS[key], true
+    for _, def in ipairs(A.categories) do
+      for _, channel in ipairs(CHANNELS) do
+        if Switch(settings, def.key, channel) ~= allows(def, channel) then match = false end
+      end
+    end
+    if match then return key end
+  end
+  return "custom"
+end
+
+-- Sets every switch in settings (live or a profile candidate) to a preset.
+function A.ApplyPreset(settings, mode)
+  local allows = PRESETS[mode]
+  if not allows then return false end
+  settings.mode = nil
+  if type(settings.channels) == "table" then wipe(settings.channels) else settings.channels = {} end
+  for _, def in ipairs(A.categories) do
+    local channel = {}
+    for _, key in ipairs(CHANNELS) do channel[key] = allows(def, key) end
+    settings.channels[def.key] = channel
+  end
+  return true
+end
+
 function A.SetMode(mode)
-  if not ({ essential = true, everything = true, critical = true, objectives = true, quiet = true })[mode] then return false end
-  A.Settings().mode = mode
+  if not A.ApplyPreset(A.Settings(), mode) then return false end
   wipe(A.pending)
   return true
+end
+
+-- Older saves filtered the switches through a saved alert level and had
+-- separate bounty, nearby and lock-on sound switches. Fold them into the
+-- per-alert switches; safe to repeat. Essentials only muted lock-on, so it
+-- folds as Everything. owner holds .alerts (the saved database or a profile
+-- setup) and prefs the sound options (the database or the setup's
+-- preferences). False when the old level was unknown.
+function A.Upgrade(owner, prefs)
+  if owner.alerts == nil then owner.alerts = {} end
+  local alerts = owner.alerts
+  if type(alerts) ~= "table" then return true end
+  if alerts.channels == nil then alerts.channels = {} end
+  local function Off(category, channel)
+    if type(alerts.channels) ~= "table" then return end
+    local switches = alerts.channels[category]
+    if switches == nil then switches = {}; alerts.channels[category] = switches end
+    if type(switches) == "table" then switches[channel] = false end
+  end
+  local mode = alerts.mode
+  local allows = PRESETS[mode]
+  alerts.mode = nil
+  if allows then
+    for _, def in ipairs(A.categories) do
+      for _, channel in ipairs(CHANNELS) do
+        if not allows(def, channel) then Off(def.key, channel) end
+      end
+    end
+  end
+  if type(prefs) == "table" then
+    if prefs.bountySound == false then Off("bounty", "sound") end
+    if prefs.nearbySound == false then Off("nearby", "sound") end
+    prefs.bountySound, prefs.nearbySound = nil, nil
+    if prefs.sniperSound == 0 then Off("lockon", "sound"); prefs.sniperSound = 1 end
+  end
+  return mode == nil or mode == "essential" or allows ~= nil
 end
 
 -- An explicit audition uses the same cue as gameplay, without creating an
 -- event, consuming its cooldown or changing any saved mute preference.
 function A.PlaySample(category, variant)
-  local definition
-  for _, def in ipairs(A.categories) do if def.key == category then definition = def; break end end
+  local definition = Category(category)
   if not definition then return false, ns.Locale:Get("alerts.sample.unknown") end
   if ns.Modules and definition.module ~= "shared" and not ns.Modules.Active(definition.module) then
     return false, ns.Locale:Get("alerts.sample.disabled")
-  end
-  if category == "lockon" and not (ns.Core.SNIPER_SOUNDS and ns.Core.SNIPER_SOUNDS[ns.Core.db.sniperSound or 0]) then
-    return false, ns.Locale:Get("alerts.sample.silent")
   end
   if not A.Play(category, variant) then return false, ns.Locale:Get("alerts.sample.unavailable") end
   return true
@@ -206,7 +290,8 @@ function A.Flush()
     A.pending[key] = nil
     if item.sound and A.Allowed(item.category, "sound") and (not best or item.priority > best.priority) then best = item end
   end
-  if best and (now - lastSound >= 1.5 or best.priority > lastPriority) then
+  -- Lock-on answers your own targeting, so it skips the gap between sounds.
+  if best and (now - lastSound >= 1.5 or best.priority > lastPriority or best.category == "lockon") then
     lastSound, lastPriority = now, best.priority
     best.sound()
   end

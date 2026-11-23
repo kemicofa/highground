@@ -49,7 +49,7 @@ end
 local SOUND_GATES = {
   capture = { feature = "capAlert" }, objective = { feature = "objectiveOverview" },
   resurrection = { feature = "dieAlert" }, sap = { feature = "sapCall" }, go = { feature = "killorder" },
-  lockon = { feature = "sniper" }, bounty = { option = "bountySound" }, nearby = { option = "nearbySound" },
+  lockon = { feature = "sniper" }, bounty = {}, nearby = {},
 }
 
 -- False when this client does not offer the alert's switch.
@@ -63,31 +63,22 @@ function C.SoundAvailable(category)
   return false
 end
 
--- Whether the alert would play its sound in game, ignoring the alert level.
+-- Whether the alert plays its sound in game: its feature, its Sound switch
+-- and the master sound switch.
 function C.SoundOn(category)
   local gate = SOUND_GATES[category]
-  if not (gate and Core.On("sound")) then return false end
-  if gate.feature and not C.FeatureOn(gate.feature) then return false end
-  if gate.option and not Core.O(gate.option) then return false end
-  if category == "lockon" and (Core.db.sniperSound or 0) == 0 then return false end
-  -- Reading must not create saved alert settings.
-  local alerts = type(Core.db.alerts) == "table" and Core.db.alerts
-  local channels = alerts and type(alerts.channels) == "table" and alerts.channels[category]
-  return not (type(channels) == "table" and channels.sound == false)
+  if not gate or gate.feature and not C.FeatureOn(gate.feature) then return false end
+  return ns.Alerts.Allowed(category, "sound")
 end
 
 -- On turns on everything the sound needs; off mutes only this alert's sound.
 function C.SetSoundOn(category, on)
   local gate = SOUND_GATES[category]
   if not gate or InCombatLockdown() then return end
-  local channels = ns.Alerts.Settings().channels
-  channels[category] = channels[category] or {}
-  channels[category].sound = on and true or false
+  ns.Alerts.SetChannel(category, "sound", on)
   if not on then return end
   if not Core.On("sound") then Core.SetFeature("sound", true) end
   if gate.feature then C.SetFeature(gate.feature, true) end
-  if gate.option and not Core.O(gate.option) then Core.SetOption(gate.option, true) end
-  if category == "lockon" and (Core.db.sniperSound or 0) == 0 then ns.Alerts.SetSound("lockon", 1) end
 end
 
 function C.FeatureLabel(key)

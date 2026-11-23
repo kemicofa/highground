@@ -12,7 +12,7 @@ test("WoW Forever starts with nearby enemies enabled and keeps later choices", f
   local C, N = sim.ns.Core, sim.ns.Nearby
   equal(C.On("nearby"), true, "nearby is enabled on a fresh install")
   equal(C.O("nearbyRows"), 5, "five rows by default")
-  equal(C.O("nearbySound"), true, "new enemies play a sound by default")
+  equal(sim.ns.Alerts.Allowed("nearby", "sound"), true, "new enemies play a sound by default")
   local enemy, token = sim:enemy("Enemy With Surname")
   sim:event("NAME_PLATE_UNIT_ADDED", token)
   sim:advance(1)

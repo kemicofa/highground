@@ -33,7 +33,7 @@ Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.r
 
 `/hg bg profiler start` ([core/Profiler.lua](../core/Profiler.lua), [core/ProfilerProbes.lua](../core/ProfilerProbes.lua)) records into `bgProfiles`: the newest three sessions, newest first, each at most 4,000 rows (later rows are only counted in `dropped`), 63 stage timings and 30 errors. `bgProfilerOn` keeps it armed across reloads; an open session continues after a reload in the same battleground and is closed as `lost` otherwise. Loading keeps only well-formed sessions and string rows. Nothing is registered or hooked while it is off.
 
-Rows are `<seconds since start> <kind> <text>`. `python3 scripts/bg_profile.py <SavedVariables/Highground.lua>` reports on them; `--timeline --kinds wave,me` prints rows and `--json` the sessions.
+Rows are `<seconds since start> <kind> <text>`. `python3 scripts/bg_profile.py <SavedVariables/Highground.lua>` reports on them, with wave accuracy per graveyard (`(no graveyard)` for waves Highground could not place) and each assault captured, defended or taken over; `--timeline --kinds wave,me` prints rows and `--json` the sessions.
 
 | Kind | Recorded |
 | --- | --- |

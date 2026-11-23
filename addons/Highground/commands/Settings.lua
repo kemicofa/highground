@@ -267,9 +267,23 @@ local function AlertSound(arg, say)
   say(ns.Locale:Format("alerts.sound.list", { alert = def.label, sounds = table.concat(list, ", ") }))
 end
 
+-- /hg alerts preset NAME sets every alert's switches, like the Alerts
+-- window's preset choice; anything else lists the presets.
+local function AlertPreset(arg, say)
+  local A, key = ns.Alerts, arg:lower():match("^(%S*)")
+  if A.SetMode(key) then
+    if A.win and A.win:IsShown() then A.win:Refresh() end
+    return say(ns.Locale:Format("alerts.preset.set", { preset = A.PresetLabel(key) }))
+  end
+  local list = {}
+  for _, choice in ipairs(A.PresetChoices()) do list[#list + 1] = choice.key .. " = " .. choice.label end
+  say(ns.Locale:Format("alerts.preset.usage", { presets = table.concat(list, ", ") }))
+end
+
 function Commands.alerts(arg, msg, say)
   local sub, rest = (arg or ""):match("^(%S*)%s*(.-)$")
   if sub == "sound" then return AlertSound(rest, say) end
+  if sub == "preset" then return AlertPreset(rest, say) end
   ns.Alerts.Open()
 end
 function Commands.history() ns.MatchHistory.Open() end

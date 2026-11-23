@@ -69,7 +69,7 @@ test(client .. " profile links draft, transfer and review a frozen setup before 
   equal(b.ns.Core.db.sniper, true, "save a copy preserves the active setup")
   click(w.apply)
   equal(b.ns.Core.db.sniper, false)
-  equal(b.ns.Alerts.Settings().mode, "quiet")
+  equal(b.ns.Alerts.Preset(b.ns.Alerts.Settings()), "quiet")
   equal(w.apply:IsEnabled(), false, "successful import cannot be applied twice accidentally")
   local data = packets(a)
   for i = 2, #data do assert(data[i].at - data[i - 1].at >= 0.39, "transfer is paced") end

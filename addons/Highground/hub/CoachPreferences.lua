@@ -143,7 +143,7 @@ local function Alerts()
     N.changing = nil
   end
   local steps = {
-    { id = "level", title = ns.Locale:Get("highground.coachpreferences.choose_the_warnings_you_want.2794f4"), text = ns.Locale:Get("highground.coachpreferences.essentials_is_a_starting_point_text_only.1f45b3"),
+    { id = "level", title = ns.Locale:Get("highground.coachpreferences.choose_the_warnings_you_want.2794f4"), text = ns.Locale:Get("alerts.guide.level"),
       enter = Open, target = function() return ns.Alerts.win.mode end, context = Context, hint = ns.Locale:Get("highground.coachpreferences.this_changes_your_real_alert_preference.ecd3f5") },
     { id = "customize", title = ns.Locale:Get("highground.coachpreferences.go_straight_to_an_addon_s_alerts.46dd58"),
       text = ns.Locale:Get("highground.coachpreferences.the_battlegrounds_nearby_and_bounties_links_open.676c0b"),
@@ -152,8 +152,8 @@ local function Alerts()
       advance = bg and function() return ns.Hub.win and ns.Hub.win:IsVisible() and ns.Hub.current == "battlegrounds-settings" end or nil,
       requireAction = bg, hint = bg and ns.Locale:Get("highground.coachpreferences.click_battlegrounds_or_next_to_open_its.68ede3") or ns.Locale:Get("highground.coachpreferences.enemy_stealth_stays_available_here_even_when.63bf57") },
     { id = "channels", title = ns.Locale:Get("highground.coachpreferences.choose_text_sound_or_both.306e9e"), text = bg
-        and ns.Locale:Get("highground.coachpreferences.these_switches_belong_to_battlegrounds_settings_nearby.0373c0")
-        or ns.Locale:Get("highground.coachpreferences.enemy_stealth_applies_across_addons_other_alert.fa92cd"),
+        and ns.Locale:Get("alerts.guide.channels_bg")
+        or ns.Locale:Get("alerts.guide.channels_shared"),
       enter = function() if bg then Settings() else Open() end end,
       target = function()
         if bg then return ns.Options.featurePages.battlegrounds.alertRows[1].sound end

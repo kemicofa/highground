@@ -80,6 +80,8 @@ C.Register("shared", "Highground", {
       end
       return choices
     end }, { label = "alerts.sound.field_sound" }) } }),
+  A("alerts preset", "alerts.preset.command", "alerts.preset.command_label", { usage = "NAME", fields = {
+    ns.Localization.Define({ label = ns.Locale:Get("alerts.preset.field"), choices = function() return ns.Alerts.PresetChoices() end }, { label = "alerts.preset.field" }) } }),
   L("users", "highground.commands.inspect_channel_members_addon_versions_and_discovery.591f3b", "users", "highground.commands.open_addon_users.1c5288"),
   A("users why", "highground.commands.copy_discovery_diagnostics_channel_membership_and_retry.b61693", "highground.commands.copy_discovery_diagnostics.ddf2f8"),
   A("guide users", "highground.commands.explore_channel_discovery_with_isolated_sample_members.cad9c5", "highground.commands.start_addon_users_guide.9bc078"),

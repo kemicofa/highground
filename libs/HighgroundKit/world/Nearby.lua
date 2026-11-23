@@ -66,7 +66,7 @@ end
 local function Alert(name)
   if ns.NearbyHistory and ns.NearbyHistory.Muted and ns.NearbyHistory.Muted(name) then return end
   local now = GetTime()
-  if not (DB() and Core.On("sound") and O("nearbySound")) or now - lastAlert < Nearby.ALERT_GAP then return end
+  if not (DB() and ns.Alerts.Allowed("nearby", "sound")) or now - lastAlert < Nearby.ALERT_GAP then return end
   lastAlert = now
   if Util.Notify then Util.Notify("nearby", name, nil, ns.Alerts.cues.nearby) else Nearby.Sound() end
 end
@@ -192,11 +192,15 @@ function Nearby.Build()
   w.history:SetPoint("BOTTOMLEFT", Timers.WIN_PAD, Timers.WIN_PAD)
   Kit.Tooltip(w.history, function() return { ns.Locale:Get("shared.nearby.encounter_history.6c9241"), ns.Locale:Get("shared.nearby.search_and_page_through_saved_enemies_including.092a72") } end)
   w.sound = Kit.Button(w, "", width, Nearby.ACTION_H, { onClick = function()
-    Core.SetOption("nearbySound", not O("nearbySound"))
+    -- The same switch as Nearby enemy → Sound in Nearby's alert settings.
+    ns.Alerts.SetChannel("nearby", "sound", not ns.Alerts.ChannelOn("nearby", "sound"))
     Nearby.Update()
   end })
   w.sound:SetPoint("BOTTOMRIGHT", -Timers.WIN_PAD, Timers.WIN_PAD)
-  Kit.Tooltip(w.sound, function() return { ns.Locale:Get("shared.nearby.nearby_sounds.82a10c"), ns.Locale:Get("shared.nearby.toggle_new_enemy_and_stealth_sounds_your.cf4fe4") } end)
+  Kit.Tooltip(w.sound, function()
+    return { ns.Locale:Get("shared.nearby.nearby_sounds.82a10c"), ns.Locale:Get("nearby.sound.tooltip"),
+      not Core.On("sound") and { ns.Locale:Get("alerts.master_off"), "warning", true } or nil }
+  end)
   Nearby.rows = {}
   for i = 1, Nearby.MAX do
     local r = Hud.UnitRow(Nearby.win, prefix .. "NearbyRow" .. i, { height = Nearby.ROW_H, restore = true, enemy = true,
@@ -330,7 +334,7 @@ function Nearby.Update()
     if not Nearby.win then return end
   end
   if Nearby.layoutScale ~= Core.FontScale() then Nearby.Layout() end
-  Nearby.win.sound:SetText(O("nearbySound") and ns.Locale:Get("shared.nearby.sound_on.907ab8") or ns.Locale:Get("shared.nearby.sound_off.b73436"))
+  Nearby.win.sound:SetText(ns.Alerts.ChannelOn("nearby", "sound") and ns.Locale:Get("shared.nearby.sound_on.907ab8") or ns.Locale:Get("shared.nearby.sound_off.b73436"))
   -- The header is formatted again only when its count or language changes.
   local counted, locale = (Nearby.test or Nearby.preview) and #list or Nearby.count, ns.Locale:GetLocale()
   if Nearby.titleCount ~= counted or Nearby.titleLocale ~= locale then

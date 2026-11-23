@@ -15,7 +15,7 @@ test("alert and role explanations stay visible alongside open menus at every tex
     for _, embedded in ipairs({ false, true }) do
       local a = sim.ns.Alerts.Open()
       if embedded then sim.ns.Hub.Open("alerts") end
-      local old = sim.ns.Alerts.Settings().mode
+      local old = sim.ns.Alerts.Preset(sim.ns.Alerts.Settings())
       click(a.mode)
       local original = a.description.text
       for i = 1, #a.mode.choices do
@@ -23,12 +23,12 @@ test("alert and role explanations stay visible alongside open menus at every tex
         separated(sim, D.Frame(), a.description)
         separated(sim, D.Frame(), a.body)
         assert(a.description:GetStringHeight() <= a.description:GetHeight(), "alert explanation fits")
-        equal(sim.ns.Alerts.Settings().mode, old, "hovering does not change alerts")
+        equal(sim.ns.Alerts.Preset(sim.ns.Alerts.Settings()), old, "hovering does not change alerts")
       end
       D.Hide()
       equal(a.description.text, original, "dismissal restores the selected description")
-      click(a.mode); D.Select(5); D.Accept()
-      equal(sim.ns.Alerts.Settings().mode, "quiet")
+      click(a.mode); D.Select(4); D.Accept()
+      equal(sim.ns.Alerts.Preset(sim.ns.Alerts.Settings()), "quiet")
       assert(a.description.text:find("without alert sounds", 1, true))
       local s = sim.ns.Setup.Open()
       if embedded then sim.ns.Hub.Open("setup") end

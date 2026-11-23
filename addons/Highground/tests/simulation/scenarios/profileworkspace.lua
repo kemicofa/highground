@@ -42,7 +42,7 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     C.SetFeature('sniper',false);C.SetPanelScale('main',1.1);s.ns.Alerts.SetMode('objectives');s:advance(0.6)
     equal(#p.reviewRows,0,'browsing still describes the saved copy, not unrelated current settings')
     click(p.profileButtons.Update)
-    assert(row(p.reviewRows,'features.sniper') and row(p.reviewRows,'style.scales.main') and row(p.reviewRows,'alerts.mode'))
+    assert(row(p.reviewRows,'features.sniper') and row(p.reviewRows,'style.scales.main') and row(p.reviewRows,'alerts.go.sound'))
     local count=#p.reviewRows;click(p.profileButtons.Save);equal(#p.reviewRows,count)
     equal(row(p.reviewRows,'features.sniper').before,'On');equal(row(p.reviewRows,'features.sniper').text,'Off')
     local expected=P.ReviewText(p.reviewRows)

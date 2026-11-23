@@ -38,7 +38,7 @@ ns.RegisterBattleground({
 Overrides apply in this order:
 
 1. Shared defaults (30-second waves, no capture timer, no graveyards).
-2. The game's defaults (WoW Forever: one shared resurrection clock).
+2. The game's defaults (WoW Forever: a resurrection clock per spirit guide, starts sharing one, 1.6 s downtime and a 4.4 s capture delay).
 3. Battleground `rules`.
 4. The game's `rules` (`games.<game>.rules`).
 5. Instance `variants`.
@@ -58,7 +58,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `capture.holdSeconds`, `capture.resetSeconds` | Optional timed ownership/reset phases |
 | `capture.contestedAtlases` | Additional client POI atlases mapped to `A`/`H` |
 | `capture.icons` | This battleground's own POI icon states: `neutral` (`[index] = true`), `owned` and `contested` (`[index] = "A"`/`"H"`). Listed icons win over the shared icon families |
-| `graveyards.starts` | Permanent start graveyards for maps without game graveyard IDs: `{ team, label, x, y }`. Your own resurrection with no release position or named area is timed at your start; unplaced teammate resurrections still feed the clock but get no "spot unknown" row |
+| `graveyards.starts` | Permanent start graveyards for maps without game graveyard IDs: `{ team, label, x, y }`. Your own resurrection with no release position or named area is timed at your start; unplaced teammate resurrections feed a shared clock but get no "spot unknown" row, and with a clock per spirit guide they are ignored |
 | `graveyards.mode`, `iconFamilies`, `names`, `exclude` | Which POIs may create a graveyard; numeric icon families support localized names; `none` still permits observed spirit-guide locations |
 | `graveyards.static` | Permanent graveyard IDs, faction, display label and verified fallback position; client coordinates override the fallback |
 | `graveyards.nodes` | Graveyards enabled by owned, uncontested capture nodes; separate graveyard and capture-point coordinates |
@@ -66,6 +66,9 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `resurrection.period` | Spirit healer countdown; currently defaults to 30 seconds |
 | `resurrection.downtime` | Seconds from a wave until the next countdown starts, so waves come every period + downtime; 0 unless set (WoW Forever: 1.6). Learned during a match from exact waves |
 | `resurrection.reviveLag` | Seconds from the latest spirit healer countdown reading's end until ghosts are alive; 0 unless set (WoW Forever: 0.9). Replaced by the median of your own last nine resurrections once there are three |
+| `resurrection.shared` | One clock for every graveyard (`true`) or one per spirit guide (`false`, WoW Forever); unset, it is learned from exact waves |
+| `resurrection.startClock` | Graveyards present from the match start share one clock; a captured base's graveyard starts its own (WoW Forever) |
+| `resurrection.captureDelay` | Seconds from a capture until ghosts at its graveyard first come back, as a phase: waves come at capture + delay + whole cycles; 0 unless set (WoW Forever: 4.4, from one Arathi Basin match) |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
 | `flags`, `orbs` | Stack timing and known respawn timing. Without `flags.respawnSeconds`, a carried flag's respawn is learned from the gap between a capture and "The flag has been reset." |

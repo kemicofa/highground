@@ -5,6 +5,9 @@ local Timers = ns.Timers
 -- Resurrections
 ---------------------------------------------------------------------------
 -- ghost[name] tracks ghosts; pendingRez[name] holds the observation time.
+-- Teammates are listed under first and full name, you also under your group
+-- token: rezPlaced[unit or "player"] keeps one resurrection one wave.
+local rezPlaced = {}
 function Timers.ScanTeam()
   local now = GetTime()
   local units = ns.AllyUnits and ns.AllyUnits() or { [UnitName("player")] = "player" }
@@ -25,23 +28,27 @@ function Timers.ScanTeam()
     local t = Timers.pendingRez[name]
     if t and now - t >= 0.2 then
       Timers.pendingRez[name] = nil
-      local x, y, area, how = Timers.Loc(unit, name)
-      if Timers.ConfiguredGYs() and how == "area" then x, y = nil, nil end
-      -- Your own unplaced resurrection is at your start: base graveyards
-      -- report a release position, start graveyards do not.
       local own = ns.Util.read(UnitIsUnit, unit, "player") == true
-      local start = own and Timers.StartGY(Timers.MyTeam())
-      local g = own and Timers.releaseGY
-        or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
-      if own then
-        Timers.releaseGY = nil
-        -- How long after the countdown's end you came back.
-        if Timers.healerEnd and t - Timers.healerAt < 5 then Timers.NoteReviveLag(t - Timers.healerEnd) end
-        Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
-      end
-      Timers.SetWave(g, t, "exact")
-      if g and g.x then
-        Timers.Learn(g)
+      local who = own and "player" or unit
+      if not (rezPlaced[who] and math.abs(t - rezPlaced[who]) < 2) then
+        rezPlaced[who] = t
+        local x, y, area, how = Timers.Loc(unit, name)
+        if Timers.ConfiguredGYs() and how == "area" then x, y = nil, nil end
+        -- Your own unplaced resurrection is at your start: base graveyards
+        -- report a release position, start graveyards do not.
+        local start = own and Timers.StartGY(Timers.MyTeam())
+        local g = own and Timers.releaseGY
+          or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
+        if own then
+          Timers.releaseGY = nil
+          -- How long after the countdown's end you came back.
+          if Timers.healerEnd and t - Timers.healerAt < 5 then Timers.NoteReviveLag(t - Timers.healerEnd) end
+          Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
+        end
+        Timers.SetWave(g, t, "exact")
+        if g and g.x then
+          Timers.Learn(g)
+        end
       end
     end
   end

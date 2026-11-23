@@ -168,7 +168,7 @@ function C.Layout()
   w.scroll.body:SetHeight(y); w.scroll:Refresh()
 end
 
--- The alert level can mute a sound that is otherwise on; say so here.
+-- The step alert's Sound switch and sound choice; clears an old audition note.
 function C.RefreshSound()
   local w, category = C.win, C.sound
   if not category then return end
@@ -177,9 +177,7 @@ function C.RefreshSound()
   w.sound:SetEnabled(not InCombatLockdown())
   local choices = ns.Alerts.SoundChoices(category)
   w.cue:SetChoices(choices); w.cue:SetValue(ns.Alerts.Sound(category), true)
-  local prefs = type(Core.db.alerts) == "table" and Core.db.alerts or {}
-  local muted = C.SoundOn(category) and not ns.Alerts.AllowedFor({ mode = prefs.mode }, category, "sound", true)
-  w.soundNote:SetText(muted and ns.Locale:Get("guide.sound.muted") or "")
+  w.soundNote:SetText("")
 end
 
 function C.Tick() C.Update() end

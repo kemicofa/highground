@@ -90,7 +90,11 @@ function Standalone.Start(spec)
       local db = _G[ns.SAVED_VARIABLE]
       local fresh = type(db) ~= "table"
       db = type(db) == "table" and db or {}
-      if fresh then ns.ApplyFirstRunDefaults(db) else ns.Saved.Check(db, Standalone.Schema()) end
+      if fresh then ns.ApplyFirstRunDefaults(db)
+      else
+        if ns.Alerts then ns.Alerts.Upgrade(db, db) end
+        ns.Saved.Check(db, Standalone.Schema())
+      end
       _G[ns.SAVED_VARIABLE] = db
       Core.db = db
       if ns.Localization then ns.Localization.Initialize(db) end

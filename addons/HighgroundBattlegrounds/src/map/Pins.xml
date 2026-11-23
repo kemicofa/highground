@@ -28,4 +28,21 @@
       </Layer>
     </Layers>
   </Frame>
+  <!-- Where an approximate sighting can be: a circle in map units, so it
+       scales with the map. Clicks pass through to the map. -->
+  <Frame name="HighgroundZonePinTemplate" hidden="true" enableMouse="true" mixin="HighgroundZonePinMixin" virtual="true">
+    <Size x="40" y="40"/>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture parentKey="Rim" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask">
+          <Anchors><Anchor point="TOPLEFT" x="-2" y="2"/><Anchor point="BOTTOMRIGHT" x="2" y="-2"/></Anchors>
+        </Texture>
+      </Layer>
+      <Layer level="BORDER">
+        <Texture parentKey="Disc" file="Interface\CHARACTERFRAME\TempPortraitAlphaMask">
+          <Anchors><Anchor point="TOPLEFT"/><Anchor point="BOTTOMRIGHT"/></Anchors>
+        </Texture>
+      </Layer>
+    </Layers>
+  </Frame>
 </Ui>

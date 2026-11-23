@@ -106,11 +106,16 @@ do
   e.yards = 5
   s.tick()
   check(ns.Test.intel[key].how == "nearby", "observer coordinates are identified as an estimate of enemy position")
-  check(s.items()[1].label:sub(1, 1) == "~", "rough observed positions are visibly approximate")
+  local function circled()
+    for _, item in ipairs(s.items()) do
+      if item.icon and item.zone and item.zone.radius > 0 then return true end
+    end
+  end
+  check(circled(), "rough observed positions sit in a circle")
   s.now, s.positions = 110, {}
   s.tick()
   check(ns.Test.intel[key].how == "area", "a named anchor is identified as an area estimate")
-  check(s.items()[1].label:sub(1, 1) == "~", "anchor estimates are visibly approximate")
+  check(circled(), "anchor estimates sit in a circle")
 end
 
 for _, unit in ipairs({ "arena1", "target", "mouseover" }) do

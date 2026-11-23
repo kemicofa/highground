@@ -9,7 +9,9 @@ local Util, Theme = ns.Util, ns.Theme
 --
 -- Producers register with MapPins.Add(fn); fn(mapID, width, height) returns
 --   { x, y (0-1), ring = colour | nil, icon = atlas | texture, desat,
---     alpha, label, labelColor = colour, mark, size, tooltip = fn(lines) }
+--     alpha, label, labelColor = colour, mark, size, tooltip = fn(lines),
+--     zone = zone item it sits in }
+-- or a zone { x, y, radius (0-1 of the map width), ring, alpha, tooltip }.
 -- desat: true or a grey amount 0-1.
 -- A colour is a theme token name or { r, g, b } (see Theme.Paint).
 local MapPins = { stats = { draws = 0, pins = 0 } }
@@ -23,6 +25,7 @@ end
 -- XML templates and their mixins are global: a standalone addon has its
 -- own (<Folder>PinTemplate, <Folder>PinMixin, in its own Pins.xml).
 local TEMPLATE = (ns.FRAME_PREFIX or "Highground") .. "PinTemplate"
+local ZONE_TEMPLATE = (ns.FRAME_PREFIX or "Highground") .. "ZonePinTemplate"
 local stats = MapPins.stats
 
 local PinMixin = CreateFromMixins(MapCanvasPinMixin)
@@ -71,8 +74,15 @@ function PinMixin:OnAcquired(item)
   self:SetPosition(item.x, item.y)
 end
 
+-- Hovering an enemy brings up the circle it can be in.
+local function Highlight(item, on)
+  local pin = item and item.zone and item.zone.pin
+  if pin and pin.item == item.zone then pin:SetHighlight(on) end
+end
+
 function PinMixin:OnMouseEnter()
   local item = self.item
+  Highlight(item, true)
   if not (item and item.tooltip) then
     return
   end
@@ -83,6 +93,47 @@ function PinMixin:OnMouseEnter()
 end
 
 function PinMixin:OnMouseLeave()
+  Highlight(self.item, false)
+  GameTooltip_Hide()
+end
+
+-- Zone pins live in map units: no scaling limits, so they grow and shrink
+-- with the map while enemy pins keep their screen size. Faint until hovered.
+local ZonePinMixin = CreateFromMixins(MapCanvasPinMixin)
+_G[(ns.FRAME_PREFIX or "Highground") .. "ZonePinMixin"] = ZonePinMixin
+
+function ZonePinMixin:OnLoad()
+  self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
+  Theme.Tint(self.Rim, "black", 0.55) -- a soft dark edge around the faint fill
+  if self.SetMouseClickEnabled then self:SetMouseClickEnabled(false) end
+end
+
+function ZonePinMixin:OnAcquired(item)
+  self.item, item.pin = item, self
+  local canvas = self:GetMap():GetCanvas()
+  local size = math.max(8, 2 * item.radius * canvas:GetWidth())
+  self:SetSize(size, size)
+  Theme.Tint(self.Disc, item.ring or "mapLabel", 0.22)
+  self:SetHighlight(false)
+  self:SetPosition(item.x, item.y)
+end
+
+function ZonePinMixin:SetHighlight(on)
+  self:SetAlpha(on and 1 or (self.item and self.item.alpha or 0.3))
+end
+
+function ZonePinMixin:OnMouseEnter()
+  self:SetHighlight(true)
+  local item = self.item
+  if not (item and item.tooltip) then return end
+  GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+  if Util.Guard("map zone tooltip", item.tooltip, GameTooltip) then
+    GameTooltip:Show()
+  end
+end
+
+function ZonePinMixin:OnMouseLeave()
+  self:SetHighlight(false)
   GameTooltip_Hide()
 end
 
@@ -92,6 +143,7 @@ local providers = {}
 local HighgroundDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
 
 function HighgroundDataProviderMixin:RemoveAllData()
+  self:GetMap():RemoveAllPinsByTemplate(ZONE_TEMPLATE)
   self:GetMap():RemoveAllPinsByTemplate(TEMPLATE)
   self.pins = self.pins or {}
   wipe(self.pins)
@@ -117,7 +169,7 @@ function HighgroundDataProviderMixin:RefreshAllData()
     if ok and type(items) == "table" then
       for _, item in ipairs(items) do
         if item.x and item.y then
-          local pin = map:AcquirePin(TEMPLATE, item)
+          local pin = map:AcquirePin(item.radius and ZONE_TEMPLATE or TEMPLATE, item)
           if item.sortKey then self.pins[item.sortKey] = pin end
           n = n + 1
         end

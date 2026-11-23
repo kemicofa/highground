@@ -126,7 +126,16 @@ local function client(options)
   end
   state.enterWorld = function() driver.scripts.OnEvent(driver, "PLAYER_ENTERING_WORLD") end
   state.poiUpdated = function() driver.scripts.OnEvent(driver, "AREA_POIS_UPDATED") end
-  state.items = function(width, height) return state.layer(state.mapID, width, height) end
+  -- Enemy pins; the circles of approximate sightings come from zones().
+  local function Split(width, height, circles)
+    local out = {}
+    for _, item in ipairs(state.layer(state.mapID, width, height)) do
+      if (item.radius ~= nil) == circles then out[#out + 1] = item end
+    end
+    return out
+  end
+  state.items = function(width, height) return Split(width, height, false) end
+  state.zones = function(width, height) return Split(width, height, true) end
   state.receive = function(message)
     ns.Comms.frame.scripts.OnEvent(ns.Comms.frame, "CHAT_MSG_ADDON", "HighgroundI", message, "PARTY", "Ally-Realm")
   end

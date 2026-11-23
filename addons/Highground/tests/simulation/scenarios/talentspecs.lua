@@ -5,8 +5,11 @@ local function forever(s)
   s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
 end
 
--- Forever's talent frame: one trait tree with a node group per classic
--- tree, listed out of order. spent[i] = points in tree i.
+-- Forever's talent frame, as read live from a rogue (2026-11-24): one trait
+-- tree with a node group per classic tree, group IDs descending in tree
+-- order. Groups with no points are left out of the currency info.
+-- spent[i] = points in tree i; listed out of order here.
+local GROUPS = { 11580, 11573, 11572 }
 local function talents(env, spent, names)
   names = names or { "Assassination", "Combat", "Subtlety" }
   env.C_ClassTalents = { GetActiveConfigID = function() return 7 end }
@@ -14,12 +17,18 @@ local function talents(env, spent, names)
     GetConfigInfo = function(id) if id == 7 then return { ID = 7, treeIDs = { 1488 } } end end,
     GetGroupDisplayInfoByTreeID = function()
       local groups = {}
-      for i = 3, 1, -1 do groups[#groups + 1] = { groupID = 30 + i, orderIndex = i - 1, displayName = names[i] } end
+      for i = 3, 1, -1 do groups[#groups + 1] = { groupID = GROUPS[i], orderIndex = i - 1, displayName = names[i] } end
       return groups
     end,
     GetGroupCurrencyInfo = function(_, ids)
       local infos = {}
-      for i, id in ipairs(ids) do infos[i] = { traitNodeGroupID = id, currencyInfos = { { spent = spent[id - 30] } } } end
+      for _, id in ipairs(ids) do
+        for i, group in ipairs(GROUPS) do
+          if group == id and spent[i] > 0 then
+            infos[#infos + 1] = { traitNodeGroupID = id, currencyInfos = { { traitCurrencyID = 1, quantity = 0, spent = spent[i] } } }
+          end
+        end
+      end
       return infos
     end,
   }
@@ -29,12 +38,12 @@ test("WoW Forever takes your spec from the tree with the most talent points", fu
   local sim = new("retail", nil, function(s)
     forever(s)
     s.units.player.classID = 4
-    talents(s.env, { 1, 0, 30 })
+    talents(s.env, { 1, 0, 23 })
   end)
   local Core, env = sim.ns.Core, sim.env
   equal(env.C_SpecializationInfo.GetSpecialization(), 1, "the client reports the first tree")
   Core.UpdateMe()
-  equal(Core.me.specID, 261, "30 points in Subtlety outweigh 1 in Assassination")
+  equal(Core.me.specID, 261, "23 points in Subtlety outweigh 1 in Assassination")
   sim.scores = { { name = "Me-Realm", faction = 1 } }
   sim:join(93, 529, "Arathi Basin")
   sim:event("PVP_MATCH_COMPLETE")

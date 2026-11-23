@@ -4,11 +4,33 @@ local Timers = ns.Timers
 ---------------------------------------------------------------------------
 -- Resurrections
 ---------------------------------------------------------------------------
+-- A teammate's revival can reach this client seconds after the wave (far
+-- from you, say). One seen 1.5 to 10 s after a timed wave is set aside
+-- unless another, a cycle or more earlier, came as late: then the clock moved.
+-- Revivals cannot precede their wave: an early one corrects the clock.
+Timers.LATE_REPORT = 10
+function Timers.LateReport(g, t)
+  local cycle = Timers.WaveCycle()
+  local wave, est = cycle and Timers.NextWave(g, t - cycle / 2)
+  if not wave or est then return false end
+  local late = t - wave
+  if late <= Timers.CLOCK_TOLERANCE or late > Timers.LATE_REPORT then return false end
+  local prev = g.lateReport
+  g.lateReport = { at = t, late = late }
+  return not (prev and t - prev.at >= cycle / 2 and t - prev.at <= 3 * cycle
+    and math.abs(late - prev.late) <= Timers.CLOCK_TOLERANCE)
+end
+
 -- ghost[name] tracks ghosts; pendingRez[name] holds the observation time.
 -- Teammates are listed under first and full name, you also under your group
 -- token: rezPlaced[unit or "player"] keeps one resurrection one wave.
 local rezPlaced = {}
 function Timers.ScanTeam()
+  -- The final score brings everyone back at once: no wave.
+  if Timers.MatchOver() then
+    wipe(Timers.ghost); wipe(Timers.pendingRez)
+    return
+  end
   local now = GetTime()
   local units = ns.AllyUnits and ns.AllyUnits() or { [UnitName("player")] = "player" }
   for name, unit in pairs(units) do
@@ -45,10 +67,12 @@ function Timers.ScanTeam()
           if Timers.healerEnd and t - Timers.healerAt < 5 then Timers.NoteReviveLag(t - Timers.healerEnd) end
           Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
         end
-        Timers.SetWave(g, t, "exact")
+        Timers.SetWave(g, t, "exact", not own)
         if g and g.x then
           Timers.Learn(g)
         end
+        -- Your own revival is the most precise wave: share it at once.
+        if own then ns.ShareWave(g, true) end
       end
     end
   end

@@ -67,11 +67,17 @@ When the game refuses a message (throttling or chat lockdown), nothing is lost o
 
 Intel sharing uses message version 3 to preserve position quality. Version 2 reports retain area/death information, but their unqualified coordinates are ignored because older versions could broadcast graveyard proxies. Teammates should update to exchange the new position data.
 
+Timer sharing uses message version 3: the time to the next wave in tenths of a second. Your own resurrection is shared as soon as you are back, since it is more precise than the whole-second countdown shared while you wait. Version 2 waves, in whole seconds, are still read; older versions do not read version 3. A received wave is an estimate (`~`) and never replaces a wave you saw yourself. The time a message takes to arrive is not known and not corrected for.
+
+WoW Forever holds chat in lockdown for a whole battleground match, so no addon messages go out or arrive there: each player's timers rely on what their own game shows.
+
 ## Resurrection countdowns
 
 Resurrection countdowns combine direct observations with estimates. Captured or contested graveyards discard the previous owner's clock. Enemy reappearances and shared votes can update an independently established graveyard; they cannot invent a graveyard at the fight.
 
 An enemy seen alive again within one wave period of dying gives a vote: their wave came in between. A sighting with a known position or named area votes only for a graveyard there. A sighting with no location at all votes for the enemy's graveyard when their faction has only one. Deaths followed by a player's resurrection, Reincarnation or Feign Death get no vote.
+
+A teammate's resurrection times their graveyard's wave. The game can report it seconds late, for example while you are far from them. Against a timed wave, one seen 1.5 to 10 seconds after it is set aside, unless another was as late a cycle or more earlier, in which case the clock has moved. One seen before the wave corrects the clock at once, since nobody comes back early. Everyone coming back when the match ends times nothing.
 
 Each death notes your first spirit healer countdown and its graveyard in the match history ("Resurrection wave in 12s at Warsong Lumber Mill"). With the gate-opening and capture announcements already there, it shows where each graveyard's waves fall relative to the match start and its capture.
 

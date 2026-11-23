@@ -54,8 +54,9 @@ HighgroundDB = {
 				"75.0 node Mine owner=- assault=H capLeft=60.0 icon=19 gy=true", -- [14]
 				"76.0 node Farm owner=H assault=A capLeft=60.0 icon=32 gy=true", -- [15]
 				"86.0 node Farm owner=H assault=- capLeft=- icon=35 gy=true", -- [16]
-				"90.0 match complete winner=1 mine=A duration=95 runtime=95000", -- [17]
-				"95.5 end left", -- [18]
+				"88.0 wave shared H Farm at=5.0 err=0.3 kept=false was=exact", -- [17]
+				"90.0 match complete winner=1 mine=A duration=95 runtime=95000", -- [18]
+				"95.5 end left", -- [19]
 			},
 		}, -- [1]
 	},
@@ -89,6 +90,7 @@ class BgProfileTests(unittest.TestCase):
         self.assertIn("waves exact: 3 seen; prediction before them: n=3 mean|err|=4.5s max|err|=9.0s within 1.5s=1/3", text)
         self.assertIn("    H Farm: 2 seen; n=2 mean|err|=2.2s max|err|=4.0s within 1.5s=1/2", text)
         self.assertIn("    H (no graveyard): 1 seen; n=1", text)
+        self.assertIn("waves shared: 1 seen (1 not used); prediction before them: n=1", text)
         self.assertIn("clock changes H (no graveyard): 1", text)
         self.assertIn("0:40 exact H Farm at=3.0 err=-4.0", text)
         self.assertIn("Stables: A assault at 0:05 captured after 60s (timer said 60.0s), owner A", text)

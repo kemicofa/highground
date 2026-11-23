@@ -179,7 +179,7 @@ WAVE = re.compile(r"^(\S+) (\S) (.*?) ?at=")
 
 def resurrection(session: dict) -> list[str]:
     out, by_conf, by_gy, misses = [], defaultdict(list), defaultdict(list), []
-    rez, jumps, clocks, advice = [], Counter(), [], 0
+    rez, jumps, clocks, advice, unused = [], Counter(), [], 0, Counter()
     for t, kind, text in rows(session):
         f = fields(text)
         if kind == "wave":
@@ -187,6 +187,9 @@ def resurrection(session: dict) -> list[str]:
             conf = match.group(1) if match else text.split(" ", 1)[0]
             err = number(f.get("err"))
             by_conf[conf].append(err)
+            # Not used: a late teammate report or a lower-ranked source.
+            if f.get("kept") == "false":
+                unused[conf] += 1
             if match:
                 by_gy[conf, f"{match.group(2)} {match.group(3) or '(no graveyard)'}"].append(err)
             if err is not None and abs(err) > 1.5:
@@ -208,7 +211,8 @@ def resurrection(session: dict) -> list[str]:
     out.append(f"  your rez vs Highground's clock: {errors_line(gy_errors)}")
     for conf, values in sorted(by_conf.items()):
         measured = [v for v in values if v is not None]
-        out.append(f"  waves {conf}: {len(values)} seen; prediction before them: {errors_line(measured)}")
+        note = f" ({unused[conf]} not used)" if unused[conf] else ""
+        out.append(f"  waves {conf}: {len(values)} seen{note}; prediction before them: {errors_line(measured)}")
         # Per graveyard: one clock mixing several graveyards shows up here.
         for (gy_conf, name), gy_values in sorted(by_gy.items()):
             if gy_conf == conf:

@@ -185,7 +185,7 @@ P.Register("users", "HighgroundU", "shared.protocols.user_discovery.485eed", "1"
 P.Register("capture", "HighgroundC", "shared.protocols.capture_sharing.3a1447", "1", "1")
 P.Register("spectags", "HighgroundS", "shared.protocols.spec_tags", "1", "1")
 P.Register("intel", "HighgroundI", "shared.protocols.map_intel.92d628", "3", "2,3")
-P.Register("timers", "HighgroundT", "shared.protocols.timer_sharing.492d73", "2", "2")
+P.Register("timers", "HighgroundT", "shared.protocols.timer_sharing.492d73", "3", "2,3")
 P.Register("guild", "HighgroundB", "shared.protocols.guild_bounties.bc09b2", "1,2,4,5,6,7", "1,2,4,5,6,7")
 P.Register("offer", "HighgroundBP", "shared.protocols.bounty_offers.19bea0", "1,2,3", "1,2,3")
 P.Register("claim", "HighgroundBP", "shared.protocols.bounty_claims.0173fe", "1,2,3", "1,2,3")

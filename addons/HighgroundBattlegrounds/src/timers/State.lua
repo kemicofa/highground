@@ -160,6 +160,14 @@ end
 
 Timers.MyTeam = ns.Util.MyTeam
 
+-- The match is decided: revivals and countdowns no longer time waves.
+function Timers.MatchOver()
+  local U = ns.Util
+  if U.read(C_PvP and C_PvP.IsMatchComplete) == true then return true end
+  local winner = U.read(GetBattlefieldWinner)
+  return winner == 0 or winner == 1
+end
+
 function Timers.Other(team)
   return team == "A" and "H" or "A"
 end

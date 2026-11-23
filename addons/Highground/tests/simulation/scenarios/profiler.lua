@@ -29,6 +29,10 @@ test("battleground profiler waits outside, records a match and offers a reload o
   assert(sim.ns.Util.RunGuarded ~= guarded and sim.ns.Timers.SetWave ~= setWave, "hooks while recording")
   sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The battle for Warsong Gulch has begun!")
   assert(find(s, " chat N The battle for Warsong Gulch has begun!$"), "announcement kept verbatim")
+  local rows = #s.rows
+  sim:event("CHAT_MSG_SYSTEM", { secret = true })
+  equal(#s.rows, rows, "withheld text adds no row")
+  equal(s.counts["chat hidden"], 1, "withheld text is counted")
   local rezAt = sim.now + 12
   sim.env.GetAreaSpiritHealerTime = function() return sim.units.player.ghost and math.max(0, rezAt - sim.now) or nil end
   sim.units.player.ghost = true
@@ -81,6 +85,11 @@ test("WoW Forever recordings measure waves on the 31.6-second cycle", function()
     sim:event("PLAYER_UNGHOST")
     sim:advance(1)
   end
+  local exact = 0
+  for _, row in ipairs(s.rows) do
+    if row:find(" wave exact ") then exact = exact + 1 end
+  end
+  equal(exact, 2, "one row per wave, not per countdown second")
   local second
   for _, row in ipairs(s.rows) do
     if row:find(" wave exact ") and not row:find("err=%- ") then second = row end

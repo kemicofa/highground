@@ -48,6 +48,12 @@ function P.Add(kind, text)
   s.rows[#s.rows + 1] = string.format("%.1f %s %s", GetTime() - s.t0, kind, P.Clean(text))
 end
 
+-- Counted without a row, for events whose text the game withholds.
+function P.Count(kind)
+  local s = session
+  if s then s.counts[kind] = (s.counts[kind] or 0) + 1 end
+end
+
 -- Seconds as text for rows; "-" when unknown.
 function P.Num(v, places)
   if type(v) ~= "number" or v ~= v or v == math.huge or v == -math.huge then return "-" end
@@ -148,7 +154,7 @@ local CHANNEL = {
 local function OnChat(event, msg, sender)
   msg = U.value(msg)
   local channel = CHANNEL[event]
-  if type(msg) ~= "string" then return P.Add("chat", channel .. " ?") end
+  if type(msg) ~= "string" then return P.Count("chat hidden") end -- WoW Forever hides system text in lockdown
   local text = channel .. " " .. msg
   sender = U.value(sender)
   if channel == "yell" or channel == "emote" or channel == "say" then text = text .. " <" .. tostring(sender) .. ">" end

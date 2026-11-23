@@ -69,7 +69,7 @@ ns.Standalone.Start({
     keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "quickCalls", "quickCallsDestinations", "quickCallsRoutes",
       "objectives", "objectiveOverview", "forecast", "capAlert", "capPlates", "dieAlert",
       "dieHpPct", "dieResMax", "dieResMin", "flags", "hideCarrierFrames", "sapCall", "hideTracker",
-      "intel", "intelShare", "sound" },
+      "intel", "intelRings", "intelShare", "sound" },
     buttons = {
       ns.Localization.Define({ ns.Locale:Get("battlegrounds.main.preview_windows.7d7470"), TogglePreview }, { [1] = "battlegrounds.main.preview_windows.7d7470" }),
       ns.Localization.Define({ ns.Locale:Get("battlegrounds.main.reset_positions.d2ed65"), function() ns.TimersWindowReset() end, advanced = true }, { [1] = "battlegrounds.main.reset_positions.d2ed65" }),

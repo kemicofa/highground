@@ -69,6 +69,7 @@ ns.OptionsAdd({
       ns.Localization.Define({ group = "Map and sharing", order = 7 }, { groupLabel = "highground.toursteps.map_and_sharing.d4f883" }),
       ns.Localization.Define({ key = "intel", label = ns.Locale:Get("shared.battlegrounds.enemy_map_positions.ecad4e"), desc = ns.Locale:Get("shared.battlegrounds.show_observed_and_shared_enemy_positions_on.3154ea") }, { label = "shared.battlegrounds.enemy_map_positions.ecad4e", desc = "shared.battlegrounds.show_observed_and_shared_enemy_positions_on.3154ea" }),
       ns.Localization.Define({ key = "intelShare", advanced = true, caps = "matchSharing", label = ns.Locale:Get("shared.battlegrounds.share_observations.74ec48"), desc = ns.Locale:Get("shared.battlegrounds.share_observations.desc") }, { label = "shared.battlegrounds.share_observations.74ec48", desc = "shared.battlegrounds.share_observations.desc" }),
+      ns.Localization.Define({ key = "intelRings", advanced = true, label = ns.Locale:Get("shared.battlegrounds.fight_circles.9cafd7"), desc = ns.Locale:Get("shared.battlegrounds.fight_circles.desc"), parent = "intel" }, { label = "shared.battlegrounds.fight_circles.9cafd7", desc = "shared.battlegrounds.fight_circles.desc" }),
     },
   },
   weights = {

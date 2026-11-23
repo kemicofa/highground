@@ -69,6 +69,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg intel` | Show enemy map and sharing status. | Show map sharing status |
 | `/hg intel on` · `/hg intel off` | Enable or disable enemy map positions. | Map position switch → `battlegrounds-settings` |
 | `/hg intel share on\|off` | Enable or disable sharing map positions with teammates. (not WoW Forever) | Map sharing switch → `battlegrounds-settings` |
+| `/hg intel circles on\|off` | Enable or disable circles around you or a teammate during a fight. | Fight circles switch → `battlegrounds-settings` |
 | `/hg intel test` | Start or stop a sample world-map pin. | Map preview controls → `battlegrounds-previews` |
 | `/hg timers` | Show battleground timer status. | Show timer status |
 | `/hg timers on` · `/hg timers off` | Enable or disable battleground timers. | Battleground timer switch → `battlegrounds-settings` |

@@ -35,6 +35,7 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   A("intel", "battlegrounds.commands.show_enemy_map_and_sharing_status.e17a40", "battlegrounds.commands.show_map_sharing_status.c2a4ec"),
   L("intel on", "battlegrounds.commands.enable_or_disable_enemy_map_positions.31c9da", "battlegrounds-settings", "battlegrounds.commands.map_position_switch.b73ecc", { aliases = { "intel off" } }),
   L("intel share", "battlegrounds.commands.enable_or_disable_sharing_map_positions_with.4056fd", "battlegrounds-settings", "battlegrounds.commands.map_sharing_switch.5fe210", { usage = "on|off", caps = "matchSharing" }),
+  L("intel circles", "battlegrounds.commands.enable_or_disable_circles_around_you_or.6a445e", "battlegrounds-settings", "battlegrounds.commands.fight_circles_switch.aca11a", { usage = "on|off" }),
   L("intel test", "battlegrounds.commands.start_or_stop_a_sample_world_map.637595", "battlegrounds-previews", "battlegrounds.commands.map_preview_controls.3421cb"),
   A("timers", "battlegrounds.commands.show_battleground_timer_status.fc994f", "battlegrounds.commands.show_timer_status.c641cd"),
   L("timers on", "battlegrounds.commands.enable_or_disable_battleground_timers.b49b30", "battlegrounds-settings", "battlegrounds.commands.battleground_timer_switch.7e7220", { aliases = { "timers off" } }),

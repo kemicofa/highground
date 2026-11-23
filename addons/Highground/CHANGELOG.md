@@ -8,6 +8,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 - Enemy map circles stay small (about 40 yards) and no longer grow over time; they fade with age like other pins.
 - Several enemies seen in one place share a circle showing their number in the middle, with their class or spec icons around its edge.
 - An enemy you can see only by its nameplate is no longer placed next to you: one of your spells must be in range, as nameplates show from much farther away.
+- WoW Forever: starting graveyards share one resurrection clock, so dying at your start also times the enemy's start. A captured base's graveyard gets its own clock from the capture instead of joining every other graveyard's wave.
+- The match history's resurrection notes name the graveyard.
 
 ## [3.2.0] - 2026-11-23
 

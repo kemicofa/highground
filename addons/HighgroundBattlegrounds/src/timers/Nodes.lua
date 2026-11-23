@@ -255,7 +255,7 @@ function Timers.NodeCaptured(n, team, t)
   local g = Timers.NodeGY(n, team)
   Timers.InvalidateNode(n) -- evidence from the previous spirit guide is no longer valid
   if g then
-    g.team, g.node = team, n.name
+    g.team, g.node, g.fromStart = team, n.name, nil -- a new spirit guide, its own clock
     if not g.configured then g.label = n.name end
     Timers.SetWave(g, t, "cap")
   end
@@ -296,6 +296,10 @@ function Timers.ScanNodes()
           if g then
             g.team, g.node = n.owner, n.name
             if not g.configured then g.label = n.name end
+            -- Owned before any capture could finish: a side's first base,
+            -- spawned with the starts (Alterac Valley).
+            local runtime = GetBattlefieldInstanceRunTime and GetBattlefieldInstanceRunTime() or math.huge
+            if Timers.plain(runtime) and runtime < 120000 then g.fromStart = true end
           end
         end
       end

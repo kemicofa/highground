@@ -1673,7 +1673,7 @@ assert(ns.Locale:Register("frFR", {
   ["battlegrounds.layer.approximate_observer_left_value1_moments_before.90d786"] = "Approximatif : l'observateur est parti {value1} instants avant",
   ["battlegrounds.layer.approximate_near_the_observer.9c0a92"] = "Approximatif : près de l'observateur",
   ["battlegrounds.observations.battleground_announcement.632533"] = "Annonce du champ de bataille",
-  ["battlegrounds.observations.resurrection_wave_in_left_s.16501b"] = "Vague de résurrection dans {left} s",
+  ["battlegrounds.observations.resurrection_wave_in_left_s_at_place.628b9e"] = "Vague de résurrection dans {left} s à {place}",
   ["battlegrounds.sharing.value1_position_unknown.65a2ee"] = "{value1}Position inconnue",
   ["battlegrounds.sharing.last_seen_where_age_s_ago_node.522e26"] = "dernière observation : {where}, il y a {age} s (annonce de base)",
   ["battlegrounds.sharing.last_seen_where_age_s_ago.1d61a4"] = "dernière observation : {where}, il y a {age} s",

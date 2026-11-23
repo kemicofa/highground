@@ -99,15 +99,19 @@ function ns.ResolveBattleground(ui, instance, client, mode, game)
   resolved[game] = cache
   if cache[key] then return cache[key] end
   local rules = {
-    -- WoW Forever runs one resurrection clock per battleground: every
-    -- graveyard and both teams share the waves (observed 2026-11-23).
-    resurrection = { period = 30, shared = game == "forever" or nil },
+    -- shared: one clock for every graveyard (true), one per graveyard
+    -- (false); unset, Highground learns it from exact waves. startClock:
+    -- graveyards there from the match start (both starts, each side's first
+    -- bases) spawned together and share a clock; a captured base's
+    -- graveyard starts its own at capture. WoW Forever, observed 2026-11-23.
+    resurrection = { period = 30, startClock = game == "forever" or nil },
     capture = {},
     graveyards = { mode = "none" },
     scoring = { predict = false },
     map = {},
     priority = Copy(PRIORITY[config.kind]),
   }
+  if rules.resurrection.startClock then rules.resurrection.shared = false end
   Merge(rules, config.rules)
   Merge(rules, maps.rules)
   Merge(rules, config.games and config.games[game])

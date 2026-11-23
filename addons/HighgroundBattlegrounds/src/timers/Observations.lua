@@ -29,8 +29,11 @@ function Timers.ScanTeam()
       if Timers.ConfiguredGYs() and how == "area" then x, y = nil, nil end
       -- Your own unplaced resurrection is at your start: base graveyards
       -- report a release position, start graveyards do not.
-      local start = ns.Util.read(UnitIsUnit, unit, "player") == true and Timers.StartGY(Timers.MyTeam())
-      local g = (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
+      local own = ns.Util.read(UnitIsUnit, unit, "player") == true
+      local start = own and Timers.StartGY(Timers.MyTeam())
+      local g = own and Timers.releaseGY
+        or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
+      if own then Timers.releaseGY = nil end
       Timers.SetWave(g, t, "exact")
       if g and g.x then
         Timers.Learn(g)
@@ -43,13 +46,6 @@ function Timers.ScanTeam()
   if UnitIsGhost("player") and GetAreaSpiritHealerTime then
     local ok, left = pcall(GetAreaSpiritHealerTime)
     if ok and Timers.plain(left) and left > 0 then
-      -- Once per death, into the match history: with the gate-opening
-      -- announcement it shows how waves line up with the match start.
-      if not Timers.waveNoted and ns.MatchHistory then
-        Timers.waveNoted = true
-        ns.MatchHistory.Note(ns.Locale:Format("battlegrounds.observations.resurrection_wave_in_left_s.16501b",
-          { left = string.format("%d", math.floor(left + 0.5)) }))
-      end
       -- The countdown can't exceed the period: a longer one is a rated 45 s.
       local period = Timers.WavePeriod()
       if period and left > period + 1 then
@@ -68,11 +64,23 @@ function Timers.ScanTeam()
       if rx then
         x, y = rx, ry
       end
-      local g = (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or Timers.StartGY(Timers.MyTeam())
+      -- Base graveyards give a release position, start graveyards don't:
+      -- without one, on a map with starts, you are at yours.
+      local start = Timers.StartGY(Timers.MyTeam())
+      local g = not rx and start or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start
         or Timers.TeamGY(Timers.MyTeam())
+      Timers.releaseGY = g -- where your resurrection will be
       if g and rx and not g.exact and not g.configured then
         g.x, g.y, g.exact, g.saved = rx, ry, true, nil
         Timers.Learn(g)
+      end
+      -- Once per death, into the match history: with the gate-opening and
+      -- capture announcements it shows how each graveyard's waves line up.
+      if not Timers.waveNoted and ns.MatchHistory then
+        Timers.waveNoted = true
+        ns.MatchHistory.Note(ns.Locale:Format("battlegrounds.observations.resurrection_wave_in_left_s_at_place.628b9e", {
+          left = string.format("%d", math.floor(left + 0.5)),
+          place = g and g.label or area or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c") }))
       end
       Timers.SetWave(g, now + left, "exact")
       ns.ShareWave(g)

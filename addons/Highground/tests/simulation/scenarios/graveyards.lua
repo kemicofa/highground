@@ -169,11 +169,52 @@ test("each death notes its resurrection countdown once in the match history", fu
   sim.units.player.ghost, sim.healerTime = true, 12.4
   sim:advance(0.5); sim.healerTime = 11.4; sim:advance(1)
   equal(#notes(), 1, "one note per death")
-  equal(notes()[1], "Resurrection wave in 12s", "the countdown as first seen")
+  equal(notes()[1], "Resurrection wave in 12s at Horde Base Graveyard", "the countdown as first seen, with its graveyard")
   sim.units.player.ghost, sim.healerTime = false, nil
   sim:advance(1)
   sim.units.player.ghost, sim.healerTime = true, 30
   sim:advance(0.5)
   equal(#notes(), 2, "the next death is noted again")
+  sim:assertHealthy()
+end)
+
+-- WoW Forever: the retail manifest on interface 16001.
+local function forever(s)
+  s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  s.env.loadstring_untainted = nil
+  s.secureSnippets = false
+end
+
+test("WoW Forever Arathi Basin: the starts share a clock, a captured base starts its own", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:enemy("Enemy With Surname")
+  sim:join(93, 529, "Arathi Basin")
+  local T = sim.ns.Timers
+  local me = T.MyTeam()
+  local mine, theirs = T.StartGY(me), T.StartGY(me == "H" and "A" or "H")
+  assert(mine and theirs, "both start graveyards are listed")
+  equal(T.SharedClock(), false, "no clock for the whole battleground")
+  -- You die and release at your start: the game gives no release position.
+  sim.units.player.ghost, sim.healerTime = true, 12
+  sim:advance(0.5)
+  local now = sim.env.GetTime()
+  local wave = T.NextWave(mine, now)
+  assert(wave and math.abs(wave - (now + 11.5)) < 1, "your countdown times your start")
+  equal(T.NextWave(theirs, now), wave, "and the enemy's start, spawned with it")
+  sim:advance(11.5)
+  sim.units.player.ghost, sim.healerTime = false, nil -- resurrected on the wave
+  sim:advance(1)
+  -- The Farm is captured 7 seconds into a start wave: its graveyard starts there.
+  sim.pois[1] = { name = "Farm", position = { x = 0.56, y = 0.6 }, textureIndex = 16 }
+  sim:event("AREA_POIS_UPDATED")
+  local farm = T.nodes.Farm
+  assert(farm and farm.hasGraveyard, "the Farm has a graveyard")
+  local period = T.WavePeriod()
+  local captured = T.NextWave(mine, sim.env.GetTime()) - period + 7
+  T.NodeCaptured(farm, me, captured)
+  local g = T.NodeGY(farm, me)
+  local next = T.NextWave(g, captured + 1)
+  assert(next and math.abs(next - (captured + period)) < 0.5, "the Farm's waves run from its capture")
+  equal(T.NextWave(mine, captured + 1), next - 7, "the starts keep their own clock")
   sim:assertHealthy()
 end)

@@ -38,8 +38,8 @@ ns.RegisterBattleground(ns.Localization.Define({
       anchors = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } },
     },
   },
-  -- Both base graveyards from the start, so the enemy's shows a timer too
-  -- once the shared clock is known.
+  -- Both base graveyards from the start: on WoW Forever they share the
+  -- start clock, so your own countdown times the enemy's too.
   games = { forever = { graveyards = { static = BASE_GRAVEYARDS } } },
   blitz = { flags = { firstStackSeconds = 15, stackInterval = 15 } },
   -- Original Cata timing; custom servers may differ.

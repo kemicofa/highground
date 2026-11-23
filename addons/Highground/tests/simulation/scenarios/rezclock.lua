@@ -52,7 +52,7 @@ local function foreverTeam()
   return sim, sim.ns.Timers
 end
 
-test("WoW Forever teammates seen back late keep the timed clock; the same delay twice moves it", function()
+test("WoW Forever teammates seen back off the wave keep the timed clock; the same offset twice moves it", function()
   local sim, T = foreverTeam()
   local mine, cycle = T.SingleGY(T.MyTeam()), T.WaveCycle()
   reviveAt(sim, sim.now + 10, 0.9)
@@ -67,8 +67,29 @@ test("WoW Forever teammates seen back late keep the timed clock; the same delay 
   teammateBack(sim, wave + 2 * cycle + 4)
   assert(math.abs(mine.wave - (wave + 2 * cycle + 4)) <= 0.25, "the same delay a cycle later: the clock moved")
   wave = mine.wave
-  teammateBack(sim, wave + cycle - 2)
-  assert(math.abs(mine.wave - (wave + cycle - 2)) <= 0.25, "an early revival corrects the clock at once")
+  teammateBack(sim, wave + cycle - 3)
+  equal(mine.wave, wave, "early, as after a player's spell: set aside")
+  teammateBack(sim, wave + 2 * cycle - 3)
+  assert(math.abs(mine.wave - (wave + 2 * cycle - 3)) <= 0.25, "early by as much a cycle later: the clock moved")
+  sim:assertHealthy()
+end)
+
+test("WoW Forever: brought back by a player before the countdown ends times no wave", function()
+  local sim, T = foreverTeam()
+  local mine = T.SingleGY(T.MyTeam())
+  reviveAt(sim, sim.now + 10, 0.9)
+  local wave, lags = mine.wave, #(T.LearnedDB().reviveLag or {})
+  local ends = wave + T.WaveCycle()
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and math.max(0, math.floor(ends - sim.now)) or nil
+  end
+  sim:advance(ends - 7 - sim.now)
+  sim.units.player.ghost = true
+  sim:advance(2.5)
+  sim.units.player.ghost = false
+  sim:advance(1)
+  assert(math.abs(T.NextWave(mine, sim.now) - (ends + T.ReviveLag())) <= 0.3, "the countdown's wave stands")
+  equal(#(T.LearnedDB().reviveLag or {}), lags, "no revive lag learned from it")
   sim:assertHealthy()
 end)
 
@@ -101,10 +122,12 @@ test("your revival reaches a teammate's addon to a tenth of a second", function(
   local mine = graveyard(me, "H")
   me.units.player.ghost, me.healerTime = true, 12
   step(0.5)
-  step(11.6)
+  step(10.6)
+  me.healerTime = 1; step(0.5) -- the countdown runs out
+  me.healerTime = nil; step(0.75)
   assert(#me.sent > 0, "the countdown was shared while you waited")
   local before = #me.sent
-  me.units.player.ghost, me.healerTime = false, nil
+  me.units.player.ghost = false
   step(0.5)
   assert(mine.wave, "your revival times the wave")
   local packet
@@ -139,4 +162,35 @@ test("shared waves read tenths from version 3 and whole seconds from version 2",
   equal(h.wave, sim.now + 9, "version 2: 9 s")
   sim:event("CHAT_MSG_ADDON", "HighgroundT", "4:1460:W,H,0,0,50,Warsong Lumber Mill", "INSTANCE_CHAT", "Friend-Realm")
   equal(h.wave, sim.now + 9, "an unknown version is ignored")
+end)
+
+-- Darkspear Islands, 2026-11-24: dead at Shipwreck Cove, the release
+-- position vanished while a teammate's spell brought the player back. The
+-- countdown moved to the Horde start and the revival timed it 5 s early.
+test("WoW Forever Darkspear: a vanished release position keeps this death's graveyard", function()
+  local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim:enemy("Enemy With Surname")
+  sim:join(2524, 2997, "Darkspear Islands")
+  local T = sim.ns.Timers
+  local me = T.MyTeam()
+  sim.pois[1] = { name = "Shipwreck Cove", position = { x = 0.41, y = 0.43 }, textureIndex = me == "H" and 148 or 146 }
+  sim:event("AREA_POIS_UPDATED")
+  local cove = T.NodeGY(T.nodes["Shipwreck Cove"], me)
+  local start = T.StartGY(me)
+  sim.releasePosition = { x = 0.452, y = 0.363 }
+  local ends = sim.now + 7
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and math.max(0, math.floor(ends - sim.now)) or nil
+  end
+  sim.units.player.ghost = true
+  sim:advance(1)
+  equal(T.releaseGY, cove, "released at Shipwreck Cove")
+  sim.releasePosition = nil
+  sim:advance(1.5)
+  equal(T.releaseGY, cove, "still Shipwreck Cove without a release position")
+  sim.units.player.ghost = false
+  sim:advance(1)
+  equal(start.wave, nil, "the start keeps no clock")
+  assert(math.abs(cove.wave - (ends + T.ReviveLag())) <= 0.3, "Shipwreck Cove keeps the countdown's wave")
+  sim:assertHealthy()
 end)

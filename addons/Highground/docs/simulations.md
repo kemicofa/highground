@@ -68,7 +68,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `profilecontext` | Persistent profile indicators, modified/default states, imports, saved-copy selection, combat queues, reloads, automatic switching, legacy profiles and fixed footers while scrolling |
 | `profileworkspace` | Immutable built-in Default and legacy-copy migration, stable baseline comparisons through creation/update/apply/import/navigation, visible switching and combat cancellation, preset/copy isolation, command parity, guide samples, pooled comparison rows and 100%/150% text layouts |
 | `graveyards` | Cata Warsong pins, live graveyard IDs, excluded flag-room spawns, shared reports, resurrection clocks, rematches |
-| `rezclock` | Late teammate revivals, the match's end, waves shared between two teammates' addons (version 3 tenths, version 2 seconds) |
+| `rezclock` | Teammate revivals off the wave, being brought back by a player, the match's end, a vanished release position, waves shared between two teammates' addons (version 3 tenths, version 2 seconds) |
 | `intel` | Area pins, node announcements, large stacks, unlocated combat events, packets between two addon instances, stale pins, deaths |
 | `spectags` | Hand-tagged enemy specs: hover picker and Forever class-only scoreboards, team messages and malformed input, chat-lockdown retries, precedence over history and under the scoreboard, preview/guide isolation, class-name history cleanup |
 | `talentspecs` | Your own spec on WoW Forever from points spent per talent tree, tree-order fallback, no points, clients without trait groups, and the spec recorded in match history |

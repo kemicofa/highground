@@ -46,7 +46,7 @@ function Timers.Reset(mapID)
   wipe(Timers.track)
   Timers.dieAlertedFor = nil
   Timers.clock, Timers.clockShared, Timers.periodOverride, Timers.startClock, Timers.releaseGY = nil, nil, nil, nil, nil
-  Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
+  Timers.healerEnd, Timers.healerAt, Timers.healerG, Timers.healerLeft = nil, nil, nil, nil
   Timers.downtimeOverride = nil
   wipe(Timers.periodVotes)
   wipe(Timers.downtimes)

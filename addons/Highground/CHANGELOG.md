@@ -4,6 +4,8 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- **Tag enemy specs:** when the game doesn't reveal an enemy's spec (always the case on WoW Forever, whose scoreboard only names the class), hover their row and click one of the spec icons on the right. Click the tagged icon again to remove it. Teammates with Highground see your tags while **Share observations** is on, and tags are remembered for later matches. A spec the game identifies replaces a tag.
+- WoW Forever: class names from the scoreboard are no longer saved as specs, and ones saved earlier are cleared at the end of your next match.
 - Players' right-click menus no longer break in WoW Forever battlegrounds. Highground's **put a bounty** and **Highground Reputation** entries stay out of them in battlegrounds, arenas, combat and other restricted play.
 
 ## [3.1.0] - 2026-11-22

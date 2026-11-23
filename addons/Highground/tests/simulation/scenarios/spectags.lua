@@ -104,6 +104,26 @@ test("a tag outranks history and yields to a spec the game identifies", function
   sim:assertHealthy()
 end)
 
+test("a spec the game draws but addons can't read keeps the picker away and the tag off", function()
+  local sim = new("retail")
+  sim:enemy("Frosty", { classID = 8 })
+  local score = sim.scores[#sim.scores]
+  score.talentSpec = ""
+  sim:join()
+  sim:advance(1.5)
+  local C = sim.ns.Core
+  local e = C.rows[1].entry
+  C.SetSpecTag(e, 2)
+  equal(e.specSrc, "tag", "tagged while nothing is shown")
+  -- Mid-match Retail hands the row a spec it can draw but not read.
+  local unreadable = setmetatable({}, { __tostring = function() return "Frost" end })
+  C.plain = (function(plain) return function(v) if v == unreadable then return false end return plain(v) end end)(C.plain)
+  e.specLive = unreadable
+  C.ApplySpecTag(e)
+  equal(e.specSrc, nil, "the tag steps aside for the game's own text")
+  assert(not C.SpecTaggable(e), "no picker over a spec the game shows")
+end)
+
 test("teammates' tags apply with their name; malformed or foreign ones are ignored", function()
   local sim, C, r, e = foreverMatch()
   local function say(text, sender)

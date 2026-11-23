@@ -11,8 +11,8 @@ local Core, Comms = ns.Core, ns.Comms
 -- Tree indexes, not spec IDs or names, so every client and language reads
 -- them the same way.
 --
--- Precedence: what the game shows this match (scoreboard, a talent-tree
--- cast, an estimate from buffs) outranks a tag; a tag outranks earlier
+-- Precedence: what the game shows this match (scoreboard, even a secret
+-- one, a talent-tree cast, an estimate from buffs) outranks a tag; a tag outranks earlier
 -- matches' history and mana estimates.
 ---------------------------------------------------------------------------
 Core.SPEC_TAG_PREFIX = "HighgroundS"
@@ -38,17 +38,27 @@ function Core.SpecTag(key, class)
   if id then return id, t end
 end
 
+-- The game draws a scoreboard spec in the row, secret or not: Retail
+-- shows it mid-match without letting addons read it.
+local function GameShows(e)
+  local spec = e.specLive
+  if spec == nil then return false end
+  if Core.plain(spec) then return spec ~= "" end
+  return true
+end
+
 -- Whether the panel may offer the picker: the game hasn't identified it.
 function Core.SpecTaggable(e)
-  return e ~= nil and not Core.SPEC_TAG_STRONG[e.specSrc] and Core.classSpecs[e.class] ~= nil
-    and #Core.classSpecs[e.class] > 0
+  return e ~= nil and not Core.SPEC_TAG_STRONG[e.specSrc] and not GameShows(e)
+    and Core.classSpecs[e.class] ~= nil and #Core.classSpecs[e.class] > 0
 end
 
 -- Put a tag on the enemy unless stronger evidence holds; a removed tag
 -- gives back what the enemy had before it (history, an estimate or nothing).
 function Core.ApplySpecTag(e)
   if not e or Core.SPEC_TAG_STRONG[e.specSrc] then return end
-  local id, t = Core.SpecTag(e.key, e.class)
+  local id, t
+  if not GameShows(e) then id, t = Core.SpecTag(e.key, e.class) end
   if id then
     if e.specSrc ~= "tag" then e.beforeTag = { e.specID, e.specSrc, e.specReason } end
     e.specID, e.specSrc, e.specReason, e.specBy = id, "tag", nil, t.by

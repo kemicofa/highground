@@ -308,17 +308,20 @@ test("WoW Forever times Darkspear Islands bases and 300-second Alterac Valley ca
   equal(byMap.ns.Core.currentBG and byMap.ns.Core.currentBG.id, "darkspear_islands", "the UI map alone identifies Darkspear Islands")
 end)
 
+-- Shown resurrection rows named name.
+local function timerRows(sim, name)
+  local n = 0
+  for _, r in ipairs(sim.env.HighgroundTimersFrame.rows) do
+    if r:IsShown() and r.place.text == name then n = n + 1 end
+  end
+  return n
+end
+
 test("WoW Forever names Darkspear start graveyards and keeps one graveyard per base", function()
   local sim = twoPartMatch(2524, 2997, "Darkspear Islands")
   local T = sim.ns.Timers
   local me, them = T.MyTeam(), T.Other(T.MyTeam())
-  local function rows(name)
-    local n = 0
-    for _, r in ipairs(sim.env.HighgroundTimersFrame.rows) do
-      if r:IsShown() and r.place.text == name then n = n + 1 end
-    end
-    return n
-  end
+  local function rows(name) return timerRows(sim, name) end
   equal(T.StartGY("H").label, "Horde start", "the Horde start is named")
   equal(T.StartGY("A").label, "Alliance start", "the Alliance start is named")
   -- A base graveyard saved at its spirit healer, then the base is captured:
@@ -372,4 +375,25 @@ test("WoW Forever Warsong Gulch times both base graveyards from your own wave", 
   assert(ours.time.text:find("1[12]s"), "your wave: " .. ours.time.text)
   equal(theirs.time.text, ours.time.text, "the enemy graveyard shares the wave")
   sim:assertHealthy()
+end)
+
+test("WoW Forever names Arathi Basin's start graveyards instead of spot unknown", function()
+  local sim = twoPartMatch(1461, 529, "Arathi Basin")
+  local T, me = sim.ns.Timers, sim.ns.Timers.MyTeam()
+  local function rows(name) return timerRows(sim, name) end
+  equal(T.StartGY("A").label .. "/" .. T.StartGY("H").label, "Alliance start/Horde start", "both starts are named")
+  assert(T.StartGY("A").x and T.StartGY("H").y, "both starts are placed for map pins")
+  -- Dead at your start: a countdown, but no release position or named area.
+  sim.env.GetSubZoneText = function() return "" end
+  sim.env.GetMinimapZoneText = function() return "Arathi Basin" end
+  sim.units.player.ghost, sim.healerTime = true, 12
+  sim:advance(0.5)
+  equal(T.StartGY(me).conf, "exact", "your countdown times your start")
+  equal(rows(me == "H" and "Horde start" or "Alliance start"), 1, "your start has a named row")
+  equal(rows("spot unknown"), 0, "no unnamed graveyard")
+  sim:assertHealthy()
+  local retail = new("retail")
+  retail:enemy("Enemy")
+  retail:join(1366, 2107, "Arathi Basin")
+  equal(retail.ns.Timers.StartGY("A"), nil, "retail keeps its own graveyards")
 end)

@@ -28,6 +28,16 @@ ns.RegisterBattleground(ns.Localization.Define({
     scoring = { bases = 5, noun = "base", predict = true },
     map = { anchors = { ["trollbane hall"] = { 0.38, 0.17 }, ["defiler's den"] = { 0.62, 0.86 } } },
   },
+  -- WoW Forever: the game gives no release position or named area at the
+  -- starts, so an unplaced own resurrection was timed on an unnamed "spot
+  -- unknown" row. Name and place both starts, at the starting gates of the
+  -- Cata projection above (classic map, as for Forever's Warsong Gulch).
+  games = { forever = { graveyards = { starts = {
+    ns.Localization.Define({ team = "A", label = ns.Locale:Get("battlegrounds.darkspearislands.alliance_start.7669f4"), x = 0.3286, y = 0.1911 },
+      { label = "battlegrounds.darkspearislands.alliance_start.7669f4" }),
+    ns.Localization.Define({ team = "H", label = ns.Locale:Get("battlegrounds.darkspearislands.horde_start.6ee922"), x = 0.6547, y = 0.6835 },
+      { label = "battlegrounds.darkspearislands.horde_start.6ee922" }),
+  } } } },
   blitz = { capture = { seconds = 30, holdSeconds = 45, resetSeconds = 5 }, scoring = { predict = false } },
   sources = {
     "https://raw.githubusercontent.com/BigWigsMods/Capping/master/Modules/ArathiBasin.lua",

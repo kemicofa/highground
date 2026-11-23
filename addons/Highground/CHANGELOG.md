@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- WoW Forever, Arathi Basin: dying at your start times **Alliance start** (Trollbane Hall) or **Horde start** (Defiler's Den), with its pin on the map, instead of an unnamed "spot unknown" row.
+
 ## [3.2.0] - 2026-11-23
 
 - **Enemy map circles:** an enemy placed only by area shows as a faint circle where they can be, growing while they stay unseen. Enemies seen in one place share a circle, shrinking to fit with a **+N** for the rest; hover it to see who was seen there and when.

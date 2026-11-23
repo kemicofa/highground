@@ -67,23 +67,38 @@ local function Build()
   w.area:SetJustifyH("LEFT"); w.area:SetWordWrap(true)
   w.status = Theme.Text(w, "label", "textMuted")
   w.status:SetJustifyH("LEFT")
-  local function Button(parent, label, width, send, message)
-    local button = Kit.Button(parent, label, width, 28, { onClick = function()
-      if Quick.guide then
-        Quick.guide.message = message(); Quick.guide.clicked = label
-        Quick.Update(); return
-      end
-      local ok, err = send()
-      if not ok then U.Say(err) end
-    end })
-    button:RegisterForClicks("LeftButtonUp")
-    Kit.Tooltip(button, function()
+  -- The game drops chat sent by addons during a match, but not the
+  -- player's own macros: a click runs the callout as a game macro ("/i ...")
+  -- on a secure button laid over the visible one, which keeps its hover.
+  local function Pressed(button)
+    if Quick.guide then
+      Quick.guide.message = button.message(); Quick.guide.clicked = button.label:GetText()
+      Quick.Update()
+    elseif (button.macro or "") ~= "" then
+      Quick.sentAt = GetTime(); Quick.Update()
+    end
+  end
+  local function Button(parent, label, width, message)
+    local button = Kit.Button(parent, label, width, 28, { onClick = function(self) Pressed(self) end })
+    button.baseWidth, button.message, button.macro = width, message, ""
+    local fire = CreateFrame("Button", nil, button, "SecureActionButtonTemplate")
+    fire:SetAllPoints()
+    fire:RegisterForClicks("AnyDown", "AnyUp")
+    fire:SetAttribute("type", "macro")
+    fire:SetAttribute("macrotext", "")
+    for _, script in ipairs({ "OnEnter", "OnLeave", "OnMouseDown", "OnMouseUp" }) do
+      fire:SetScript(script, function(_, ...)
+        local handler = button:GetScript(script)
+        if handler then handler(button, ...) end
+      end)
+    end
+    fire:SetScript("PostClick", function(_, _, down) if not down then Pressed(button) end end)
+    button.fire = fire
+    Kit.Tooltip(fire, function()
       return { { message(), "text", true },
         { Quick.guide and ns.Locale:Get("battlegrounds.quickcalls.sample_only_nothing_is_sent.76ab7b") or w.preview and ns.Locale:Get("battlegrounds.quickcalls.preview_only_messages_are_disabled.8d9e91")
-          or Quick.Locked() and ns.Locale:Get("battlegrounds.quickcalls.click_to_put_it_in_your_chat.4003dc")
           or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground_chat.f52f37"), "textMuted", true } }
     end)
-    button.baseWidth = width
     return button
   end
   local function Group(label)
@@ -96,23 +111,21 @@ local function Build()
   w.localRow = CreateFrame("Frame", nil, w)
   w.buttons = {}
   for i, def in ipairs(BUTTONS) do
-    w.buttons[i] = Button(w.localRow, def.label, def.width or 56,
-      function() return Quick.Send(def.value) end, function() return Quick.Message(def.value, w.location or "Farm") end)
+    w.buttons[i] = Button(w.localRow, def.label, def.width or 56, function() return Quick.Message(def.value, w.location or "Farm") end)
+    w.buttons[i].value = def.value
   end
   w.destinationGroup = Group(ns.Locale:Get("battlegrounds.quickcalls.enemies_going_to.1c6bf7"))
   w.destination = Kit.Select(w.destinationGroup, { menu = true, choices = {}, onChange = function() Quick.Update() end })
   w.destinationButtons = {}
   for i, count in ipairs(Quick.COUNTS) do
     w.destinationButtons[i] = Button(w.destinationGroup, count, 56,
-      function() return Quick.SendDestination(count, w.destination:GetValue(), w.context) end,
       function() return Quick.DestinationMessage(count, w.destination:GetValue() ~= "" and w.destination:GetValue() or ns.Locale:Get("battlegrounds.quickcalls.chosen_destination.782f28")) end)
+    w.destinationButtons[i].count = count
   end
   w.routeGroup = Group(ns.Locale:Get("battlegrounds.quickcalls.enemy_flag_carrier_going.6845f4"))
   w.routeButtons = {}
   for i = 1, 3 do
-    w.routeButtons[i] = Button(w.routeGroup, "", 100,
-      function() return Quick.SendRoute(w.routeButtons[i].route, w.context) end,
-      function() return Quick.RouteMessage(w.routeButtons[i].route or "ramp") end)
+    w.routeButtons[i] = Button(w.routeGroup, "", 100, function() return Quick.RouteMessage(w.routeButtons[i].route or "ramp") end)
   end
   w.relayout = Layout
   Layout()
@@ -126,24 +139,42 @@ local function Wanted()
   return Quick.guide ~= nil or (Quick.Enabled() and (T.previewing or ns.IsTestMode() or Quick.Live())) or false
 end
 
+-- Secure buttons can't change in combat: their macros, the panel's layout
+-- and visibility update out of combat; the panel says when one is waiting.
+local function Arm(button, macro)
+  macro = macro or ""
+  if button.macro ~= macro and not InCombatLockdown() then
+    button.fire:SetAttribute("macrotext", macro)
+    button.macro = macro
+  end
+  return button.macro == macro
+end
+
 function Quick.Update()
   local wanted = Wanted()
   if wanted ~= Quick.wanted then
     Quick.wanted = wanted
     ns.PvPEvents.Refresh()
   end
+  local combat = InCombatLockdown()
   local kind = select(2, IsInInstance())
-  local guide = Quick.guide and not InCombatLockdown() and kind ~= "pvp" and kind ~= "arena"
+  local guide = Quick.guide and not combat and kind ~= "pvp" and kind ~= "arena"
   local preview = (guide or T.previewing or ns.IsTestMode()) and kind ~= "pvp" and kind ~= "arena"
   local active = guide or Quick.Enabled() and (preview or Quick.Live())
   local area = active and (preview and "Farm" or Quick.Area())
   local destinations = active and (guide and Quick.guide.mode == "destinations" or not guide and Quick.Enabled("quickCallsDestinations")) and Quick.Destinations(preview) or NONE
   local routes = active and (guide and Quick.guide.mode == "routes" or not guide and Quick.Enabled("quickCallsRoutes")) and Quick.Routes(preview) or NONE
   if not area and #destinations == 0 and #routes == 0 then
-    if Quick.win then Quick.win:Hide(); Quick.win.context = nil end
+    if Quick.win and not combat then
+      for _, list in ipairs({ Quick.win.buttons, Quick.win.destinationButtons, Quick.win.routeButtons }) do
+        for _, button in ipairs(list) do Arm(button, nil) end
+      end
+      Quick.win:Hide(); Quick.win.context = nil
+    end
     if not Quick.Live() then Quick.sentAt = nil end
     return
   end
+  if not Quick.win and combat then return end -- built out of combat
   local w = Build()
   local context = preview and "preview" or Quick.Context()
   local signature = table.concat(destinations, "\031")
@@ -154,27 +185,40 @@ function Quick.Update()
     if context ~= w.context then w.destination:SetValue("", true) end
     w.destinationSignature = signature
   end
-  w.context, w.location, w.preview = context, area, preview
+  w.context, w.preview = context, preview
+  local live = not guide and not preview
+  -- Macros: none in the guide or a preview, where clicks give local feedback.
+  local armed = true
+  for _, button in ipairs(w.buttons) do
+    armed = Arm(button, live and area and Quick.Macro(Quick.Message(button.value, area))) and armed
+  end
+  local destination = w.destination:GetValue()
+  for _, button in ipairs(w.destinationButtons) do
+    armed = Arm(button, live and destination ~= "" and Quick.DestinationMacro(button.count, destination)) and armed
+  end
+  for i, button in ipairs(w.routeButtons) do
+    if not combat then button.route = routes[i]; button:SetText(routes[i] or "") end
+    armed = Arm(button, live and button.route and Quick.RouteMacro(button.route)) and armed
+  end
+  if not combat then w.location = area end -- the area the macros were made for
   local bg = not preview and Quick.Battleground()
-  w.area:SetText(area or (bg and bg.name) or ns.Locale:Get("highground.home.battleground.19d4bd"))
+  w.area:SetText(w.location or (bg and bg.name) or ns.Locale:Get("highground.home.battleground.19d4bd"))
+  local waiting = Quick.sentAt and GetTime() - Quick.sentAt < Quick.SENT_HINT
+  w.status:SetText(guide and (Quick.guide.message and ns.Locale:Get("battlegrounds.quickcalls.sample_sent_no_chat_message.a2dfb4") or ns.Locale:Get("battlegrounds.quickcalls.sample_try_a_button.7bdfed"))
+    or preview and ns.Locale:Get("battlegrounds.quickcalls.preview_messages_disabled.5b2c28")
+    or not armed and ns.Locale:Get("battlegrounds.quickcalls.updates_after_combat.d3bbe0")
+    or waiting and ns.Locale:Get("battlegrounds.quickcalls.sent_to_battleground.b084c4")
+    or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground.7dc06a"))
+  if combat then return end
   w.localRow:SetShown(not not area)
   w.destinationGroup:SetShown(#destinations > 0)
   w.routeGroup:SetShown(#routes > 0)
-  local now = GetTime()
-  local waiting = Quick.sentAt and now - Quick.sentAt < Quick.COOLDOWN
-  local drafted = Quick.draftedAt and now - Quick.draftedAt < Quick.DRAFT_HINT
-  local ready = guide or not preview and not waiting
-  w.status:SetText(guide and (Quick.guide.message and ns.Locale:Get("battlegrounds.quickcalls.sample_sent_no_chat_message.a2dfb4") or ns.Locale:Get("battlegrounds.quickcalls.sample_try_a_button.7bdfed"))
-    or preview and ns.Locale:Get("battlegrounds.quickcalls.preview_messages_disabled.5b2c28") or waiting and ns.Locale:Get("battlegrounds.quickcalls.sent_to_battleground.b084c4")
-    or drafted and ns.Locale:Get("battlegrounds.quickcalls.in_your_chat_box_press_enter.2625ba")
-    or Quick.Locked() and ns.Locale:Get("battlegrounds.quickcalls.click_then_press_enter_to_send.0b96a3")
-    or ns.Locale:Get("battlegrounds.quickcalls.click_to_send_to_battleground.7dc06a"))
-  for _, button in ipairs(w.buttons) do button:SetEnabled(ready and not not area) end
+  for _, button in ipairs(w.buttons) do button:SetEnabled(guide or button.macro ~= "") end
   w.destination:SetEnabled(guide or not preview)
-  for _, button in ipairs(w.destinationButtons) do button:SetEnabled(ready and w.destination:GetValue() ~= "") end
-  for i, button in ipairs(w.routeButtons) do
-    button.route = routes[i]; button:SetText(routes[i] or ""); button:SetShown(routes[i] ~= nil)
-    button:SetEnabled(ready and routes[i] ~= nil)
+  for _, button in ipairs(w.destinationButtons) do button:SetEnabled(guide and destination ~= "" or button.macro ~= "") end
+  for _, button in ipairs(w.routeButtons) do
+    button:SetShown(button.route ~= nil)
+    button:SetEnabled(guide and button.route ~= nil or button.macro ~= "")
   end
   Layout()
   w:Show()
@@ -197,6 +241,6 @@ end
 
 Core.OnFontScaleChange(Layout)
 Theme.OnChange(Layout)
-U.Events({ PLAYER_ENTERING_WORLD = Quick.Update, ZONE_CHANGED = Quick.Update,
+U.Events({ PLAYER_ENTERING_WORLD = Quick.Update, ZONE_CHANGED = Quick.Update, PLAYER_REGEN_ENABLED = Quick.Update,
   ZONE_CHANGED_INDOORS = Quick.Update, ZONE_CHANGED_NEW_AREA = Quick.Update }, "quick callout areas", "battlegrounds")
 ns.PvPEvents.Every(0.25, Quick.Update, "quick callouts", Wanted, "battlegrounds", Quick.Update)

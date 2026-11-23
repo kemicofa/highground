@@ -36,6 +36,8 @@ return function(sim, env)
         if sim.lastTarget then target(sim.lastTarget) end
       elseif command == "/cleartarget" then
         target(nil)
+      elseif command == "/i" or command == "/instance" then
+        sim.chat[#sim.chat + 1] = { text = argument, channel = "INSTANCE_CHAT", macro = true }
       else
         error("Unsupported simulated macro: " .. line)
       end

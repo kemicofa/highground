@@ -121,11 +121,6 @@ function Api.SendChatMessage(text, chatType, language, target)
   return ok and result ~= false
 end
 
--- Chat messaging lockdown (Midnight-client matches and encounters) drops
--- addon chat without an error; only the player's own Enter sends.
-function Api.ChatLockdown()
-  return Call(Api.Fn("C_ChatInfo", "InChatMessagingLockdown")) == true
-end
 
 -- Items (C_Item since 11.0).
 function Api.ItemCount(item) return tonumber((Call(Api.Fn("C_Item", "GetItemCount"), item))) or 0 end

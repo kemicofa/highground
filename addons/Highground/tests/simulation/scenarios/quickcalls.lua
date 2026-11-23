@@ -3,77 +3,44 @@ local function equal(a, b, why) return check(a, b, why or "values match") end
 local function click(button) button.scripts.OnClick(button, "LeftButton") end
 
 for _, game in ipairs({ "cata", "retail", "forever" }) do
-test(game .. " quick buttons send the selected count and current area directly, including in combat", function()
+test(game .. " quick buttons are game macros for the battleground and keep their area in combat", function()
   local area = "Farm"
   local sim = new(game == "cata" and "cata" or "retail", nil, function(_, env)
     env.GetSubZoneText = function() return area end
     if game == "forever" then env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
-    if game ~= "cata" then
-      env.C_ChatInfo.SendChatMessage, env.SendChatMessage = env.SendChatMessage, nil
-    end
   end)
   local C, Q = sim.ns.Core, sim.ns.QuickCalls
-  sim:join(); sim:setCombat(true)
+  sim:join()
   equal(Q.win, nil, "new feature is off until enabled")
   C.SetFeature("quickCalls", true)
   local w = assert(Q.win)
-  assert(w:IsShown() and not w.secure, "ordinary buttons appear during combat")
-  equal(w.area.text, "Farm")
-  C.db.objectiveChannel = "s" -- Retired Team callouts preferences cannot change the destination.
+  assert(w:IsShown(), "the panel appears")
   sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
   for i, message in ipairs({ "Need help — Farm", "Need help — Farm (1 enemy)", "Need help — Farm (2 enemies)",
     "Need help — Farm (3+ enemies)", "All clear — Farm" }) do
-    click(w.buttons[i])
+    sim:click(w.buttons[i].fire)
     equal(#sim.chat, i, "one message per click, no Enter")
     equal(sim.chat[i].text, message)
-    equal(sim.chat[i].channel, "INSTANCE_CHAT", "quick buttons always address the battleground")
-    equal(sim.chatDraft, "/w Friend unfinished message", "existing draft stays intact")
-    equal(w.buttons[i]:IsEnabled(), false, "brief cooldown blocks double clicks")
-    equal(Q.Send(1), false)
-    sim:advance(2.3)
-    equal(#sim.chat, i, "updates never send messages")
-    assert(w.buttons[i]:IsEnabled())
+    assert(sim.chat[i].macro and sim.chat[i].channel == "INSTANCE_CHAT", "sent as a /i macro, like the player's own")
+    equal(sim.chatDraft, "/w Friend unfinished message", "an open chat message stays intact")
   end
-  area = "Blacksmith" -- Click before the next area event or timer tick.
-  click(w.buttons[3])
-  equal(sim.chat[6].text, "Need help — Blacksmith (2 enemies)")
-  equal(w.area.text, "Blacksmith", "label catches up with the current area")
+  equal(w.status.text, "Sent to battleground")
+  sim:setCombat(true)
+  area = "Blacksmith"
+  sim:advance(0.5)
+  equal(w.area.text, "Farm", "in combat the panel keeps the area its macros were made for")
+  equal(w.status.text, "Updates after combat", "and says an update is waiting")
+  sim:click(w.buttons[3].fire)
+  equal(sim.chat[6].text, "Need help — Farm (2 enemies)", "combat clicks still send")
+  sim:setCombat(false)
+  sim:advance(0.5)
+  equal(w.area.text, "Blacksmith", "the area catches up after combat")
+  sim:click(w.buttons[3].fire)
+  equal(sim.chat[7].text, "Need help — Blacksmith (2 enemies)")
   C.SetFeature("quickCalls", false)
-  assert(not w:IsShown(), "turning off hides immediately in combat")
-  equal(Q.Send(1), false)
-  sim:setCombat(false); sim:leave()
-  equal(#sim.chat, 6)
-  sim:assertHealthy()
-end)
-end
-
-for _, game in ipairs({ "retail", "forever" }) do
-test(game .. " chat lockdown puts callouts in the chat box for Enter and keeps the player's draft", function()
-  local sim = new("retail", { quickCalls = true }, function(_, env)
-    env.GetSubZoneText = function() return "Farm" end
-    if game == "forever" then env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
-    env.C_ChatInfo.SendChatMessage, env.SendChatMessage = env.SendChatMessage, nil
-  end)
-  local Q = sim.ns.QuickCalls
-  sim:join()
-  local w = assert(Q.win)
-  sim.chatLockdown = true
-  sim:advance(0.3)
-  equal(w.status.text, "Click, then press Enter to send")
-  click(w.buttons[3])
-  equal(#sim.chat, 0, "the addon sends nothing while chat is locked")
-  equal(sim.chatDraft, "/i Need help — Farm (2 enemies)", "the callout waits in the chat box")
-  equal(w.status.text, "In your chat box · press Enter to send")
-  equal(Q.Send(1), false, "an unsent chat message is never replaced")
-  equal(sim.chatDraft, "/i Need help — Farm (2 enemies)")
-  sim.chatEditing = false
-  sim:advance(6)
-  equal(w.status.text, "Click, then press Enter to send")
-  sim.chatLockdown = false
-  sim:advance(0.3)
-  assert(Q.Send(1))
-  equal(#sim.chat, 1, "unlocked chat sends directly again")
-  equal(sim.chat[1].channel, "INSTANCE_CHAT")
+  assert(not w:IsShown(), "turning off hides the panel")
+  equal(w.buttons[1].fire.attrs.macrotext, "", "and clears its macros")
+  sim:leave()
   sim:assertHealthy()
 end)
 end
@@ -93,15 +60,15 @@ test("quick callouts follow named areas and battleground scope independently of 
   area, minimap = "", "Arathi Basin"
   sim:event("ZONE_CHANGED")
   assert(not w:IsShown(), "whole battleground name is not a destination")
-  equal(Q.Send(1), false)
+  equal(w.buttons[1].macro, "", "no macro without a named area")
   area, minimap = "", "Lumber Mill"
   sim:event("ZONE_CHANGED_INDOORS")
   assert(w:IsShown()); equal(w.area.text, "Lumber Mill", "minimap area fallback")
   area = "Ferme"
   sim:event("ZONE_CHANGED")
   equal(w.area.text, "Ferme", "localized names are preserved")
-  sim:leave(); assert(not w:IsShown()); equal(Q.Send(1), false)
-  sim:joinArena(); assert(not w:IsShown()); equal(Q.Send(1), false)
+  sim:leave(); assert(not w:IsShown()); equal(w.buttons[1].macro, "", "no macro after leaving")
+  sim:joinArena(); assert(not w:IsShown()); equal(w.buttons[1].macro, "", "no macro in arenas")
   equal(#sim.chat, 0)
   sim:leave()
   sim.rated = false
@@ -138,7 +105,7 @@ test("quick callout previews move independently and save positions in profiles a
   assert(w:IsShown() and w.preview, "preview available with other battleground panels off")
   equal(S.placement.context, "bg")
   equal(w.buttons[1]:IsEnabled(), false)
-  equal(Q.Send(2), false); equal(#sim.chat, 0, "preview cannot send")
+  equal(w.buttons[3].fire.attrs.macrotext, "", "preview cannot send"); equal(#sim.chat, 0)
   local moved = 0
   w.StartMoving = function() moved = moved + 1 end
   w.scripts.OnDragStart(w); equal(moved, 1)
@@ -166,27 +133,6 @@ test("quick callout previews move independently and save positions in profiles a
   sim:assertHealthy(); reloaded:assertHealthy()
 end)
 
-test("unavailable battleground chat and failed sends never fall back or queue messages", function()
-  local sim = new("cata", { quickCalls = true })
-  local Q = sim.ns.QuickCalls
-  sim.env.GetSubZoneText = function() return "Farm" end
-  sim:join()
-  equal(Q.Send("4"), false)
-  sim.env.IsInGroup = function(category) return category ~= sim.env.LE_PARTY_CATEGORY_INSTANCE end
-  sim.env.IsInRaid = function() return true end
-  equal(Q.Send(1), false, "premade raid is not the battleground channel")
-  sim.env.IsInGroup = function() return true end
-  local send = sim.env.SendChatMessage
-  sim.env.SendChatMessage = nil
-  equal(Q.Send(1), false)
-  sim.env.SendChatMessage = function() error("unavailable") end
-  equal(Q.Send(1), false)
-  sim.env.SendChatMessage = send
-  sim:advance(3); equal(#sim.chat, 0, "failed sends are not retried")
-  assert(Q.Send(1), "a failed send does not consume the cooldown")
-  sim:assertHealthy()
-end)
-
 test("quick callout controls fit enlarged text and long location names in every theme", function()
   local sim = new("cata", { quickCalls = true }, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   sim.env.GetSubZoneText = function() return "A long localized battleground objective name" end
@@ -202,11 +148,8 @@ test("quick callout controls fit enlarged text and long location names in every 
         assert(w.status:GetStringWidth() <= w.status:GetWidth(), "send hint fits")
         for _, language in ipairs({ "enUS", "deDE", "frFR" }) do
           sim.ns.Localization.SetPreference(language)
-          for _, key in ipairs({ "battlegrounds.quickcalls.click_then_press_enter_to_send.0b96a3",
-            "battlegrounds.quickcalls.in_your_chat_box_press_enter.2625ba" }) do
-            w.status:SetText(sim.ns.Locale:Get(key))
-            assert(w.status:GetStringWidth() <= w.status:GetWidth(), language .. " chat-box hint fits")
-          end
+          w.status:SetText(sim.ns.Locale:Get("battlegrounds.quickcalls.updates_after_combat.d3bbe0"))
+          assert(w.status:GetStringWidth() <= w.status:GetWidth(), language .. " combat hint fits")
         end
         sim.ns.Localization.SetPreference("enUS")
         local area = sim.bounds(w.area)

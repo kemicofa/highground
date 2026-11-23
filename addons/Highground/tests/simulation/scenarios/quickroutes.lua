@@ -1,6 +1,8 @@
 local test, new, check = ...
 local function equal(a, b, why) return check(a, b, why or "values match") end
 local function click(button) button.scripts.OnClick(button, "LeftButton") end
+-- Callouts are game macros: send through the secure button on top.
+local function send(sim, button) sim:click(button.fire) end
 
 local function setup(game, saved, configure)
   return new(game == "cata" and "cata" or "retail", saved, function(sim, env)
@@ -11,12 +13,12 @@ local function setup(game, saved, configure)
 end
 
 for _, game in ipairs({ "cata", "retail", "forever" }) do
-test(game .. " destination calls send the selected area, with local calls and a shared cooldown", function()
+test(game .. " destination calls send the selected area alongside local calls", function()
   local sim = setup(game, { quickCalls = true, timers = false, flags = false })
   local C, Q = sim.ns.Core, sim.ns.QuickCalls
   local area = "Lumber Mill"
   sim.env.GetSubZoneText = function() return area end
-  sim:join(); sim:setCombat(true)
+  sim:join()
   local w = Q.win
   assert(not w.destinationGroup:IsShown() and not w.routeGroup:IsShown(), "additions start off")
   C.SetFeature("quickCallsDestinations", true)
@@ -26,26 +28,20 @@ test(game .. " destination calls send the selected area, with local calls and a 
   equal(#sim.chat, 0, "selecting a place does not send")
   sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
   for i, count in ipairs({ "1", "2", "3+" }) do
-    click(w.destinationButtons[i])
+    send(sim, w.destinationButtons[i])
     equal(sim.chat[i].text, "" .. count .. (i == 1 and " enemy" or " enemies") .. " going to Farm")
     equal(sim.chat[i].channel, "INSTANCE_CHAT")
     equal(sim.chatDraft, "/w Friend unfinished message")
-    equal(Q.Send(1), false, "local calls share the cooldown")
-    equal(w.destinationButtons[2]:IsEnabled(), false)
-    sim:advance(2.3)
     area = "Blacksmith" -- Moving the observer must not change the chosen destination.
+    sim:advance(0.5)
     equal(#sim.chat, i, "no automatic sends")
   end
-  click(w.buttons[3])
+  send(sim, w.buttons[3])
   equal(sim.chat[4].text, "Need help — Blacksmith (2 enemies)", "local help still follows the observer")
-  equal(Q.SendDestination(2, "Farm"), false, "cooldown also applies after local help")
-  sim:advance(2.3)
-  equal(Q.SendDestination(4, "Farm"), false)
-  equal(Q.SendDestination(2, "not a map destination"), false)
-  equal(Q.SendRoute("Tunnel"), false, "route feature stays off")
+  equal(w.routeGroup:IsShown(), false, "route feature stays off")
   C.SetFeature("quickCallsDestinations", false)
   assert(not w.destinationGroup:IsShown() and w:IsShown())
-  equal(Q.SendDestination(2, "Farm"), false)
+  equal(w.destinationButtons[2].fire.attrs.macrotext, "", "turning the feature off clears its macros")
   equal(#sim.chat, 4)
   sim:assertHealthy()
 end)
@@ -54,41 +50,29 @@ test(game .. " WSG and Twin Peaks routes work in midfield without carrier observ
   local sim = setup(game, { quickCalls = true, timers = false, flags = false })
   local C, Q = sim.ns.Core, sim.ns.QuickCalls
   sim.env.GetSubZoneText = function() return sim.mapName end
-  sim:join(1460, 489, "Warsong Gulch"); sim:setCombat(true)
+  sim:join(1460, 489, "Warsong Gulch")
   equal(Q.win, nil, "broad area still hides the original panel")
   C.SetFeature("quickCallsRoutes", true)
   local w = assert(Q.win)
   assert(w:IsShown() and w.routeGroup:IsShown() and not w.localRow:IsShown())
   for i, route in ipairs({ "ramp", "graveyard", "tunnel" }) do
-    click(w.routeButtons[i])
+    send(sim, w.routeButtons[i])
     equal(sim.chat[i].text, "EFC going " .. route)
     equal(sim.chat[i].channel, "INSTANCE_CHAT")
-    equal(w.routeButtons[i]:IsEnabled(), false)
-    equal(Q.SendRoute("Ramp"), false)
-    sim:advance(2.3)
   end
-  -- A click before the map event/tick cannot reuse the old map's buttons.
-  sim.mapID, sim.instanceID, sim.mapName = 206, 726, "Twin Peaks"
-  click(w.routeButtons[1]); click(w.routeButtons[3])
-  equal(#sim.chat, 3, "stale route controls do not send, even for a shared route")
-  sim:join(206, 726, "Twin Peaks")
+  sim:leave(); sim:join(206, 726, "Twin Peaks")
   equal(w.routeButtons[3].label.text, "Water")
   for i, route in ipairs({ "ramp", "graveyard", "water" }) do
-    click(w.routeButtons[i])
+    send(sim, w.routeButtons[i])
     equal(sim.chat[3 + i].text, "EFC going " .. route)
-    sim:advance(2.3)
   end
-  equal(Q.SendRoute("Tunnel"), false, "wrong-map route rejected")
   C.SetFeature("quickCallsRoutes", false)
   assert(not w:IsShown())
-  equal(Q.SendRoute("Water"), false)
+  equal(w.routeButtons[1].fire.attrs.macrotext, "", "off clears the route macros")
   C.SetFeature("quickCallsRoutes", true)
-  C.SetFeature("quickCalls", false)
-  assert(not w:IsShown()); equal(Q.SendRoute("Water"), false)
-  C.SetFeature("quickCalls", true)
-  sim:setCombat(false); sim:leave()
-  assert(not w:IsShown()); equal(Q.SendRoute("Water"), false)
-  sim:joinArena(); assert(not w:IsShown()); equal(Q.SendRoute("Water"), false)
+  sim:leave()
+  assert(not w:IsShown()); equal(w.routeButtons[1].fire.attrs.macrotext, "", "leaving clears them")
+  sim:joinArena(); assert(not w:IsShown())
   sim:leave(); sim:join()
   assert(not w:IsShown(), "flag routes never appear on a base map")
   equal(#sim.chat, 6)
@@ -105,13 +89,12 @@ test("destination choices reset across matches and map changes before a fresh ti
   assert(w:IsShown() and not w.localRow:IsShown(), "destination calls also work on roads")
   w.destination:SetValue("Farm")
   sim.mapID, sim.instanceID, sim.mapName = 1576, 2245, "Deepwind Gorge"
-  click(w.destinationButtons[2])
-  equal(#sim.chat, 0, "Farm on a different map needs a fresh selection")
   Q.Update()
+  equal(w.destinationButtons[2].fire.attrs.macrotext, "", "Farm on a different map needs a fresh selection")
   equal(w.destination:GetValue(), "")
   equal(w.destinationButtons[2]:IsEnabled(), false)
   assert(w.destination:SetValue("Market"))
-  click(w.destinationButtons[2])
+  send(sim, w.destinationButtons[2])
   equal(sim.chat[1].text, "2 enemies going to Market")
   sim:leave(); sim:join(1576, 2245, "Deepwind Gorge")
   equal(w.destination:GetValue(), "", "a new match clears the destination")
@@ -135,7 +118,7 @@ test("Gilneas Mine and Mines are one destination using the client's observed nam
   equal(w.destination:GetValue(), "", "a replaced fallback needs a fresh selection")
   equal(w.destination:SetValue("Mine"), false, "duplicate fallback removed")
   assert(w.destination:SetValue("Mines"), "game spelling available")
-  click(w.destinationButtons[2])
+  send(sim, w.destinationButtons[2])
   equal(sim.chat[1].text, "2 enemies going to Mines")
   sim:assertHealthy()
 end)
@@ -150,7 +133,7 @@ test("destination calls use localized landmarks independently of timer and intel
   local w = sim.ns.QuickCalls.win
   assert(w.destination:SetValue("Ferme"))
   equal(w.destination:SetValue("Farm"), false, "English fallback does not duplicate localized choices")
-  click(w.destinationButtons[2])
+  send(sim, w.destinationButtons[2])
   equal(sim.chat[1].text, "2 enemies going to Ferme")
   sim:assertHealthy()
 end)
@@ -179,7 +162,8 @@ test("new callout options are opt-in, saved in profiles and disabled in previews
     for _, buttons in ipairs({ w.buttons, w.destinationButtons, w.routeButtons }) do
       for _, button in ipairs(buttons) do equal(button:IsEnabled(), false) end
     end
-    equal(Q.SendDestination(2, "Farm"), false); equal(Q.SendRoute("Tunnel"), false)
+    for _, button in ipairs(w.destinationButtons) do equal(button.fire.attrs.macrotext, "") end
+    for _, button in ipairs(w.routeButtons) do equal(button.fire.attrs.macrotext, "") end
     equal(#sim.chat, 0, "previews never send")
     sim.ns.BattlegroundsPreview.Stop(); assert(not w:IsShown())
     local reload = new("cata", sim.env.HighgroundDB)
@@ -188,22 +172,14 @@ test("new callout options are opt-in, saved in profiles and disabled in previews
   end
 end)
 
-test("new callouts keep failed sends out of premade chat and do not retry them", function()
+test("callout macros only ever address battleground chat", function()
   local sim = new("cata", { quickCalls = true, quickCallsDestinations = true, quickCallsRoutes = true })
-  local Q = sim.ns.QuickCalls
-  sim:join()
-  sim.env.IsInGroup = function(category) return category ~= sim.env.LE_PARTY_CATEGORY_INSTANCE end
-  sim.env.IsInRaid = function() return true end
-  equal(Q.SendDestination(2, "Farm"), false)
-  sim:leave(); sim:join(1460, 489, "Warsong Gulch")
-  equal(Q.SendRoute("Tunnel"), false)
-  sim.env.IsInGroup = function() return true end
-  local send = sim.env.SendChatMessage
-  sim.env.SendChatMessage = function() error("unavailable") end
-  equal(Q.SendRoute("Tunnel"), false)
-  sim.env.SendChatMessage = send
-  sim:advance(3); equal(#sim.chat, 0)
-  assert(Q.SendRoute("Tunnel"), "a failed send does not consume the cooldown")
+  sim:join(1460, 489, "Warsong Gulch")
+  local w = sim.ns.QuickCalls.win
+  for _, button in ipairs(w.routeButtons) do
+    local text = button.fire.attrs.macrotext
+    assert(text == "" or text:find("^/i "), "instance chat only, never a premade party or raid")
+  end
   sim:assertHealthy()
 end)
 

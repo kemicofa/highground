@@ -78,8 +78,11 @@ assert(control(auto).sample:GetFont() == "NativeFont.ttf", "native script face r
 assert(auto.ns.Localization.SetPreference("enUS"))
 assert(auto.ns.Localization.Font() == "NativeFont.ttf", "English UI retains native name glyphs")
 local sample = control(auto).sample
-local setFont = sample.SetFont
-sample.SetFont = function(self, file, ...)
+-- The client lacks the script font: every SetFont of it fails, including
+-- the hidden probe that tests fonts before they become a family member.
+local methods = getmetatable(sample).__index
+local setFont = methods.SetFont
+methods.SetFont = function(self, file, ...)
   if file ~= "NativeFont.ttf" then return false end
   return setFont(self, file, ...)
 end

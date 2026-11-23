@@ -173,10 +173,12 @@ end)
 t.test("font roles avoid resetting unchanged fonts and follow actual native state", function()
   local C, T = s.ns.Core, s.ns.Theme
   local text = T.Text(env.UIParent, "body")
-  local writes, set = 0, text.SetFont
+  -- A font family (when the client has them) or the text's own font.
+  local writes, set, setObject = 0, text.SetFont, text.SetFontObject
   text.SetFont = function(...) writes = writes + 1; return set(...) end
+  text.SetFontObject = function(...) writes = writes + 1; return setObject(...) end
   for _ = 1, 30 do T.SetRole(text, "body") end
-  t.equal(writes, 0, "unchanged text role never calls SetFont")
+  t.equal(writes, 0, "unchanged text role never resets the font")
   C.SetFontScale(1.2)
   assert(writes > 0, "text size changes still apply")
   local get = text.GetFont

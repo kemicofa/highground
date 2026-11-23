@@ -271,3 +271,16 @@ test("theme text keeps its face and lets the game draw Cyrillic, Korean and Chin
   assert(fs.fontObject.members[1].height > family.members[1].height, "text size changes follow the family")
   sim:assertHealthy()
 end)
+
+test("themed text gets only the font family, never its own font that would override it", function()
+  local sim = new("retail", {})
+  local methods = getmetatable(sim.env.UIParent).__index
+  local setFont, own = methods.SetFont, {}
+  methods.SetFont = function(self, ...) own[self] = true; return setFont(self, ...) end
+  local fs = sim.ns.Theme.Text(sim.env.UIParent, "body")
+  sim.ns.Core.SetFontScale(1.25)
+  methods.SetFont = setFont
+  assert(fs.fontObject and fs.fontObject.members, "the text uses a font family")
+  equal(own[fs], nil, "SetFont is never called on the text itself")
+  sim:assertHealthy()
+end)

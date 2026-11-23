@@ -28,7 +28,8 @@ function Flags.BuildFlags()
     r.healthTextBg = Theme.Fill(r.bar, "OVERLAY", "bg", 0.9)
     r.healthTextBg:SetPoint("TOPLEFT", r.hpText, "TOPLEFT", -3, 1)
     r.healthTextBg:SetPoint("BOTTOMRIGHT", r.hpText, "BOTTOMRIGHT", 3, -1)
-    r.faction = r:CreateTexture(nil, "OVERLAY")
+    -- On the icon's own frame, one sublevel up, so the crest is never under it.
+    r.faction = r.icon:GetParent():CreateTexture(nil, "OVERLAY", nil, 7)
     r.right = Theme.Text(r, "label", "textMuted")
     r.right:SetJustifyH("RIGHT")
     Flags.frows[i] = r

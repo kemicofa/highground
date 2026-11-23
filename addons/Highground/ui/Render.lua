@@ -139,7 +139,8 @@ function Core.Render()
         r.spec:SetText(ns.SpecLabel(e, (p and p.short) or Core.SPEC_SHORT[e.specID] or (si and ns.Text.Upper(si.name)) or ""))
       elseif not (type(e.specLive) == "string" and pcall(r.spec.SetText, r.spec, e.specLive)) then
         -- Live spec is secret mid-match: the game can draw it, we can't read it.
-        r.spec:SetText("?")
+        -- Unknown: blank, as the class already shows in the icon and colour.
+        r.spec:SetText("")
       end
 
       Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, e.testHp or e.hpPct),

@@ -119,3 +119,31 @@ test("a deleted match can be restored with its original observations", function(
   equal(H.All()[1], original); assert(#original.events > 0)
   assert(not H.win.undo:IsVisible())
 end)
+
+test("enemy rows show a spec only when it is identified, never the class name", function()
+  for _, game in ipairs({ "retail", "forever" }) do
+    local sim = new("retail", nil, function(s)
+      if game == "forever" then s.env.GetBuildInfo = function() return "1.60.1", "1", "", 16001 end end
+    end)
+    sim:enemy("Classonly")
+    sim.scores[#sim.scores].talentSpec = "Mage" -- what WoW Forever's scoreboard reports
+    sim:join()
+    sim:advance(1.5)
+    equal(sim.ns.Core.rows[1].spec:GetText(), "", game .. ": the class name is not repeated as a spec")
+    sim:leave()
+  end
+  local sim = new("retail")
+  sim:enemy("Frosty", { classID = 8, specIndex = 3 })
+  sim:join()
+  sim:advance(1.5)
+  assert(sim.ns.Core.rows[1].spec:GetText() ~= "", "an identified spec still shows")
+  sim:assertHealthy()
+end)
+
+test("the flag carrier crest is drawn on the class icon's own frame", function()
+  local sim = new("retail")
+  sim.ns.Flags.BuildFlags()
+  for _, r in ipairs(sim.ns.Flags.frows) do
+    equal(r.faction:GetParent(), r.icon:GetParent(), "the crest is not hidden under the icon")
+  end
+end)

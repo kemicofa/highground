@@ -11,7 +11,7 @@ test(client .. " fresh install offers the feature guide once without changing de
   assert(C.firstInstall and O.win:IsVisible() and not sim.ns.Hub.win)
   equal(O.Current().key, "welcome"); assert(O.win.cards.macros.start:IsVisible())
   click(O.win.later)
-  equal(C.db.rows, 5); equal(C.db.allBGs, true); equal(C.db.locked, true)
+  equal(C.db.rows, C.MAX_ROWS, "the whole enemy team by default"); equal(C.db.allBGs, true); equal(C.db.locked, true)
   equal(sim.ns.Theme.Current(), "highground", "branded class colours on first install")
   equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
   equal(C.O("prioritySort"), false, "rows stay in place by default")
@@ -30,14 +30,14 @@ test(client .. " fresh install offers the feature guide once without changing de
   local again = new(client, sim.env.HighgroundDB)
   again:advance(2)
   assert(not again.ns.Onboarding.win and not again.ns.Core.firstInstall)
-  equal(again.ns.Core.db.rows, 5)
+  equal(again.ns.Core.db.rows, C.MAX_ROWS)
   sim.ns.Hub.Open("home")
   equal(sim.ns.Hub.home.guide.title.text, "You're ready to play")
   click(sim.ns.Hub.home.start); assert(not sim.ns.Hub.win:IsVisible())
   sim:assertHealthy()
 end)
 
-test(client .. " fresh install activates in unrated battlegrounds and keeps five clickable rows", function()
+test(client .. " fresh install activates in unrated battlegrounds and lists the whole enemy team", function()
   local sim = new(client, nil, function(_, env)
     env.C_PvP.IsRatedBattleground = function() return false end
     env.C_PvP.IsRatedMap = function() return false end
@@ -45,17 +45,36 @@ test(client .. " fresh install activates in unrated battlegrounds and keeps five
   for i = 1, 15 do sim:enemy("Enemy" .. i) end
   sim:join()
   assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible())
-  local shown = 0
-  for _, row in ipairs(sim.ns.Core.rows) do if row:IsShown() then shown = shown + 1 end end
-  equal(shown, 5)
-  assert(sim.ns.Core.subtitle.text:find("5/15", 1, true))
-  sim:click(sim.ns.Core.rows[1]); assert(sim.units.target, "the small list still targets enemies")
+  local function Shown()
+    local shown = 0
+    for _, row in ipairs(sim.ns.Core.rows) do if row:IsShown() then shown = shown + 1 end end
+    return shown
+  end
+  equal(Shown(), 15, "every enemy has a row")
+  equal(sim.ns.Core.subtitle.text, "15", "no partial count")
+  sim:click(sim.ns.Core.rows[1]); assert(sim.units.target, "rows target enemies")
+  sim.ns.Core.SetRows(5); sim:advance(0.5)
+  equal(Shown(), 5); assert(sim.ns.Core.subtitle.text:find("5/15", 1, true), "a chosen limit shows its count")
   sim:setCombat(true); sim.ns.Core.SetRows(10)
   equal(sim.ns.Core.rows[6]:IsShown(), false, "protected rows wait for combat to end")
   sim:setCombat(false)
   assert(sim.ns.Core.rows[10]:IsShown()); sim:assertHealthy()
 end)
 end
+
+test("the old five- and ten-row defaults upgrade once to the whole team, profiles included", function()
+  local sim = new("cata", { rows = 5, profiles = {
+    Old = { setup = { preferences = { rows = 5 } } },
+    Ten = { setup = { preferences = { rows = 10 } } },
+    Seven = { setup = { preferences = { rows = 7 } } } } })
+  local C = sim.ns.Core
+  equal(C.db.rows, C.MAX_ROWS, "the untouched five-row default shows everyone")
+  equal(C.db.profiles.Old.setup.preferences.rows, C.MAX_ROWS, "saved profiles upgrade too")
+  equal(C.db.profiles.Ten.setup.preferences.rows, C.MAX_ROWS, "the older ten-row default too")
+  equal(C.db.profiles.Seven.setup.preferences.rows, 7, "other choices stay")
+  C.SetRows(5)
+  equal(new("cata", sim.env.HighgroundDB).ns.Core.db.rows, 5, "five chosen later survives reloads")
+end)
 
 test("upgrades enable unrated battlegrounds and preserve other preferences", function()
   local sim = new("retail", { rows = 24, allBGs = false, sniper = true, locked = false,

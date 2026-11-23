@@ -4,7 +4,7 @@ local _, ns = ...
 -- and Highground Battlegrounds. See config/Options.lua.
 ns.OptionsAdd({
   module = "battlegrounds",
-  firstRun = { allBGs = true, rows = 5, sniper = true, pressure = false, burstMarks = false,
+  firstRun = { allBGs = true, sniper = true, pressure = false, burstMarks = false,
     dieAlert = false, sapCall = false, hideTracker = false, objectiveOverview = false },
   pointAliases = { kit42292 = "trinketDown" },
   pages = {

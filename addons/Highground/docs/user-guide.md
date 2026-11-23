@@ -44,7 +44,7 @@ Every separate HUD panel has a cogwheel for lock/unlock, arrangement, quick acti
 
 Open **Settings** in the addon’s own sidebar section. All available switches and detailed controls are shown together; scroll to reach the rest. The addon’s **Overview and enable** switch controls whether the whole addon runs after reload. Disabled child switches explain which parent to enable. Every change saves immediately.
 
-New installations include unrated battlegrounds, show five enemies, enable the target crosshair and Nearby enemies, and use **Essentials** alerts. Nearby starts with five rows and sighting/stealth sounds enabled. Burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
+New installations include unrated battlegrounds, show the whole enemy team, enable the target crosshair and Nearby enemies, and use **Essentials** alerts. Nearby starts with five rows and sighting/stealth sounds enabled. Burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
 
 **Include unrated battlegrounds** controls ordinary matches. **10v10 battlegrounds**, **15v15 battlegrounds** and **Epic battlegrounds** filter team sizes; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. **Sounds** mutes every Highground sound. Unsupported controls are hidden for your client.
 
@@ -70,7 +70,7 @@ Enemy rows keep their positions by default while priority ranks and recommendati
 
 The **suggested-target card** above the list is off by default. Enable **Battlegrounds → Appearance → Panels → Suggested target card** to show the recommended enemy's name, class, health and teammate pressure. Hiding the card keeps priority calculations, row highlights and recommendations active.
 
-New installations show five enemy rows; change **Battlegrounds → Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. A header such as **5/15** means five of fifteen are displayed. With stable ordering, a higher-priority enemy can be outside that limit; choose **All** to see the whole roster. Hover a row for the full spec and how it was found, location, cast, and cooldowns used with time remaining. Numerical scores are available in **Target behavior → Refresh comparison**.
+New installations show every enemy; change **Battlegrounds → Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. Saved setups that kept the earlier five- or ten-row default were moved to all. A header such as **5/15** means five of fifteen are displayed. With stable ordering, a higher-priority enemy can be outside that limit; choose **All** to see the whole roster. Hover a row for the full spec and how it was found, location, cast, and cooldowns used with time remaining. Numerical scores are available in **Target behavior → Refresh comparison**.
 
 ### Enemy row legend
 

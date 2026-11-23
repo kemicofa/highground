@@ -115,9 +115,17 @@ function Core.LoadSaved()
       if type(setup) == "table" and type(setup.preferences) == "table" then Upgrade(setup.preferences) end
     end
   end)
-  Versioned(db, "rowsVersion", 2, function()
-    -- Rows used to default to 10: show the whole enemy team instead.
-    if db.rows == 10 then db.rows = Core.MAX_ROWS end
+  Versioned(db, "rowsVersion", 3, function()
+    -- Rows used to default to 10, then to 5 on new installs: show the whole
+    -- enemy team instead, in saved setups too.
+    local function Upgrade(settings)
+      if settings.rows == 10 or settings.rows == 5 then settings.rows = Core.MAX_ROWS end
+    end
+    Upgrade(db)
+    for _, profile in pairs(type(db.profiles) == "table" and db.profiles or {}) do
+      local setup = type(profile) == "table" and profile.setup
+      if type(setup) == "table" and type(setup.preferences) == "table" then Upgrade(setup.preferences) end
+    end
   end)
   Versioned(db, "gyLearnedVersion", 2, function()
     -- Start areas learned before the side was confirmed may carry the

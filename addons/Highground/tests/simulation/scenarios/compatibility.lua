@@ -157,7 +157,7 @@ test("damaged battleground, profile, match and macro records load without errors
     profileAssignments = { Someone = "damaged" }, capLog = { "junk", 5 }, disabledCooldowns = "damaged" }
   local sim = new("cata", saved)
   local db = sim.env.HighgroundDB
-  equal(db.rowsVersion, 2, "damaged upgrade marker repaired")
+  equal(db.rowsVersion, 3, "damaged upgrade marker repaired")
   equal(db.battlegroundScopeVersion, 2, "every damaged marker repaired")
   equal(db.history, nil, "the empty legacy history stub is not recreated")
   equal(type(db.profiles), "table", "profiles repaired")

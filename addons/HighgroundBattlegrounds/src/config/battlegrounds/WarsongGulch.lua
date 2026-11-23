@@ -1,4 +1,12 @@
 local _, ns = ...
+-- Match resurrection points; 769/770 are prematch flag-room spawns.
+-- Cata 4.3.0 WorldSafeLocs.dbc, projected using WorldMapArea.dbc row 443
+-- (map 489): west 2041.666626, east 895.833313, north 1627.083252, south
+-- 862.499939. Live positions win by ID. WoW Forever uses the same map.
+local BASE_GRAVEYARDS = {
+  ns.Localization.Define({ id = 771, team = "A", label = ns.Locale:Get("battlegrounds.twinpeaks.alliance_base_graveyard.e51d07"), x = 0.41622721, y = 0.28830137 }, { label = "battlegrounds.twinpeaks.alliance_base_graveyard.e51d07" }),
+  ns.Localization.Define({ id = 772, team = "H", label = ns.Locale:Get("battlegrounds.twinpeaks.horde_base_graveyard.2c965b"), x = 0.57999419, y = 0.73959668 }, { label = "battlegrounds.twinpeaks.horde_base_graveyard.2c965b" }),
+}
 ns.RegisterBattleground(ns.Localization.Define({
   id = "warsong_gulch", gameName = "Warsong Gulch", kind = "ctf", size = 10,
   clients = {
@@ -6,14 +14,7 @@ ns.RegisterBattleground(ns.Localization.Define({
     cata = { ui = { 1339, 1460 }, inst = { 489 }, rules = {
       flags = { firstStackSeconds = 180, stackInterval = 60, maxStacks = 10 },
       graveyards = {
-        -- Match resurrection points; 769/770 are prematch flag-room spawns.
-        -- Cata 4.3.0 WorldSafeLocs.dbc, projected using WorldMapArea.dbc
-        -- row 443 (map 489): west 2041.666626, east 895.833313,
-        -- north 1627.083252, south 862.499939. Live positions win by ID.
-        static = {
-          ns.Localization.Define({ id = 771, team = "A", label = ns.Locale:Get("battlegrounds.twinpeaks.alliance_base_graveyard.e51d07"), x = 0.41622721, y = 0.28830137 }, { label = "battlegrounds.twinpeaks.alliance_base_graveyard.e51d07" }),
-          ns.Localization.Define({ id = 772, team = "H", label = ns.Locale:Get("battlegrounds.twinpeaks.horde_base_graveyard.2c965b"), x = 0.57999419, y = 0.73959668 }, { label = "battlegrounds.twinpeaks.horde_base_graveyard.2c965b" }),
-        },
+        static = BASE_GRAVEYARDS,
       },
       -- Flag rooms: flag spawns from BattlegroundWS.h, same projection.
       map = { anchors = {
@@ -37,6 +38,9 @@ ns.RegisterBattleground(ns.Localization.Define({
       anchors = { ["silverwing hold"] = { 0.5, 0.15 }, ["warsong lumber mill"] = { 0.5, 0.85 }, ["warsong gulch"] = { 0.5, 0.5 } },
     },
   },
+  -- Both base graveyards from the start, so the enemy's shows a timer too
+  -- once the shared clock is known.
+  games = { forever = { graveyards = { static = BASE_GRAVEYARDS } } },
   blitz = { flags = { firstStackSeconds = 15, stackInterval = 15 } },
   -- Original Cata timing; custom servers may differ.
   sources = {

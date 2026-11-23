@@ -99,7 +99,9 @@ function ns.ResolveBattleground(ui, instance, client, mode, game)
   resolved[game] = cache
   if cache[key] then return cache[key] end
   local rules = {
-    resurrection = { period = 30 },
+    -- WoW Forever runs one resurrection clock per battleground: every
+    -- graveyard and both teams share the waves (observed 2026-11-23).
+    resurrection = { period = 30, shared = game == "forever" or nil },
     capture = {},
     graveyards = { mode = "none" },
     scoring = { predict = false },

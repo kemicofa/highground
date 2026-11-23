@@ -209,6 +209,7 @@ local function RenderRow(row, entry)
   row.summary:ClearAllPoints(); row.summary:SetPoint("TOPLEFT", x, -25 * scale)
   row.summary:SetWidth(row:GetWidth() - x - 12); row.summary:SetWordWrap(false)
   T.Paint(row.summary, TONES[match.result] or "textMuted")
+  T.Paint(row.classStrip, TONES[match.result] or "border", TONES[match.result] and 1 or 0)
   Place(row.when, date("%Y-%m-%d %H:%M", match.started), x, 40 * scale, row:GetWidth() - x - 12)
 end
 

@@ -42,7 +42,7 @@ Rows are `<seconds since start> <kind> <text>`. `python3 scripts/bg_profile.py <
 | `match` | Match state changes and the result |
 | `me` | Your deaths: death events, the game's spirit-healer countdown, and on resurrection the error against that countdown (`healerErr`) and against Highground's clock (`gyErr`) |
 | `wave` | Each resurrection wave Highground learns (`exact`, `guide`, `shared`, `cap`), with `err` = the wave minus the prediction it replaced |
-| `gy`, `clock`, `advice` | Graveyard clock changes, period/shared-clock changes and "die now" advice |
+| `gy`, `clock`, `advice` | Graveyard clock changes, period, downtime and shared-clock changes, and "die now" advice |
 | `node`, `poi`, `widget`, `vignette`, `flag` | Base ownership and capture timers, raw map POIs and icons, widget text (numbers alone at most every 15 s), vignettes, flag carriers and respawn |
 | `res`, `obj` | What the resurrection and objective windows show, on a change of rows and every 10 s |
 | `comms`, `area`, `summary` | Chat lockdown and send blocks, your subzone, and a 30 s roster, timer-statistics, memory and frame-rate summary |

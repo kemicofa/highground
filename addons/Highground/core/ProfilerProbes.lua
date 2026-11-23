@@ -26,20 +26,28 @@ local function Team(t) return (t == "A" or t == "H") and t or "-" end
 ---------------------------------------------------------------------------
 -- Resurrection clocks
 ---------------------------------------------------------------------------
+-- Seconds between two waves of one clock: the countdown plus any downtime.
+local function Cycle(T)
+  return T.WaveCycle and T.WaveCycle() or T.WavePeriod and T.WavePeriod()
+end
+
 local function Graveyards(T, now)
-  local period = T.WavePeriod and T.WavePeriod()
+  local period, downtime = T.WavePeriod and T.WavePeriod(), T.Downtime and T.Downtime()
+  local cycle = Cycle(T)
   local shared = T.SharedClock and U.call(T.SharedClock)
   local start = T.startClock and T.startClock.g and T.GYName(T.startClock.g)
-  if Changed("clock", tostring(period) .. tostring(shared) .. tostring(start)) then
-    P.Add("clock", string.format("period=%s shared=%s start=%s", tostring(period), tostring(shared), tostring(start or "-")))
+  local samples = type(T.downtimes) == "table" and #T.downtimes or 0
+  if Changed("clock", table.concat({ tostring(period), tostring(downtime), tostring(shared), tostring(start), samples }, "|")) then
+    P.Add("clock", string.format("period=%s downtime=%s shared=%s start=%s downtimeSamples=%d", tostring(period),
+      tostring(downtime or 0), tostring(shared), tostring(start or "-"), samples))
   end
   for _, g in ipairs(T.gys or {}) do
     if T.Available(g) then
       local nw, est = T.NextWave(g, now)
-      local phase = nw and period and nw % period
+      local phase = nw and cycle and nw % cycle
       local was = gyLast[g]
       local moved = not was or (phase == nil) ~= (was.phase == nil)
-        or phase and math.abs(((phase - was.phase + period / 2) % period) - period / 2) > 1
+        or phase and math.abs(((phase - was.phase + cycle / 2) % cycle) - cycle / 2) > 1
       if moved or was.est ~= est or was.conf ~= g.conf then
         gyLast[g] = { phase = phase, est = est, conf = g.conf }
         P.Add("gy", string.format("%s %s next=%s est=%s conf=%s votes=%s", Team(g.team), T.GYName(g),
@@ -279,8 +287,8 @@ local function InstallHooks()
   Install(T, "SetWave", function(original)
     return function(g, t, conf, ...)
       if not (P.Recording() and g and type(t) == "number") then return original(g, t, conf, ...) end
-      local period = T.WavePeriod and T.WavePeriod()
-      local predicted = period and T.Available(g) and U.call(T.NextWave, g, t - period / 2)
+      local cycle = Cycle(T)
+      local predicted = cycle and T.Available(g) and U.call(T.NextWave, g, t - cycle / 2)
       local was, before = g.conf, g.wave
       original(g, t, conf, ...)
       -- A ghost's countdown confirms the same wave four times a second.

@@ -62,6 +62,34 @@ test("battleground profiler waits outside, records a match and offers a reload o
   sim:assertHealthy()
 end)
 
+test("WoW Forever recordings measure waves on the 31.6-second cycle", function()
+  local sim = new("retail", nil, function(s)
+    s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+    s.env.loadstring_untainted, s.secureSnippets, s.rated, s.blitz = nil, false, false, false
+  end)
+  sim:command("bg profiler start")
+  sim:join(1460, 489, "Warsong Gulch")
+  local s = sim.env.HighgroundDB.bgProfiles[1]
+  assert(find(s, " clock period=30 downtime=1%.6 "), "period and downtime")
+  local rezAt
+  sim.env.GetAreaSpiritHealerTime = function() return sim.units.player.ghost and math.max(0, rezAt - sim.now) or nil end
+  for _, delay in ipairs({ 12, 31.6 }) do
+    rezAt = (rezAt or sim.now) + delay
+    sim.units.player.ghost = true
+    sim:advance(rezAt - sim.now)
+    sim.units.player.ghost = false
+    sim:event("PLAYER_UNGHOST")
+    sim:advance(1)
+  end
+  local second
+  for _, row in ipairs(s.rows) do
+    if row:find(" wave exact ") and not row:find("err=%- ") then second = row end
+  end
+  local err = second and tonumber(second:match("err=(%-?[%d.]+)"))
+  assert(err and math.abs(err) <= 0.3, "the next wave was predicted a cycle later: " .. tostring(second))
+  sim:assertHealthy()
+end)
+
 test("a reload inside the battleground continues the same recording", function()
   local sim = horde()
   sim:join(1460, 489, "Warsong Gulch")

@@ -228,7 +228,7 @@ end
 
 Commands.options = Commands.config
 
--- /hg nearby [on | off | map on|off | share on|off | share guild on|off |
+-- /hg nearby [on | off | map on|off | share on|off | share guild on|off | fights on|off |
 -- tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
 -- mark TYPE|clear | marks on|off | marks world on|off | calls on|off | feed on|off |
 -- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
@@ -244,6 +244,7 @@ local NEARBY_SWITCHES = {
   ["marks on"] = "nearbyMarks", ["marks off"] = "nearbyMarks",
   ["calls on"] = "nearbyCalls", ["calls off"] = "nearbyCalls",
   ["feed on"] = "nearbyFeed", ["feed off"] = "nearbyFeed",
+  ["fights on"] = "worldFights", ["fights off"] = "worldFights",
 }
 
 -- /hg nearby mark enemies|ganker|help: at your position; mark clear: yours.

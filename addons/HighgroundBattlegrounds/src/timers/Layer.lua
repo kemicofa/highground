@@ -32,7 +32,8 @@ AddLayer(function(mapID)
     local name = Timers.GYMapName(g)
     if name ~= "" and name ~= "?" then label = name .. "\n" .. label end
     items[#items + 1] = {
-      x = g.x, y = g.y + (g.configured and 0 or 0.025), size = 16,
+      -- A spot taken from the base icon sits below it; a known one is exact.
+      x = g.x, y = g.y + ((g.configured or g.exact) and 0 or 0.025), size = 16,
       ring = c, icon = "Interface\\Icons\\Spell_Holy_Resurrection",
       label = label, labelColor = c, alpha = nw and 1 or 0.6,
       tooltip = function(tt)

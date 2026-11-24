@@ -79,7 +79,7 @@ function Timers.Reset(mapID)
     end
   end
   for _, g in ipairs(learned or {}) do
-    Timers.gys[#Timers.gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, learned = true }
+    Timers.gys[#Timers.gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, exact = g.exact, learned = true }
   end
   -- Permanent start graveyards (rules.graveyards.starts), named and placed
   -- from the map; never learned or reassigned.
@@ -123,9 +123,7 @@ end
 
 function Timers.Learn(gy)
   local db = Timers.LearnedDB()
-  if not (db and Timers.currentMap) or gy.saved or gy.configured then
-    return
-  end
+  if not (db and Timers.currentMap) or gy.saved or gy.configured then return end
   -- Until the scoreboard confirms your side, MyTeam() is the character's
   -- faction, which is wrong in cross-faction games: never save that guess.
   if not (ns.GetAllyFaction and ns.GetAllyFaction()) then
@@ -136,6 +134,8 @@ function Timers.Learn(gy)
   db.gyLearned[Timers.currentMap] = list
   for _, g in ipairs(list) do
     if g.team == gy.team and (g.x - gy.x) ^ 2 + (g.y - gy.y) ^ 2 < 0.06 ^ 2 then
+      -- A release position replaces a spot taken from the base icon.
+      if gy.exact and not g.exact then g.x, g.y, g.exact = gy.x, gy.y, true end
       gy.saved = true
       return
     end

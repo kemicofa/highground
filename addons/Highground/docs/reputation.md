@@ -27,9 +27,9 @@ Automatic replies only go to players whose whispers are blocked by Reputation. E
 
 `/hg reputation communities`, `/hg reputation manage`, `/hg reputation report target`, `/hg reputation sync`, `/hg reputation status`, `/hg reputation on`, `/hg reputation off`.
 
-Membership and moderator permissions come from the game at the time of each action. Leaving a group stops its filtering and synchronization; role changes cancel affected transfers. Native roster data that is unavailable or unreadable grants no moderator access. Guild officers come from the game's rank permissions, without assuming that rank 1 is an officer.
+Membership and moderator permissions come from the game at the time of each action. Leaving a group stops its filtering and synchronization; role changes cancel that organization's transfers. Native roster data that is unavailable or unreadable grants no moderator access. Guild officers come from the game's rank permissions, without assuming that rank 1 is an officer.
 
-Forever keeps first name and surname together and separates data by realmset. Retail communities can span realms. Reports identify characters, not unknown alts.
+Forever keeps first name and surname together and separates data by realmset. Type names there as First Surname: Reputation never asks for a realm. Retail communities can span realms. Reports identify characters, not unknown alts.
 
 ## Sharing and storage
 
@@ -41,11 +41,11 @@ Updated addons automatically check sharing compatibility. A known incompatible v
 
 Reports go to moderators. Approved explanations, decisions and revocations are shared with members. Historical decisions remain valid after a moderator steps down; new decisions require current native permissions. Transfers are chunked, retried and staged before activation. A pending proposal is cleared only after a native moderator who was sent that revision acknowledges it. There is no server-hosted database; queued reports need the reporting character online to send.
 
-One generated reporting identity spans characters in this installation. It is not a Blizzard account identifier: resetting saved data or using another installation can bypass deduplication. Notes should contain only information intended for the recipient group. Previously received copies cannot be remotely erased.
+One generated reporting identity spans characters in this installation. It is not a Blizzard account identifier: resetting saved data or using another installation can bypass deduplication, but one character still counts once per reported player. Notes should contain only information intended for the recipient group. Previously received copies cannot be remotely erased.
 
 The data addon owns reports, moderation history, pending deliveries and feature preferences. It stores native organization IDs as references, without duplicating their membership or permissions. Data is written by WoW on logout/reload. Back up `HighgroundReputationData.lua` before resetting it.
 
-Each organization retains up to 2,000 reports and 4,000 moderation records. A full history refuses changes instead of discarding revocations. Battle.net chat, chat bubbles and third-party chat windows are outside the standard player-chat filters.
+Each organization retains up to 2,000 reports, at most 50 from one character; reviewed reports are dropped after 180 days. A decision covers as many reports as fit one message, and any others stay in **Proposals**. At 4,000 moderation records, decisions that can no longer change a case (an older ban, revocation or dismissal of the same player) are dropped; the current decision and revocations that still apply stay. If none can go, the history refuses changes. Battle.net chat, chat bubbles and third-party chat windows are outside the standard player-chat filters.
 
 ## Navigation and preview
 

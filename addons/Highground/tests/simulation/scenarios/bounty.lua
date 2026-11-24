@@ -127,6 +127,27 @@ test("officers review submissions on the bounty board and answer sync requests",
   assert(replies[#replies]:find("^1:A,Rogue%-Other,200,"), "unheard bounty sent")
 end)
 
+test("bounty commands run on a translated client", function()
+  local sim = inGuild("retail", 1)
+  local Bounty = sim.ns.Bounty
+  assert(sim.ns.Localization.SetPreference("deDE"))
+  local function state(name) local b = Bounty.Guild()[Bounty.Key(name)]; return b and b.state end
+  sim:command("bounty add 200 Rogue-Other")
+  sim:command("bounty submit Rogue-Other")
+  equal(state("Rogue-Other"), "approved", "submit")
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,", "Member-Realm")
+  guildMessage(sim, "1:A,Sneak-Other,40,Member-Realm,1000,P,,", "Member-Realm")
+  sim:command("bounty approve Thief-Other")
+  equal(state("Thief-Other"), "approved", "approve")
+  sim:command("bounty reject Sneak-Other")
+  equal(state("Sneak-Other"), "removed", "reject")
+  sim:command("bounty claim Thief-Other")
+  assert(Bounty.Ledger.Find("Thief-Other"), "claim")
+  sim:command("bounty remove Rogue-Other")
+  equal(state("Rogue-Other"), "removed", "remove")
+  sim:assertHealthy()
+end)
+
 test("officers are the ranks with the guild's officer permission", function()
   -- Rank orders count from 1 (guild master); rank 3 (order 4) is an officer rank, rank 1 is not.
   local officerOrders, loaded, clientOfficer = { [1] = true, [4] = true }, true, false

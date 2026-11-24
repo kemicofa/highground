@@ -101,8 +101,11 @@ function Share.Preview()
   w.checks = {}
   for i, m in ipairs(list) do
     local r = Macros.Analyze(m.body)
+    -- Only a macro in the tab the line names is replaced (the review checks
+    -- the chosen tab again).
+    local tab = m.perCharacter and "character" or "general"
     w.checks[i] = { name = m.name, perCharacter = m.perCharacter, errors = r.errors, warnings = r.warnings,
-      exists = Macros.Where(m.name) }
+      exists = Macros.Find(m.name, m.perCharacter) and tab or nil }
   end
   Share.ShowChecks()
 end

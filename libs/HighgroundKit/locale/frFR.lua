@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("frFR", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Survolez un coéquipier et appuyez sur votre touche Marquer un soigneur de l'équipe, ou tapez /hg healer.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "peu de temps en forme de félin ou d'ours",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "beaucoup de temps en forme de félin ou d'ours",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "vu en forme de sélénien",
 }))

@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("enUS", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Hover over a teammate and press your Mark team healer key, or type /hg healer.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "little time in cat or bear form",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "much time in cat or bear form",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "being seen in Moonkin form",
 }))

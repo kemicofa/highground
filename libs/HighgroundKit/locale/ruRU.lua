@@ -5021,4 +5021,5 @@ assert(ns.Locale:Register("ruRU", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Наведите курсор на союзника и нажмите свою клавишу «Отметить лекаря команды» или введите /hg healer.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "малое время в облике кошки или медведя",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "большое время в облике кошки или медведя",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "замечен в облике лунного совуха",
 }))

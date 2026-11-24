@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("itIT", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Passa il mouse su un compagno di squadra e premi il tuo tasto Segna guaritore della squadra, oppure digita /hg healer.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "poco tempo in forma felina o d'orso",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "molto tempo in forma felina o d'orso",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "visto in forma di Lunagufo",
 }))

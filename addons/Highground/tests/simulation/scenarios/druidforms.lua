@@ -83,3 +83,50 @@ test("WoW Forever's /hg bg test shows a druid estimated from its forms", functio
   sim:command("bg test")
   sim:assertHealthy()
 end)
+
+-- A PlayerModel that loads the unit's sim model at once; nil models stay unloaded.
+local function models(s)
+  local create = s.env.CreateFrame
+  s.env.CreateFrame = function(kind, ...)
+    local f = create(kind == "PlayerModel" and "Frame" or kind, ...)
+    if kind == "PlayerModel" then
+      function f:SetUnit(unit)
+        local u = s.units[unit]
+        self.file = u and u.model
+        if self.file and self.scripts.OnModelLoaded then self.scripts.OnModelLoaded(self) end
+      end
+      function f:GetModelFileID() return self.file end
+    end
+    return f
+  end
+end
+
+test("WoW Forever: a druid seen in Moonkin form is Balance at once; other models are counted", function()
+  local sim = new("retail", nil, function(s) forever(s); models(s) end)
+  local druid = sim:enemy("Owl", { classID = 11, powerType = 0, model = 7581785 })
+  sim.scores[#sim.scores].talentSpec = "Druid"
+  sim:enemy("Leafy", { classID = 11, powerType = 0, model = 1234 })
+  sim.scores[#sim.scores].talentSpec = "Druid"
+  sim:join(); sim:advance(1)
+  local C, owl, leafy = sim.ns.Core, sim:entry("Owl"), sim:entry("Leafy")
+  equal(owl.specID, C.classSpecs.DRUID[1], "Moonkin form names Balance before ten seconds")
+  equal(sim.ns.SpecLabel(owl, "Balance"), "~Balance", "still marked as an estimate")
+  assert(not C.IsHealer(owl), "no healer cross")
+  sim:advance(12)
+  equal(leafy.specID, C.classSpecs.DRUID[3], "another model on mana is still Restoration")
+  equal(sim.env.HighgroundDB.liveStats.druidModels[1234] > 0, true, "unknown model IDs are counted")
+  druid.powerType = 3; sim:advance(15)
+  equal(owl.specID, C.classSpecs.DRUID[1], "Moonkin stays Balance through cat form")
+  sim:assertHealthy()
+end)
+
+test("WoW Forever: hidden models stop being asked for and change nothing", function()
+  local sim = new("retail", nil, function(s) forever(s); models(s) end)
+  sim:enemy("Leafy", { classID = 11, powerType = 0 })
+  sim.scores[#sim.scores].talentSpec = "Druid"
+  sim:join(); sim:advance(60)
+  local C, e = sim.ns.Core, sim:entry("Leafy")
+  equal(e.specID, C.classSpecs.DRUID[3], "the mana guess still works")
+  equal(sim.env.HighgroundDB.liveStats.druidModels.unread, C.MODEL_TRIES, "gives up after a few unread models")
+  sim:assertHealthy()
+end)

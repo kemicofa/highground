@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("koKR", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "팀원 위에 마우스를 올리고 팀 치유자 표시 키를 누르거나, /hg healer를 입력하세요.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "표범 또는 곰 변신 상태로 보낸 짧은 시간",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "표범 또는 곰 변신 상태로 보낸 긴 시간",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "달빛야수 변신 상태로 목격됨",
 }))

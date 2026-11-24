@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("ptBR", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Passe o mouse sobre um colega de equipe e pressione sua tecla de Marcar curador da equipe, ou digite /hg healer.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "pouco tempo em forma felina ou de urso",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "muito tempo em forma felina ou de urso",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "ter sido visto em forma de luniscante",
 }))

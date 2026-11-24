@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("zhCN", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "将鼠标悬停在队友上并按下你的“标记队伍治疗者”按键，或输入 /hg healer。",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "很少处于猎豹或熊形态",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "经常处于猎豹或熊形态",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "被看到处于枭兽形态",
 }))

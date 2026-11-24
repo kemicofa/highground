@@ -4995,4 +4995,5 @@ assert(ns.Locale:Register("esMX", {
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Pasa el mouse sobre un compañero y presiona tu tecla de Marcar sanador del equipo, o escribe /hg healer.",
   ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "poco tiempo en forma felina o de oso",
   ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "mucho tiempo en forma felina o de oso",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "haberlo visto en forma de lechúcico lunar",
 }))

@@ -234,6 +234,8 @@ Click **History** at the bottom of the nearby panel, even when the live list is 
 
 ## Bounties
 
+Bounties is in alpha, marked by an **Alpha** badge: it can still change and has more bugs. Please report problems on the [Highground Discord](https://discord.gg/xu3VsxRjca).
+
 **Bounties → Settings** controls sounds, telling your group (off by default), sharing sightings, the re-alert delay, the fallback officer rank, expiry, alert channels and **Also alert for bounty targets you can't attack**; its **Bounties** switch turns the feature off. **Bounties → Appearance** controls wanted posters and the coin and row markers. **Previews and guide** offers every sample scenario and the posting and hunting guides.
 
 `/hg bounty test` toggles a wanted poster and sample Nearby row, with the same placement, dragging, hover pause, ten-second expiry and alert queue as live sightings. Use `test poster`, `test match`, `test kill` or `test board` to open those UIs directly; `create`, `gold`, `guild`, `pot`, `exchange`, `claims` and `suggestions` open their sample views. The test board starts with three distinct targets per audience, varied rewards, shared contributions and a pending guild submission. Editing, tracking, added gold and claims stay with the selected sample target. There is no tour window. `test stop` closes the session. Sample actions leave real rewards, settings, claims and drafts unchanged; they send no messages and take no screenshots. Dragging a test poster saves its position for future live alerts. Start previews out of combat; entering combat closes the sample session.

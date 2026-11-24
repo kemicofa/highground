@@ -15,9 +15,9 @@ Highground is a PvP addon for Retail, WoW Forever and Cataclysm Classic. It bund
 | Battlegrounds | Kill order, shared enemy map intel, resurrection and base timers, flag carriers and enemy cooldowns. |
 | Macros | PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. `/hg macros`. |
 | Arena & duels | Opponents, target/focus clicks and casts. `/hg arena`. |
-| Bounties | Personal, guild, community and shared bounties, alerts and claims. `/hg bounty`. |
+| Bounties (alpha) | Personal, guild, community and shared bounties, alerts and claims. `/hg bounty`. |
 | Nearby | Open-world enemy sightings and history. `/hg nearby`. |
-| Reputation | Player reports, moderation and chat filtering for existing guilds and WoW communities. `/hg reputation`. |
+| Reputation (alpha) | Player reports, moderation and chat filtering for existing guilds and WoW communities. `/hg reputation`. |
 
 Choose the features you want in `/hg` → **Addons** or WoW's AddOn List; module switches apply after reload. The former standalone addons are deprecated and receive no releases; their feature code stays in this repository because Highground imports it.
 

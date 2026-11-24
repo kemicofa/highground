@@ -19,7 +19,7 @@ local function Client(name)
     SendAddonMessage = function(prefix, text, channel, target)
       assert(#prefix <= 16 and #text <= 255 and not text:find("%z"), "game's wire limits")
       c.sent[#c.sent + 1] = { prefix = prefix, text = text, channel = channel, target = target, accepted = not c.reject }
-      return c.reject and 3 or 0
+      return c.reject and (c.result or 3) or 0
     end,
   }
   c.env, c.ns = e, { Core = { myRealm = "Realm" } }
@@ -83,6 +83,28 @@ t.test("supported routes keep their audience and named channels follow renumberi
   t.equal(a.sent[#a.sent].target, "4", "explicit numeric route")
 end)
 
+t.test("a channel still joining holds only its own messages and drops them if it never settles", function()
+  local a = Client("Poster")
+  local w = a:Open("Waiting", { maxFailures = 0 })
+  a.channels.TestChannel = nil
+  assert(w:SendRaw("channel one", { channel = "CHANNEL", target = "TestChannel" }))
+  assert(w:SendRaw("channel two", { channel = "CHANNEL", target = "TestChannel" }))
+  assert(w:SendRaw("whisper", whisper)); assert(w:SendRaw("guild", { channel = "GUILD" }))
+  w:Flush(); w:Flush()
+  t.equal(a.sent[1].text, "whisper", "a whisper behind the channel goes first")
+  t.equal(a.sent[2].text, "guild", "and so does guild data")
+  t.equal(#w.outbox, 2, "channel messages keep waiting")
+  a.now = 20; a.channels.TestChannel = 5; w:Flush()
+  t.equal(a.sent[3].text, "channel one", "a settled channel sends in order")
+  t.equal(a.sent[3].target, "5", "at its current number")
+  a.channels.TestChannel = nil
+  for _ = 1, 3 do w:Flush() end
+  t.equal(#w.outbox, 1, "the next one waits again")
+  a.now = 81; w:Flush()
+  t.equal(#w.outbox, 0, "a minute without the channel drops its messages")
+  t.equal(#a.sent, 3, "without sending them")
+end)
+
 t.test("out-of-order fragments preserve maximum-length UTF-8 payloads", function()
   local a, h = Client("Poster"), Client("Hunter")
   local w = a:Open("Chunks"); h:Open("Chunks")
@@ -125,6 +147,27 @@ t.test("rejections retry the same frame and successful fragments reset the failu
   a.reject = true; w:Flush(); w:Flush(); w:Flush()
   a.reject = false; w:Flush(); a:Deliver(h, #a.sent, #a.sent)
   t.equal(h.received[2].text, "next recipient", "failed recipient does not starve the queue")
+end)
+
+t.test("messages the game will never accept are dropped even when retrying forever", function()
+  local a, attempts = Client("Poster"), {}
+  local w = a:Open("Final", { maxFailures = 0, onSend = function(ok) attempts[#attempts + 1] = ok end })
+  assert(w:SendRaw("throttled", { channel = "GUILD" }))
+  a.reject = true; for _ = 1, 20 do w:Flush() end
+  t.equal(#w.outbox, 1, "throttling keeps the message")
+  a.result = 2 -- Enum.SendAddonMessageResult.InvalidMessage
+  w:Flush()
+  t.equal(#w.outbox, 0, "an invalid message is dropped at once")
+  t.equal(attempts[#attempts], false, "and reported as rejected")
+  assert(w:SendRaw("not in guild", { channel = "GUILD" })); assert(w:SendRaw("next", { channel = "GUILD" }))
+  a.result = 10 -- NotInGuild
+  w:Flush()
+  t.equal(#w.outbox, 1, "a final rejection does not block the queue")
+  a.result = 11 -- AddOnMessageLockdown
+  for _ = 1, 5 do w:Flush() end
+  t.equal(#w.outbox, 1, "lockdown waits")
+  a.reject = false; w:Flush()
+  t.equal(a.sent[#a.sent].text, "next", "the queue moves on once sending works")
 end)
 
 t.test("snapshots finish in flight while unsent updates coalesce separately for each route", function()
@@ -282,7 +325,7 @@ t.test("malformed traffic, abandoned assemblies and sender floods stay bounded",
   end
   t.equal(Count(r.incoming), 0, "invalid frames cannot allocate assemblies")
   t.equal(#h.received, 0, "invalid frames cannot dispatch data")
-  for i = 1, 65 do h:Event("Bounds", "1:message" .. i .. ":1:2:partial", "WHISPER", "Poster-Realm") end
+  for i = 1, 70 do h:Event("Bounds", "1:message" .. i .. ":1:2:partial", "WHISPER", "Peer" .. i .. "-Realm") end
   t.equal(Count(r.incoming), 64, "partial transfers bounded")
   h.now = 31; r:Clean(); t.equal(Count(r.incoming), 0, "abandoned transfers expire")
   for _ = 1, 91 do h:Event("Bounds", "raw", "WHISPER", "Poster-Realm") end
@@ -294,12 +337,23 @@ t.test("malformed traffic, abandoned assemblies and sender floods stay bounded",
   t.equal(Count(r.rates), 128, "sender tracking bounded as well")
 end)
 
+t.test("one sender's unfinished messages cannot block other senders", function()
+  local a, h = Client("Poster"), Client("Hunter")
+  local w, r = a:Open("Flood"), h:Open("Flood")
+  for i = 1, 80 do h:Event("Flood", "1:message" .. i .. ":1:2:partial", "WHISPER", "Flooder-Realm") end
+  t.equal(Count(r.incoming), 4, "one sender holds at most four unfinished messages")
+  h:Event("Flood", "1:message80:2:2:done", "WHISPER", "Flooder-Realm")
+  t.equal(h.received[1].text, "partialdone", "the newest of them still completes")
+  assert(w:Send(string.rep("p", 400), whisper)); Drain(w); a:Deliver(h)
+  t.equal(h.received[2].text, string.rep("p", 400), "another sender's multi-part message completes")
+end)
+
 t.test("receiving a burst sweeps expired state at most once a second", function()
   local h = Client("Hunter")
   local r = h:Open("Sweep")
   local sweeps, clean = 0, r.Clean
   r.Clean = function(self) sweeps = sweeps + 1; return clean(self) end
-  for i = 1, 40 do h:Event("Sweep", "1:message" .. i .. ":1:2:part", "WHISPER", "Poster-Realm") end
+  for i = 1, 40 do h:Event("Sweep", "1:message" .. i .. ":1:2:part", "WHISPER", "Poster" .. i .. "-Realm") end
   t.equal(sweeps, 1, "one sweep for the burst")
   t.equal(Count(r.incoming), 40, "fragments still assemble")
   h.now = 31

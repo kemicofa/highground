@@ -9,6 +9,9 @@ Transport.__index = Transport
 -- with a separately rate-limited capability announcement.
 local PART_SIZE, MAX_PARTS, TTL = 160, 24, 30
 local MAX_QUEUE, MAX_INCOMING, MAX_SENDERS, RATE_LIMIT = 128, 64, 128, 90
+-- One sender's unfinished messages, and how long a message may wait for
+-- its custom channel to be joined or renumbered.
+local SENDER_INCOMING, CHANNEL_WAIT = 4, 60
 local CHANNELS = { WHISPER = true, GUILD = true, PARTY = true, RAID = true, INSTANCE_CHAT = true, CHANNEL = true }
 
 local function ID(value)
@@ -58,7 +61,8 @@ end
 
 -- options: onMessage(text, sender, channel), onRaw(text, sender, channel),
 -- accept(channel, sender, ...eventArgs), enabled(), authorize(item),
--- canSend(), newID(), onSend(accepted, item, problem?), maxFailures (0 = keep retrying).
+-- canSend(), newID(), onSend(accepted, item, problem?), maxFailures (0 = keep
+-- retrying until the game rejects the message for good).
 -- Set listen=false when the feature already owns its prefix's event handler.
 function N.New(prefix, options)
   assert(type(prefix) == "string" and #prefix > 0 and #prefix <= 16 and not prefix:find("%c"), "invalid network prefix")
@@ -162,9 +166,19 @@ function Transport:Receive(text, channel, sender, ...)
   local key = sender .. ":" .. channel .. ":" .. id
   local item = self.incoming[key]
   if not item then
-    local pending = 0; for _ in pairs(self.incoming) do pending = pending + 1 end
-    if pending >= MAX_INCOMING then return end
-    item = { at = now, count = count, parts = {}, received = 0 }; self.incoming[key] = item
+    -- A sender's fifth unfinished message replaces its oldest, so one
+    -- player cannot fill every slot and block other senders.
+    local pending, own, oldest, oldestAt = 0, 0, nil, nil
+    for other, old in pairs(self.incoming) do
+      pending = pending + 1
+      if old.sender == sender then
+        own = own + 1
+        if not oldestAt or old.at < oldestAt then oldest, oldestAt = other, old.at end
+      end
+    end
+    if own >= SENDER_INCOMING then self.incoming[oldest] = nil
+    elseif pending >= MAX_INCOMING then return end
+    item = { at = now, sender = sender, count = count, parts = {}, received = 0 }; self.incoming[key] = item
   end
   if item.count ~= count or item.parts[part] then return end
   item.parts[part], item.received = chunk, item.received + 1
@@ -174,48 +188,68 @@ function Transport:Receive(text, channel, sender, ...)
   end
 end
 
+-- The local number of a custom channel, or nil while joining or renumbering.
+local function ChannelNumber(name)
+  local id = ns.Util.value(ns.Util.call(GetChannelName, name))
+  return type(id) == "number" and id >= 1 and id or nil
+end
+
 function Transport:Flush()
   if not self:Enabled() then self:Clear(); return end
-  local item = self.outbox[1]
-  while item and (item.route.channel == "GUILD" and item.route.guild ~= GuildKey()
-    or self.options.authorize and not self.options.authorize(item)) do
-    table.remove(self.outbox, 1)
-    item = self.outbox[1]
+  -- Send the first message that can go now. Stale guild routes and revoked
+  -- permissions are discarded. A custom channel that is still joining or
+  -- renumbering holds only its own messages, and drops them if it never
+  -- settles, so whispers and guild messages behind them keep moving.
+  local now, index, item, target, unresolved = GetTime(), 1, nil, nil, nil
+  while not item and self.outbox[index] do
+    local candidate = self.outbox[index]
+    local route = candidate.route
+    target = route.target
+    if route.channel == "CHANNEL" and type(target) == "string" then
+      target = target ~= unresolved and ChannelNumber(target) or nil
+    end
+    if route.channel == "CHANNEL" and not target then
+      unresolved = route.target
+      candidate.waiting = candidate.waiting or now
+      if now - candidate.waiting >= CHANNEL_WAIT then table.remove(self.outbox, index) else index = index + 1 end
+    elseif route.channel == "GUILD" and route.guild ~= GuildKey()
+      or self.options.authorize and not self.options.authorize(candidate) then
+      table.remove(self.outbox, index)
+    else
+      item, candidate.waiting = candidate, nil
+    end
   end
   if not item then return end
   local route = item.route
-  local target = route.target
-  if route.channel == "CHANNEL" and type(target) == "string" then
-    target = ns.Util.value(ns.Util.call(GetChannelName, target))
-    if type(target) ~= "number" or target < 1 then return end -- Joining or channel numbers are still settling.
-  end
   if not (self.options.canSend or N.CanSend)() then return end
   if not item.raw and route.channel == "WHISPER" and ns.Protocols then
     local compatible, problem = ns.Protocols.AllowsTransport(self.prefix, target, 1)
     if not compatible then
-      table.remove(self.outbox, 1)
+      table.remove(self.outbox, index)
       if self.options.onSend then self.options.onSend(false, item, problem) end
       return false
     end
   end
   if item.startedAt and GetTime() - item.startedAt >= TTL then
     item.id, item.part, item.startedAt = not item.raw and self:NewID() or nil, 1, nil
-    if item.id and not ID(item.id) then table.remove(self.outbox, 1); return end
+    if item.id and not ID(item.id) then table.remove(self.outbox, index); return end
   end
   local text = item.text
   if not item.raw then
     text = "1:" .. item.id .. ":" .. item.part .. ":" .. item.count .. ":"
       .. item.text:sub((item.part - 1) * PART_SIZE + 1, item.part * PART_SIZE)
   end
-  local accepted = ns.Comms.Send(self.prefix, text, route.channel, target and tostring(target))
+  local accepted, result = ns.Comms.Send(self.prefix, text, route.channel, target and tostring(target))
   if accepted then
     item.failures, item.startedAt = 0, item.startedAt or GetTime()
     item.part = item.part + 1
-    if item.part > item.count then table.remove(self.outbox, 1) end
+    if item.part > item.count then table.remove(self.outbox, index) end
   else
+    -- Throttling retries; a result the game will never accept drops the
+    -- message even when the feature keeps retrying (maxFailures 0).
     item.failures = (item.failures or 0) + 1
     local limit = self.options.maxFailures or 3
-    if limit > 0 and item.failures >= limit then table.remove(self.outbox, 1) end
+    if ns.Comms.Final(result) or limit > 0 and item.failures >= limit then table.remove(self.outbox, index) end
   end
   if self.options.onSend then self.options.onSend(accepted, item) end
   return accepted

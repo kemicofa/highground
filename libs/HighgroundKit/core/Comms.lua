@@ -134,6 +134,19 @@ function Comms.Send(prefix, text, channel, target)
   return accepted, ok and result or nil
 end
 
+-- Whether a native send result means the game will never send this
+-- message as it is (invalid message, not in a guild or group, offline
+-- target...). Throttling and addon message lockdown mean "later"; clients
+-- without result codes report nothing final.
+local function Result(name, fallback)
+  local enum = Enum and Enum.SendAddonMessageResult
+  return enum and enum[name] or fallback
+end
+function Comms.Final(result)
+  return type(result) == "number" and result ~= 0 and result ~= Result("AddonMessageThrottle", 3)
+    and result ~= Result("ChannelThrottle", 8) and result ~= Result("AddOnMessageLockdown", 11)
+end
+
 local listeners = {} -- [prefix] = { fn, stage }
 local registered = {} -- [prefix] = true once the client knows it
 local loggedIn = false

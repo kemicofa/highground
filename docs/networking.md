@@ -168,7 +168,7 @@ end, "my feature network")
 | --- | --- |
 | `Send(text, route, key?, context?)` | Queue a fragmented text snapshot; reject invalid destinations, empty/NUL-containing text, oversized messages and a full queue. |
 | `SendRaw(text, route, key?, context?)` | Queue an existing wire format or discovery hello unchanged, up to 255 bytes. |
-| `Flush()` | Recheck authorization, discard invalid routes, then attempt at most one data frame, which may trigger a separately throttled capability announcement. Returns API acceptance when a send was attempted. |
+| `Flush()` | Recheck authorization, discard invalid routes, then attempt at most one data frame of the first message that can go now, which may trigger a separately throttled capability announcement. A custom channel that is still joining or renumbering holds only its own messages; other routes go first, and its messages are dropped after waiting 60 seconds. Returns API acceptance when a send was attempted. |
 | `Receive(text, channel, sender, ...eventArgs)` | Validate and assemble frames; normally called by the automatically registered listener. |
 | `Clean()` | Expire abandoned receive buffers and sender rate windows. Also runs on receive. |
 | `Clear()` | Empty pending sends, partial receives and rate windows. |
@@ -191,10 +191,10 @@ Guild queues capture the current native guild ID where available, otherwise its 
 - `onSend(accepted, item, problem?)`: per-frame API result, including rejected attempts. A queued whisper discarded because of an explicit transport mismatch supplies `false` and the compatibility problem without calling the game API. Acceptance does not acknowledge remote receipt.
 - `canSend()`: optional send availability function; the default checks the chat API and game messaging restrictions.
 - `newID()`: optional ID generator; otherwise session seed plus sequence. IDs must be 8–64 ASCII alphanumeric, dot or hyphen characters and unique for each transfer/restart from this sender and prefix.
-- `maxFailures`: consecutive rejected attempts before discarding a message, default 3; `0` retains it until successful or invalidated. Successful frames reset the counter.
+- `maxFailures`: consecutive rejected attempts before discarding a message, default 3; `0` retains it until successful or invalidated. Successful frames reset the counter. A native result the game will never accept (for example an invalid message, not in a guild or group, or an offline recipient) discards the message at once; throttling and addon message lockdown keep retrying.
 - `listen = false`: keep an existing prefix listener; it must call `Receive` itself after any feature-specific discovery handling.
 
-Each transport permits 128 queued messages, 64 incomplete incoming messages and 128 tracked senders. Messages are at most 3,840 bytes, split into at most 24 parts of 160 bytes. Each sender may send 90 frames per 30-second window. Incoming assemblies expire after 30 seconds. A transfer paused that long restarts at part one with a new ID. The sender should flush frequently enough to finish its largest transfer within that window.
+Each transport permits 128 queued messages, 64 incomplete incoming messages and 128 tracked senders. One sender holds at most four incomplete messages; a fifth replaces its oldest. Messages are at most 3,840 bytes, split into at most 24 parts of 160 bytes. Each sender may send 90 frames per 30-second window. Incoming assemblies expire after 30 seconds. A transfer paused that long restarts at part one with a new ID. The sender should flush frequently enough to finish its largest transfer within that window.
 
 A coalescing `key` is scoped to its destination. An in-flight snapshot finishes; at most one unsent successor with the same key is retained. Omit the key for messages that must not be coalesced. Duplicate and reordered parts within an assembly are supported; completed message replays are possible, so features must reconcile by stable record IDs and revisions.
 

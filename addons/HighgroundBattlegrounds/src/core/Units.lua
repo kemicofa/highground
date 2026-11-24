@@ -51,6 +51,21 @@ local TARGET_OF = ns.UnitTokens.target
 -- Health as 0-100 on the Midnight client: secret, but drawable and printable.
 local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
 
+-- Loss of control on any unit (WoW Forever: readable for enemies while
+-- their auras are refused). The count is plain; the kind (stun, fear...),
+-- timer and spell are secret, but priority and displayType are plain and
+-- kept as clues (e.locPriority, e.locDisplay; recorded by the profiler).
+-- Live 2026-11-24: stuns read priority 5, displayType 2.
+local function LossOfControl(e, unit)
+  local L = C_LossOfControl
+  local n = L and L.GetActiveLossOfControlDataCountByUnit and Util.read(L.GetActiveLossOfControlDataCountByUnit, unit)
+  if type(n) ~= "number" then return nil end
+  local data = n > 0 and L.GetActiveLossOfControlDataByUnit and Util.call(L.GetActiveLossOfControlDataByUnit, unit, 1)
+  e.locPriority = type(data) == "table" and Util.value(data.priority) or nil
+  e.locDisplay = type(data) == "table" and Util.value(data.displayType) or nil
+  return n > 0
+end
+
 -- Readings reused per enemy instead of new tables every tick. Fields are
 -- rewritten on each reading; e.cast / e.specManaObservation point at them
 -- only while current.
@@ -132,7 +147,19 @@ function Core.ScanUnits()
         e.def = ((nDef or 0) + (nExt or 0)) > 0
         -- The Retail category includes stuns as well as breakable CC. A
         -- category alone cannot justify a "do not break" score penalty.
-        e.crowdControlled = (nCC or 0) > 0
+        -- Auras refused (WoW Forever): the loss-of-control count says the
+        -- same, with the same unknown kind.
+        if nCC == nil then
+          e.crowdControlled = LossOfControl(e, unit) or false
+          local sig = e.crowdControlled and (tostring(e.locPriority) .. "/" .. tostring(e.locDisplay)) or nil
+          if sig ~= e.locSig then
+            e.locSig = sig
+            if ns.LossOfControlChanged then ns.LossOfControlChanged(e) end -- bg profiler
+          end
+        else
+          e.crowdControlled = nCC > 0
+          e.locPriority, e.locDisplay = nil, nil
+        end
         e.cc, e.stun = false, false
         -- Defensive aura faded while we watched: they just spent it.
         if hadDef and not e.def and nDef ~= nil then
@@ -250,7 +277,7 @@ function Core.ScanUnits()
         e.bursts = nil
         e.immune = false
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
-        e.crowdControlled = false
+        e.crowdControlled, e.locPriority, e.locDisplay = false, nil, nil
         e.dead = e.diedAt ~= nil and GetTime() - e.diedAt < 35
         if e.dead then e.hpSeen, e.hpTint = nil, nil end
       end

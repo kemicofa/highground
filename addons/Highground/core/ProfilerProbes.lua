@@ -357,10 +357,18 @@ local function RemoveHooks()
   end
 end
 
+-- Enemy loss of control (core/Units.lua, WoW Forever): start, end and the
+-- readable clues, to learn which priority means which kind of control.
+local function LossOfControl(e)
+  P.Add("loc", string.format("%s on=%s priority=%s display=%s", tostring(e.key), tostring(e.crowdControlled == true),
+    tostring(e.locPriority), tostring(e.locDisplay)))
+end
+
 function P.SetProbes(on)
   wipe(last); wipe(gyLast); wipe(seenPOI); wipe(seenVignette); wipe(widgetAt); wipe(nextRows)
   nextSummary, inside = 0, false
   RemoveHooks()
+  ns.LossOfControlChanged = on and LossOfControl or nil
   if on then
     InstallHooks()
     ticker.Start()

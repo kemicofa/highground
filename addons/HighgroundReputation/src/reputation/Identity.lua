@@ -1,8 +1,19 @@
 local _, ns = ...
 local W, U = ns.Reputation, ns.Util
 
+-- The suffix for a name typed or seen without one, as Core.Canon picks it:
+-- the player's realm, or on WoW Forever, whose realm APIs return "", the
+-- current ruleset. Forever players never type or see a realm.
 local function Realm()
-  return U.value(U.call(GetNormalizedRealmName)) or ns.Core.myRealm or ""
+  local realm = U.value(U.call(GetNormalizedRealmName))
+  if realm == nil or realm == "" then realm = ns.Core.myRealm end
+  if (realm == nil or realm == "") and ns.Caps.rulesetRealms then realm = ns.Scope.Ruleset() end
+  return realm or ""
+end
+-- Without a readable ruleset Forever has no identity yet; never ask for a realm.
+local function NoRealm()
+  if ns.Caps.hideRealmNames then return nil, ns.Locale:Get("reputation.forms.reputation_is_loading.ebdd24") end
+  return nil, ns.Locale:Get("reputation.identity.include_the_player_s_realm_it_could.5d5824")
 end
 
 -- Full character names are opaque. In Forever, a surname is part of the
@@ -17,9 +28,9 @@ function W.Target(name, realm, guid, localRealm)
   if not W.String(name, 120) or name == UNKNOWNOBJECT or name:find("[%d:;]") then return nil, ns.Locale:Get("reputation.identity.invalid_player_name.0d6f1b") end
   realm = U.value(realm)
   if not realm or realm == "" then realm = (localRealm or ns.Caps.hideRealmNames) and Realm() or nil end
-  if not W.String(realm, 80) then return nil, ns.Locale:Get("reputation.identity.include_the_player_s_realm_it_could.5d5824") end
+  if not W.String(realm, 80) then return NoRealm() end
   realm = realm:gsub("%s", "")
-  if realm == "" then return nil, ns.Locale:Get("reputation.identity.include_the_player_s_realm_it_could.5d5824") end
+  if realm == "" then return NoRealm() end
   guid = U.value(guid)
   if guid ~= nil and guid ~= "" and (not W.String(guid, 64) or not guid:match("^Player%-%w[%w%-]*$")) then
     return nil, ns.Locale:Get("reputation.identity.invalid_player_guid.ce715e")

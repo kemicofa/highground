@@ -145,6 +145,8 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |
+| `/hg nearby feed on` · `/hg nearby feed off` | Share kills and deaths with your group and guild, or stop. | Kill feed switch → `nearby` |
+| `/hg activity` | Open World activity: zones with recent enemies, marks and kills. | Open world activity (separate window) |
 | `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal (separate window) |
 
 ## Bounties

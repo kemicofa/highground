@@ -28,6 +28,7 @@ ns.OptionsAdd({
       ns.Localization.Define({ key = "nearbyMap", parent = "nearby", label = ns.Locale:Get("nearby.world.map_label"), desc = ns.Locale:Get("nearby.world.map_desc") }, { label = "nearby.world.map_label", desc = "nearby.world.map_desc" }),
       ns.Localization.Define({ key = "nearbyShare", parent = "nearby", label = ns.Locale:Get("nearby.world.share_label"), desc = ns.Locale:Get("nearby.world.share_desc") }, { label = "nearby.world.share_label", desc = "nearby.world.share_desc" }),
       ns.Localization.Define({ key = "nearbyShareGuild", parent = "nearbyShare", label = ns.Locale:Get("nearby.world.guild_label"), desc = ns.Locale:Get("nearby.world.guild_desc") }, { label = "nearby.world.guild_label", desc = "nearby.world.guild_desc" }),
+      ns.Localization.Define({ key = "nearbyFeed", parent = "nearbyShare", label = ns.Locale:Get("feed.label"), desc = ns.Locale:Get("feed.desc") }, { label = "feed.label", desc = "feed.desc" }),
       ns.Localization.Define({ key = "nearbyTrack", parent = "nearby", label = ns.Locale:Get("tracking.label"), desc = ns.Locale:Get("tracking.desc") }, { label = "tracking.label", desc = "tracking.desc" }),
       ns.Localization.Define({ key = "nearbyMarks", parent = "nearbyMap", label = ns.Locale:Get("marks.label"), desc = ns.Locale:Get("marks.desc") }, { label = "marks.label", desc = "marks.desc" }),
       ns.Localization.Define({ key = "nearbyCalls", parent = "nearby", label = ns.Locale:Get("calls.label"), desc = ns.Locale:Get("calls.desc") }, { label = "calls.label", desc = "calls.desc" }),

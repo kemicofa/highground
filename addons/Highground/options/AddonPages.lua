@@ -39,6 +39,7 @@ end
 local tools = {
   history = { label = "tools.open.history", open = function() ns.MatchHistory.Open() end },
   journal = { label = "tools.open.journal", open = function() ns.EnemyJournal.Open() end },
+  activity = { label = "tools.open.activity", open = function() ns.WorldActivity.Open() end },
   bountyboard = { label = "tools.open.bountyboard", open = function() ns.Bounty.Board.Open() end },
   reputation = { label = "tools.open.reputation", open = function() ns.Reputation.Open() end },
   macros = { label = "tools.open.macros", open = function() ns.Macros.Window.Open() end },

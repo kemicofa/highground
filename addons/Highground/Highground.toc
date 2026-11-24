@@ -276,6 +276,8 @@ libs/world/Journal.lua
 libs/world/Tracking.lua
 libs/world/Marks.lua
 libs/world/Calls.lua
+libs/world/Feed.lua
+libs/world/Activity.lua
 libs/bounty/State.lua
 libs/bounty/Terms.lua
 libs/bounty/Scope.lua

@@ -24,7 +24,7 @@ Load `core/Util.lua`, `core/Events.lua`, your `ns.Core`, `core/Names.lua`, `core
 | `offer`, `claim` | `HighgroundBP` payload kinds | 1, 2, 3 | 1, 2, 3 |
 | `bounty` | Other `HighgroundBP` payloads | 1 | 1 |
 | `deaths` | `HighgroundD` | 1 | 1 |
-| `world` | `HighgroundW` open-world sightings; `1M` map marks; `1T`/`1R` tracking requests and reports in the users channel | 1 | 1 |
+| `world` | `HighgroundW` open-world sightings; `1M` map marks; `1K` kills and deaths; `1T`/`1R` tracking requests and reports in the users channel | 1 | 1 |
 | `reputation` | `HighgroundRep` | 1 | 1 |
 | `profiles` | `HighgroundP` | 1 | 1 |
 

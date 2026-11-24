@@ -27,6 +27,8 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Link("nearby test", "nearby.commands.start_or_stop_the_nearby_enemy_sample.f6cd99", "nearby-previews", "nearby.commands.nearby_preview_controls.405cb3"),
   C.Action("nearby clear", "nearby.commands.clear_current_nearby_sightings.0272a7", "nearby.commands.clear_nearby_sightings.383754", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.clear_current_nearby_sightings.0f891d") }, { confirm = "nearby.commands.clear_current_nearby_sightings.0f891d" })),
   C.Action("nearby forget", "nearby.commands.forget_saved_enemy_encounter_history.dca8f5", "nearby.commands.forget_enemy_history.d2bf57", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.forget_all_saved_enemy_encounter_history.49c687") }, { confirm = "nearby.commands.forget_all_saved_enemy_encounter_history.49c687" })),
+  C.Link("nearby feed on", "feed.commands.switch", "nearby", "feed.commands.switch_label", { aliases = { "nearby feed off" } }),
+  C.Tool("activity", "activity.commands.open", "activity", "activity.commands.open_label"),
   C.Tool("journal", "nearby.commands.search_encounters_write_notes_mute_alerts_or.4997c6", "journal", "highground.toursteps.open_enemy_journal.87d457"),
 }, {
   ns.Localization.Define({ cmd = "nearby test", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df"), desc = ns.Locale:Get("nearby.commands.open_world_enemy_list.3aeeb3") }, { label = "highground.profilesummary.nearby_enemies.85f5df", desc = "nearby.commands.open_world_enemy_list.3aeeb3" }),

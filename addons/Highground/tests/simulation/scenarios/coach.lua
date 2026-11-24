@@ -85,6 +85,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       assert(O.Coach.observed and sim.env.GameTooltip:IsShown())
       equal(sim.env.GameTooltip:GetOwner(), pin, "the normal pin tooltip is used")
       equal(Intel.intel, live); equal(next(live), nil); equal(#sim.sent, sends)
+      for i, step in ipairs(O.Coach.steps) do if step.id == "share" then O.Coach.Go(i) end end
+      equal(O.Coach.win.enable:IsShown(), client ~= "forever", "the sharing switch only where the game allows sharing")
       map:SetMapID(37); equal(#map.pins, 0, "samples never appear on a different zone")
       O.Coach.Replay(); equal(map:GetMapID(), M.mapID); equal(#map.pins, 6, "replay restores the samples and circle")
       map:Hide(); O.Coach.Replay(); assert(map:IsVisible(), "Replay reopens the native map")

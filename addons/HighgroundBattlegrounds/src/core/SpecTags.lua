@@ -70,7 +70,7 @@ function Core.ApplySpecTag(e)
 end
 
 local function Send(text)
-  local chan = Core.active and not Core.testMode and Core.db and Core.On("intelShare") and Comms.GroupChannel()
+  local chan = Core.active and not Core.testMode and Core.db and Core.ShareOn() and Comms.GroupChannel()
   if not chan then return nil end
   if Comms.Blocked() then return false end
   return Comms.Send(Core.SPEC_TAG_PREFIX, text, chan) and true or false

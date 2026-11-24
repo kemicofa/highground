@@ -93,6 +93,7 @@ Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy p
 | Enemy marks refused | Raid-icon mark mode and marker scoring hidden on WoW Forever (#318) |
 | Enemy auras refused | Aura-based scoring settings hidden on WoW Forever (#319) |
 | Loss-of-control count readable | Generic **CC** chip on WoW Forever (#322) |
+| No sharing in matches | **Share observations** hidden on WoW Forever; nothing prepared for sending |
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
 | Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
 | Enemy power type readable; a Moonkin's model file ID readable outside a match | Druid form estimates on WoW Forever: ~Restoration, ~Feral, ~Balance from a Moonkin model (#326) |

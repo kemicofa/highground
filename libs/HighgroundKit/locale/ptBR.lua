@@ -189,6 +189,7 @@ assert(ns.Locale:Register("ptBR", {
   ["highground.display.raid_icon_value2.bfd95a"] = "ícone de raide {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "Agora: {value2}   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8",
   ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "Agora: {value2}  |  /hg mark icon 1-8",
+  ["highground.display.sharing_isn_t_available_on_wow_forever.7e2479"] = "O compartilhamento não está disponível no WoW Forever: o jogo bloqueia mensagens de addons durante partidas de campo de batalha.",
   ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "Sinais não estão disponíveis neste cliente: /hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "Marcar + chamar:  /click HighgroundMarkButton  depois  /hg call  na linha seguinte",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "Só reaponta fora de combate. Ícones de raide podem exigir líder/assistente; pings não.",

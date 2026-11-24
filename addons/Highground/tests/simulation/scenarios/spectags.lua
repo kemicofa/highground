@@ -45,7 +45,7 @@ local function foreverMatch()
   return sim, C, C.rows[1], C.rows[1].entry
 end
 
-test("WoW Forever: hovering an unidentified enemy offers its trees; a click tags and shares the spec", function()
+test("WoW Forever: hovering an unidentified enemy offers its trees; a click tags the spec, kept, not sent", function()
   local sim, C, r, e = foreverMatch()
   assert(e and not e.specID, "the class name is not a spec")
   local picker = C.specPicker
@@ -66,15 +66,13 @@ test("WoW Forever: hovering an unidentified enemy offers its trees; a click tags
   local icon = C.specInfo[e.specID].icon
   assert(icon and r.icon.texture == icon, "the row's icon shows the tagged spec")
   assert(picker.buttons[3].ring:IsShown() and not picker.buttons[1].ring:IsShown(), "the tagged icon stands out")
-  local msgs = sentOn(sim, "HighgroundS")
-  equal(msgs[#msgs].message, "1:" .. e.key .. ",MAGE,3", "the team hears the tag")
+  equal(#sentOn(sim, "HighgroundS"), 0, "WoW Forever blocks match messages: nothing is sent")
   equal(sim.ns.Scope.Saved("specTags", "social")[e.key].tree, 3, "kept for later matches")
 
   picker.buttons[3]:Click()
   equal(e.specID, nil, "a second click removes the tag")
   equal(sim.ns.Scope.Saved("specTags", "social")[e.key], nil)
-  msgs = sentOn(sim, "HighgroundS")
-  equal(msgs[#msgs].message, "1:" .. e.key .. ",MAGE,0", "the team hears the removal")
+  equal(#sentOn(sim, "HighgroundS"), 0, "nor the removal")
 
   sim.mouseOver = nil
   sim:advance(0.2)
@@ -152,8 +150,14 @@ test("teammates' tags apply with their name; malformed or foreign ones are ignor
   sim:assertHealthy()
 end)
 
-test("a tag refused by chat lockdown goes out once sending is allowed", function()
-  local sim, C, _, e = foreverMatch()
+test("Retail: a tag refused by chat lockdown goes out once sending is allowed", function()
+  local sim = new("retail")
+  sim:enemy("Classonly")
+  sim.scores[#sim.scores].talentSpec = ""
+  sim:join()
+  sim:advance(1.5)
+  local C = sim.ns.Core
+  local e = C.rows[1].entry
   sim.chatLockdown = true
   C.SetSpecTag(e, 2)
   equal(#sentOn(sim, "HighgroundS"), 0, "held during lockdown")

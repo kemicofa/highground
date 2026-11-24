@@ -23,7 +23,8 @@ local function client(options)
     GetBGRules = function() return state.bg.rules end,
     enemies = { [key] = enemy },
     MapPins = { Add = function(fn) state.layer = fn end, stats = { draws = 0, pins = 0 }, Providers = function() return 0 end },
-    Core = { On = function(option) return not (state.db and state.db[option] == false) end },
+    Core = { On = function(option) return not (state.db and state.db[option] == false) end,
+      ShareOn = function() return not (state.db and state.db.intelShare == false) end },
     -- Core.UnitShort / Core.IsMe (core/State.lua) need the client; see below.
     CanonUnit = function(unit) return unit == "party1target" and key or nil end,
   }

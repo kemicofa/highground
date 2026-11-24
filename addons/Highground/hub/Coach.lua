@@ -167,6 +167,8 @@ function C.Refresh()
   w.title:SetText(Value(step.title)); w.body:SetText(Value(step.text))
   w.hint:SetText(Value(step.hint) or "")
   local feature, label = C.StepFeature(C.steps, C.index)
+  -- A switch this client doesn't offer (Share observations on WoW Forever).
+  if feature and Feature(feature) and not ns.OptionAvailable(Feature(feature)) then feature = nil end
   C.feature = feature
   if feature then
     w.enable.label:SetText(label or C.FeatureLabel(feature))

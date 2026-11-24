@@ -146,6 +146,13 @@ function Core.On(key)
   return not (Core.db and Core.db[key] == false) and (not ns.Modules or ns.Modules.FeatureEnabled(key))
 end
 
+-- Share observations with teammates during a match. WoW Forever blocks
+-- addon messages for the whole match, so there the setting is hidden and
+-- nothing is queued.
+function Core.ShareOn()
+  return not (ns.Caps and ns.Caps.matchSharing == false) and Core.On("intelShare")
+end
+
 Core.MAX_ROWS = 40 -- enemy rows at most: every enemy in the largest battlegrounds
 Core.enemies = {} -- [canonName] = entry
 Core.order = {} -- entries ranked by priority, independent of row positions

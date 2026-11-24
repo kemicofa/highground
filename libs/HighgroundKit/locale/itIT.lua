@@ -189,6 +189,7 @@ assert(ns.Locale:Register("itIT", {
   ["highground.display.raid_icon_value2.bfd95a"] = "icona d'incursione {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "Ora: {value2}   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8",
   ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "Ora: {value2}  |  /hg mark icon 1-8",
+  ["highground.display.sharing_isn_t_available_on_wow_forever.7e2479"] = "La condivisione non è disponibile in WoW Forever: il gioco blocca i messaggi degli addon durante le partite nei campi di battaglia.",
   ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "I segnali non sono disponibili in questo client: /hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "Segna + richiamo:  /click HighgroundMarkButton  poi  /hg call  sulla riga successiva",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "Si riorienta solo fuori combattimento. Le icone d'incursione possono richiedere capo/assistente; i ping no.",

@@ -14,7 +14,7 @@ local Clean = ns.Util.Clean
 function Intel.Send()
   local chan = Comms.GroupChannel()
   local mapID = Intel.MapID()
-  if not (chan and mapID and Intel.On("intelShare")) then
+  if not (chan and mapID and Intel.DB() ~= nil and ns.Core.ShareOn()) then
     wipe(Intel.mine)
     return
   end

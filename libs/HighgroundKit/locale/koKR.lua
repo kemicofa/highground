@@ -189,6 +189,7 @@ assert(ns.Locale:Register("koKR", {
   ["highground.display.raid_icon_value2.bfd95a"] = "아이콘 {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "현재: {value2}   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8",
   ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "현재: {value2}  |  /hg mark icon 1-8",
+  ["highground.display.sharing_isn_t_available_on_wow_forever.7e2479"] = "WoW Forever에서는 공유를 사용할 수 없습니다. 전장 경기 중에는 게임이 애드온 메시지를 차단합니다.",
   ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "이 클라이언트에서는 신호를 사용할 수 없습니다: /hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "마크 + 호출: /click HighgroundMarkButton  다음 /hg call  on 다음 줄",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "전투 중이 아닐 때만 다시 가리킵니다. 공격대 징표는 공격대장/부공격대장 권한이 필요할 수 있으며, 핑은 필요 없습니다.",

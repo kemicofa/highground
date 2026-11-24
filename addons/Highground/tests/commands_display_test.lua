@@ -369,4 +369,31 @@ t.test("/hg pressure validates its count and prints its choices intact", functio
   assert(has(out, "available on Cata"), "Retail explains")
 end)
 
+t.test("WoW Forever: sharing is unavailable, its switch hidden, and nothing is sent or counted unsent", function()
+  local sim = new("retail", {}, forever)
+  local ns, db = sim.ns, sim.env.HighgroundDB
+  local out = run(sim, "intel share on")
+  assert(has(out, "Sharing isn't available on WoW Forever"), "refusal explained: " .. out)
+  equal(db.intelShare, nil, "setting unchanged")
+  local def
+  for _, f in ipairs(ns.OptionsConfig.features) do if f.key == "intelShare" then def = f end end
+  assert(def and not ns.OptionAvailable(def), "Share observations hidden")
+  assert(not ns.Core.ShareOn(), "sharing off")
+  out = run(sim, "intel")
+  assert(has(out, "sharing with teammates OFF"), "status says off: " .. out)
+  sim:enemy("Seen", { yards = 5 })
+  sim.units.target = sim.units.nameplate1
+  sim:join(); sim:advance(12)
+  equal(#sim.sent, 0, "no addon messages")
+  equal(ns.Intel.stats.unsent or 0, 0, "nothing counted as refused")
+  local retail = new("retail", {})
+  assert(retail.ns.Core.ShareOn(), "Retail keeps sharing")
+  retail:enemy("Seen", { yards = 5 })
+  retail.units.target = retail.units.nameplate1
+  retail:join(); retail:advance(12)
+  assert(#retail.sent > 0, "the same match shares on Retail")
+  run(retail, "intel share off")
+  equal(retail.env.HighgroundDB.intelShare, false, "Retail switch still works")
+end)
+
 t.finish("Display commands: " .. t.tests .. " tests")

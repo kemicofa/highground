@@ -73,7 +73,7 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 | Loss-of-control count readable | Generic **CC** chip on WoW Forever (#322) |
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
 | Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
-| Enemy power type readable | Druid form estimates: ~Restoration or ~Feral on WoW Forever (druid forms PR) |
+| Enemy power type readable | Druid form estimates: ~Restoration or ~Feral on WoW Forever (#326) |
 
 ## Leads to try
 

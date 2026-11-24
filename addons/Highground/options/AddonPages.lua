@@ -100,6 +100,7 @@ function O.AddNameplateControls(page)
     combat = "highground.healermarks.leave_combat_to_change_nameplate_settings.8ac511" }
   O.Section(page, ns.Locale:Get(K.title), ns.Locale:Get(K.hint), K.title, K.hint)
   local R = N.RANGE
+  local limits = { key = K.limits, values = { min = R.min, max = R.max } }
   local label = ns.Theme.Text(page.child, "body", "text")
   label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetPoint("TOPRIGHT", -200, page.y - 4)
   label:SetJustifyH("LEFT"); label:SetWordWrap(false); ns.Localization.Bind(label, K.range)
@@ -118,7 +119,7 @@ function O.AddNameplateControls(page)
     range.minus:SetEnabled(not combat and yards ~= nil and yards > R.min)
     range.plus:SetEnabled(not combat and yards ~= nil and yards < R.max)
     range.box:EnableMouse(not combat and yards ~= nil)
-    ns.Localization.Bind(note, combat and K.combat or { key = K.limits, values = { min = R.min, max = R.max } })
+    ns.Localization.Bind(note, combat and K.combat or limits)
     for _, cb in ipairs(page.nameplateToggles) do
       local on = N.Get(cb.nameplate)
       cb:SetChecked(on == true, true)

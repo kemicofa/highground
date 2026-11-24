@@ -28,6 +28,7 @@ local function OnZone(event)
   if Core.testMode and (kind == "pvp" or kind == "arena") then Core.StopTest() end
   if event == "PLAYER_ENTERING_WORLD" and not Core.testMode then
     ns.MatchSerial = (ns.MatchSerial or 0) + 1
+    if Core.ClearEarlySpecTags then Core.ClearEarlySpecTags() end
     Core.rosterAt = nil
     wipe(Core.enemies)
     wipe(Core.order)

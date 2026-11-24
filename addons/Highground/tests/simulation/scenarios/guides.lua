@@ -94,7 +94,17 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     Hub.Show("users"); equal(w.total:GetText(), "0 characters detected", "live disabled discovery restored")
     O.Start("users"); s:setCombat(true)
     assert(not w.sample and not C.running, "combat retires samples")
-    s:setCombat(false); O.Start("users"); s:join()
+    s:setCombat(false); O.Start("users")
+    -- Arriving in a match asks the team for spec tags (with the capability
+    -- note sent alongside a first message): live traffic, not the sample.
+    local arrived = #s.sent
+    s:join()
+    for i = arrived + 1, #s.sent do
+      local m = s.sent[i]
+      assert(m.prefix == "HighgroundS" and m.message == "R" or m.prefix == "HighgroundN",
+        "only the live arrival request: " .. m.prefix .. " " .. m.message)
+    end
+    sent = sent + #s.sent - arrived
     assert(not w.sample and not C.running, "instance entry retires samples")
     s:leave(); O.Start("users"); w:Hide()
     assert(not w.sample, "closing the page clears sample state")

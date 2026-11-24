@@ -56,13 +56,23 @@ end
 ns.Test = ns.Test or {}
 ns.Test.RecordSighting = Intel.Record
 
+-- Reports of one death within this many seconds are the same death.
+Intel.SAME_DEATH = 5
 function Intel.Died(key, t)
   local cur = Intel.intel[key]
+  local e = ns.enemies and ns.enemies[key]
   if not (cur and cur.dead) then
     Store(key, nil, nil, nil, t, nil, nil, nil, nil, true)
-    local e = ns.enemies and ns.enemies[key]
-    if e and (not e.lastDeath or t - e.lastDeath > 5) then
+    if e and (not e.lastDeath or t - e.lastDeath > Intel.SAME_DEATH) then
       e.lastDeath = t -- resurrection-wave estimation
+    end
+  elseif t < cur.t and cur.t - t <= Intel.SAME_DEATH then
+    -- The same death, reported earlier than first heard (a teammate's exact
+    -- time after an older client's arrival time): waves count from the
+    -- earliest, unless a wave was already voted from the later one.
+    cur.t = t
+    if e and e.lastDeath and e.lastDeath > t and e.lastDeath - t <= Intel.SAME_DEATH and e.voted ~= e.lastDeath then
+      e.lastDeath = t
     end
   end
 end

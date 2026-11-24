@@ -44,6 +44,14 @@ function Intel.LogArea(mapID, area)
   m[area] = math.min((m[area] or 0) + 1, 1e6)
 end
 
+-- When e died: the 0.25 s tick or combat log that saw it, not this scan,
+-- which runs once a second. Resurrection waves are timed from it.
+local function DiedAt(e, now)
+  local at = e.diedAt
+  if type(at) == "number" and at <= now and now - at < 35 then return at end
+  return now
+end
+
 function Intel.Scan()
   local mapID = Intel.MapID()
   Intel.EnsureMap(mapID)
@@ -59,7 +67,7 @@ function Intel.Scan()
     if e.dead then
       local cur = Intel.intel[key]
       if cur and not cur.dead then
-        Intel.Died(key, now)
+        Intel.Died(key, DiedAt(e, now))
         Intel.mine[key] = true
       end
     elseif e.unit then

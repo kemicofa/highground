@@ -220,10 +220,18 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       follows(w.header, tool .. " window")
       w:Hide()
     end
+    local board = s.ns.Bounty.Board.win
+    board:Show()
+    local width = board.header.stage:GetWidth()
+    s.ns.Core.SetFontScale(1.5)
+    assert(board.header.stage:GetWidth() > width, "the badge grows with the text size")
+    follows(board.header, "enlarged board")
+    s.ns.Core.SetFontScale(1)
     s.ns.Localization.SetPreference("deDE")
-    t.equal(s.ns.Bounty.Board.win.header.stage.label:GetText(), "Alpha", "German keeps the term")
+    t.equal(board.header.stage.label:GetText(), "Alpha", "German keeps the term")
     s.ns.Localization.SetPreference("ruRU")
-    t.equal(s.ns.Bounty.Board.win.header.stage.label:GetText(), "Альфа", "the badge follows a language change")
+    t.equal(board.header.stage.label:GetText(), "Альфа", "the badge follows a language change")
+    follows(board.header, "Russian board")
     s:assertHealthy()
   end)
 

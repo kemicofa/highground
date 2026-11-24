@@ -72,7 +72,8 @@ function Kit.Header(parent, opts)
     end
     local width = math.max(1, self:GetWidth() - left - right)
     local stage = self.stage and self.stage:IsShown() and self.stage
-    local badge = stage and stage:GetWidth() + S("md") or 0
+    -- Refit the badge too: text size changes reach its label, not its frame.
+    local badge = stage and stage:Layout() + S("md") or 0
     Kit.Place(self.title, "LEFT", self, "TOPLEFT", left, center)
     local natural, titleWidth = self.title:GetStringWidth(), width
     -- The stage badge follows the title text; unmeasured text keeps the row.

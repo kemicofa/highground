@@ -113,7 +113,7 @@ local function GuideCard(w, step)
     self.name:ClearAllPoints(); self.name:SetPoint("TOP", 0, -y)
     y = y + Measure(self.name, width - 28) + 8
     if self.stage then
-      self.stage:ClearAllPoints(); self.stage:SetPoint("TOP", 0, -y)
+      self.stage:Layout(); self.stage:ClearAllPoints(); self.stage:SetPoint("TOP", 0, -y)
       y = y + self.stage:GetHeight() + 8
     end
     self.summary:SetShown(not self.logo)

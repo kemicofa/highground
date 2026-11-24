@@ -137,6 +137,11 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby untrack NAME` | Stop tracking an enemy by name, or your target. | Stop tracking an enemy |
 | `/hg nearby tracked` | List tracked enemies and where they were last reported. | Open tracked enemies (separate window) |
 | `/hg nearby watch on` · `/hg nearby watch off` | Watch for tracked enemies with every Highground user of your faction on this realm. | Watch with everyone switch → `nearby` |
+| `/hg nearby mark enemies\|ganker\|help` | Mark enemies, a ganker or a call for help at your position, for your group and guild. | Mark the map |
+| `/hg nearby mark clear` | Remove your map marks for everyone. | Clear my marks |
+| `/hg nearby marks on` · `/hg nearby marks off` | Show and share map marks, or turn them off. | Map marks switch → `nearby` |
+| `/hg nearby marks world on` · `/hg nearby marks world off` | Share map marks with every Highground user of your faction on this realm. | Marks with everyone switch → `nearby` |
+| `/hg nearby calls on` · `/hg nearby calls off` | Turn World PvP calls on or off: known gankers, enemy raids and others' map marks. | World PvP calls switch → `nearby` |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |

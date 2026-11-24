@@ -21,6 +21,7 @@ end
 Core.TICK_STAGES = {
   { "plates", "ScanPlates" }, -- core/Auras.lua
   { "capplates", "UpdateCapPlates" }, -- ui/CapPlates.lua
+  { "teamhealers", "InspectTeam" }, -- core/HealerTags.lua
   { "healermarks", "UpdateHealerMarks" }, -- ui/HealerMarks.lua
   { "burstmarks", "UpdateBurstMarks" }, -- ui/BurstMarks.lua
   { "dock", "Dock" }, -- ui/Dock.lua

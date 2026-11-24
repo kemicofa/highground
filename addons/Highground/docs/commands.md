@@ -101,6 +101,9 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg pressure on` · `/hg pressure off` | Enable or disable teammate pressure shields. (Cata) | Pressure shield switch → `battlegrounds-settings` |
 | `/hg pressure count N` | Set the maximum number of teammates with pressure shields. (Cata) | Choose pressure shield count |
 | `/hg pressure test` | Start or stop the pressure-shield sample. (Cata) | Pressure preview controls → `battlegrounds-previews` |
+| `/hg healer [NAME]` | Mark or unmark a teammate as a healer: the named one, else the one under your mouse, else your target | Mark team healer |
+| `/hg healers` | Open Team healers to see and change which teammates get the green healer cross | Open Team healers (separate window) |
+| `/hg healers test` | Start or stop the Team healers sample | Team healers preview controls → `battlegrounds-previews` |
 | `/hg points` | Print overridden scoring values in chat. | Show scoring overrides |
 | `/hg points NAME VALUE\|reset` | Set or reset any scoring value. | Edit a scoring value |
 | `/hg weights` | Inspect all score multipliers. | Inspect score multipliers → `multipliers` |

@@ -59,6 +59,9 @@ local function Build(page, owner)
       run = function()
         if ns.Timers.previewing then ns.BattlegroundsPreview.Stop() else ns.BattlegroundsPreview.Start() end
       end })
+    -- A window, so not part of /hg test: it would replace the Highground window.
+    Add(ns.Localization.Define({ cmd = "healers test", label = ns.Locale:Get("battlegrounds.commands.team_healers.68a1c6"), desc = ns.Locale:Get("battlegrounds.commands.sample_teammates_to_mark_and_unmark_as.da5545"),
+      active = function() return ns.TeamHealers.IsSample() end }, { label = "battlegrounds.commands.team_healers.68a1c6", desc = "battlegrounds.commands.sample_teammates_to_mark_and_unmark_as.da5545" }))
   elseif owner == "bounties" then
     for _, scene in ipairs(ns.Bounty.Preview.scenes) do
       Add(ns.Localization.Define({ label = scene.label, desc = scene.description, cmd = "bounty test " .. scene.key,

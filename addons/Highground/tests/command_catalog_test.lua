@@ -125,6 +125,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       bountyboard = function() return s.ns.Bounty.Board.win end,
       journal = function() return s.ns.EnemyJournal.win end,
       history = function() return s.ns.MatchHistory.win end,
+      healers = function() return s.ns.TeamHealers.win end,
     }
     s.env.SlashCmdList.HIGHGROUND = function(message) recorded[#recorded + 1] = message end
     H.Open("tools"); t.equal(#recorded, 0, "browsing cannot execute an action")

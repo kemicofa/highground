@@ -56,6 +56,12 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 
 Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old global `GetBattlefieldFlagPosition` no longer exists, while `GetNumBattlefieldFlagPositions` does. In Warsong Gulch, with both flags carried, the count read 2: your team's carrier had a readable position (`0.50, 0.14`), the enemy carrier had `nil` even when targeted 30 yards away. Textures are file IDs: 137200 is the Alliance flag, 137218 the Horde flag.
 
+## Teammate reads
+
+- `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
+- An inspect works on a teammate in a match: after `NotifyInspect(unit)`, `C_Traits.GetConfigInfo(-1)` (the inspect config) names the trait tree and `C_Traits.GetGroupCurrencyInfo(-1, groupIDs)` gives the points per talent tree, as for your own config. Trees without points are left out. Read live on an Enhancement shaman in Warsong Gulch's start room (`Enhancement 23`).
+- Enemies can't be inspected: `CanInspect` returns `false` for an enemy player and the inspect config stays empty (`GetConfigInfo(-1)` is nil), live 2026-11-24. Enemy specs stay hand-tagged.
+
 ## Used in Highground
 
 | Finding | Change |
@@ -66,6 +72,7 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 | Enemy auras refused | Aura-based scoring settings hidden on WoW Forever (#319) |
 | Loss-of-control count readable | Generic **CC** chip on WoW Forever (#322) |
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
+| Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
 
 ## Leads to try
 

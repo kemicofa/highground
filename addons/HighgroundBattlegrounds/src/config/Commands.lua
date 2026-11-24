@@ -77,6 +77,9 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   A("pressure count", "battlegrounds.commands.set_the_maximum_number_of_teammates_with.f3bfe3", "battlegrounds.commands.choose_pressure_shield_count.0d7c56", { cata = true, usage = "N",
     fields = { ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.teammates.ca594f"), kind = "number", min = 1, max = 3, integer = true, default = "3" }, { label = "battlegrounds.commands.teammates.ca594f" }) } }),
   L("pressure test", "battlegrounds.commands.start_or_stop_the_pressure_shield_sample.3b064a", "battlegrounds-previews", "battlegrounds.commands.pressure_preview_controls.78eec5", { cata = true }),
+  A("healer", "battlegrounds.commands.mark_or_unmark_a_teammate_as_a.806ec5", "battlegrounds.commands.mark_team_healer.b7993e", { usage = "[NAME]" }),
+  C.Tool("healers", "battlegrounds.commands.open_team_healers_to_see_and_change.edf611", "healers", "battlegrounds.commands.open_team_healers.bb1b00"),
+  L("healers test", "battlegrounds.commands.start_or_stop_the_team_healers_sample.db7fe3", "battlegrounds-previews", "battlegrounds.commands.team_healers_preview_controls.72f9b7"),
   A("points", "battlegrounds.commands.print_overridden_scoring_values_in_chat.0e1bcb", "battlegrounds.commands.show_scoring_overrides.a2ad25"),
   A("points", "battlegrounds.commands.set_or_reset_any_scoring_value.2bca3b", "battlegrounds.commands.edit_a_scoring_value.a5222e", { id = "points-value", usage = "NAME VALUE|reset", fields = {
     ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.scoring_value.827354"), choices = function()

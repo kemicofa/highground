@@ -122,6 +122,31 @@ function Commands.pressure(arg, msg, say)
   end
 end
 
+-- /hg healer [NAME]: mark or unmark a teammate as a healer, by name or the
+-- one under the mouse, else your target (core/HealerTags.lua).
+function Commands.healer(arg, msg, say)
+  local name = msg:match("^%S+%s+(.-)%s*$")
+  if name and name ~= "" then
+    local unit = Core.TeamUnitByName(name)
+    if not unit then return say(ns.Locale:Format("highground.display.no_teammate_named_name.0a00e4", { name = name })) end
+    return Core.ToggleTeamHealer(unit, say)
+  end
+  Core.ToggleHoveredHealer(say)
+end
+
+-- /hg healers: the Team healers window; /hg healers test: its sample.
+function Commands.healers(arg, msg, say)
+  if arg == "test" then
+    if ns.TeamHealers.IsSample() then
+      ns.TeamHealers.Close()
+      return say(ns.Locale:Get("highground.display.team_healers_sample_off.128308"))
+    end
+    ns.TeamHealers.Open(true)
+    return say(ns.Locale:Get("highground.display.team_healers_sample_on.5c71d6"))
+  end
+  ns.TeamHealers.Open()
+end
+
 -- /hg cap probe: record every possible sign of a capture (see
 -- core/CapProbe.lua). /hg cap clear: forget the capture diagnostics.
 local function CapProbe(say)

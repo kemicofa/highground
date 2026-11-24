@@ -42,6 +42,7 @@ local tools = {
   bountyboard = { label = "tools.open.bountyboard", open = function() ns.Bounty.Board.Open() end },
   reputation = { label = "tools.open.reputation", open = function() ns.Reputation.Open() end },
   macros = { label = "tools.open.macros", open = function() ns.Macros.Window.Open() end },
+  healers = { label = "tools.open.healers", open = function() ns.TeamHealers.Open() end },
 }
 function O.ToolLabel(key) return ns.Locale:Get(tools[key].label) end
 function O.BindToolLabel(button, key) ns.Localization.Bind(button, tools[key].label) end
@@ -88,6 +89,16 @@ reputation.build = function()
   reputation.child:HookScript("OnSizeChanged", reputation.RefreshBehavior)
   Core.OnFontScaleChange(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
   W.Listen(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
+end
+
+-- Which teammates get the green healer cross: the Team healers window.
+function O.AddTeamHealerControls(page)
+  local K = { title = "highground.addonpages.team_healers.68a1c6",
+    hint = "highground.addonpages.wow_forever_gives_every_teammate_the_damage.ed7763" }
+  O.Section(page, ns.Locale:Get(K.title), ns.Locale:Get(K.hint), K.title, K.hint)
+  local main = page.openTool
+  page.teamHealers = O.ToolLink(page, "healers")
+  page.openTool = main
 end
 
 -- The game's nameplate settings that markers depend on (ns.Nameplates). The

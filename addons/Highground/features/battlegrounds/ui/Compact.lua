@@ -285,9 +285,6 @@ function Core.LayoutRow(r, i, compact)
     room.spec = room.ally + (S("allies") and 3 or 0) + specW
     room.trinket = room.spec + (S("spec") and 3 or 0) + trinketW
   else
-    r.allyText:SetPoint("LEFT", r.spec, "RIGHT", 4, 0)
-    r.allyText:SetWidth(30)
-    r.allyText:SetJustifyH("LEFT")
     r.gap:SetWidth(S("gap") and 42 or NONE)
     Place(r.gap, "BOTTOMRIGHT", -6, 5)
     r.dist:SetWidth(S("distance") and 28 or NONE)
@@ -298,6 +295,11 @@ function Core.LayoutRow(r, i, compact)
     r.spec:SetWidth(80)
     r.spec:SetJustifyH("LEFT")
     Place(r.spec, "BOTTOMLEFT", textX, 5)
+    -- Bar mode anchors spec to allyText. Detach it before reversing that
+    -- dependency, or WoW rejects the temporary cycle and aborts layout.
+    r.allyText:SetPoint("LEFT", r.spec, "RIGHT", 4, 0)
+    r.allyText:SetWidth(30)
+    r.allyText:SetJustifyH("LEFT")
     r.eye:SetSize(11, 11)
     Place(r.eye, "LEFT", r.allyText, "RIGHT", 2, 0)
     -- Vertically centred between the two lines, left of the distance column.

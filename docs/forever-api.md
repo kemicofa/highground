@@ -62,7 +62,7 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 
 ### Interaction distance
 
-`CheckInteractDistance(unit, i)` is readable for an enemy player, in and out of combat. Indexes 1 and 4 give the 28-yard band: true near the enemy, false farther away. Indexes 2, 3 and 5 stayed false at every distance tried, melee range included, so the 10- and 11-yard bands give nothing for enemies. Read live in Arathi Basin, build 71037, 2026-11-24.
+`CheckInteractDistance(unit, i)` is readable for an enemy player, in and out of combat. Indexes 1 and 4 give the 28-yard band: true near the enemy, false farther away. Indexes 2, 3 and 5 turned true only in melee range, so they mark a melee band rather than 10 or 11 yards. Read live in Arathi Basin, build 71037, 2026-11-24.
 
 ## Teammate reads
 

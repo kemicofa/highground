@@ -132,6 +132,20 @@ end
 -- score gap) or compact (one line: name, spec, state, distance). Elements
 -- switched off in Appearance collapse to nothing so the rest moves up.
 local NONE = 0.001
+-- Reserve the widest possible label once at layout time. Empty priority
+-- tags keep the same track width as NOW/TOP/DEAD, so health remains comparable
+-- between rows and never appears to change just because priority changes.
+local function LabelWidth(fs, ...)
+  local previous, width = fs:GetText(), 0
+  fs:SetWidth(0)
+  for i = 1, select("#", ...) do
+    fs:SetText((select(i, ...)))
+    width = math.max(width, fs:GetStringWidth())
+  end
+  fs:SetText(previous or "")
+  return math.ceil(width) + 2
+end
+
 function Core.LayoutRow(r, i, compact)
   local S = Core.ShowsElement
   r:SetSize(Core.WIDTH - Core.PAD * 2, Core.ROW_H)
@@ -244,11 +258,15 @@ function Core.LayoutRow(r, i, compact)
     r.eye:SetSize(11, 11)
     Place(r.eye, "BOTTOMRIGHT", r.icon, "BOTTOMRIGHT", 2, -2)
     Place(r.name, "TOPLEFT", textX, -3)
-    r.gap:SetWidth(S("gap") and 42 or NONE)
+    local gapW = S("gap") and LabelWidth(r.gap, ns.Locale:Get("highground.render.now.9841c4"),
+      ns.Locale:Get("highground.render.top.b48813"), ns.Locale:Get("highground.render.dead.9d6c23")) or 0
+    local distW = S("distance") and LabelWidth(r.dist, "100", "--", ns.Locale:Get("highground.render.far.dca1e7")) or 0
+    r.gap:SetWidth(gapW > 0 and gapW or NONE)
     Place(r.gap, "BOTTOMRIGHT", -6, 4)
-    r.dist:SetWidth(S("distance") and 28 or NONE)
-    Place(r.dist, "RIGHT", r.gap, "LEFT", S("gap") and -10 or 0, 0)
-    local right = 6 + (S("gap") and 42 + (S("distance") and 10 or 0) or 0) + (S("distance") and 28 + 6 or 0)
+    r.dist:SetWidth(distW > 0 and distW or NONE)
+    Place(r.dist, "RIGHT", r.gap, "LEFT", gapW > 0 and distW > 0 and -4 or 0, 0)
+    local right = 6 + gapW + distW + (gapW > 0 and distW > 0 and 4 or 0)
+      + ((gapW > 0 or distW > 0) and 4 or 0)
     r.hp:ClearAllPoints()
     r.hp:SetPoint("BOTTOMLEFT", r, "BOTTOMLEFT", textX, 4)
     r.hp:SetPoint("BOTTOMRIGHT", r, "BOTTOMRIGHT", -right, 4)
@@ -356,3 +374,9 @@ function ns.SetCompact(on)
   if ns.Options and ns.Options.RefreshFeatures then ns.Options.RefreshFeatures() end
   return applied
 end
+
+-- Refit translated columns on a live language switch; protected geometry
+-- follows ApplyLayout's existing combat deferral. Standalone has no board.
+ns.Localization.Watch(Core, function()
+  if Core.frame then Core.ApplyStyle("layout") end
+end)

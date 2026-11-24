@@ -29,7 +29,7 @@ Cata resolves readable scoreboard spec names to its 30 talent-tree profiles. Whe
 
 When live spec data is unavailable, [personal buffs and learned mana samples](observations.md#estimated-specs-cata) can provide a labeled estimate. These clues do not identify every spec, and similar mana pools remain inconclusive.
 
-Retail uses only readable observations for decisions; historical specs and active aura categories are not equivalent to live spec identification or enemy cooldown tracking. Generic Retail crowd control is displayed without assuming it breaks on damage. Cata tracks observed cooldown casts; additional recipients of an existing area aura do not restart the cooldown.
+Retail uses only readable observations for decisions; historical specs and active aura categories are not equivalent to live spec identification or enemy cooldown tracking. Generic Retail crowd control is displayed without assuming it breaks on damage. WoW Forever refuses addons enemy auras in a match, so its scoring has no defensive, spent or burst values and no GO window; those settings and multipliers are hidden there, as are the orb values (it has no Temple of Kotmogu). Cata tracks observed cooldown casts; additional recipients of an existing area aura do not restart the cooldown.
 
 ## Observation limits
 

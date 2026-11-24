@@ -77,7 +77,9 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   A("points", "battlegrounds.commands.set_or_reset_any_scoring_value.2bca3b", "battlegrounds.commands.edit_a_scoring_value.a5222e", { id = "points-value", usage = "NAME VALUE|reset", fields = {
     ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.scoring_value.827354"), choices = function()
       local choices = {}
-      for key in pairs(ns.Core.POINT_DEFAULT) do choices[#choices + 1] = key end
+      for key in pairs(ns.Core.POINT_DEFAULT) do
+        if ns.Core.PointAvailable(key) then choices[#choices + 1] = key end
+      end
       table.sort(choices); return choices
     end }, { label = "battlegrounds.commands.scoring_value.827354" }), ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.value_or_reset.f67b95"), kind = "number-or-reset", default = "reset" }, { label = "battlegrounds.commands.value_or_reset.f67b95" }) } }),
   L("weights", "battlegrounds.commands.inspect_all_score_multipliers.6e574a", "multipliers", "battlegrounds.commands.inspect_score_multipliers.efa578"),

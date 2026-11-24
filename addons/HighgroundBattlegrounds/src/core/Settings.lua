@@ -14,7 +14,8 @@ for _, row in ipairs(Core.POINTS) do
   end
 end
 for _, row in ipairs(Core.WEIGHTS) do
-  Core.SettingDefs.weight[row.key] = { min = 0, max = 5, def = 1, unit = "multiplier", cata = row.cata, retail = row.retail }
+  Core.SettingDefs.weight[row.key] = { min = 0, max = 5, def = 1, unit = "multiplier", cata = row.cata, retail = row.retail,
+    caps = row.caps }
 end
 for _, row in ipairs(ns.OptionsConfig.behavior) do Core.SettingDefs.option[row.key] = row end
 for _, list in pairs(ns.Kits or {}) do
@@ -23,6 +24,12 @@ for _, list in pairs(ns.Kits or {}) do
       Core.SettingDefs.point["kit" .. entry[1]] = { min = 0, max = 500, unit = "points", component = "cooldowns", cata = true }
     end
   end
+end
+
+-- A point value this game can use: the options pages show the same list.
+function Core.PointAvailable(key)
+  local def = Core.SettingDefs.point[key]
+  return def ~= nil and ns.OptionAvailable(def)
 end
 
 function Core.O(key)

@@ -83,7 +83,7 @@ function Commands.points(arg, msg, say)
   local key, val = arg:match("^(%S+)%s*(%S*)$")
   local real
   for k in pairs(Core.POINT_DEFAULT) do
-    if key and k:lower() == key:lower() then
+    if key and k:lower() == key:lower() and Core.PointAvailable(k) then
       real = k
     end
   end
@@ -119,7 +119,7 @@ end
 
 function Commands.weights(arg, msg, say)
   for _, w in ipairs(Core.WEIGHTS) do
-    say(ns.Locale:Format("highground.settings.w_key_x_value2_value3_w_desc.d9a463", { w_key = string.format("%-9s", w.key), value2 = string.format("%.1f", Core.W(w.key)), value3 = string.format("%s", Hex("textMuted")), w_desc = string.format("%s", w.desc) }))
+    if ns.OptionAvailable(w) then say(ns.Locale:Format("highground.settings.w_key_x_value2_value3_w_desc.d9a463", { w_key = string.format("%-9s", w.key), value2 = string.format("%.1f", Core.W(w.key)), value3 = string.format("%s", Hex("textMuted")), w_desc = string.format("%s", w.desc) })) end
   end
   say("/hg weight NAME X  (0-5)  |  /hg weight reset")
 end
@@ -133,7 +133,7 @@ function Commands.weight(arg, msg, say)
   else
     local known
     for _, w in ipairs(Core.WEIGHTS) do
-      if w.key == name then
+      if w.key == name and ns.OptionAvailable(w) then
         known = w
       end
     end

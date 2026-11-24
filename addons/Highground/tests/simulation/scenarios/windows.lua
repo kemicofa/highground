@@ -62,6 +62,37 @@ test(client .. " note editors return to the same journal opened directly or from
 end)
 end
 
+test("timer row tooltips explain their tag, follow the language and refresh cheaply", function()
+  local sim = new("cata")
+  sim:command("bg test")
+  sim:advance(0.5)
+  local w, tip = sim.ns.Timers.windows, sim.env.GameTooltip
+  local row
+  for _, window in ipairs(w) do
+    for _, r in ipairs(window.rows or {}) do
+      if r:IsShown() and r.data and r.data.tag == "YOU" then row = r end
+    end
+  end
+  assert(row, "the preview shows your resurrection row")
+  row.scripts.OnEnter(row)
+  assert(table.concat(tip.lines, "\n"):find("Your resurrection destination", 1, true), "the tag is explained")
+  local L = sim.ns.Locale
+  local get, lookups = L.Get, 0
+  L.Get = function(self, key, ...)
+    if key:find("^shared%.windows%.") then lookups = lookups + 1 end
+    return get(self, key, ...)
+  end
+  for _ = 1, 5 do row.ShowTip(row) end
+  assert(lookups <= 5 * 3, "an open tooltip does not translate every tag again: " .. lookups)
+  L.Get = get
+  sim.ns.Localization.SetPreference("deDE")
+  row.ShowTip(row)
+  assert(table.concat(tip.lines, "\n"):find("Ihr Wiederbelebungsziel", 1, true), "a new language explains it again")
+  sim.ns.Localization.SetPreference("enUS")
+  sim:command("bg test")
+  sim:assertHealthy()
+end)
+
 test("switching primary tools abandons old popup return paths", function()
   local sim = new("cata")
   local w = journal(sim)

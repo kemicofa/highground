@@ -30,7 +30,7 @@ Each guide uses the real controls with short explanations, highlights and a movi
 
 **Help → Addon users** (`/hg users`) counts Highground users you can see: your character, the latest complete member list of the discovery channel, and announcements received in the last 15 minutes. Each character counts once. Opening the page or pressing **Refresh members** requests a member list; requests are throttled and wait while WoW's channel UI is open or messaging is locked. A channel member without an announcement is counted separately: they may not have a responding addon. If a new list is incomplete or unavailable, the previous complete list stays for up to six minutes, then the page falls back to announcements. Counts reset on reload and are a sample, not a server census.
 
-Detection and realm discovery have separate switches. A reported newer release shows one notice per session, at most once a day; check it in your addon manager. **Copy diagnostics** (`/hg users why`) reports messaging restrictions, channel membership, roster status and retries without sending messages. `/hg guide users` shows the page with sample members. See [discovery details](../../../docs/networking.md#addon-user-discovery).
+Detection and realm discovery have separate switches. A newer release reported by a guild or group member, or by two characters in the realm channel, shows one notice per session, at most once a day; check it in your addon manager. **Copy diagnostics** (`/hg users why`) reports messaging restrictions, channel membership, roster status and retries without sending messages. `/hg guide users` shows the page with sample members. See [discovery details](../../../docs/networking.md#addon-user-discovery).
 
 ### Moving panels and previews
 

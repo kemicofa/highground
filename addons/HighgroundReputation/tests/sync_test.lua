@@ -217,4 +217,31 @@ test("successful fragments reset transient failures while unreachable peers leav
   equal(#W.outbox, 0, "failures spanning ten seconds release the queue")
 end)
 
+test("an impossible decision clock is refused and later decisions stay valid", function()
+  local native = F.native("Owner")
+  local owner, moderator = F.new("Owner", { native = native }), F.new("Moderator", { native = native })
+  local W, R, c = F.W(owner), F.W(moderator), F.community(owner)
+  local rc = F.join(owner, moderator, c)
+  local op = assert(R.Decide(rc, F.target(moderator, "Victim-Realm"), "ban", { toxic = true }, ""))
+  local forged = R.Copy(op)
+  forged.sequence, forged.clock = op.sequence + 1, 1000000000
+  forged.id, forged.target = op.by .. ":" .. forged.sequence, F.target(moderator, "Other-Realm")
+  W.Handle({ kind = "operation", community = c.id, operation = forged }, "Moderator-Realm")
+  equal(c.operations[forged.id], nil, "a direct operation with a huge clock is refused")
+  -- An older version stored it and shares it in snapshots.
+  rc.operations[forged.id], rc.clock = forged, forged.clock
+  W.RequestPeer(c, "Moderator-Realm", true)
+  F.pump({ owner, moderator }, 30)
+  assert(c.operations[op.id], "the rest of the snapshot applies")
+  equal(c.operations[forged.id], nil, "the snapshot's impossible clock is skipped")
+  assert(W.Decide(c, F.target(owner, "Next-Realm"), "ban", { toxic = true }, ""), "later decisions still store")
+  local reloaded = F.new("Moderator", { native = native, database = R.Copy(R.db) })
+  local L = F.W(reloaded)
+  local lc = L.Get(c.id)
+  equal(lc.operations[forged.id], nil, "a saved impossible clock is dropped on load")
+  equal(lc.clock, op.clock, "the clock comes from the remaining decisions")
+  assert(L.Decide(lc, F.target(reloaded, "Later-Realm"), "ban", { toxic = true }, ""), "decisions work again after reload")
+  owner:assertHealthy(); moderator:assertHealthy()
+end)
+
 t.finish("Reputation native sync: " .. t.tests .. " scenarios")

@@ -19,10 +19,19 @@ function W.ValidOperation(c, op)
   return true
 end
 
+-- Each decision takes the highest known clock plus one, and any moderator
+-- can claim any clock. Accept at most one tick per second since 2020, so a
+-- huge clock cannot push every later decision past the 1e9 limit.
+local EPOCH = 1577836800
+function W.ClockAhead(op) return op.clock > math.min(1000000000, W.Now() - EPOCH) end
+
+-- Returns whether the operation is stored; "clock" when it claims a clock
+-- that is not possible yet.
 function W.MergeOperation(c, op, sender, attested)
   if not W.CanModerate(c, sender) or (not attested and sender ~= op.by) or not W.ValidOperation(c, op) then return false end
   local old = c.operations[op.id]
   if old then return ns.Codec.Pack(old) == ns.Codec.Pack(op) end
+  if W.ClockAhead(op) then return false, "clock" end
   if W.Count(c.operations) >= W.MAX_OPS then return false end
   c.operations[op.id] = W.Copy(op)
   c.clock = math.max(c.clock or 0, op.clock)

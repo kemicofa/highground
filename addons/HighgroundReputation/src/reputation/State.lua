@@ -80,11 +80,16 @@ function W.LoadScope()
       c.operations = type(c.operations) == "table" and c.operations or {}
       c.reports = type(c.reports) == "table" and c.reports or {}
       c.sequences = type(c.sequences) == "table" and c.sequences or {}
-      c.clock = W.Int(c.clock, 0, 1000000000) and c.clock or 0
       -- A completed legacy snapshot (or local moderator activation) already
       -- established enablement. A member's old opt-in alone did not.
       c.activated = c.activated == true or c.synced == true
-      for key, op in pairs(c.operations) do if not W.ValidOperation(c, op) then c.operations[key] = nil end end
+      -- An older version accepted any clock: drop impossible ones and take
+      -- the clock from what is left.
+      c.clock = 0
+      for key, op in pairs(c.operations) do
+        if not W.ValidOperation(c, op) or W.ClockAhead(op) then c.operations[key] = nil
+        else c.clock = math.max(c.clock, op.clock) end
+      end
       for key, report in pairs(c.reports) do if not W.ValidReport(report) then c.reports[key] = nil end end
     end
   end

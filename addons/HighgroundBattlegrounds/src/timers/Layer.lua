@@ -2,6 +2,7 @@ local _, ns = ...
 local Timers = ns.Timers
 
 local Tip = Timers.TipLine
+local MID = { { 0.5, 0.5 } }
 local AddLayer = ns.AddMapLayer or function() end -- Pins.xml failed to load: timers still run
 AddLayer(function(mapID)
   local items = {}
@@ -53,12 +54,16 @@ AddLayer(function(mapID)
     }
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
-    items[#items + 1] = {
-      x = 0.5, y = 0.5, size = 14, ring = ns.Theme.Rgb("white"), label = ns.Locale:Format("battlegrounds.layer.flag_value2.b526b8", { value2 = Timers.Clock(ns.flagRespawnAt - now) }),
-      tooltip = function(tt)
-        Tip(tt, ns.Locale:Format("battlegrounds.layer.flag_respawns_in_value2.245d42", { value2 = Timers.Clock(ns.flagRespawnAt - now) }), "white")
-      end,
-    }
+    -- At each flag's spawn (Warsong Gulch: both rooms), else mid-map.
+    local flags = Timers.Rules().flags
+    for _, at in ipairs(flags and flags.spawns or MID) do
+      items[#items + 1] = {
+        x = at[1], y = at[2], size = 14, ring = ns.Theme.Rgb("white"), label = ns.Locale:Format("battlegrounds.layer.flag_value2.b526b8", { value2 = Timers.Clock(ns.flagRespawnAt - now) }),
+        tooltip = function(tt)
+          Tip(tt, ns.Locale:Format("battlegrounds.layer.flag_respawns_in_value2.245d42", { value2 = Timers.Clock(ns.flagRespawnAt - now) }), "white")
+        end,
+      }
+    end
   end
   for _, n in pairs(Timers.nodes) do
     if n.assault and not capOn[n.name] then

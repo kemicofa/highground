@@ -106,17 +106,20 @@ function Timers.CapTime()
   return Median(list)
 end
 
--- Flag respawn after a capture: the configured time, else the median of
--- this map's observed capture-to-reset gaps (HighgroundDB.flagLearned).
--- Darkspear Islands announces the respawn as "The flag has been reset.".
+-- Flag respawn after a capture: the median of this map's observed
+-- capture-to-reset gaps (HighgroundDB.flagLearned) once three are seen, else
+-- the configured time, else any observed gap. Darkspear Islands announces
+-- the respawn as "The flag has been reset.", Warsong Gulch as "The flags
+-- are now placed at their bases.".
 Timers.FLAG_SAMPLES = 5
 
 function Timers.FlagRespawnTime()
   local flags = Timers.Rules().flags
-  if flags and flags.respawnSeconds then return flags.respawnSeconds end
+  local configured = flags and flags.respawnSeconds
   local db, key = Timers.LearnedDB(), Timers.RulesKey()
   local list = db and key and type(db.flagLearned) == "table" and db.flagLearned[key]
-  return list and #list > 0 and Median(list) or nil
+  if list and (#list >= 3 or not configured and #list > 0) then return Median(list) end
+  return configured
 end
 
 function Timers.LearnFlagRespawn(secs)

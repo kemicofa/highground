@@ -165,6 +165,12 @@ function Core.OnObjectiveChat(event, msg)
     if msg:find("placed at their bases") or msg:find("wins") then
       Core.ResetAssault()
       Core.ClearCarriers()
+      -- Flags back after a capture: learn the gap for the next countdown.
+      local Timers = ns.Timers
+      if Core.flagCapturedAt and Timers and msg:find("placed at their bases") then
+        Timers.LearnFlagRespawn(GetTime() - Core.flagCapturedAt)
+      end
+      Core.flagCapturedAt, ns.flagRespawnAt = nil, nil
     end
     return
   end
@@ -216,6 +222,12 @@ function Core.OnObjectiveChat(event, msg)
     Core.ClearCarriers()
     if Core.obj.mode == "flag" then
       Core.ResetAssault()
+      -- Both flags return together, announced as "placed at their bases";
+      -- the winning capture returns none.
+      local now, Timers = GetTime(), ns.Timers
+      local over = ns.Util.read(C_PvP and C_PvP.IsMatchComplete) == true
+      local seconds = Timers and not over and Timers.FlagRespawnTime()
+      Core.flagCapturedAt, ns.flagRespawnAt = not over and now or nil, seconds and (now + seconds) or nil
     end
   end
 end

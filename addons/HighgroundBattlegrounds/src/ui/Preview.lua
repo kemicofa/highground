@@ -25,6 +25,7 @@ local function ObjectiveRows(me, them)
   return {
     Timers.Tag({ team = me, color = Timers.TeamColor(me), frac = 0.72, time = "3:10", text = name[me] .. "  1500-1180" }, "WIN"),
     Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
+    Timers.Tag({ color = Theme.Rgb("white"), text = ns.Locale:Get("battlegrounds.objectives.respawn.5a0bd4"), left = 8, total = 11 }, "FLAG"),
     Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 }, "CAPPING"),
   }, Timers.Hex(Timers.TeamColor(me)) .. "1080|r  " .. Timers.Hex(Timers.TeamColor(them)) .. "940|r"
 end

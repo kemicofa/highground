@@ -8,6 +8,14 @@ local equal = t.equal
 
 local function chat(sim, side, text) sim:event("CHAT_MSG_BG_SYSTEM_" .. side, text) end
 
+-- WoW Forever: the retail manifest on interface 16001, unrated.
+local function forever(s)
+  s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  s.env.loadstring_untainted = nil
+  s.secureSnippets = false
+  s.rated, s.blitz = false, false
+end
+
 t.test("Warsong Gulch drops keep the assault clock; both flags home or a neutral reset clear it", function()
   local sim = new("cata", {})
   local Core, Flags = sim.ns.Core, sim.ns.Flags
@@ -36,6 +44,67 @@ t.test("Warsong Gulch drops keep the assault clock; both flags home or a neutral
   equal(Core.obj.assaultStart, nil, "neutral reset clears the clock")
   equal(sim:entry("Carrier").carrier, false, "and the carriers")
   equal(next(Flags.carriers), nil, "and the flags window")
+end)
+
+t.test("Warsong Gulch counts down the flag respawn after a capture", function()
+  local sim = new("cata", {})
+  sim:enemy("Carrier")
+  sim:join(1460, 489, "Warsong Gulch")
+  chat(sim, "HORDE", "Carrier captured the Alliance flag!")
+  equal(sim.ns.flagRespawnAt, sim.now + 23, "Cata's respawn from the map's rules")
+  sim:advance(20)
+  chat(sim, "NEUTRAL", "The flags are now placed at their bases.")
+  equal(sim.ns.flagRespawnAt, nil, "flags home end the countdown")
+  equal(sim.ns.Timers.FlagRespawnTime(), 23, "one early gap keeps the configured time")
+  chat(sim, "ALLIANCE", "The Horde flag was returned to its base by Defender!")
+  chat(sim, "NEUTRAL", "The flags are now placed at their bases.")
+  equal(sim.ns.Timers.FlagRespawnTime(), 23, "flags home without a capture teach nothing")
+end)
+
+t.test("WoW Forever Warsong Gulch counts down the flag respawn after a capture", function()
+  local sim = new("retail", nil, forever)
+  sim:enemy("Enemy With Surname")
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  local function flagRow()
+    for _, row in ipairs(T.ObjectiveRows(sim.now)) do if row.kind == "FLAG" then return row end end
+  end
+  local function pins()
+    local list = {}
+    for _, p in ipairs(sim.env.WorldMapFrame.pins) do
+      if (p.item.label or ""):find("^FLAG ") then list[#list + 1] = p.item end
+    end
+    return list
+  end
+  sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Enemy With Surname captured the Alliance flag!")
+  equal(sim.ns.flagRespawnAt - sim.now, 11, "Forever's configured respawn")
+  local row = flagRow()
+  assert(row and row.text == "respawn" and row.total == 11, "objectives window row")
+  sim:advance(1)
+  local shown = pins()
+  equal(#shown, 2, "a pin at each flag room")
+  assert(shown[1].label == "FLAG 10s" and shown[1].y < 0.2 and shown[2].y > 0.9, "pins count down at the rooms")
+  -- The flags return later than configured: the gap is learned.
+  sim:advance(11.5)
+  equal(flagRow(), nil, "the row ends with the countdown")
+  sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The flags are now placed at their bases.")
+  equal(sim.ns.flagRespawnAt, nil, "the announcement clears the countdown")
+  for _ = 1, 2 do
+    sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me captured the Horde flag!")
+    equal(sim.ns.flagRespawnAt - sim.now, 11, "fewer than three gaps keep the configured time")
+    sim:advance(12.5)
+    sim:event("CHAT_MSG_BG_SYSTEM_NEUTRAL", "The flags are now placed at their bases.")
+  end
+  equal(T.FlagRespawnTime(), 12.5, "three learned gaps replace it")
+  -- The winning capture respawns no flag.
+  sim.matchComplete = true
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me captured the Horde flag!")
+  equal(sim.ns.flagRespawnAt, nil, "no countdown once the match is over")
+  sim.matchComplete = false
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me captured the Horde flag!")
+  sim:event("PVP_MATCH_COMPLETE")
+  equal(sim.ns.flagRespawnAt, nil, "the match ending clears a running countdown")
+  sim:assertHealthy()
 end)
 
 t.test("joining a running Warsong Gulch waits for both flags home before counting stacks", function()

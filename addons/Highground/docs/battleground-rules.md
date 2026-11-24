@@ -71,7 +71,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 | `resurrection.captureDelay` | Seconds from a capture until ghosts at its graveyard first come back, as a phase: waves come at capture + delay + whole cycles; 0 unless set (WoW Forever: 4.4, from one Arathi Basin match) |
 | `scoring.bases`, `noun`, `predict`, `seedRates` | Base-count prediction settings and optional known rates |
 | `objective` | `flag`, `carry`, or `orb` carrier behavior |
-| `flags`, `orbs` | Stack timing and known respawn timing. Without `flags.respawnSeconds`, a carried flag's respawn is learned from the gap between a capture and "The flag has been reset." |
+| `flags`, `orbs` | Stack timing and known respawn timing. A flag's respawn after a capture is also learned from the gap to "The flag has been reset." (one flag) or "The flags are now placed at their bases." (two flags): the median of three gaps replaces `flags.respawnSeconds`, and without it the first gap is used. `flags.spawns` lists map positions for the respawn pins (mid-map otherwise) |
 | `callouts.destinations`, `callouts.routes` | Fallback base names for enemy destination calls, and the three manual EFC route buttons for flag maps |
 | `callouts.aliases` | Lowercase alternate names mapped to one destination key; the client's observed spelling takes precedence |
 | `map.bases`, `sides`, `anchors`, `zoneCenter` | Labels and approximate fallback positions; configured `graveyards.nodes[].node` capture points also serve as area fallbacks |

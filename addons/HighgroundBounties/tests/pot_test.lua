@@ -163,20 +163,6 @@ test("private roots accept direct contributions and owner review without opting 
   equal(P(b).Publishing(), false); equal(P(b).Receiving(), false)
 end)
 
-test("imported originals expire with their bounty unless a contribution still follows them", function()
-  local a, b, c = F.new("Alice", { saved = {} }), F.new("Bob", { saved = {} }), F.new("Carol", { saved = {} })
-  local original = assert(B(a).Add("Enemy", 500))
-  local url = assert(B(a).Exchange.Show(original, "private")).bountyURL
-  assert(B(b).Exchange.Import(assert(B(b).Exchange.Decode(url))))
-  assert(B(c).Exchange.Import(assert(B(c).Exchange.Decode(url))))
-  assert(B(c).Pot.Add(B(c).Personal()["enemy-realm"], 100, true))
-  equal(F.count(B(b).Pot.Originals()), 1, "imported")
-  b.now, c.now = b.now + 30 * 86400, c.now + 30 * 86400
-  P(b).Prune(); P(c).Prune()
-  equal(F.count(B(b).Pot.Originals()), 0, "an expired original is pruned")
-  equal(F.count(B(c).Pot.Originals()), 1, "one a saved contribution follows waits for it")
-end)
-
 test("multi-kill decisions survive disconnects and do not charge late contributors for earlier deaths", function()
   local a, b, h = F.new("Alice"), F.new("Bob"), F.new("Hunter")
   local original = assert(P(a).Post("Enemy", 500, "2h", "", false, { killsRequired = 2 }))

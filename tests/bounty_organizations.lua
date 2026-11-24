@@ -1,6 +1,6 @@
 return function(addon)
 local t = dofile("../../tools/harness.lua")("bounty organizations")
-local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+local F = dofile("tests/bounties/public/fixture.lua")
 local runtime = dofile("../../tools/wowsim/" .. (addon == "Highground" and "battleground/" or "") .. "runtime.lua")
 local test = t.test
 local function equal(actual, expected, why) return t.equal(actual, expected, why or "value") end

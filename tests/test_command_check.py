@@ -19,10 +19,10 @@ class CommandCheckTests(unittest.TestCase):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
-        for addon in ("Highground", "HighgroundReputation"):
-            folder = self.root / "addons" / addon / "tests"
-            folder.mkdir(parents=True)
-            (folder / "performance_test.lua").write_text("return true\n")
+        for filename in ("performance_test.lua", "reputation_performance_test.lua"):
+            folder = self.root / "addons/Highground/tests"
+            folder.mkdir(parents=True, exist_ok=True)
+            (folder / filename).write_text("return true\n")
         for suite in ("docs_test.lua", "command_catalog_test.lua"):
             (self.root / "addons/Highground/tests" / suite).write_text('dofile("catalog.lua")\n')
         self.catalog = self.root / "addons/Highground/catalog.lua"

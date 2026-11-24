@@ -1,7 +1,7 @@
 -- Shared integration checks use real TOC load order in every UI package.
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " navigation")
-  local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local F = dofile("tests/bounties/public/fixture.lua")
   local runtime = dofile("../../tools/wowsim/" .. (addon == "Highground" and "battleground/" or "") .. "runtime.lua")
   local function new(client, build)
     return F.new("Tester", { addon = addon, client = client, build = build, runtime = function(game, saved, configure)
@@ -63,7 +63,7 @@ return function(addon)
       s:assertHealthy()
     end)
 
-    if addon ~= "HighgroundMacros" then
+    do
       t.test(label .. ": sample boards keep their own page, help and filter history", function()
         local s = new(unpack(case))
         local B, rows = s.ns.Bounty, {}
@@ -193,7 +193,7 @@ return function(addon)
       end)
     end
 
-    if addon == "Highground" or addon == "HighgroundMacros" then
+    do
       t.test(label .. ": macro tab and mode clicks keep the active visit and forward history", function()
         local s = new(unpack(case))
         local Win = s.ns.Macros.Window

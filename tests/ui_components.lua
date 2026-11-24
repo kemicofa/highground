@@ -1,7 +1,7 @@
 -- Run from an addon folder so its real manifests supply every dependency.
 local addon, client, build = arg[1], arg[2], tonumber(arg[3])
 local t = dofile("../../tools/harness.lua")(addon .. " components")
-local battlegrounds = addon == "Highground" or addon == "HighgroundBattlegrounds"
+local battlegrounds = addon == "Highground"
 local new = dofile("../../tools/wowsim/" .. (battlegrounds and "battleground/" or "") .. "runtime.lua")
 local geometry = dofile("../../tools/wowsim/geometry.lua")
 local s = new(client, nil, function(sim)

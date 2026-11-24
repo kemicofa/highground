@@ -32,4 +32,4 @@ Start with the monorepo guide, then development.
 - [WoW Forever API findings](forever-api.md): what addons can read in a match (secret values, chat lockdown, loss of control), the developer-only API probe and leads to try.
 - [Builds and releases](releases.md): ZIP contents, CI, publishing and announcements.
 
-Highground's release history is its [CHANGELOG](../addons/Highground/CHANGELOG.md); older entries are in the [2.7–2.19 archive](../addons/Highground/docs/changelog-2.7-2.19.md). The deprecated standalone addons keep their changelogs as historical records. `python3 scripts/check_links.py` checks the relative links in every Markdown file.
+Highground's release history is its [CHANGELOG](../addons/Highground/CHANGELOG.md); older entries are in the [2.7–2.19 archive](../addons/Highground/docs/changelog-2.7-2.19.md). Historical standalone changelogs remain available in Git history. `python3 scripts/check_links.py` checks the relative links in every Markdown file.

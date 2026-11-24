@@ -1,4 +1,4 @@
--- Kit labels follow a language change, exercised through every retained host
+-- Kit labels follow a language change, exercised through Highground's client variants
 -- manifest by ui_components.lua.
 return function(s, t, fire)
   local K, env, L, Localization = s.ns.Kit, s.env, s.ns.Locale, s.ns.Localization

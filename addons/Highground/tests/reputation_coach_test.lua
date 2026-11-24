@@ -1,6 +1,6 @@
 -- Run from addons/Highground: luajit tests/reputation_coach_test.lua
 local t = dofile("../../tools/harness.lua")("reputation coach")
-local F = dofile("../HighgroundReputation/tests/fixture.lua")
+local F = dofile("tests/reputation/fixture.lua")
 local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
 
 local function new(build)

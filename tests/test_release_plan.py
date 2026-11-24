@@ -23,16 +23,16 @@ class ReleasePlanTests(TempTestCase):
     def test_only_unpublished_addons_use_their_exact_tested_artifact(self):
         # An unfinished external upload is also PUBLISH, even if GitHub already
         # has that version. It must keep a publisher so the upload can retry.
-        names = ("Highground", "HighgroundMacros")
+        names = ("Highground",)
         with self.verdicts(dict.fromkeys(names, release_check.PUBLISH)):
             matrix = release_plan.plan(self.manifest, self.announcement(*names))
         self.assertEqual(matrix, {"include": [
             {"addon": name, "artifact": f"{name}-{self.manifest[name].version}"} for name in names
         ]})
 
-    def test_unready_shared_dependency_blocks_the_entire_batch(self):
-        statuses = {"Highground": release_check.PUBLISH, "HighgroundMacros": release_check.WAITING}
-        with self.verdicts(statuses), self.assertRaisesRegex(ValueError, "HighgroundMacros"):
+    def test_unready_release_blocks_the_entire_batch(self):
+        statuses = {"Highground": release_check.WAITING}
+        with self.verdicts(statuses), self.assertRaisesRegex(ValueError, "Highground"):
             release_plan.plan(self.manifest, self.announcement("Highground"))
 
     def test_missing_or_wrong_announcement_version_blocks_publication(self):

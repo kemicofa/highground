@@ -2,7 +2,7 @@
 -- server: Forever delivers custom-channel traffic across rulesets.
 return function(addon)
 local t = dofile("../../tools/harness.lua")(addon .. " ruleset channels")
-local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+local F = dofile("tests/bounties/public/fixture.lua")
 local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function New(name, options)
   options = options or {}
@@ -176,7 +176,7 @@ t.test("ruleset switches clear transfers and reject delayed traffic on reused ch
   end
 end)
 
-for _, host in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" }) do
+for _, host in ipairs({ "Highground" }) do
   t.test("same-ruleset rewards reach " .. host .. " across backend realms without reaching PvP", function()
     local a = New("Poster", { ruleset = "RP-PvP", realm = "BackendA" })
     local b = New("Hunter", { addon = host, ruleset = "RP-PvP", realm = "BackendB" })

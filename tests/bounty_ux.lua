@@ -2,7 +2,7 @@ local flow = dofile("../../tests/bounty_flow.lua")
 -- Navigation, incoming wanted posters and share/import flows in real addon TOCs.
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " bounty UX")
-  local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local F = dofile("tests/bounties/public/fixture.lua")
   local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
   local function new(name, build, opts)
     opts = opts or {}

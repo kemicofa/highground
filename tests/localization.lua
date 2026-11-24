@@ -1,7 +1,6 @@
--- Real manifest integration, invoked by test_localization.py for every host.
+-- Real manifest integration, invoked by test_localization.py for Highground.
 local addon, client, build = arg[1], arg[2], tonumber(arg[3])
-local bg = addon == "Highground" or addon == "HighgroundBattlegrounds"
-local new = dofile(bg and "../../tools/wowsim/battleground/runtime.lua" or "../../tools/wowsim/runtime.lua")
+local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function start(saved, locale, inject)
   return new(client, saved, function(s, env)
     s.addon = addon
@@ -37,14 +36,14 @@ local function start(saved, locale, inject)
   end)
 end
 local function control(s)
-  return addon == "Highground" and s.ns.Options.general.language or s.ns.StandaloneSettings.frame.language
+  return s.ns.Options.general.language
 end
 local saved = {}
 local s = start(saved, "frFR", true)
 local ns, l, p = s.ns, s.ns.Locale, control(s)
 assert(saved.locale == "enUS" and l:GetLocale() == "enUS", "English is the default even on a French client")
 assert(p.select:GetValue() == "enUS" and #p.select.choices == 12)
-if addon == "Highground" then s:command("config general") else ns.StandaloneSettings.Open() end
+s:command("config general")
 local sent = #s.sent
 p.select.scripts.OnClick(p.select, "LeftButton")
 local menu = ns.Kit.Dropdown.Frame()

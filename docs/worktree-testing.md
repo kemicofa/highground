@@ -49,7 +49,7 @@ Return to `main` when the user finishes the requested testing session or at an e
 
 ## One installation, one source
 
-Canonical addon folders such as `Highground` and its bundled data addons point through a single selection pointer outside `AddOns`. Changing that pointer atomically switches the managed addons together. Already-installed deprecated standalone hosts also follow the selected worktree to keep legacy installations consistent; the tool does not install new standalone hosts. Use Highground’s bundled module switches for features and follow the [migration guide](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon) when retiring old installs.
+Canonical addon folders such as `Highground` and its bundled data addons point through a single selection pointer outside `AddOns`. Changing that pointer atomically switches the managed addons together. Older worktrees may still contain standalone hosts. If an existing managed installation includes one that the selected worktree no longer contains, the helper reports the missing addon; retire that old installation as part of an explicitly requested link cleanup. The tool does not install new standalone hosts. Use Highground’s bundled module switches for features and follow the [migration guide](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon) when retiring old installs.
 
 A per-installation operating-system lock serializes link changes, including changes from another clone. The selected worktree remains the owner after the command exits. Another process cannot take over simply because the first command finished.
 

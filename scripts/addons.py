@@ -102,7 +102,7 @@ class Addon:
 
     @property
     def deprecated(self):
-        """Retained legacy host, excluded from builds and publication commands."""
+        """Deprecated metadata is rejected by publication commands."""
         return (field(self.path, "X-Deprecated") or "").lower() == "true"
 
     @property
@@ -137,10 +137,10 @@ class Addon:
 
 
 def load(root=ROOT, *, include_deprecated=False):
-    """Releasable addons by folder name; optionally include legacy test hosts.
+    """Releasable addons by folder name; optionally inspect deprecated metadata.
 
     Internal data and module addons are always discovered through their bundle.
-    Tests can include deprecated hosts to retain shared-source coverage.
+    Retired standalone hosts are absent from the current source tree.
     """
     root = Path(root)
     found = {p.name: Addon(p.name, p) for p in sorted((root / "addons").iterdir())

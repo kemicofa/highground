@@ -19,7 +19,7 @@ Highground is a PvP addon for Retail, WoW Forever and Cataclysm Classic. It bund
 | Nearby | Open-world enemy sightings and history. `/hg nearby`. |
 | Reputation (alpha) | Player reports, moderation and chat filtering for existing guilds and WoW communities. `/hg reputation`. |
 
-Choose the features you want in `/hg` → **Addons** or WoW's AddOn List; module switches apply after reload. The former standalone addons are deprecated and receive no releases; their feature code stays in this repository because Highground imports it.
+Choose the features you want in `/hg` → **Addons** or WoW's AddOn List; module switches apply after reload. The former standalone addons are deprecated and receive no releases; their features now live directly in Highground.
 
 ## Install
 
@@ -39,8 +39,8 @@ The [documentation index](docs/README.md) lists every guide. Players: [getting s
 
 ```text
 libs/HighgroundKit/          shared library, UI, bounties, journals and fonts
-addons/Highground/           kill order, settings and hub; imports feature code
-addons/Highground<Name>/     retained legacy hosts and imported feature code
+addons/Highground/           kill order, settings, hub and feature implementations
+addons/Highground/features/  owned feature implementations and command catalogs
 addons/HighgroundModule*/    bundled feature switches
 addons/HighgroundBountyData/ shared bounty storage dependency
 addons/HighgroundReputationData/ shared reputation storage dependency

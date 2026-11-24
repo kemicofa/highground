@@ -1,4 +1,4 @@
--- Shared building blocks, exercised through every retained host manifest
+-- Shared building blocks, exercised through Highground's client manifests
 -- by ui_components.lua.
 return function(s, t, fire)
   local K, env = s.ns.Kit, s.env

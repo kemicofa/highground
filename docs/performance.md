@@ -29,10 +29,10 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_hub.lua cata 5` | `addons/Highground/` | Idle Home with and without a named profile, then the closed window |
 | `luajit ../../tools/performance_bounty_idle.lua 5 form loading` | `addons/Highground/` | Forever, two communities, empty bounty records: closed UI, the idle bounty board (`board`) or Create Bounty open (`form`), with organizations ready or still `loading` |
 | `luajit ../../tools/performance_panel_idle.lua retail split` | `addons/Highground/` | Idle HUD panel cogs and fades with exact and rounded alpha readback (`cata`, `compact` also work) |
-| `luajit ../../tools/performance_reputation.lua 1000 20 community` | `addons/HighgroundReputation/` | Ten idle Reputation ticks with a large roster (`guild` also works) |
-| `luajit ../../tools/performance_reputation_discovery.lua guild 1000 20 5` | `addons/HighgroundReputation/` | Unanswered discovery: payload bytes, frames, roster work and allocations |
-| `luajit ../../tools/performance_reputation_idle.lua followed never Highground quiet` | `addons/HighgroundReputation/` | Saved organizations with offline moderators and no traffic; see the file header for the other modes |
-| `luajit ../../tools/performance_background.lua 1000 20 community idle 5` | `addons/HighgroundReputation/` | Large roster with the UI closed; `presence` and `units` replay event bursts |
+| `luajit ../../tools/performance_reputation.lua 1000 20 community` | `addons/Highground/` | Ten idle Reputation ticks with a large roster (`guild` also works) |
+| `luajit ../../tools/performance_reputation_discovery.lua guild 1000 20 5` | `addons/Highground/` | Unanswered discovery: payload bytes, frames, roster work and allocations |
+| `luajit ../../tools/performance_reputation_idle.lua followed never Highground quiet` | `addons/Highground/` | Saved organizations with offline moderators and no traffic; see the file header for the other modes |
+| `luajit ../../tools/performance_background.lua 1000 20 community idle 5` | `addons/Highground/` | Large roster with the UI closed; `presence` and `units` replay event bursts |
 
 ## Failures to check for
 
@@ -76,7 +76,7 @@ Notification scans follow bounty events and alert-setting changes, with a
 ten-second fallback; an open poster is still re-checked every tick. Budgets in
 `tests/bounty_idle.lua` cover these scans, organization members without shared
 sharing, disabled suggestions and community sync scheduling on all three
-clients and hosts.
+clients through Highground.
 
 Kill-order rows, nameplates and sightings repeat the same names many times
 between index rebuilds; names already found absent are remembered until the
@@ -142,7 +142,7 @@ switch on Cata, Retail and Forever.
 Guild membership checks also resolve the organization without building a
 descriptor and read each rank's officer permission once per synchronous sweep.
 With `luajit ../../tools/performance_background.lua 1000 20 guild presence 2`
-from `addons/HighgroundReputation/` (one roster event per second), the second
+from `addons/Highground/` (one roster event per second), the second
 minute fell from **3.2 to 1.7 MiB allocated**. Separate lookups still read live
 rank flags; a full guild listing reads each rank once instead of twice per member.
 

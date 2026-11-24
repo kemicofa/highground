@@ -1,7 +1,7 @@
 return function()
 local t = dofile("../../tools/harness.lua")("idle Reputation rosters")
 local new = dofile("../../tests/bounty_idle_fixture.lua")
-for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
+for _, addon in ipairs({ "Highground" }) do
   for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
     t.test(addon .. " " .. variant[2] .. " empty report storage skips permission sweeps and private notes still expire", function()
       local s = new(addon, variant[1], variant[2])

@@ -1,6 +1,6 @@
 return function(addon)
 local t = dofile("../../tools/harness.lua")(addon .. " bounty network")
-local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+local F = dofile("tests/bounties/public/fixture.lua")
 local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function New(name, build, options)
   options = options or {}
@@ -320,16 +320,13 @@ t.test("successful fragments reset the transient failure count", function()
   Same(h, P(h).Data().offers[p.id], p, { "id", "gold", "note", "intel" })
 end)
 
-t.test("all three addon packages exchange the same contributions", function()
-  local a = New("Poster", 16001)
-  local p = F.post(a)
-  local packets = F.flush(a)
-  for _, targetAddon in ipairs({ "Highground", "HighgroundBounties", "HighgroundNearby" }) do
-    if targetAddon ~= addon then
-      local h = New("Hunter", 16001, { addon = targetAddon })
-      F.deliver(a, h, packets)
-      Same(h, P(h).Data().offers[p.id], p, { "id", "contributor", "name", "by", "gold", "expiresAt" })
-    end
+t.test("Highground players exchange complete contributions on every client", function()
+  for _, build in ipairs({ 40402, 120100, 16001 }) do
+    local a, h = New("Poster", build), New("Hunter", build)
+    local p = F.post(a)
+    P(a).QueueOffer(p, h.ns.Bounty.Me())
+    F.deliver(a, h, F.flush(a))
+    Same(h, P(h).Data().offers[p.id], p, { "id", "contributor", "name", "by", "gold", "expiresAt" })
   end
 end)
 

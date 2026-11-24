@@ -1,6 +1,6 @@
 # Shared addon networking
 
-Highground is the only supported distribution. Standalone references below document compatibility with legacy peers and retained test hosts.
+Highground is the only supported distribution. Standalone references below document compatibility with legacy peers and their wire formats.
 
 [Documentation](README.md) · [Library source](../libs/HighgroundKit/core/Network.lua)
 

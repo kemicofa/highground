@@ -1,7 +1,7 @@
 -- Closed windows, empty bounty records, two communities and offline peers.
 -- configure(s, e), optional, runs last (for example to add resize events).
 return function(addon, client, build, configure)
-  local F = dofile("../HighgroundReputation/tests/fixture.lua")
+  local F = dofile("tests/reputation/fixture.lua")
   local native = F.native("Owner")
   for _, member in pairs(native[42].members) do member.presence = 3 end
   native[42].members["Member-Realm"].presence = 1

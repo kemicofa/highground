@@ -1,6 +1,6 @@
 ---
 name: highground-localization-review
-description: Maintain Highground's reusable localization library, English source messages, locale catalogs and translated UI when changing player-facing text or shared code. Applies only to Highground and its compatibility hosts.
+description: Maintain Highground's reusable localization library, English source messages, locale catalogs and translated UI when changing player-facing text or shared code. Applies only to Highground and its bundled modules.
 ---
 
 # Highground localization review
@@ -44,7 +44,7 @@ no catalog update; record the specific reason instead of adding placeholder keys
   spell names and chat parsing follow the client, independently of this setting.
 - Check longer/wrapped text, script fonts, saved selection, live bindings and
   English fallback in the affected controls. Follow shared-source consumers in
-  both Highground and retained compatibility hosts. Simulator results do not
+  Highground and its bundled modules. Simulator results do not
   establish actual Cyrillic/CJK glyph rendering; report live-client gaps.
 
 ## Check and report

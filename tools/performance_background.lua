@@ -1,4 +1,4 @@
--- Run from addons/HighgroundReputation:
+-- Run from addons/Highground:
 -- luajit ../../tools/performance_background.lua [members] [moderators] [community|guild] [idle|presence|units] [minutes]
 -- Loads Highground with a large native roster and closed UI. Attribute each
 -- outer guarded callback once (nested guards are included, not double-counted).
@@ -12,7 +12,7 @@ assert(moderators >= 0 and moderators < count, "moderators must be fewer than me
 assert(kind == "community" or kind == "guild", "expected community or guild")
 assert(mode == "idle" or mode == "presence" or mode == "units", "expected idle, presence or units")
 assert(minutes >= 1 and minutes <= 60 and minutes % 1 == 0, "expected 1..60 whole minutes")
-local s, counts = dofile("tests/performance_fixture.lua")("Highground", kind == "guild", count, moderators)
+local s, counts = dofile("tests/reputation/performance_fixture.lua")("Highground", kind == "guild", count, moderators)
 if mode == "presence" then
   s.env.C_Timer.NewTicker(1, function()
     s:event(kind == "guild" and "GUILD_ROSTER_UPDATE" or "CLUB_MEMBER_PRESENCE_UPDATED", 42, 2)

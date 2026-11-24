@@ -12,16 +12,16 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 
 | Location | Responsibility |
 | --- | --- |
-| [features/battlegrounds/config/Shared.lua](../../HighgroundBattlegrounds/src/config/Shared.lua) | Armor and fallback role profiles |
+| [features/battlegrounds/config/Shared.lua](../features/battlegrounds/config/Shared.lua) | Armor and fallback role profiles |
 | [libs/config/Theme.lua](../../../libs/HighgroundKit/config/Theme.lua), `libs/config/themes/` | Design tokens: Highground, Dark, Ember, Parchment, Azeroth and Class Colors ([design system](design-system.md)) |
 | [libs/config/UI.lua](../../../libs/HighgroundKit/config/UI.lua) | Panel sizes, scale and opacity bounds, appearance choices, older colour names over the tokens |
 | [config/Focus.lua](../config/Focus.lua) | Teammate pressure shields: clients, count, size |
 | `features/battlegrounds/config/retail/`, `features/battlegrounds/config/forever/`, `features/battlegrounds/config/cata/` | Class IDs, spec profiles, matchups and range probes per game; Cata also auras, cooldown kits and spec clues |
 | [libs/config/Client.lua](../../../libs/HighgroundKit/config/Client.lua) | Per-game capabilities (`ns.Caps`); each game's name, label, arena size and shared content (`ns.Games`) |
-| [features/macros/config/Macros.lua](../../HighgroundMacros/src/config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
-| [features/battlegrounds/config/Battlegrounds.lua](../../HighgroundBattlegrounds/src/config/Battlegrounds.lua), `features/battlegrounds/config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
+| [features/macros/config/Macros.lua](../features/macros/config/Macros.lua) | Macro vocabulary (`Macros.Config`): units, raid markers, modifiers, sequence resets, equipment slots |
+| [features/battlegrounds/config/Battlegrounds.lua](../features/battlegrounds/config/Battlegrounds.lua), `features/battlegrounds/config/battlegrounds/` | Battleground registry and resolver; one rules file per battleground ([battleground rules](battleground-rules.md)) |
 | [libs/config/Options.lua](../../../libs/HighgroundKit/config/Options.lua), `libs/config/catalog/` | Common settings and feature-specific catalogs: pages, switches, behavior, scoring, bounds and client visibility |
-| [config/Commands.lua](../config/Commands.lua) | Command registry and shared Highground commands; addon catalogs live in each feature’s `src/config/Commands.lua` |
+| [config/Commands.lua](../config/Commands.lua) | Command registry and shared Highground commands; addon catalogs live in `features/<name>/config/Commands.lua` |
 | `features/battlegrounds/rules/` | Pure rules: range, flag stacks, cooldowns, spec inference. No WoW API calls |
 | [libs/core/Util.lua](../../../libs/HighgroundKit/core/Util.lua), [libs/core/Events.lua](../../../libs/HighgroundKit/core/Events.lua), [libs/core/Throttle.lua](../../../libs/HighgroundKit/core/Throttle.lua) | Shared helpers (`ns.Util`); guarded calls, event frames and timers on the same table; burst coalescing (`ns.Throttle`), see [below](#shared-utilities) |
 | [libs/core/Codec.lua](../../../libs/HighgroundKit/core/Codec.lua) | Base64 and length-prefixed data (`ns.Codec`) for profile, macro and Reputation strings; buffers are reused, output bytes are fixed |
@@ -29,9 +29,9 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/core/Text.lua](../../../libs/HighgroundKit/core/Text.lua) | UTF-8 lengths, substrings and byte cuts (`ns.Text`), see [below](#utf-8-text) |
 | `features/battlegrounds/core/` (State, Roster, Units, Auras, Specs, Lifecycle, Events, CombatLog, …) | The battleground engine: match state, roster, observations, event wiring |
 | `core/` (Scoring, Targeting, Calling, Bursts, Preview, Diagnostics) | Kill order: scoring and target selection |
-| [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua) | One schema for settings from pages, commands, profiles and saved variables |
-| [features/battlegrounds/core/Features.lua](../../HighgroundBattlegrounds/src/core/Features.lua) | `Core.SetFeature`, `Core.ResetTuning`, `Core.StopTest` |
-| [features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua) | Saved-variable setup, validation and one-time upgrades |
+| [features/battlegrounds/core/Settings.lua](../features/battlegrounds/core/Settings.lua) | One schema for settings from pages, commands, profiles and saved variables |
+| [features/battlegrounds/core/Features.lua](../features/battlegrounds/core/Features.lua) | `Core.SetFeature`, `Core.ResetTuning`, `Core.StopTest` |
+| [features/battlegrounds/core/Migrations.lua](../features/battlegrounds/core/Migrations.lua) | Saved-variable setup, validation and one-time upgrades |
 | [core/Bursts.lua](../core/Bursts.lua) | Burst answers (PURGE or CC) for Cata burst markers |
 | [core/Profiler.lua](../core/Profiler.lua), `core/ProfilerProbes.lua` | `/hg bg profiler` battleground recordings ([saved data](saved-data.md#battleground-recordings)); `scripts/bg_profile.py` reports on them |
 | `features/battlegrounds/core/Capping.lua`, `features/battlegrounds/core/CapProbe.lua`, `features/battlegrounds/core/CapShare.lua` | Base captures in progress, diagnostics, sharing your own captures |
@@ -40,7 +40,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/core/Protocols.lua](../../../libs/HighgroundKit/core/Protocols.lua), `libs/core/ProtocolTransport.lua` | Shared format registry, automatic capability announcements and directed compatibility checks (`ns.Protocols`); existing formats remain usable without a handshake |
 | [libs/core/Chat.lua](../../../libs/HighgroundKit/core/Chat.lua) | Chat drafts, token filters and link hooks (`ns.Chat`); feature modules own payload validation and link actions |
 | `libs/social/`, `libs/core/Scope.lua` | Native guild/community identity, membership, permissions and shared game/realmset boundaries |
-| [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) | Read-only core API for modules loaded later |
+| [features/battlegrounds/core/Exports.lua](../features/battlegrounds/core/Exports.lua) | Read-only core API for modules loaded later |
 | [libs/ui/Theme.lua](../../../libs/HighgroundKit/ui/Theme.lua), `libs/ui/kit/` | Theme API (`ns.Theme`) and shared controls (`ns.Kit`) |
 | [libs/ui/Motion.lua](../../../libs/HighgroundKit/ui/Motion.lua), `libs/ui/kit/Feedback.lua` | Token-based transitions, native cues, control feedback and cancellable entrances; obey Reduced motion ([motion](design-system.md#motion-api-and-lifecycle)) |
 | `ui/` (Panel, Rows, Hero, Render, Layout, Actions, Tooltip, …) | Main panel, kill-target card, secure buttons, layout |
@@ -88,7 +88,7 @@ flowchart LR
 - `ns.CLIENT` (`"retail"` or `"cata"` in Highground) selects data: class tables, battleground variants and settings marked `cata = true` or `retail = true` in the library's settings catalog (`ns.OptionAvailable`). Highground Macros also uses `"classic"` for Classic Era and TBC.
 - `ns.Caps` says what the game's API allows: combat log, readable enemy health and power, spec trees, pings, Blitz. Check a capability, not a client name.
 
-A new game needs class configuration that sets `ns.CLIENT` and `ns.GAME`, a row in `libs/config/Client.lua`, and matching standalone detection in `libs/standalone/Bootstrap.lua` where supported.
+A new game needs class configuration that sets `ns.CLIENT` and `ns.GAME`, a row in `libs/config/Client.lua`.
 
 Retail and WoW Forever moved many globals into `C_` namespaces (add-ons, items, spells, specializations, chat). Call `ns.Api` from `libs/config/Client.lua` instead of writing `C_X.Fn or Fn`: `Api.Fn(space, name)` returns the namespaced function or the older global, and wrappers such as `Api.AddOnMetadata`, `Api.SendChatMessage`, `Api.ItemCount` and `Api.IsSpellKnown` also even out argument differences. Lookups happen per call. Repository test `tests/test_api_compat.py` fails on new direct reads of moved globals and lists the remaining exceptions with their reasons.
 
@@ -129,7 +129,7 @@ flowchart TD
 
 Rules between modules:
 
-- **Core API.** [features/battlegrounds/core/Exports.lua](../../HighgroundBattlegrounds/src/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
+- **Core API.** [features/battlegrounds/core/Exports.lua](../features/battlegrounds/core/Exports.lua) is the read-only core API for modules that load after core: `ns.enemies`, `ns.GetDB`, `ns.GetPositions`, `ns.IsActive`, `ns.GetKillNow`, `ns.GetBG`, `ns.GetBGRules`, `ns.CanonUnit` and more. Map, timers, flags and pressure shields use it. Prefer it in new code over `ns.Core` fields.
 - **Changes with side effects** go through one function, used by pages and commands alike: `Core.SetFeature(key, on)` for switches, `Core.SetTuning(kind, key, value)` for validated tuning values, `Core.ResetTuning()`, `Core.StartTest()` / `Core.StopTest()`, `Theme.Use(name)`.
 - **Bounty events.** `libs/bounty/State.lua` owns personal, guild and community entries. It emits events (`added`, `publish`, `changed`, `shared`, `claimed`, `updated`, `portrait`, `scope`) through `Bounty.Emit`; Sync, Alerts and the board subscribe with `Bounty.Listen(event, fn)`. Each listener runs guarded. Shared contributions use the `Public*` modules and the data dependency's saved variables.
 - **Sharing layers.** `Comms.Send` returns whether the game accepted a message. `Network` owns bounded queues, fragmentation, assembly and retries; features own audiences, payload validation and reconciliation. `bounty/PublicWire.lua` adapts bounty routing to it, `PublicMessages.lua` owns payload fields, versions and dispatch, and `PublicTransport.lua` owns channel discovery and scheduling. Append positional wire fields instead of reordering them. `Chat.Draft`, `Chat.LinkFilter` and `Chat.InstallLinks` provide chat API compatibility for profiles and bounties; import reviews stay with each feature. See [networking](../../../docs/networking.md).
@@ -189,7 +189,7 @@ Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts
 | `Util.Guard(stage, fn, ...)` | The one error wrapper: runs `fn` protected and records failures for `/hg err`. Allocation-free: arguments wait in reused per-depth slots, so nested guards are safe |
 | `Util.RunGuarded(stage, fn)` | Allocation-free guard for argument-free callbacks on hot paths; use `Guard` when arguments or results matter |
 | `Util.RecordError(stage, err)`, `Util.ClearErrors()` | Record a failure in `HighgroundDB.errors` (shown by `/hg err`); clear them |
-| `Util.ModuleEnabled(module)` | False for a disabled Highground module or a standalone host on standby |
+| `Util.ModuleEnabled(module)` | False for a disabled Highground module |
 | `Util.Events(handlers[, name, module])` | Event frame; each handler runs through `Util.Guard`. A handler can be `{ fn = f, unit = "player" }` for unit events. Unknown events are skipped; a disabled `module` registers nothing |
 | `Util.Every(seconds, fn[, name, module])` | Guarded native ticker; returns `:Stop()` / `:Start()`. OnUpdate fallback only for zero intervals or clients without tickers; a disabled `module` never schedules |
 | `PvPEvents.Listen(handlers, stage, live[, module])`, `PvPEvents.Every(seconds, fn, stage, live[, module, idle])` | Battleground/arena/duel work: events register and tickers run only while `live()` passes; dispatch allocates nothing per event. Call `PvPEvents.Refresh()` after changing what `live()` reads; a one-second check runs in PvP instances and duels |
@@ -278,12 +278,10 @@ Motion, its lifecycle rules and HUD window placement are described in the [desig
 | --- | --- | --- |
 | `HighgroundDB` | Account | Settings, tuning, profiles and assignments, setup progress, appearance, alerts, personal/guild bounties, match and enemy histories, macro preferences/backups, learned battleground data and errors |
 | `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
-| `HighgroundMacrosDB` | Account | Macro preferences, backups, theme, window positions and errors; WoW owns the actual macros |
 | `HighgroundBountyNetworkDB` | Account | Shared bounty identity, contributions, funding reports and claims; declared only by HighgroundBountyData |
 | `HighgroundReputationNetworkDB` | Account | Native organization opt-ins, reports and moderation history; declared only by HighgroundReputationData |
-| Other standalone `<Addon>DB` variables | Account | That addon's settings and feature data; HighgroundBattlegrounds also uses `<Addon>CharDB` for character panel positions |
 
-In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core/Migrations.lua](../../HighgroundBattlegrounds/src/core/Migrations.lua)) initializes `HighgroundDB` and `HighgroundCharDB`, fills defaults from `Core.DEFAULTS` ([features/battlegrounds/core/State.lua](../../HighgroundBattlegrounds/src/core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [features/battlegrounds/core/Settings.lua](../../HighgroundBattlegrounds/src/core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
+In Highground, on `ADDON_LOADED`, `Core.LoadSaved` ([features/battlegrounds/core/Migrations.lua](../features/battlegrounds/core/Migrations.lua)) initializes `HighgroundDB` and `HighgroundCharDB`, fills defaults from `Core.DEFAULTS` ([features/battlegrounds/core/State.lua](../features/battlegrounds/core/State.lua)), resets damaged values with `Core.ValidateSaved` (shapes in `Core.SavedDefs`, [features/battlegrounds/core/Settings.lua](../features/battlegrounds/core/Settings.lua)) and runs one-time upgrades. Tuning values are checked against `Core.SettingDefs`. Profile imports are validated into a copy first ([options/ProfileData.lua](../options/ProfileData.lua)); an invalid known value rejects the whole profile, retired keys are ignored. Keep `false` booleans and explicit zero values.
 
 Add an upgrade to `Core.LoadSaved` under a new version key (`Versioned`). Do not change an old one.
 
@@ -300,7 +298,7 @@ The [Retail/Forever TOC](../Highground.toc) and [Cata TOC](../Highground_Cata.to
 
 Cata ends with its compatibility guard. Test fixtures that load files by hand follow the same order; `Events.lua` must follow `Util.lua`.
 
-A file can use another module at load time only if it loads earlier. Otherwise look it up when the function runs. Register new runtime files in each applicable TOC, including the owning standalone addon's TOCs for shared features.
+A file can use another module at load time only if it loads earlier. Otherwise look it up when the function runs. Register new runtime files in each applicable TOC.
 
 ## Conventions
 
@@ -311,7 +309,7 @@ A file can use another module at load time only if it loads earlier. Otherwise l
 - Chat output through `Util.Say`, errors through `Util.Guard`.
 - **400 lines** per maintained text file, aim for under 300. Split at functions and features. TOC manifests are exempt: they list one loaded file per line.
 - Comments and docs: short and plain. Markdown files count toward the line limit. `python3 scripts/check_links.py` checks relative links and anchors, and `tests/test_docs.py` requires every guide to be linked from [docs/README.md](../../../docs/README.md) or [this index](README.md).
-- When a command changes, update its owning addon's `src/config/Commands.lua` (shared Highground commands use `config/Commands.lua`). Catalog rows supply the addon Commands page, combined Help and commands page, `/hg help`, UI actions and dispatch ownership. `Action` runs the existing handler; labeled `fields` collect arguments. `Link` must reach the actual equivalent control or editor, including all supported values. Aliases and inverse forms can share a control. Keep capability restrictions and destructive-action confirmations explicit.
+- When a command changes, update its owning feature’s `features/<name>/config/Commands.lua` (shared Highground commands use `config/Commands.lua`). Catalog rows supply the addon Commands page, combined Help and commands page, `/hg help`, UI actions and dispatch ownership. `Action` runs the existing handler; labeled `fields` collect arguments. `Link` must reach the actual equivalent control or editor, including all supported values. Aliases and inverse forms can share a control. Keep capability restrictions and destructive-action confirmations explicit.
 - Keep command references to one compact row per entry: syntax, a brief description and a small action button. Show full descriptions and aliases on hover, and open argument fields or confirmations only when requested. Large text must preserve the single-row layout without overlapping controls.
 - Regenerate [commands](commands.md) from this directory with `luajit ../../tools/command_docs.lua > docs/commands.md`. `tests/docs_test.lua` checks exact agreement. `tests/command_catalog_test.lua` checks loaded handlers, current nested parsers, client/module gates, page/button wiring, form validation and widget reuse on Cata, Retail and Forever. Add behavioral coverage for new delegated parsers or dispatch patterns; structural inspection is not a complete Lua parser or proof that a linked control performs the right operation. `tests/commands_display_test.lua`, `commands_intel_test.lua`, `commands_settings_test.lua` and `commands_diagnostics_test.lua` run each argument mode through `/hg` (saved values, invalid input, combat and reloads); their `tests/support/commands.lua` runner fails on chat text that WoW would read as an escape code, so print literal pipes in syntax as `||`.
 - From the repository root, run `python3 scripts/check_commands.py --staged` and `python3 scripts/check_localization.py --staged` before committing relevant changes. `python3 scripts/check_localization.py --install-hook` installs the combined localization, command/UI and performance hook, upgrading known previous hooks and preserving custom hooks. Checks export the Git index into a temporary directory; unstaged fixes cannot hide a staged regression. The [command/UI review skill](../../../.agents/skills/highground-command-ui-review/SKILL.md) and [localization review skill](../../../.agents/skills/highground-localization-review/SKILL.md) require manual review as well. Complete the PR template checklist with separate guide/preview, localization, command/UI and validation conclusions.
@@ -326,9 +324,9 @@ bash tests/run.sh
 
 The runner executes each addon's validator and Lua tests from its folder, then discovers the repository's `tests/test_*.py` suites. Those cover addon metadata, packaging, layout, publishing, release checks and theme integration. Highground's tests include manifest/XML checks, globals, colour literals, line limits, Lua 5.1 compilation, unit tests and [simulations](simulations.md). Simulations do not certify real in-client secure actions.
 
-Highground's suites own shared-feature coverage. The deprecated standalone hosts keep tests for host loading, coexistence, saved-data isolation, command/UI routing and host-only behavior; Bounties and Reputation also keep feature suites with no Highground equivalent. Don't add a standalone wrapper for a shared scenario Highground already covers. Running only Highground's tests does not replace the full run.
+Highground's suites own all feature coverage. The migrated `bounty_*_test.lua` and `reputation_*_test.lua` suites load Highground's real manifests; their fixtures live under `tests/bounties/` and `tests/reputation/`. Retired-host loading and standby suites have been removed. Running only addon tests does not replace repository packaging and tooling checks.
 
-For one addon, use `bash tests/run.sh HighgroundMacros` (repository tests still run). Use `bash tests/run.sh --addons-only HighgroundMacros` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
+For one addon, use `bash tests/run.sh Highground` (repository tests still run). Use `bash tests/run.sh --addons-only Highground` for only the addon tests, or `bash tests/run.sh --repository-only` for packaging, release and cross-addon integration tests. [Builds and releases](../../../docs/releases.md) explains the checks required before publishing.
 
 For line coverage, run `bash tests/run.sh --addons-only --coverage --jobs 2` (optionally with addon names). Each Lua suite runs under `tools/coverage.lua` without the JIT compiler, roughly 10–20 times slower. The runner then writes `coverage/coverage.txt` and `coverage.json`: runtime modules ranked by uncovered lines, and uncalled functions by size. Modules no suite loads count as uncovered. Coverage pauses while a test stops the collector, so allocation budgets still hold. A full run takes about an hour at two workers; `coverage/timings.json` records suite durations so the next run starts the slowest suites first.
 
@@ -374,9 +372,9 @@ collective completion signal. Empty or timed-out replies never claim success.
 
 ## First-use defaults
 
-`OptionsConfig.firstRun` is extended by feature catalogs and copied only when the account saved-variable table does not exist. Highground and Battlegrounds apply it in `Core.LoadSaved`; other standalone addons apply it in `Standalone.Start`. A present empty table counts as an existing installation. Historical implicit defaults still apply there, so a feature release does not silently change existing choices. The battleground scope migration separately enables unrated matches once for existing accounts and saved setups.
+`OptionsConfig.firstRun` is extended by feature catalogs and copied only when the account saved-variable table does not exist. Highground applies it in `Core.LoadSaved`. A present empty table counts as an existing installation. Historical implicit defaults still apply there, so a feature release does not silently change existing choices. The battleground scope migration separately enables unrated matches once for existing accounts and saved setups.
 
-Do not change `Core.DEFAULTS` or `Core.On` to implement a quieter first install. Those also supply values for existing accounts and older profiles. Keep fresh-install scenarios separate from legacy/full-feature fixtures. Every addon loading the standalone settings page must include `ui/kit/Workspace.lua` for its scroll area.
+Do not change `Core.DEFAULTS` or `Core.On` to implement a quieter first install. Those also supply values for existing accounts and older profiles. Keep fresh-install scenarios separate from legacy/full-feature fixtures.
 
 The first installation offers independent addon guides outside combat and instances. `hub/Onboarding.lua` owns account progress and cleanup; `TourSteps.lua` lists available guides and `TourView.lua` renders the chooser. `Coach.lua` uses the shared router for step history, required action openers and resume. `CoachView.lua` owns precise highlights, pointer movement and a scrollable explanation with fixed navigation. Guides reuse native UI builders: explicit providers isolate sample bounties, histories and reputation reports; Quick Call routes sample clicks to local feedback. Macros and settings use live tools, with real save actions labelled. Sample enemy rows reuse `Core.CreateRow` without secure actions so combat cleanup stays possible. Never replace saved stores or global handlers to simulate a guide.
 

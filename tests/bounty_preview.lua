@@ -4,7 +4,7 @@ return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " bounty feature tour")
   local equal = t.equal
   t.equal = function(a, b, why) return equal(a, b, why or "expected value") end
-  local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local F = dofile("tests/bounties/public/fixture.lua")
   local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
   local function new(build, opts)
     opts = opts or {}

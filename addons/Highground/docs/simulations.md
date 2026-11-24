@@ -17,7 +17,7 @@ The simulator runs the real addon under LuaJIT with a controlled WoW API boundar
 | `tests/simulation/scenarios/` | The situations, one group per file |
 | `tests/validate.py` | `tools/lint` with Highground's TOCs, modules and allowed globals, plus manifest order and theme-colour checks |
 
-The standalone addons use the same tools: each `addons/<Addon>/tests/addon_test.lua` loads `tools/wowsim/runtime.lua` (Battlegrounds: `tools/wowsim/battleground/runtime.lua`), and each `tests/validate.py` runs `tools/lint` on its TOCs.
+All feature suites run from `addons/Highground/` using the shared simulator. `tests/validate.py` runs `tools/lint` on both Highground TOCs and their owned feature files.
 
 ## Run situations
 
@@ -85,7 +85,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `nearby` | Open-world enemy list, fading, combat-frozen rows, Cata combat-log sightings, preview |
 | `bounty` | Personal and guild bounties, officer approval and trust, sync, the board form, two-part names |
 | `bountyboard` | Bounties in battlegrounds and arenas, shared sightings, `/hg bounty`, board tabs, search and purse, alerts, theme and position |
-| `bountyshare` | Chat links between Highground and standalone Bounties, including return to the separate board after import |
+| `bountyshare` | Chat links between Highground players, including return to the separate board after import |
 | `bountypreview` | Local nearby, guild, shared and kill/claim previews; no real data or network changes |
 | `bountypublic` | Shared bounty commands, creation audiences, draft handling, preferences and board layout |
 | `macros` | Macro catalog in every game, copying to General and Character, the build tab, compiler diagnostics, autocomplete, existing macros, base64 sharing, saved variants, window position |
@@ -110,7 +110,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `classrows` | Class-coloured row surfaces for enemies, arena and Nearby, custom class colours, neutral presets, repaint while idle and combat bindings |
 | `roworder` | Optional priority sorting, its saved preference, deferred secure reorders in combat, new matches and row limits |
 | `nearbycount` | The live **NEARBY: N** count: visible enemies, restricted identities and combat-log-only sightings |
-| `bountysuggestions` | Death-report suggestions in Highground, using the shared suite in `HighgroundBounties/tests/suggestions/` |
+| `bountysuggestions` | Death-report suggestions in Highground, using the shared suite in `addons/Highground/tests/bounties/suggestions/` |
 | `headers` | `Kit.Header` alignment inside and outside dialogs, text actions, macro metadata and the profile header |
 | `windows` | `Kit.Windows`: one foreground tool, nested child dialogs, review return paths and standalone kit instances; pages mounted in another window (bounty pages, hub pages): one shadow and drags that move the holding window |
 | `panelcogs` | HUD cog access and fades, reduced motion, invisible-but-shown secure windows and header controls at enlarged text |
@@ -122,11 +122,11 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 
 `luajit tests/guide_modules_test.lua` exercises Addons switches and **Visit** on Cata, Retail and Forever, including disabled modules, saved guide progress, Back navigation, legacy checklist routes, combat and large text. `luajit tests/guide_localization_test.lua` checks saved language, fallback, long labels, live bindings and untranslated command syntax in the grouped Battlegrounds guides and command catalog. `luajit tests/modules_test.lua` covers the **How addons work** walkthrough and installation notices. The player-facing demonstration is `/hg guide addons`.
 
-WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`). Classic Era and The Burning Crusade use the `"cata"` client (the classic API) with their build number in `GetBuildInfo`, as `addons/HighgroundMacros/tests/addon_test.lua` does.
+WoW Forever is simulated on the Retail manifest by setting its interface number before loading: `new("retail", nil, configure)` with a `configure` that replaces `GetBuildInfo` (see `tests/simulation/scenarios/forever.lua`).
 
 `tests/battleground_objectives_test.lua`, `battleground_roster_test.lua`, `battleground_timers_test.lua` and `battleground_waves_test.lua` run real battleground rules through the simulator: flag, single-flag and orb carriers, team detection without your own scoreboard row, score prediction (including dead heats and learned rates), graveyard names by side and for cross-faction teams, map pin tooltips, spirit guides, resurrection advice and cart/round status widgets.
 
-Standalone suites add their own integration coverage. `tests/arena_duels.lua` runs against both Highground and Highground Arena: incoming/outgoing challenges, localized countdowns, cancellation, combat deferral, fixed opponent identity, Forever surnames, restricted data and duel stealth alerts. In particular, `addons/HighgroundBounties/tests/public_test.lua` and `public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh HighgroundBounties` from the repository root to run them with that addon's other tests.
+`tests/arena_duels.lua` runs against Highground: incoming/outgoing challenges, localized countdowns, cancellation, combat deferral, fixed opponent identity, Forever surnames, restricted data and duel stealth alerts. In particular, `addons/Highground/tests/bounty_public_test.lua` and `bounty_public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh Highground` from the repository root to run them with that addon's other tests.
 
 ## Write a scenario
 

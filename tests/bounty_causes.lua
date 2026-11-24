@@ -1,6 +1,6 @@
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " killing blows")
-  local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local F = dofile("tests/bounties/public/fixture.lua")
   local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
   local function new(name, opts)
     opts = opts or {}

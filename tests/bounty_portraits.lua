@@ -1,7 +1,7 @@
 -- Retained native images, portable model data, and real guild/public wire paths.
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " portrait sharing")
-  local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local F = dofile("tests/bounties/public/fixture.lua")
   local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
   local function setup(name, build, options)
     options = options or {}

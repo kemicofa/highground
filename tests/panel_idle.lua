@@ -1,10 +1,10 @@
 return function()
 jit.off()
 local t = dofile("../../tools/harness.lua")("idle panel controls")
-for _, addon in ipairs({ "Highground", "HighgroundBattlegrounds", "HighgroundArena", "HighgroundNearby", "HighgroundBounties" }) do
+for _, addon in ipairs({ "Highground" }) do
   for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
     t.test(addon .. " " .. variant[2] .. " settled cogs do no idle allocation or alpha writes", function()
-      local new = dofile((addon == "Highground" or addon == "HighgroundBattlegrounds")
+      local new = dofile((addon == "Highground")
         and "../../tools/wowsim/battleground/runtime.lua" or "../../tools/wowsim/runtime.lua")
       local s = new(variant[1], { locked = true }, function(sim, e)
         sim.addon = addon

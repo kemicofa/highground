@@ -229,6 +229,7 @@ function Core.RefreshRoster()
         e.specID = Core.HistoricSpec(r.key, r.class)
         e.specSrc = e.specID and "hist" or nil
       end
+      if Core.TakeEarlySpecTag then Core.TakeEarlySpecTag(e) end
       if e.specSrc ~= "tag" and Core.ApplySpecTag then Core.ApplySpecTag(e) end
     end
   end

@@ -8,8 +8,9 @@ local Core, Comms = ns.Core, ns.Comms
 -- Tags are kept per region like scoreboard history and shared with the team
 -- (prefix HighgroundS, group channel):
 --   1:key,class,tree;key,class,tree;...   (tree 0 = tag removed)
+--   R                                      (resend your tags: I just arrived)
 -- Tree indexes, not spec IDs or names, so every client and language reads
--- them the same way.
+-- them the same way. Older versions ignore R.
 --
 -- Precedence: what the game shows this match (scoreboard, even a secret
 -- one, a talent-tree cast, an estimate from buffs) outranks a tag; a tag outranks earlier
@@ -22,6 +23,13 @@ Core.SPEC_TAG_STRONG = { live = true, cast = true, aura = true }
 local previewTags = {} -- sample tags while a preview or guide runs
 local pending = {} -- [key] = true: tags (or removals) teammates haven't heard
 local waiting = false
+-- Teammates' tags for enemies the scoreboard hasn't listed yet (it can lag
+-- several seconds): [key] = { class, tree, by, match }. Memory only, for
+-- this match, and at most Core.EARLY_SPEC_TAGS_MAX.
+local early, earlyCount = {}, 0
+Core.EARLY_SPEC_TAGS_MAX = 40
+-- A request for teammates' tags waits here while the game refuses to send.
+local requesting = false
 
 local function Store()
   if Core.testMode then return previewTags end
@@ -76,6 +84,17 @@ local function Send(text)
   return Comms.Send(Core.SPEC_TAG_PREFIX, text, chan) and true or false
 end
 
+local function Retry()
+  if waiting or not (C_Timer and C_Timer.After) then return end
+  waiting = true
+  C_Timer.After(Core.SPEC_TAG_RETRY, function()
+    waiting = false
+    if not Core.active then wipe(pending); requesting = false; return end
+    if requesting then Core.RequestSpecTags() end
+    if next(pending) then Core.ShareSpecTags() end
+  end)
+end
+
 -- Send every pending tag that still names a current enemy; refused ones
 -- wait and are tried again while the match lasts.
 function Core.ShareSpecTags()
@@ -100,13 +119,41 @@ function Core.ShareSpecTags()
   end
   local sent = flush()
   if sent == nil then wipe(pending) end -- nobody to tell
-  if next(pending) and not waiting and C_Timer and C_Timer.After then
-    waiting = true
-    C_Timer.After(Core.SPEC_TAG_RETRY, function()
-      waiting = false
-      if Core.active then Core.ShareSpecTags() else wipe(pending) end
-    end)
+  if next(pending) then Retry() end
+end
+
+-- Arriving in a match (or after /reload): ask teammates for their tags.
+function Core.RequestSpecTags()
+  if Core.testMode then return end
+  local sent = Send("R")
+  requesting = sent == false -- refused for now; nil: nobody to ask
+  if requesting then Retry() end
+end
+
+-- Your own tags on this match's enemies again, for teammates who joined or
+-- reloaded: at most once per SPEC_TAG_RESEND seconds, the last request of
+-- a burst answered at the end of the wait. Teammates' tags are theirs to send.
+Core.SPEC_TAG_RESEND = 10
+local resendAt, resendDue = -math.huge, false
+function Core.ResendSpecTags()
+  if not Core.active or Core.testMode then return end
+  local wait = resendAt + Core.SPEC_TAG_RESEND - GetTime()
+  if wait > 0 then
+    if not resendDue and C_Timer and C_Timer.After then
+      resendDue = true
+      C_Timer.After(wait, function()
+        resendDue = false
+        Core.ResendSpecTags()
+      end)
+    end
+    return
   end
+  resendAt = GetTime()
+  for key, e in pairs(Core.enemies) do
+    local _, t = Core.SpecTag(key, e.class)
+    if t and t.by == nil then pending[key] = true end
+  end
+  if next(pending) then Core.ShareSpecTags() end
 end
 
 -- The player tags (tree) or untags (nil, or the tree already tagged) an enemy.
@@ -129,10 +176,38 @@ function Core.SetSpecTag(e, tree)
   return true
 end
 
+-- A tag for an enemy the scoreboard hasn't listed: kept for this match.
+local function Hold(key, class, tree, by)
+  local held = early[key]
+  if not held then
+    if earlyCount >= Core.EARLY_SPEC_TAGS_MAX then return end
+    held, earlyCount = {}, earlyCount + 1
+    early[key] = held
+  end
+  held.class, held.tree, held.by, held.match = class, tree, by, ns.MatchSerial
+end
+
+-- The roster lists e: take a teammate's tag that arrived before it did.
+function Core.TakeEarlySpecTag(e)
+  local held = e and early[e.key]
+  if not held then return end
+  early[e.key], earlyCount = nil, earlyCount - 1
+  local specs = held.match == ns.MatchSerial and e.class == held.class and Core.classSpecs[held.class]
+  if not (specs and (held.tree == 0 or specs[held.tree])) then return end
+  Store()[e.key] = held.tree > 0 and { class = held.class, tree = held.tree, t = time(), by = held.by } or nil
+  Core.ApplySpecTag(e)
+end
+
+function Core.ClearEarlySpecTags()
+  wipe(early)
+  earlyCount = 0
+end
+
 function Core.ReceiveSpecTags(text, sender)
   if not Core.active or Core.testMode or not Core.On("intelShare") then return end
   local short = type(sender) == "string" and sender:match("^[^-]+")
   if not short or Core.IsMe(sender) then return end
+  if text == "R" then return Core.ResendSpecTags() end
   local body = text:match("^1:(.+)$")
   if not body then return end
   local store, changed = Store(), false
@@ -145,6 +220,8 @@ function Core.ReceiveSpecTags(text, sender)
       store[key] = tree > 0 and { class = class, tree = tree, t = time(), by = short } or nil
       Core.ApplySpecTag(e)
       changed = true
+    elseif key and not e and Core.classSpecs[class] and (tree == 0 or Core.classSpecs[class][tree]) then
+      Hold(key, class, tree, short)
     end
   end
   if changed and Core.Render then Core.Render() end
@@ -153,3 +230,13 @@ end
 Comms.Listen(Core.SPEC_TAG_PREFIX, function(text, channel, sender)
   if Comms.FromGroup(channel) then Core.ReceiveSpecTags(text, sender) end
 end, "spectags", "battlegrounds")
+
+-- A bigger group may hold players who never heard your tags.
+local members = 0
+ns.Util.Events({
+  GROUP_ROSTER_UPDATE = function()
+    local n = GetNumGroupMembers and GetNumGroupMembers() or 0
+    if n > members and Core.active then Core.ResendSpecTags() end
+    members = n
+  end,
+}, "spectags", "battlegrounds")

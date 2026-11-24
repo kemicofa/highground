@@ -19,6 +19,15 @@ local function sentOn(sim, prefix)
   return out
 end
 
+-- Tag messages only, not the R request sent on arrival.
+local function tagsSent(sim)
+  local out = {}
+  for _, m in ipairs(sentOn(sim, "HighgroundS")) do
+    if m.message ~= "R" then out[#out + 1] = m end
+  end
+  return out
+end
+
 -- The pointer enters a row: its OnEnter and hooks run, as in the game.
 local function hover(sim, frame)
   sim.mouseOver = frame
@@ -43,6 +52,18 @@ local function foreverMatch()
   sim:advance(1.5)
   local C = sim.ns.Core
   return sim, C, C.rows[1], C.rows[1].entry
+end
+
+-- A Retail match, where match messages are sent, against a mage the
+-- scoreboard gives no spec.
+local function retailMatch()
+  local sim = new("retail")
+  sim:enemy("Classonly")
+  sim.scores[#sim.scores].talentSpec = ""
+  sim:join()
+  sim:advance(1.5)
+  local C = sim.ns.Core
+  return sim, C, C.rows[1].entry
 end
 
 test("WoW Forever: hovering an unidentified enemy offers its trees; a click tags the spec, kept, not sent", function()
@@ -150,26 +171,89 @@ test("teammates' tags apply with their name; malformed or foreign ones are ignor
   sim:assertHealthy()
 end)
 
-test("Retail: a tag refused by chat lockdown goes out once sending is allowed", function()
-  local sim = new("retail")
-  sim:enemy("Classonly")
-  sim.scores[#sim.scores].talentSpec = ""
+test("a teammate's tag for an enemy the scoreboard hasn't listed applies once it does", function()
+  local sim, C = foreverMatch()
+  local function say(text) sim:event("CHAT_MSG_ADDON", "HighgroundS", text, "INSTANCE_CHAT", "Buddy-Realm") end
+  say("1:Late-Realm,MAGE,3")
+  say("1:Gone-Realm,MAGE,1")
+  say("1:Gone-Realm,MAGE,0") -- removed again before the roster lists it
+  say("1:Wrong-Realm,PRIEST,2")
+  equal(next(sim.ns.Scope.Saved("specTags", "social")), nil, "nothing saved for enemies not in this match")
+  sim:enemy("Late")
+  sim:enemy("Gone")
+  sim:enemy("Wrong", { classID = 8 }) -- a mage, not the priest the tag named
+  sim:event("UPDATE_BATTLEFIELD_SCORE")
+  sim:advance(2.5)
+  local late, gone, wrong = C.enemies["Late-Realm"], C.enemies["Gone-Realm"], C.enemies["Wrong-Realm"]
+  assert(late and gone and wrong, "the roster lists all three")
+  equal(late.specSrc, "tag", "the early tag applies")
+  equal(late.specID, C.classSpecs.MAGE[3])
+  equal(late.specBy, "Buddy", "with the tagger's name")
+  equal(gone.specSrc, nil, "the later removal wins")
+  equal(wrong.specSrc, nil, "a tag for another class is dropped")
+  sim:assertHealthy()
+end)
+
+test("early tags stay in this match and are capped", function()
+  local sim, C = foreverMatch()
+  local function say(text) sim:event("CHAT_MSG_ADDON", "HighgroundS", text, "INSTANCE_CHAT", "Buddy-Realm") end
+  say("1:Next-Realm,MAGE,2")
+  sim:leave()
   sim:join()
-  sim:advance(1.5)
-  local C = sim.ns.Core
-  local e = C.rows[1].entry
+  for i = 1, C.EARLY_SPEC_TAGS_MAX + 5 do say("1:Many" .. i .. "-Realm,MAGE,1") end
+  sim:enemy("Next")
+  sim:enemy("Many1")
+  sim:enemy("Many" .. (C.EARLY_SPEC_TAGS_MAX + 3))
+  sim:event("UPDATE_BATTLEFIELD_SCORE")
+  sim:advance(2.5)
+  equal(C.enemies["Next-Realm"].specSrc, nil, "an earlier match's tag does not carry over")
+  equal(C.enemies["Many1-Realm"].specSrc, "tag", "tags within the cap apply")
+  equal(C.enemies["Many" .. (C.EARLY_SPEC_TAGS_MAX + 3) .. "-Realm"].specSrc, nil, "tags past the cap are not kept")
+  sim:assertHealthy()
+end)
+
+test("Retail: arriving asks the group for tags; each player resends only their own", function()
+  local sim, C, e = retailMatch()
+  local requests = 0
+  for _, m in ipairs(sentOn(sim, "HighgroundS")) do
+    if m.message == "R" then requests = requests + 1 end
+  end
+  equal(requests, 1, "one request on arrival")
+  sim:enemy("Other")
+  sim.scores[#sim.scores].talentSpec = ""
+  sim:event("UPDATE_BATTLEFIELD_SCORE")
+  sim:advance(2.5)
+  local other = C.enemies["Other-Realm"]
+  C.SetSpecTag(e, 2) -- yours
+  sim:event("CHAT_MSG_ADDON", "HighgroundS", "1:" .. other.key .. ",MAGE,1", "INSTANCE_CHAT", "Buddy-Realm")
+  equal(other.specBy, "Buddy", "a teammate's tag")
+  local before = #tagsSent(sim)
+  sim:advance(11)
+  sim:event("CHAT_MSG_ADDON", "HighgroundS", "R", "INSTANCE_CHAT", "Newcomer-Realm")
+  local msgs = tagsSent(sim)
+  equal(#msgs, before + 1, "one answer")
+  equal(msgs[#msgs].message, "1:" .. e.key .. ",MAGE,2", "your tag only")
+  sim:event("CHAT_MSG_ADDON", "HighgroundS", "R", "INSTANCE_CHAT", "Another-Realm")
+  equal(#tagsSent(sim), before + 1, "a second request waits")
+  sim:advance(11)
+  equal(#tagsSent(sim), before + 2, "and is answered once at the end of the wait")
+  sim:assertHealthy()
+end)
+
+test("Retail: a tag refused by chat lockdown goes out once sending is allowed", function()
+  local sim, C, e = retailMatch()
   sim.chatLockdown = true
   C.SetSpecTag(e, 2)
-  equal(#sentOn(sim, "HighgroundS"), 0, "held during lockdown")
+  equal(#tagsSent(sim), 0, "held during lockdown")
   sim:advance(4)
-  equal(#sentOn(sim, "HighgroundS"), 0, "still held")
+  equal(#tagsSent(sim), 0, "still held")
   sim.chatLockdown = nil
   sim:advance(3)
-  local msgs = sentOn(sim, "HighgroundS")
+  local msgs = tagsSent(sim)
   equal(#msgs, 1, "sent once")
   equal(msgs[1].message, "1:" .. e.key .. ",MAGE,2")
   sim:advance(6)
-  equal(#sentOn(sim, "HighgroundS"), 1, "no repeats after delivery")
+  equal(#tagsSent(sim), 1, "no repeats after delivery")
 end)
 
 test("/hg bg test tags stay in the preview: nothing saved or sent", function()

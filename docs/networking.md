@@ -27,6 +27,8 @@ Load `core/Util.lua`, `core/Events.lua`, your `ns.Core`, `core/Names.lua`, `core
 | `reputation` | `HighgroundRep` | 1 | 1 |
 | `profiles` | `HighgroundP` | 1 | 1 |
 
+Two additions keep their versions because older receivers skip them. Intel v3 follows a death token (`key,D`) with its age in tenths of a second (`key,A,25`); older clients time the death on arrival. Spec tags v1 add an `R` message, sent on arriving in a match, that asks teammates to resend the tags they set themselves (at most once per 10 seconds, also when the group grows).
+
 Capabilities use a separate `HighgroundN` prefix and a bounded, single-frame envelope:
 
 ```text

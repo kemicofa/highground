@@ -113,6 +113,22 @@ test("WoW Forever: a corpse run that outlasts the countdown times no wave", func
   sim:assertHealthy()
 end)
 
+test("with enemy map positions off, your and your teammates' revivals still time the wave", function()
+  local sim = new("retail", { intel = false }, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim.raid, sim.members = true, 2
+  sim.units.raid1 = { name = "Ally Person", classID = 1 }
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  assert(not sim.ns.Intel.Enabled(), "the map is off")
+  local mine, cycle = T.SingleGY(T.MyTeam()), T.WaveCycle()
+  reviveAt(sim, sim.now + 10, 1.4)
+  equal(#(T.LearnedDB().reviveLag or {}), 1, "your revival is seen: its lag is learned")
+  local wave = mine.wave
+  teammateBack(sim, wave + 2 * cycle + 0.2)
+  assert(math.abs(mine.wave - (wave + 2 * cycle + 0.2)) <= 0.25, "a teammate's revival times the wave")
+  sim:assertHealthy()
+end)
+
 test("the match's end brings everyone back without timing a wave", function()
   local sim, T = foreverTeam()
   local mine = T.SingleGY(T.MyTeam())

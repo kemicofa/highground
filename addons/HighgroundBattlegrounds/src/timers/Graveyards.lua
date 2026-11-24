@@ -72,10 +72,16 @@ function Timers.Reset(mapID)
     return
   end
   local learned = db and db.gyLearned and mapID and db.gyLearned[mapID]
+  -- Earlier versions placed the unplaced fallback (TeamGY) on the first
+  -- landmark whose name holds the word "graveyard" and saved it there.
+  local fallback = {}
+  for _, word in ipairs(ns.Locale:Variants("battlegrounds.graveyards.graveyard.2b11fa")) do fallback[word:lower()] = true end
   for i = #(learned or {}), 1, -1 do
     local g = learned[i]
     if g.x == 0.5 and g.y == 0.5 and not g.exact then
       table.remove(learned, i) -- old "map centre" placeholder (v2.4.1), not a real spot
+    elseif not (g.exact or g.fromPlace) and type(g.label) == "string" and fallback[g.label:lower()] then
+      table.remove(learned, i)
     end
   end
   for _, g in ipairs(learned or {}) do
@@ -123,7 +129,7 @@ end
 
 function Timers.Learn(gy)
   local db = Timers.LearnedDB()
-  if not (db and Timers.currentMap) or gy.saved or gy.configured then return end
+  if not (db and Timers.currentMap) or gy.saved or gy.configured or gy.unplaced then return end
   -- Until the scoreboard confirms your side, MyTeam() is the character's
   -- faction, which is wrong in cross-faction games: never save that guess.
   if not (ns.GetAllyFaction and ns.GetAllyFaction()) then

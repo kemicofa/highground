@@ -188,6 +188,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       if not header.stage then return end
       local title, stage = s.bounds(header.title), s.bounds(header.stage)
       assert(title[1] + title[3] <= stage[1], where .. ": the badge follows the title")
+      t.equal(header.title:GetStringWidth(), header.title:GetUnboundedStringWidth(), where .. ": the title is not cut")
       inside(s, header.stage, header)
     end
     s:command("guide")
@@ -209,6 +210,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     t.equal(groups, #M.list, "every addon group has a tooltip")
     O.Open(); O.Go("bounties")
     marked(O.win.header.stage, true, "bounty path picker")
+    follows(O.win.header, "bounty path picker")
     O.Go("battlegrounds")
     marked(O.win.header.stage, false, "battleground path picker")
     O.Dismiss()

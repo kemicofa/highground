@@ -312,6 +312,7 @@ These defaults live in HighgroundKit and apply to Highground and six retained le
 - Use type roles, not font paths and sizes. Use `Theme.PaintClass` for class-coloured text; raw game colours remain appropriate for class strips and icons.
 - Use `Theme.TipLine`, `Theme.TipColor` or `Theme.TipHex` for tooltips and chat, so a light theme stays readable on Blizzard's dark frames.
 - Overlays over the game world (capture bars, map pins, target marker) use their own `hud*`, `capPlate*` and `mapMark` tokens, which light themes keep bright.
+- To fit a single-line text to its content, measure it with `GetUnboundedStringWidth`. `GetStringWidth` returns the width as drawn, so text cut to "..." once stays cut.
 
 Macro completion uses the edit box's native `OnCursorChanged` rectangle, accounting for its scroll offset. The popup chooses available space above or below the line, fits its row count to the viewport, and closes when scrolled away from the caret. The explanation and save area remain outside that viewport. `Core.OnFontScaleChange` lets the builder and dropdown reflow when text size changes. Large dialog headers place metadata beside the title instead of spilling into the content.
 

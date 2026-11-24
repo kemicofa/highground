@@ -197,4 +197,4 @@ This is integration coverage close to end-to-end testing, without launching WoW.
 
 The simulator has no production dependencies and is excluded from release ZIPs. Packages contain TOC/XML dependencies and `X-Package-Files`; neither `tools/` nor `tests/` is included. Its clock advances immediately; long flag and resurrection scenarios do not wait in real time.
 
-The arena scenarios also assert that ready and expired cooldown widgets remain hidden across repeated row refreshes while the trinket icon stays visible. `tools/wowsim/geometry.lua` is an optional anchor resolver used by editor layout tests; its font metrics are approximate.
+The arena scenarios also assert that ready and expired cooldown widgets remain hidden across repeated row refreshes while the trinket icon stays visible. `tools/wowsim/geometry.lua` is an optional anchor resolver used by editor layout tests; its font metrics are approximate. As in the game, its `GetStringWidth` stops at the width of a single-line string, while `GetUnboundedStringWidth` measures the full text.

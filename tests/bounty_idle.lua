@@ -191,10 +191,11 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     B.UpdatePlates()
     assert(B.plateMarks[1] and B.plateMarks[1]:IsShown(), "a new record is marked on the next scan without waiting")
     t.equal(B.plateMarks[1].anchor, s.plates["nameplate1"], "the mark follows the new target's plate")
-    -- Forever names have two parts. A first-name-only sighting keeps matching.
+    -- Forever names have two parts, and many players share a first name.
     assert(B.Add("Kara Stone", 7))
-    t.equal(B.Find("Kara-Realm").name, "Kara Stone-Realm", "first-name sightings still match two-part names")
     t.equal(B.Find("Kara Stone-Realm").name, "Kara Stone-Realm", "full two-part names match exactly")
+    t.equal(B.Find("Kara Brook-Realm"), nil, "another player with the same first name does not match")
+    t.equal(B.Find("Kara-Realm"), nil, "nor does the first name alone")
     t.equal(B.Find("Karl-Realm"), nil, "other names do not match")
     s:assertHealthy()
   end)

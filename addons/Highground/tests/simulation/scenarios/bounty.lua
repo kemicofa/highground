@@ -135,8 +135,9 @@ test("bounty commands run on a translated client", function()
   sim:command("bounty add 200 Rogue-Other")
   sim:command("bounty submit Rogue-Other")
   equal(state("Rogue-Other"), "approved", "submit")
-  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm,1000,P,,", "Member-Realm")
-  guildMessage(sim, "1:A,Sneak-Other,40,Member-Realm,1000,P,,", "Member-Realm")
+  local at = math.floor(sim.now)
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm," .. at .. ",P,,", "Member-Realm")
+  guildMessage(sim, "1:A,Sneak-Other,40,Member-Realm," .. at .. ",P,,", "Member-Realm")
   sim:command("bounty approve Thief-Other")
   equal(state("Thief-Other"), "approved", "approve")
   sim:command("bounty reject Sneak-Other")
@@ -145,6 +146,58 @@ test("bounty commands run on a translated client", function()
   assert(Bounty.Ledger.Find("Thief-Other"), "claim")
   sim:command("bounty remove Rogue-Other")
   equal(state("Rogue-Other"), "removed", "remove")
+  sim:assertHealthy()
+end)
+
+test("guild entries and kill reports check posters, versions and clocks", function()
+  local sim = inGuild("retail", 1)
+  local Bounty, L = sim.ns.Bounty, sim.ns.Bounty.Ledger
+  local function entry(name) return Bounty.Guild()[Bounty.Key(name)] end
+  local now = math.floor(sim.now)
+  sim:command("bounty add 100 Me")
+  equal(Bounty.Personal()["me-realm"], nil, "no bounty on yourself")
+  equal(Bounty.Submit("Me-Realm", { name = "Me-Realm", gold = 1, by = "Other-Realm", at = now }), nil, "nor submitted for you")
+
+  guildMessage(sim, "1:A,Thief-Other,50,Member-Realm," .. now .. ",A,Officer-Realm,", "Officer-Realm")
+  guildMessage(sim, "1:A,Thief-Other,10,Rando-Realm," .. (now + 5) .. ",P,,", "Rando-Realm")
+  equal(entry("Thief-Other").by, "Member-Realm", "a submission cannot replace another poster's approved bounty")
+  equal(entry("Thief-Other").state, "approved", "which stays approved")
+  guildMessage(sim, "1:A,Nobody-Other,10,," .. now .. ",A,Officer-Realm,", "Officer-Realm")
+  equal(entry("Nobody-Other"), nil, "an entry without a poster is refused")
+  guildMessage(sim, "1:A,Sneak-Other,10,Rando-Realm," .. (now + 7200) .. ",R,,", "Rando-Realm")
+  equal(entry("Sneak-Other"), nil, "a removal dated hours ahead cannot hold the name")
+  guildMessage(sim, "1:A,Sneak-Other,10,Rando-Realm," .. (now + 600) .. ",R,,", "Rando-Realm")
+  equal(entry("Sneak-Other").state, "removed", "some clock skew is allowed")
+
+  -- This computer's clock is 30 minutes slow; reports carry server time.
+  sim.env.GetServerTime = function() return math.floor(sim.now) + 1800 end
+  guildMessage(sim, "4:K,Thief-Other," .. Bounty.Public.Now() .. "," .. entry("Thief-Other").at, "Rando-Realm")
+  local report = assert(L.All()[1], "a report stamped with server time is recorded")
+  equal(report.claimant, "Rando-Realm", "for its hunter")
+
+  guildMessage(sim, "1:A,Vandal-Other,40,Member-Realm," .. now .. ",A,Officer-Realm,", "Officer-Realm")
+  local ok, why = Bounty.Claim("Vandal-Other", true, Bounty.Public.Now() - 600, nil, true)
+  equal(ok, nil, "a kill ten minutes before the bounty was posted does not count")
+  equal(why, "No eligible live reward to report.", "and says so")
+  assert(Bounty.Claim("Vandal-Other", true, Bounty.Public.Now() - 60, nil, true), "a minute of clock skew is allowed")
+
+  assert(L.Change(report, "approved")); assert(L.Change(report, "paid"))
+  sim:advance(2)
+  local before = #guildSent(sim, "^1:L,Thief%-Other,%d+,Rando%-Realm,paid,")
+  guildMessage(sim, "1:Q", "Rando-Realm")
+  sim:advance(8)
+  equal(#guildSent(sim, "^1:L,Thief%-Other,%d+,Rando%-Realm,paid,") - before, 1,
+    "a sync replays a manual report's payment to a hunter who missed it")
+
+  Bounty.Public.MAX_CLAIMS = #L.All()
+  guildMessage(sim, "1:A,Raider-Other,40,Member-Realm," .. now .. ",A,Officer-Realm,", "Officer-Realm")
+  assert(Bounty.Claim("Raider-Other", true, nil, nil, true), "a full ledger makes room")
+  local function claims(name) local n = 0; for _, c in ipairs(L.All()) do if c.name == name then n = n + 1 end end; return n end
+  equal(claims("Thief-Other"), 0, "from its oldest settled claim")
+  equal(claims("Raider-Other"), 1, "for the new report")
+  sim.now = sim.now + 120 * 86400
+  Bounty.Public.Prune()
+  equal(#L.All(), 0, "claims leave the ledger long after their bounty ended")
   sim:assertHealthy()
 end)
 
@@ -229,7 +282,8 @@ test("board form adds and submits, including WoW Forever two-part names", functi
   equal(bountySounds(sim), 1, "full name matches")
   sim.units.nameplate1 = nil
   sim:advance(130)
-  plate(sim, 2, "Iron")
+  plate(sim, 2, "Iron Will")
   sim:advance(1)
-  equal(bountySounds(sim), 2, "first name alone still matches")
+  equal(bountySounds(sim), 1, "another player with the same first name does not match")
+  equal(Bounty.Find("Iron Will"), nil, "nor has a bounty")
 end)

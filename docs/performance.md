@@ -68,8 +68,7 @@ allocated about **60.6 MiB/min** in bounty and Nearby callbacks
 (**1.3 MiB/min** after). Closed notification scans of the same records fell from
 **3.7 MiB to 0.35 MiB/min**.
 
-`Bounty.Known` answers misses from an index of saved names, including
-first-word keys for WoW Forever's two-part names. It covers every saved
+`Bounty.Known` answers misses from an index of saved names. It covers every saved
 organization bucket, so membership changes cannot hide a name; every bounty
 event marks it stale and it is rebuilt at least every five seconds. Possible
 matches still take the full path with live membership and visibility checks.

@@ -8,6 +8,18 @@ function M.Originals()
   return ns.Scope.Saved("bountyOriginals", "character", P.db)
 end
 
+-- Imported originals end with their bounty, unless a saved contribution
+-- still follows one (it waits for a late decision, see P.Prune).
+function M.PruneOriginals(now)
+  local originals = M.Originals()
+  if not next(originals) then return end
+  local used = {}
+  for _, p in pairs(P.Data().offers) do if p.contract then used[p.contract.id] = true end end
+  for id, b in pairs(originals) do
+    if type(b) ~= "table" or not used[id] and M.Expires(b) + P.CLAIM_WINDOW < now then originals[id] = nil end
+  end
+end
+
 -- A pot is a projection of live offers, never another payable reward.
 -- Existing independent offers retain their terms; adding gold explicitly
 -- adopts one original offer's reviewer and completion conditions.

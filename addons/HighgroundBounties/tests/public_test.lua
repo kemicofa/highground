@@ -163,6 +163,23 @@ test("an offer copying this account's ID never counts as mine", function()
   equal(F.post(a, "Target-Realm", 600).contributor, P(a).db.id, "I can still post on its target")
 end)
 
+test("one sender cannot fill the shared board", function()
+  local a, evil, b = F.new("Alice"), F.new("Mallory"), F.new("Bob")
+  P(a).MAX_SENDER = 3
+  local posted = {}
+  for i, name in ipairs({ "One-Realm", "Two-Realm", "Three-Realm", "Four-Realm" }) do
+    posted[i] = F.post(evil, name, 100); F.deliver(evil, a); evil.now = evil.now + 10; a.now = evil.now
+  end
+  equal(F.count(P(a).Data().offers), 3, "a sender keeps at most their share")
+  equal(P(a).Data().offers[posted[1].id], nil, "their oldest offer makes room")
+  assert(P(a).Claim("Two-Realm"))
+  F.post(evil, "Five-Realm", 100); F.deliver(evil, a)
+  assert(P(a).Data().offers[posted[2].id], "an offer with an open claim is kept")
+  equal(P(a).Data().offers[posted[3].id], nil, "the next oldest goes instead")
+  F.post(b, "One-Realm", 100); F.deliver(b, a)
+  assert(P(a).Own("One-Realm") == nil and P(a).Find("One-Realm"), "other senders are still accepted")
+end)
+
 for _, client in ipairs({ "cata", "retail" }) do
   test(client .. ": reducing a rejected 3000g draft to 2g clears its error and spends only 2g of the budget", function()
     local s = F.new("Alice", { client = client, gold = 200, saved = { bountyRequireGold = true } })

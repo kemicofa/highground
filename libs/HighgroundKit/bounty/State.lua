@@ -91,12 +91,6 @@ function Bounty.Label(name)
   return short .. (FOREIGN_SERVER_LABEL or " (*)")
 end
 
--- First word + realm: a looser key for clients that show part of a name.
-local function Loose(key)
-  local short, realm = key:match("^([^-]+)-(.*)$")
-  return short and (short:match("^(%S+)") or short) .. "-" .. realm
-end
-
 function Bounty.Me()
   return Core.CanonUnit("player") or Core.Canon(Plain(Call(UnitName, "player")))
 end
@@ -145,20 +139,18 @@ local function Alerts(b)
 end
 
 -- Scans ask about every visible player, and most are not bounty targets.
--- Answer those from an index of stored names (exact and first-word keys)
--- before walking every record. It covers every saved organization bucket,
--- so membership changes cannot hide a name. Every bounty event marks it
--- stale; it is also rebuilt every few seconds. A possible match still
--- takes the full, live path.
+-- Answer those from an index of stored names before walking every record.
+-- It covers every saved organization bucket, so membership changes
+-- cannot hide a name. Every bounty event marks it stale; it is also
+-- rebuilt every few seconds. A possible match still takes the full, live
+-- path.
 Bounty.KNOWN_REFRESH = 5
 local known, knownAt = {}, -math.huge
 local function Index(list, byKey)
   for k, b in pairs(list) do
     local key = type(b) == "table" and Bounty.Key(b.name)
-    local loose = key and Loose(key)
-    if loose then known[loose] = true end
-    loose = byKey and type(k) == "string" and Loose(k)
-    if loose then known[loose] = true end
+    if key then known[key] = true end
+    if byKey and type(k) == "string" then known[k] = true end
   end
 end
 
@@ -176,8 +168,6 @@ local function Miss(name)
 end
 
 local function Known(key)
-  local loose = Loose(key)
-  if not loose then return true end
   local now = GetTime()
   if knownStale or now - knownAt >= Bounty.KNOWN_REFRESH then
     wipe(known); wipe(misses); missCount = 0
@@ -188,7 +178,7 @@ local function Known(key)
     if P and P.ready then Index(P.Data().offers) end
     if Bounty.Pot then Index(Bounty.Pot.Originals()) end
   end
-  return known[loose] == true
+  return known[key] == true
 end
 
 -- False only when no stored bounty record can match this name.
@@ -200,16 +190,8 @@ function Bounty.Known(name)
   return false
 end
 
-local function Lookup(list, key)
-  local exact = list[key]
-  if exact then return exact end
-  local loose = Loose(key)
-  for k, e in pairs(list) do
-    if Loose(k) == loose or k == loose then return e end
-  end
-end
-
--- The bounty that alerts on a name, exact first, then by first name.
+-- The bounty that alerts on a name. Only the full name matches: WoW
+-- Forever's "First Last" names share first names.
 function Bounty.Find(name, forAlert)
   if not Bounty.Known(name) then return nil end
   local key = Bounty.Key(name)
@@ -218,7 +200,7 @@ function Bounty.Find(name, forAlert)
   if shared then return shared end
   local guild
   for _, list in ipairs(Bounty.Organizations.Lists()) do
-    local candidate = Lookup(list, key)
+    local candidate = list[key]
     if Alerts(candidate) and Bounty.Visible(candidate) and Bounty.Pot.Live(candidate) then
       local p = candidate.publicID and Bounty.LinkedOffer(candidate)
       if not candidate.publicID or p and Bounty.Public.Active(p) and (not forAlert
@@ -227,7 +209,7 @@ function Bounty.Find(name, forAlert)
       end
     end
   end
-  return Alerts(Lookup(Bounty.Personal(), key)) or Alerts(guild)
+  return Alerts(Bounty.Personal()[key]) or Alerts(guild)
 end
 
 -- Any visible entry on a name (board and commands act on these).
@@ -295,6 +277,7 @@ end
 function Bounty.Add(name, gold, note, terms)
   local canon, g = Check(name, gold)
   if not canon then return nil, g end
+  if canon:lower() == Bounty.Key(Bounty.Me()) then return nil, ns.Locale:Get("shared.formsteps.enter_another_player_s_name.669f81") end
   local validated, err = Bounty.Terms.Validate(terms and terms.killsRequired, terms and terms.killMethods)
   if not validated then return nil, err end
   local own = Bounty.Public.Own(canon)
@@ -338,6 +321,7 @@ function Bounty.Submit(name, source, organization)
     return nil, organization and ns.Locale:Get("shared.state.join_the_selected_community_first.bc23ae") or ns.Locale:Get("shared.state.not_in_a_guild.36d265")
   end
   local key = Bounty.Key(name)
+  if key and key == Bounty.Key(Bounty.Me()) then return nil, ns.Locale:Get("shared.formsteps.enter_another_player_s_name.669f81") end
   local p = key and (Bounty.Personal()[key] or source)
   if not p then return nil, ns.Locale:Format("shared.state.no_personal_bounty_on_value2.e48735", { value2 = ns.Core.DisplayName(name, true) }) end
   local old = Bounty.Guild(organization)[key]

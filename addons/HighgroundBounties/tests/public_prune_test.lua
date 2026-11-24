@@ -16,6 +16,25 @@ test("unpaid contributions wait for late decisions, then free their board slot",
   t.equal(P(b).Data().offers[p.id], nil, "after the grace an unpaid contribution is pruned")
 end)
 
+test("an unanswered claim stops asking after the grace and leaves with its offer", function()
+  local a, h = F.new("Alice"), F.new("Hunter")
+  local offer = F.post(a, nil, 500, "5m"); F.deliver(a, h)
+  assert(P(h).Claim("Enemy")); F.flush(h) -- the poster never answers
+  local claim = F.claim(h)
+  h.now = h.now + 40 * 86400
+  P(a).QueueHello(); F.deliver(a, h)
+  P(h).RetryClaims()
+  assert(#P(h).outbox > 0, "a 40-day-old report still asks for its status")
+  F.flush(h)
+  h.now = h.now + 60 * 86400
+  P(a).QueueHello(); F.deliver(a, h)
+  P(h).RetryClaims()
+  t.equal(#P(h).outbox, 0, "after the grace it stops asking")
+  P(h).Prune()
+  t.equal(P(h).Data().claims[claim.id], nil, "the claim is pruned")
+  t.equal(P(h).Data().offers[offer.id], nil, "and its offer with it")
+end)
+
 test("other realm and faction scopes are pruned once and empty scopes removed", function()
   local b = F.new("Bob")
   local db = P(b).db

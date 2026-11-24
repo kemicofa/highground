@@ -113,6 +113,22 @@ test("WoW Forever: a corpse run that outlasts the countdown times no wave", func
   sim:assertHealthy()
 end)
 
+test("with enemy map positions off, your and your teammates' revivals still time the wave", function()
+  local sim = new("retail", { intel = false }, function(s) forever(s); s.rated, s.blitz = false, false end)
+  sim.raid, sim.members = true, 2
+  sim.units.raid1 = { name = "Ally Person", classID = 1 }
+  sim:join(1460, 489, "Warsong Gulch")
+  local T = sim.ns.Timers
+  assert(not sim.ns.Intel.Enabled(), "the map is off")
+  local mine, cycle = T.SingleGY(T.MyTeam()), T.WaveCycle()
+  reviveAt(sim, sim.now + 10, 1.4)
+  equal(#(T.LearnedDB().reviveLag or {}), 1, "your revival is seen: its lag is learned")
+  local wave = mine.wave
+  teammateBack(sim, wave + 2 * cycle + 0.2)
+  assert(math.abs(mine.wave - (wave + 2 * cycle + 0.2)) <= 0.25, "a teammate's revival times the wave")
+  sim:assertHealthy()
+end)
+
 test("the match's end brings everyone back without timing a wave", function()
   local sim, T = foreverTeam()
   local mine = T.SingleGY(T.MyTeam())
@@ -213,5 +229,35 @@ test("WoW Forever Darkspear: a vanished release position keeps this death's grav
   sim:advance(1)
   equal(start.wave, nil, "the start keeps no clock")
   assert(math.abs(cove.wave - (ends + T.ReviveLag())) <= 0.3, "Shipwreck Cove keeps the countdown's wave")
+  sim:assertHealthy()
+end)
+
+test("an unplaced teammate revival is never placed on a landmark named graveyard, nor saved", function()
+  local saved = { gyLearned = { [91] = {
+    { team = "A", x = 0.4, y = 0.2, label = "graveyard" }, -- saved by an earlier version
+    { team = "A", x = 0.45, y = 0.6, label = "Cementerio" },
+    { team = "A", x = 0.4, y = 0.2, label = "graveyard", exact = true },
+    { team = "A", x = 0.6, y = 0.3, label = "Stonehearth Graveyard" },
+  } } }
+  local sim = new("cata", saved)
+  sim.ns.Timers.LearnedDB().gyLearned = sim.env.HighgroundDB.gyLearned
+  sim.raid, sim.members = true, 2
+  sim.units.raid1 = { name = "Ally Person", classID = 1 }
+  sim.pois[1] = { name = "Stormpike Graveyard", position = { x = 0.4, y = 0.2 }, textureIndex = 15 }
+  sim:join(91, 30, "Alterac Valley")
+  local learned = sim.ns.Timers.LearnedDB().gyLearned[91]
+  equal(#learned, 2, "the saved fallbacks are dropped, in every language")
+  equal(learned[1].exact, true, "a release position under that label stays")
+  equal(learned[2].label, "Stonehearth Graveyard", "a named graveyard stays")
+  local T = sim.ns.Timers
+  local before = #T.gys
+  sim.units.raid1.ghost = true; sim:advance(1)
+  sim.units.raid1.ghost = false; sim:advance(2)
+  local fallback
+  for _, g in ipairs(T.gys) do if g.unplaced then fallback = g end end
+  assert(fallback and fallback.wave, "the revival times the team's unplaced graveyard")
+  equal(#T.gys, before + 1, "one new graveyard")
+  equal(fallback.x, nil, "it is not placed on Stormpike Graveyard")
+  equal(#learned, 2, "nor saved for later matches")
   sim:assertHealthy()
 end)

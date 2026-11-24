@@ -52,6 +52,13 @@ return function(sim, env)
       end
       self.pins = keep
     end
+    function map:RemovePin(pin)
+      for i, active in ipairs(self.pins) do
+        if active == pin then table.remove(self.pins, i); break end
+      end
+      self.pool[pin.template] = self.pool[pin.template] or {}
+      pin:Hide(); table.insert(self.pool[pin.template], pin)
+    end
     function map:AcquirePin(template, item)
       local pin = self.pool[template] and table.remove(self.pool[template])
       if not pin then

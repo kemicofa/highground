@@ -88,7 +88,10 @@ function Intel.RebuildAllies(maxAge)
     if full then Intel.allyUnit[full] = unit end
   end
 end
-function Intel.AllyUnits()
+-- The map scan keeps this roster only while it runs: with a maximum age,
+-- callers that also run with the map off (timers, flags) read it again.
+function Intel.AllyUnits(maxAge)
+  if maxAge then Intel.RebuildAllies(maxAge) end
   return Intel.allyUnit
 end
 ns.AllyUnits = Intel.AllyUnits

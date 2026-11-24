@@ -32,7 +32,7 @@ function Timers.ScanTeam()
     return
   end
   local now = GetTime()
-  local units = ns.AllyUnits and ns.AllyUnits() or { [UnitName("player")] = "player" }
+  local units = ns.AllyUnits and ns.AllyUnits(1) or { [UnitName("player")] = "player" }
   for name, unit in pairs(units) do
     local okG, isGhost = pcall(UnitIsGhost, unit)
     local okD, isDead = pcall(UnitIsDeadOrGhost, unit)

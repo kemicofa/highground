@@ -163,3 +163,52 @@ test("quick callout controls fit enlarged text and long location names in every 
   end
   sim:assertHealthy()
 end)
+
+test("the callout panel holds secure buttons: in combat it stays put, a reset waits for the end", function()
+  local sim = new("cata", { quickCalls = true, timers = false, flags = false })
+  sim:join()
+  local C, T, w = sim.ns.Core, sim.ns.Timers, assert(sim.ns.QuickCalls.win)
+  sim:command("unlock")
+  C.pos.quickCallsPoint = { "CENTER", "CENTER", 40, 60 }
+  T.PlaceWin(w)
+  local moved = 0
+  w.StartMoving = function() moved = moved + 1 end
+  sim:setCombat(true)
+  w.scripts.OnDragStart(w); w.scripts.OnDragStop(w)
+  equal(moved, 0, "no drag in combat")
+  sim.ns.TimersWindowReset()
+  equal(C.pos.quickCallsPoint, nil, "the reset is saved")
+  equal(select(4, w:GetPoint()), 40, "the panel keeps its place in combat")
+  sim:advance(1)
+  sim:setCombat(false)
+  equal(select(1, w:GetPoint()), "BOTTOM", "and moves once combat ends")
+  w.scripts.OnDragStart(w)
+  equal(moved, 1, "it can be dragged again")
+  sim:assertHealthy()
+end)
+
+test("an unchanged callout panel formats no messages and keeps its layout", function()
+  local sim = new("cata", { quickCalls = true, quickCallsDestinations = true, timers = false, flags = false })
+  local Q = sim.ns.QuickCalls
+  sim:join()
+  local w = assert(Q.win)
+  local messages, lists, sized = 0, 0, 0
+  local Message, Destinations, SetWidth = Q.Message, Q.Destinations, w.SetWidth
+  Q.Message = function(...) messages = messages + 1; return Message(...) end
+  Q.Destinations = function(...) lists = lists + 1; return Destinations(...) end
+  w.SetWidth = function(...) sized = sized + 1; return SetWidth(...) end
+  sim:advance(5)
+  equal(messages, 0, "no message formatted again")
+  assert(lists <= 21, "the destination list is read once per update")
+  equal(sized, 0, "no layout")
+  assert(w.destination:SetValue("Farm"))
+  equal(w.destinationButtons[2].fire.attrs.macrotext, "/i 2 enemies going to Farm", "a chosen destination is armed")
+  sim:advance(0.5)
+  messages = 0
+  sim.env.GetSubZoneText = function() return "Blacksmith" end
+  sim:event("ZONE_CHANGED")
+  equal(messages, #w.buttons, "a new area makes the macros again")
+  assert(sized > 0, "and lays out its new name")
+  equal(w.buttons[3].fire.attrs.macrotext, "/i Need help — Blacksmith (2 enemies)")
+  sim:assertHealthy()
+end)

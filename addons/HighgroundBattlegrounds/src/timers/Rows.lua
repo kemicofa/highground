@@ -74,7 +74,8 @@ function Timers.LiveGYs(mapID, now, withUnlocated)
   wipe(candidates); wipe(placed)
   itemCount = 0
   for _, g in ipairs(Timers.gys) do
-    if not g.configured and not g.x and g.label and ns.AreaXY then
+    -- The unplaced fallback's label is the word "graveyard", not an area.
+    if not g.configured and not g.unplaced and not g.x and g.label and ns.AreaXY then
       g.x, g.y = ns.AreaXY(mapID, g.label) -- anchor learned since
     end
     if g.x and Timers.Available(g) then

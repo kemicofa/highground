@@ -273,10 +273,11 @@ t.test("/hg sniper why stops at the first missing step", function()
   assert(not has(out, "no target"), "stops there")
   sim:command("sniper")
   local enemy, token = sim:enemy("Scoped")
-  sim.units.target = enemy
+  local plate = sim.plates[token]
+  sim.units.target, sim.plates[token] = enemy, nil -- beyond nameplate range
   out = run(sim, "sniper why")
   assert(has(out, "no target has a nameplate") or has(out, "reports no nameplate"), "no plate for the target")
-  sim.plates.target = sim.plates[token]
+  sim.plates[token] = plate
   sim.plates[token].IsForbidden = function() return true end
   out = run(sim, "sniper why")
   assert(has(out, "forbidden"), "forbidden plate")

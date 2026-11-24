@@ -23,6 +23,34 @@ function H.All()
   return db.matches
 end
 
+-- The scoreboard shows a winner.
+local function Complete()
+  local winner = U.read(GetBattlefieldWinner)
+  return U.read(C_PvP and C_PvP.IsMatchComplete) == true or winner == 0 or winner == 1
+end
+
+local function Usable(saved)
+  return type(saved) == "table" and saved.scope == ns.Scope.Character() and saved.game == ns.GAME
+    and type(saved.updated) == "number" and type(saved.events) == "table" and type(saved.started) == "number"
+    and (saved.lastDuration == nil or type(saved.lastDuration) == "number")
+end
+
+-- A record saved in this map is the same match (a /reload, a reconnect)
+-- when it was saved in the last two minutes or the match clock moved on by
+-- the time since.
+local function SameMatch(saved, map, duration)
+  if saved.map ~= map or duration and duration < (saved.lastDuration or 0) then return false end
+  local away = time() - saved.updated
+  return away < 120 or duration ~= nil and saved.lastDuration ~= nil and math.abs(duration - saved.lastDuration - away) < 60
+end
+
+-- A match left without its end (a disconnect, a crash): saved as left early.
+local function SaveUnfinished(saved)
+  saved.lastDuration = saved.lastDuration or math.max(0, saved.updated - saved.started)
+  H.current = saved
+  H.Finish(true)
+end
+
 function H.Ensure()
   if ns.Modules and not ns.Modules.Active(Kind() == "arena" and "arena" or "battlegrounds") then return end
   local db = DB()
@@ -32,12 +60,18 @@ function H.Ensure()
   if H.current and not H.current.finished then H.Finish(true) end
   local saved = db.matchInProgress
   local duration = Duration()
-  if type(saved) == "table" and saved.map == map and saved.scope == ns.Scope.Character() and saved.game == ns.GAME
-    and type(saved.updated) == "number" and time() - saved.updated < 120 and type(saved.events) == "table"
-    and type(saved.started) == "number" and (saved.lastDuration == nil or type(saved.lastDuration) == "number")
-    and (not duration or duration >= (saved.lastDuration or 0)) then
+  local usable = Usable(saved)
+  if usable and SameMatch(saved, map, duration) then
     H.current = saved
   else
+    if usable then SaveUnfinished(saved) end
+    -- A /reload on the final scoreboard: this match is already saved.
+    local last = H.All()[1]
+    if Complete() and type(last) == "table" and last.map == map and Usable(last)
+      and type(last.finished) == "number" and time() - last.finished < 300 then
+      H.current = last
+      return last
+    end
     -- Talent-tree games: the client's spec index ignores points spent.
     local spec = ns.Core.me and ns.Core.me.specID
       or not ns.Caps.classicSpecs and U.value((ns.Api.SpecializationInfo(ns.Api.Specialization()))) or nil
@@ -155,15 +189,19 @@ U.Events({
       if H.current and H.current.finished then H.current = nil end
       H.Ensure()
     else
-      if DB() then H.Finish(true); DB().matchInProgress = nil end
+      local db = DB()
+      if db then
+        -- Back after a disconnect or a crash in a match that has ended.
+        if not H.current and Usable(db.matchInProgress) then SaveUnfinished(db.matchInProgress) else H.Finish(true) end
+        db.matchInProgress = nil
+      end
       H.current = nil
     end
   end,
   PVP_MATCH_COMPLETE = function() H.Ensure(); H.Finish(false) end,
   UPDATE_BATTLEFIELD_SCORE = function()
     H.Scores()
-    local winner = U.read(GetBattlefieldWinner)
-    if U.read(C_PvP and C_PvP.IsMatchComplete) or winner == 0 or winner == 1 then H.Finish(false) end
+    if Complete() then H.Finish(false) end
   end,
   CHAT_MSG_BG_SYSTEM_ALLIANCE = function(_, msg) H.Note(msg) end,
   CHAT_MSG_BG_SYSTEM_HORDE = function(_, msg) H.Note(msg) end,

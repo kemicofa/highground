@@ -69,6 +69,21 @@ Timers.GameGraveyards = function(mapID, refresh)
   return Timers.gameGYs[mapID]
 end
 
+-- Saved graveyards that are no real spot: the old "map centre" placeholder
+-- (v2.4.1), and the unplaced fallback (TeamGY) that earlier versions put on
+-- the first landmark holding the word "graveyard", in any language.
+function Timers.DropPlaceholders(learned)
+  local fallback = {}
+  for _, word in ipairs(ns.Locale:Variants("battlegrounds.graveyards.graveyard.2b11fa")) do fallback[word:lower()] = true end
+  for i = #(learned or {}), 1, -1 do
+    local g = learned[i]
+    if not g.exact and (g.x == 0.5 and g.y == 0.5
+      or not g.fromPlace and type(g.label) == "string" and fallback[g.label:lower()]) then
+      table.remove(learned, i)
+    end
+  end
+end
+
 -- Flag maps: graveyards named by side. Each team's base -> "<side> base",
 -- between them -> "mid" (or "mid, <side> side" when clearly on one half).
 function Timers.SideName(g)

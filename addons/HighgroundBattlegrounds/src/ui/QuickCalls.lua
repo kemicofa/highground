@@ -4,9 +4,19 @@ local Quick = ns.QuickCalls
 local BUTTONS = { ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.quickcalls.help.c47ae1") }, { label = "battlegrounds.quickcalls.help.c47ae1" }), { label = "1", value = 1 }, { label = "2", value = 2 },
   { label = "3+", value = "3+" }, ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.quickcalls.all_clear.360e11"), value = "clear", width = 80 }, { label = "battlegrounds.quickcalls.all_clear.360e11" }) }
 
+-- What the layout follows besides scale and theme, which relayout on
+-- their own: the area text and the groups shown.
+local function Shape(w)
+  return (w.localRow:IsShown() and "L" or "") .. (w.destinationGroup:IsShown() and "D" or "")
+    .. (w.routeGroup:IsShown() and "R" or "") .. "\031" .. (w.area:GetText() or "")
+end
+
 local function Layout()
   local w = Quick.win
   if not w then return end
+  -- Its secure buttons keep their place in combat: the next update after
+  -- combat lays it out.
+  if InCombatLockdown() then w.shape = nil; return end
   local scale = math.max(1, Core.FontScale())
   local pad, gap, header = 12 * scale, 4 * scale, 26 * scale
   local width = 2 * pad - gap
@@ -56,12 +66,14 @@ local function Layout()
   w.status:ClearAllPoints(); w.status:SetPoint("TOPLEFT", pad, -top)
   w.status:SetWidth(w:GetWidth() - 2 * pad); w.status:SetHeight(18 * scale)
   w:SetHeight(top + 18 * scale + pad)
+  w.shape = Shape(w)
 end
 
 local function Build()
   if Quick.win then return Quick.win end
+  -- Secure: its buttons are secure, so it can't move in combat.
   local w = T.MakeWindow((ns.FRAME_PREFIX or "Highground") .. "QuickCallsFrame", ns.Locale:Get("battlegrounds.quickcalls.quick_callouts.654190"),
-    "quickCallsPoint", { "BOTTOM", "BOTTOM", 0, 180 }, false, true)
+    "quickCallsPoint", { "BOTTOM", "BOTTOM", 0, 180 }, true, true)
   Quick.win = w
   w.area = Theme.Text(w, "rowNameSmall", "text")
   w.area:SetJustifyH("LEFT"); w.area:SetWordWrap(true)
@@ -150,6 +162,18 @@ local function Arm(button, macro)
   return button.macro == macro
 end
 
+-- The macros are made again only when what they say can change: four
+-- updates a second would otherwise format every message each time.
+local made = {}
+local function Unchanged(live, area, destination, signature, routes, combat)
+  local locale = ns.Locale:GetLocale()
+  if made.live == live and made.area == area and made.destination == destination and made.signature == signature
+    and made.routes == routes and made.combat == combat and made.locale == locale then return true end
+  made.live, made.area, made.destination, made.signature = live, area, destination, signature
+  made.routes, made.combat, made.locale = routes, combat, locale
+  return false
+end
+
 function Quick.Update()
   local wanted = Wanted()
   if wanted ~= Quick.wanted then
@@ -188,18 +212,23 @@ function Quick.Update()
   w.context, w.preview = context, preview
   local live = not guide and not preview
   -- Macros: none in the guide or a preview, where clicks give local feedback.
-  local armed = true
-  for _, button in ipairs(w.buttons) do
-    armed = Arm(button, live and area and Quick.Macro(Quick.Message(button.value, area))) and armed
-  end
   local destination = w.destination:GetValue()
-  for _, button in ipairs(w.destinationButtons) do
-    armed = Arm(button, live and destination ~= "" and Quick.DestinationMacro(button.count, destination)) and armed
+  if not Unchanged(live, area, destination, signature, routes, combat) then
+    for _, button in ipairs(w.buttons) do
+      button.want = live and area and Quick.Macro(Quick.Message(button.value, area))
+    end
+    for _, button in ipairs(w.destinationButtons) do
+      button.want = live and destination ~= "" and Quick.DestinationMacro(button.count, destination, destinations)
+    end
+    for i, button in ipairs(w.routeButtons) do
+      if not combat then button.route = routes[i]; button:SetText(routes[i] or "") end
+      button.want = live and button.route and Quick.RouteMacro(button.route, routes)
+    end
   end
-  for i, button in ipairs(w.routeButtons) do
-    if not combat then button.route = routes[i]; button:SetText(routes[i] or "") end
-    armed = Arm(button, live and button.route and Quick.RouteMacro(button.route)) and armed
-  end
+  local armed = true
+  for _, button in ipairs(w.buttons) do armed = Arm(button, button.want) and armed end
+  for _, button in ipairs(w.destinationButtons) do armed = Arm(button, button.want) and armed end
+  for _, button in ipairs(w.routeButtons) do armed = Arm(button, button.want) and armed end
   if not combat then w.location = area end -- the area the macros were made for
   local bg = not preview and Quick.Battleground()
   w.area:SetText(w.location or (bg and bg.name) or ns.Locale:Get("highground.home.battleground.19d4bd"))
@@ -220,7 +249,7 @@ function Quick.Update()
     button:SetShown(button.route ~= nil)
     button:SetEnabled(guide and button.route ~= nil or button.macro ~= "")
   end
-  Layout()
+  if w.shape ~= Shape(w) then Layout() end
   w:Show()
 end
 

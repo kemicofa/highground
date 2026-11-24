@@ -72,12 +72,7 @@ function Timers.Reset(mapID)
     return
   end
   local learned = db and db.gyLearned and mapID and db.gyLearned[mapID]
-  for i = #(learned or {}), 1, -1 do
-    local g = learned[i]
-    if g.x == 0.5 and g.y == 0.5 and not g.exact then
-      table.remove(learned, i) -- old "map centre" placeholder (v2.4.1), not a real spot
-    end
-  end
+  Timers.DropPlaceholders(learned)
   for _, g in ipairs(learned or {}) do
     Timers.gys[#Timers.gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, exact = g.exact, learned = true }
   end
@@ -123,7 +118,7 @@ end
 
 function Timers.Learn(gy)
   local db = Timers.LearnedDB()
-  if not (db and Timers.currentMap) or gy.saved or gy.configured then return end
+  if not (db and Timers.currentMap) or gy.saved or gy.configured or gy.unplaced then return end
   -- Until the scoreboard confirms your side, MyTeam() is the character's
   -- faction, which is wrong in cross-faction games: never save that guess.
   if not (ns.GetAllyFaction and ns.GetAllyFaction()) then

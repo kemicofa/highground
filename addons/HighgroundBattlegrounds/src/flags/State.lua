@@ -129,7 +129,7 @@ function Flags.CarrierUnit(team, name)
   end
   if name then
     local short = name:match("^[^-]+")
-    local allies = ns.AllyUnits and ns.AllyUnits() or {}
+    local allies = ns.AllyUnits and ns.AllyUnits(1) or {}
     if ours and allies[short] then
       return allies[short]
     end

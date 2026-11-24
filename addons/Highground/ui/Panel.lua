@@ -12,14 +12,33 @@ Core.frame:EnableMouse(true)
 Core.frame:RegisterForDrag("LeftButton")
 Core.frame:SetScript("OnDragStart", function(self)
   if not Core.db.locked and not InCombatLockdown() then
+    self.wbMoving = true
     self:StartMoving()
   end
 end)
-Core.frame:SetScript("OnDragStop", function(self)
+-- The panel's secure rows keep it from stopping in combat: a drag released
+-- then ends, and is saved, once combat is over.
+local regen
+local function StopDrag()
+  local self = Core.frame
+  if InCombatLockdown() then
+    if not self.wbMoving then return end
+    if not regen then
+      regen = CreateFrame("Frame")
+      regen:SetScript("OnEvent", function(f)
+        f:UnregisterEvent("PLAYER_REGEN_ENABLED")
+        ns.Util.RunGuarded("panel drag", StopDrag)
+      end)
+    end
+    regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+    return
+  end
+  self.wbMoving = nil
   self:StopMovingOrSizing()
   local p, _, rp, x, y = self:GetPoint()
   Core.pos.point = { p, rp, x, y }
-end)
+end
+Core.frame:SetScript("OnDragStop", StopDrag)
 Core.head = {}
 Core.frame:Hide()
 

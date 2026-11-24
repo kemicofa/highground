@@ -307,7 +307,8 @@ for _, f in ipairs(sim.frames) do
       if coach and (ancestor == sim.ns.Bounty.Poster.previewWin or ancestor == sim.ns.Bounty.Matches.previewWin
         or ancestor == sim.ns.Bounty.Proof.previewWin) then include = true end
       if hud and (ancestor == sim.ns.Core.frame or ancestor == sim.ns.Setup.layoutBar
-        or ancestor == sim.ns.Flags.flagWin or ancestor == sim.ns.Nearby.win or ancestor == sim.ns.Arena.win) then include = true end
+        or ancestor == sim.ns.Flags.flagWin or ancestor == sim.ns.Nearby.win or ancestor == sim.ns.Arena.win
+        or sim.ns.QuickCalls and ancestor == sim.ns.QuickCalls.win) then include = true end
       if hud then for _, timer in ipairs(sim.ns.Timers.timerWindows) do if ancestor == timer then include = true end end end
       if ancestor == sim.ns.Kit.Dropdown.Frame() then include, popup = true, true end
       strata = strata or ancestor.strata

@@ -291,8 +291,10 @@ function Core.TargetPlateUnit(hostile)
     local ok, harm = pcall(UnitCanAttack, "player", "target")
     if not (ok and Core.plain(harm) and harm) then return nil end
   end
+  -- No nameplate for the target: no token can be it.
   local plate = C_NamePlate.GetNamePlateForUnit("target")
-  local unit = plate and plate.namePlateUnitToken
+  if not plate then return nil end
+  local unit = plate.namePlateUnitToken
   if unit then return unit end
   for _, token in ipairs(NAMEPLATES) do
     local ok, same = pcall(UnitIsUnit, token, "target")

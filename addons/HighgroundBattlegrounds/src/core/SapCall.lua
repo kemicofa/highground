@@ -16,7 +16,8 @@ function Core.SapReason(e)
     return nil
   end
   local fc = ns.LastEnemyCarrier and ns.LastEnemyCarrier()
-  if fc and Core.Canon(fc) == e.key then
+  -- The carrier's name as chat gave it: WoW Forever's first name alone too.
+  if fc and Core.EnemyByChatName(fc) == e then
     return "FC"
   end
   if Core.IsHealer(e) then

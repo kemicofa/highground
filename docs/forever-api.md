@@ -107,10 +107,10 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 /run local u="target" C_PvP.RequestCrowdControlSpell(u) C_Timer.After(1,function()local d=C_PvP.GetArenaCrowdControlDuration(u) print("zero",d:IsZero(),"sec",d:HasSecretValues(),"rem",d:GetRemainingDuration(),"info",C_PvP.GetArenaCrowdControlInfo(u))end)
 ```
 
-**Ask the game what is secret.** The two-argument `C_Secrets` checks (`ShouldUnitComparisonBeSecret`, `CanCompareUnitTokens`, `ShouldUnitAuraIndexBeSecret`...) weren't called. Capability checks through `C_Secrets` could replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`).
+**Ask the game what is secret.** Capability checks through `C_Secrets` could replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`). With an enemy as target in Arathi Basin (build 71037, 2026-11-24): `HasSecretRestrictions()` true, `CanCompareUnitTokens("target", "player")` true, `ShouldUnitAuraIndexBeSecret("target", 1)` true, and `ShouldUnitComparisonBeSecret` false for both `target` and `targettarget` against `player`. That last answer disagrees with the secret `UnitIsUnit("targettarget", "player")` under [Enemy's target](#enemys-target); whether the enemy had a target during the check is unknown. Still to check: the predicate and `UnitIsUnit` read together while the enemy has a target, and the same checks on a teammate.
 
 ```
-/run print(C_Secrets.CanCompareUnitTokens("target","player"),C_Secrets.ShouldUnitComparisonBeSecret("target","player"))
+/run local t,p="targettarget","player" local e=UnitExists(t) local a=UnitIsUnit(t,p) print("tot",e,UnitName(t),"cmpSecret",C_Secrets.ShouldUnitComparisonBeSecret(t,p),"isUnit",a,issecretvalue(a))
 ```
 
 Record results here with the date and build.

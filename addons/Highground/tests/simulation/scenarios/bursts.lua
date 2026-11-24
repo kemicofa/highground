@@ -97,3 +97,48 @@ test("/hg burst test previews a marker on your target's nameplate", function()
   sim:advance(0.2)
   equal(shownMark(sim), nil, "test off hides it")
 end)
+
+test("burst markers go when their nameplate does and when you leave the match", function()
+  local sim = new("cata") -- mage: Spellsteal
+  local _, token = sim:enemy("Lock", { classID = 9, buffs = { DEMON_SOUL } })
+  sim:join()
+  local m = assert(shownMark(sim), "burst marker shown")
+  sim:event("NAME_PLATE_UNIT_REMOVED", token)
+  equal(m:IsShown(), false, "a removed plate takes its marker at once")
+  sim:advance(0.5)
+  assert(shownMark(sim), "back while the plate is")
+  sim:leave()
+  equal(shownMark(sim), nil, "leaving the match hides it")
+  sim:advance(60)
+  equal(shownMark(sim), nil, "and it stays hidden")
+end)
+
+test("burst readings reuse their tables tick after tick", function()
+  local sim = new("cata")
+  sim:enemy("Lock", { classID = 9, buffs = { DEMON_SOUL } })
+  sim:join()
+  local e = sim:entry("Lock")
+  local lists, entries, count = {}, {}, 0
+  for _ = 1, 20 do
+    sim:advance(0.25)
+    assert(e.bursts and e.bursts[1].spell == DEMON_SOUL.spellId, "burst read")
+    for _, t in ipairs({ e.bursts, e.bursts[1] }) do
+      local seen = t == e.bursts and lists or entries
+      if not seen[t] then seen[t], count = true, count + 1 end
+    end
+  end
+  assert(count <= 4, "two lists and their entries, got " .. count .. " tables")
+end)
+
+test("burst and scope tests started on their own stop when a match starts", function()
+  local sim = new("cata")
+  local _, token = sim:enemy("Lock", { classID = 9 })
+  sim.units.target = sim.units[token]
+  sim:command("burst test")
+  sim:command("sniper test")
+  assert(sim.ns.Core.burstTest and sim.ns.Core.sniperTest.on, "both tests on")
+  sim:join()
+  equal(sim.ns.Core.burstTest, false, "burst test off in the match")
+  equal(sim.ns.Core.sniperTest.on, false, "scope test off in the match")
+  sim:assertHealthy()
+end)

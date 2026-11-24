@@ -141,9 +141,17 @@ end
 local function StopForPlay()
   if P.managed then P.StopAll() end
 end
+-- Started on their own, these would still hide real burst markers and
+-- steer the scope in the match.
+local STANDALONE = { "sniper test", "burst test" }
 local function OnZone()
   local kind = select(2, IsInInstance())
-  if kind == "pvp" or kind == "arena" then StopForPlay() end
+  if kind == "pvp" or kind == "arena" then
+    StopForPlay()
+    for _, command in ipairs(STANDALONE) do
+      if P.Active(command) then SetPreview(command, false) end
+    end
+  end
 end
 ns.Util.Events({
   PLAYER_REGEN_DISABLED = StopForPlay,

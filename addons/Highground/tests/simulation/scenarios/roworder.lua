@@ -221,3 +221,16 @@ test("a hidden kill-order panel skips its rows while the scope follows your targ
   C.UpdateHealth = health
   sim:assertHealthy()
 end)
+
+test("a guided preview started in combat shows its panel once combat ends", function()
+  local sim = new("cata")
+  local C = sim.ns.Core
+  C.SetFeature("killorder", false)
+  sim:setCombat(true)
+  C.StartTest(true)
+  assert(not C.frame:IsShown(), "secure panel waits for combat to end")
+  sim:setCombat(false)
+  assert(C.frame:IsShown(), "the guide's panel shows without target recommendations")
+  C.StopTest()
+  sim:assertHealthy()
+end)

@@ -16,7 +16,6 @@ local function OnAddonLoaded(_, name)
   Core.db.points = Core.db.points or {}
   if Core.PruneCaptureLogs then Core.PruneCaptureLogs() end
   Core.db.healthErr = nil -- first health error of this session only; old ones are fixed
-  if Core.db.capProbeOn and Core.SetCapProbe and ns.Caps.combatLog then Core.SetCapProbe(true) end
   if Options then Options.Register() end -- Highground's settings pages
   Core.BuildCurve()
   ns.ApplyUIScale()
@@ -34,6 +33,7 @@ local function OnZone(event)
     wipe(Core.order)
     wipe(Core.displayOrder)
     wipe(Core.recentCasts)
+    wipe(Core.ownCast)
     wipe(Core.logCaps)
     Core.allyFaction, Core.currentBG, Core.currentProfile, Core.mapKey = nil, nil, nil, nil
     Core.obj.mode, Core.obj.assaultStart = nil, nil
@@ -145,6 +145,9 @@ if not ns.STANDBY then raw:RegisterEvent("ADDON_LOADED") end
 raw:SetScript("OnEvent", function(_, event, arg1)
   if event == "ADDON_LOADED" then OnAddonLoaded(event, arg1) end
 end)
+
+-- The capture probe (core/CapProbe.lua): only while on in a live battleground.
+if Core.ListenCapProbe then Core.ListenCapProbe() end
 
 -- The combat log (Cata) only while a live battleground is tracked.
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then

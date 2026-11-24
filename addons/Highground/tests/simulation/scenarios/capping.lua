@@ -312,3 +312,75 @@ test("Highground users share their own captures with the team", function()
   sim:advance(0.5)
   equal(capRow(sim), nil, "implausible capture lengths ignored")
 end)
+
+test("in a raid your capture stays yours and same-named teammates stay apart", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  sim:enemy("Foe")
+  sim:join()
+  sim.raid, sim.members = true, 3
+  sim.units.raid1 = sim.units.player -- raid tokens include you
+  sim.units.raid2 = { name = "Buddy", realm = "East" }
+  sim.units.raid3 = { name = "Buddy", realm = "West" }
+  active.player = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  active.raid1 = active.player
+  active.raid2 = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  sim:advance(1)
+  local rows = {}
+  for _, row in ipairs(sim.ns.Test.objectiveRows(sim.now)) do
+    if row.tag == "CAPPING" then rows[#rows + 1] = row.text end
+  end
+  table.sort(rows)
+  equal(table.concat(rows, ","), "Buddy,You", "you once, and the Buddy who caps")
+end)
+
+test("an enemy with your name never teaches the capture spell", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  local _, token = sim:enemy("Other")
+  sim.units[token].name, sim.units[token].realm = "Me", "Elsewhere"
+  sim.scores[#sim.scores].name = "Me-Elsewhere"
+  sim:join()
+  active.player = { name = "Frostbolt", spell = 116, start = sim.now, finish = sim.now + 2 }
+  sim:advance(3)
+  -- Their long cast ends just as you assault: it must not count as yours.
+  active[token] = { name = "Evocation", spell = 12051, start = sim.now, finish = sim.now + 5.5 }
+  sim:advance(5.5)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "Me has assaulted the Stables!")
+  equal((sim.env.HighgroundDB.capSpells or {})[12051], nil, "their spell isn't learned")
+end)
+
+test("capture alerts and nameplate bars stay off with Battleground timers", function()
+  local sim = new("cata")
+  local active = casts(sim)
+  sim:enemy("Capper")
+  sim:join()
+  sim.env.HighgroundDB.capSpells = { [21651] = { name = "Opening", secs = 7, own = true } }
+  sim.ns.Core.SetFeature("timers", false)
+  local sounds = #sim.sounds
+  active.nameplate1 = { name = "Opening", spell = 21651, start = sim.now, finish = sim.now + 7 }
+  sim:advance(1)
+  equal(#sim.sounds, sounds, "no capture alert")
+  for _, b in ipairs(sim.ns.Core.capPlates) do assert(not b:IsShown(), "no capture bar") end
+  sim.ns.Core.SetFeature("timers", true)
+  sim:advance(0.5)
+  local bar = sim.ns.Core.capPlates[1]
+  assert(bar and bar:IsShown(), "bars back with timers")
+end)
+
+test("the capture probe listens only in a live battleground", function()
+  local sim = new("cata")
+  local E = sim.ns.PvPEvents
+  sim:command("cap probe")
+  assert(sim.env.HighgroundDB.capProbeOn, "probe on")
+  equal(E.Registered("CHAT_MSG_MONSTER_YELL"), false, "nothing outside a battleground")
+  sim:join()
+  equal(E.Registered("CHAT_MSG_MONSTER_YELL"), true, "listening in the match")
+  sim:leave()
+  equal(E.Registered("CHAT_MSG_MONSTER_YELL"), false, "and not after it")
+  local again = new("cata", sim.env.HighgroundDB)
+  again:join()
+  equal(again.ns.PvPEvents.Registered("CHAT_MSG_MONSTER_YELL"), true, "a saved probe works after a reload")
+  again:command("cap probe")
+  equal(again.ns.PvPEvents.Registered("CHAT_MSG_MONSTER_YELL"), false, "off stops it")
+end)

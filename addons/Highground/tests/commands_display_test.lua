@@ -215,6 +215,17 @@ t.test("/hg cap why reports learned spells, recent events and the target's cast"
   assert(has(out, "nameplate: " .. token .. " | nameplate bars on"), "plate and bars")
 end)
 
+t.test("/hg cap why shows a secret cast without reading it", function()
+  local sim = new("retail", {})
+  local secret = { secret = true } -- WoW Forever and Retail hide casts in a match
+  sim.units.target = { name = "Somebody" }
+  sim.env.UnitCastingInfo = function() return secret, nil, nil, secret, secret, false, nil, false, secret end
+  local out = run(sim, "cap why")
+  assert(has(out, "target cast: nil (spell nil, no timing)"), "no arithmetic on a secret: " .. out)
+  assert(has(out, "counts as a capture: false"), "a secret cast is no capture")
+  sim:assertHealthy()
+end)
+
 t.test("/hg cap probe needs the combat log and clear keeps learned spells", function()
   local retail = new("retail", {})
   local out = run(retail, "cap probe")

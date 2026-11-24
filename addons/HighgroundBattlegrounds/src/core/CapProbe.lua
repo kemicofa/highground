@@ -4,11 +4,11 @@ local Core = ns.Core
 ---------------------------------------------------------------------------
 -- Capture probe (/hg cap probe): other players' banner casts may never
 -- reach the client, so look for any other sign that a capture is under way.
--- While on, every event that could carry one is kept for the last
--- PROBE_WINDOW seconds; when "X has assaulted the Y!" arrives, everything
--- about X in that window (plus anything touching a game object, and
--- world-state changes) is saved to HighgroundDB.capProbe, newest first,
--- together with X's map positions if X is in your group.
+-- While on, in a live battleground, every event that could carry one is
+-- kept for the last PROBE_WINDOW seconds; when "X has assaulted the Y!"
+-- arrives, everything about X in that window (plus anything touching a
+-- game object, and world-state changes) is saved to HighgroundDB.capProbe,
+-- newest first, together with X's map positions if X is in your group.
 ---------------------------------------------------------------------------
 Core.PROBE_WINDOW = 12 -- seconds before an announcement worth keeping
 Core.PROBE_KEEP = 6 -- assaults kept in HighgroundDB.capProbe
@@ -53,9 +53,10 @@ local function Values(...)
 end
 
 local function OnCombatLog()
-  local info = { CombatLogGetCurrentEventInfo() }
-  local sub, srcGUID, srcName, dstGUID, dstName = info[2], info[4], info[5], info[8], info[9]
+  local _, sub = CombatLogGetCurrentEventInfo()
   if NOISE[sub] then return end
+  local info = { CombatLogGetCurrentEventInfo() }
+  local srcGUID, srcName, dstGUID, dstName = info[4], info[5], info[8], info[9]
   local object = (type(srcGUID) == "string" and srcGUID:find("^GameObject"))
     or (type(dstGUID) == "string" and dstGUID:find("^GameObject"))
   local who = Short(srcName) or Short(dstName)
@@ -73,7 +74,7 @@ local function OnWorld(event, ...) Add("world", "world", Values(event, ...)) end
 
 local function OnChat(event, msg, sender) Add("chat", Short(sender) or "world", Values(event, msg)) end
 
--- Registered only while the probe is on (Core.SetCapProbe).
+-- Registered only while the probe is on in a tracked battleground.
 local HANDLERS = {
   COMBAT_LOG_EVENT_UNFILTERED = OnCombatLog,
   UPDATE_UI_WIDGET = function(_, w)
@@ -89,11 +90,8 @@ end
 for _, event in ipairs({ "CHAT_MSG_EMOTE", "CHAT_MSG_TEXT_EMOTE", "CHAT_MSG_MONSTER_EMOTE",
   "CHAT_MSG_MONSTER_YELL", "CHAT_MSG_RAID_BOSS_EMOTE", "CHAT_MSG_SYSTEM" }) do HANDLERS[event] = OnChat end
 
-local probe = ns.Util.Events({}, "capprobe", "battlegrounds")
-probe.handlers = HANDLERS
-
 -- Group positions twice a second: does a capper stand still at the flag?
-local sampler = ns.Util.Every(0.5, function()
+local function Sample()
   local now = GetTime()
   Prune(now)
   local mapID = ns.CurrentMapID and ns.CurrentMapID()
@@ -115,18 +113,24 @@ local sampler = ns.Util.Every(0.5, function()
     local last = t[#t]
     if not last or now - last.at > Core.PROBE_WINDOW then tracks[short] = nil end
   end
-end, "capprobe", "battlegrounds")
-sampler.Stop()
+end
+
+-- The switch is saved, but only a live battleground (not a preview) pays.
+-- core/Events.lua calls this once ns.PvPEvents has loaded.
+local function Live()
+  return Core.db and Core.db.capProbeOn and ns.Caps.combatLog and Core.active and not Core.testMode or false
+end
+function Core.ListenCapProbe()
+  ns.PvPEvents.Listen(HANDLERS, "capprobe", Live, "battlegrounds")
+  ns.PvPEvents.Every(0.5, Sample, "capprobe", Live, "battlegrounds")
+end
 
 function Core.SetCapProbe(on)
   if on and not ns.Util.ModuleEnabled("battlegrounds") then return end
   Core.db.capProbeOn = on or nil
   wipe(buffer)
   wipe(tracks)
-  for event in pairs(HANDLERS) do
-    ns.Util.call(on and probe.RegisterEvent or probe.UnregisterEvent, probe, event)
-  end
-  if on then sampler.Start() else sampler.Stop() end
+  ns.PvPEvents.Refresh()
 end
 
 -- "X has assaulted the Y!": save what was seen of X before it.

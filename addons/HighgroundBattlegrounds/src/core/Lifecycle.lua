@@ -20,7 +20,7 @@ end
 -- The function is looked up each tick; a stage this build lacks is skipped.
 Core.TICK_STAGES = {
   { "plates", "ScanPlates" }, -- core/Auras.lua
-  { "capplates", "UpdateCapPlates" }, -- ui/CapPlates.lua
+  { "capplates", "UpdateCaptureBars" }, -- ui/CapPlates.lua, below
   { "teamhealers", "InspectTeam" }, -- core/HealerTags.lua
   { "healermarks", "UpdateHealerMarks" }, -- ui/HealerMarks.lua
   { "burstmarks", "UpdateBurstMarks" }, -- ui/BurstMarks.lua
@@ -29,6 +29,13 @@ Core.TICK_STAGES = {
   { "targetbtn", "UpdateTargetButton" }, -- ui/Actions.lua
   { "render", "Render" }, -- ui/Render.lua
 }
+
+-- Capture nameplate bars sit under Battleground timers on the General page:
+-- off with it, like its other parts (the timers tick stops).
+function Core.UpdateCaptureBars()
+  if not Core.UpdateCapPlates then return end
+  if Core.On("timers") then Core.UpdateCapPlates() else Core.HideCapPlates() end
+end
 
 -- The error notice, built again only when the theme's colour changes. The
 -- render stage rewrites the subtitle each tick, so the notice follows it.
@@ -107,6 +114,7 @@ function Core.SetActive(on)
       Core.sniper.soundKey = nil
     end
     if Core.UpdateHealerMarks then Core.UpdateHealerMarks() end
+    if Core.UpdateBurstMarks then Core.UpdateBurstMarks() end
     if Core.HideCapPlates then Core.HideCapPlates() end
     if InCombatLockdown() then
       Core.layoutPending = true
@@ -175,6 +183,7 @@ function Core.CheckZone()
     wipe(Core.order)
     wipe(Core.displayOrder)
     wipe(Core.recentCasts)
+    wipe(Core.ownCast)
     wipe(Core.logCaps)
     Core.allyFaction = nil
     Core.currentBG, Core.currentProfile, Core.mapKey = nil, nil, nil

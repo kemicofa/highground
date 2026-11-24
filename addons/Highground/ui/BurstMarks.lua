@@ -46,10 +46,19 @@ function Core.SetBurstTest(on)
   Core.Guard("burstmarks", Core.UpdateBurstMarks)
 end
 
+local function HideMark(m)
+  m.anchor, m.key, m.answer, m.spell, m.plateUnit = nil, nil, nil, nil, nil
+  if m:IsShown() then
+    m.pulse:Stop()
+    m:Hide()
+  end
+end
+
+-- Outside a match (Core.SetActive(false) calls this) only the test sample shows.
 function Core.UpdateBurstMarks()
   local used = 0
   local on = Core.On("burstMarks") and C_NamePlate and C_NamePlate.GetNamePlateForUnit
-  local list = on and Core.enemies or EMPTY
+  local list = on and Core.active and Core.enemies or EMPTY
   if on and Core.burstTest then
     local plateTarget = ns.Util.call(C_NamePlate.GetNamePlateForUnit, "target")
     list = plateTarget and SAMPLE_LIST or EMPTY
@@ -77,19 +86,17 @@ function Core.UpdateBurstMarks()
       Theme.Paint(m.text, look[2])
       m.text:SetText(look[1])
       m.icon:SetTexture(b.icon)
-      m.key, m.answer, m.spell = e.key, answer, b.spell
+      m.key, m.answer, m.spell, m.plateUnit = e.key, answer, b.spell, e.plateUnit
       if not m:IsShown() then
         m:Show()
         m.pulse:Play()
       end
     end
   end
-  for i = used + 1, #Core.burstMarks do
-    local m = Core.burstMarks[i]
-    m.anchor, m.key, m.answer, m.spell = nil, nil, nil, nil
-    if m:IsShown() then
-      m.pulse:Stop()
-      m:Hide()
-    end
-  end
+  for i = used + 1, #Core.burstMarks do HideMark(Core.burstMarks[i]) end
 end
+
+-- A removed nameplate goes back to the game's pool for another unit.
+ns.Util.Events({ NAME_PLATE_UNIT_REMOVED = function(_, unit)
+  for _, m in ipairs(Core.burstMarks) do if m.plateUnit == unit then HideMark(m) end end
+end }, "burst markers", "battlegrounds")

@@ -274,8 +274,8 @@ end
 
 -- Who saw a received sighting: a group member or a guild member.
 function Nearby.SeenBy(e)
-  return ns.Locale:Format(e.via == "guild" and "nearby.world.seen_by_guild" or "nearby.world.seen_by",
-    { name = Core.DisplayName(e.by) })
+  return ns.Locale:Format(e.via == "guild" and "nearby.world.seen_by_guild" or e.via == "world" and "nearby.world.seen_by_world"
+    or "nearby.world.seen_by", { name = Core.DisplayName(e.by) })
 end
 
 -- A row's click binding changes only out of combat, and only when its

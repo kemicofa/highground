@@ -282,6 +282,8 @@ function Commands.nearby(arg, msg, say)
     return Track(verb, msg:match("^%S+%s+%S+%s+(.-)%s*$"), say)
   elseif arg == "tracked" then
     return Tracked(say)
+  elseif arg == "share world on" or arg == "share world off" then
+    Core.SetTuning("option", "nearbyShareWorld", arg == "share world on")
   elseif arg == "watch on" or arg == "watch off" then
     Core.SetTuning("option", "nearbyTrackWorld", arg == "watch on")
   elseif arg == "marks world on" or arg == "marks world off" then

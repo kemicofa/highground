@@ -9,6 +9,7 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Link("nearby map on", "nearby.commands.map", "nearby", "nearby.commands.map_label", { aliases = { "nearby map off" } }),
   C.Link("nearby share on", "nearby.commands.share", "nearby", "nearby.commands.share_label", { aliases = { "nearby share off" } }),
   C.Link("nearby share guild on", "nearby.commands.guild", "nearby", "nearby.commands.guild_label", { aliases = { "nearby share guild off" } }),
+  C.Link("nearby share world on", "nearby.commands.everyone", "nearby", "nearby.commands.everyone_label", { aliases = { "nearby share world off" } }),
   C.Link("nearby tracking on", "tracking.commands.switch", "nearby", "tracking.commands.switch_label", { aliases = { "nearby tracking off" } }),
   C.Action("nearby track", "tracking.commands.track", "tracking.commands.track_label", { usage = "NAME", fields = Name() }),
   C.Action("nearby untrack", "tracking.commands.untrack", "tracking.commands.untrack_label", { usage = "NAME", fields = Name() }),

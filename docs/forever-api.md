@@ -52,6 +52,10 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 
 `C_LossOfControl.GetActiveLossOfControlDataCountByUnit(unit)` is readable for enemies on `target`, `nameplateN` and `raidNtarget`: 1 while the enemy is controlled, 0 within 0.1 s after the effect ends. In `GetActiveLossOfControlDataByUnit(unit, 1)` only `priority` and `displayType` are readable, and they don't separate kinds: Gouge, Cheap Shot and Kidney Shot all read 5 and 2. The type, duration, spell and icon are secret.
 
+### Flag positions
+
+Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old global `GetBattlefieldFlagPosition` no longer exists, while `GetNumBattlefieldFlagPositions` does. In Warsong Gulch, with both flags carried, the count read 2: your team's carrier had a readable position (`0.50, 0.14`), the enemy carrier had `nil` even when targeted 30 yards away. Textures are file IDs: 137200 is the Alliance flag, 137218 the Horde flag.
+
 ## Used in Highground
 
 | Finding | Change |
@@ -61,6 +65,7 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 | Enemy marks refused | Raid-icon mark mode and marker scoring hidden on WoW Forever (#318) |
 | Enemy auras refused | Aura-based scoring settings hidden on WoW Forever (#319) |
 | Loss-of-control count readable | Generic **CC** chip on WoW Forever (#322) |
+| Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
 
 ## Leads to try
 

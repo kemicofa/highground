@@ -108,6 +108,15 @@ local function client(options)
   env.C_DeathInfo = { GetDeathReleasePosition = function() return state.releasePosition end }
   env.GetNumBattlefieldFlagPositions = function() return #state.flags end
   env.GetBattlefieldFlagPosition = function(index) return unpack(state.flags[index]) end
+  -- Modern clients (options.modernFlags): positions need the map and the
+  -- old global is gone, as on the Midnight client.
+  if options.modernFlags then
+    env.GetBattlefieldFlagPosition = nil
+    env.C_PvP = { GetBattlefieldFlagPosition = function(index, mapID)
+      state.flagMap = mapID
+      return unpack(state.flags[index])
+    end }
+  end
   env.CombatLogGetCurrentEventInfo = function() return unpack(state.event) end
   dofile("tests/support/load_modules.lua")("map", env, ns)
   ns.PvPEvents.Refresh() -- the fixture starts in an active match

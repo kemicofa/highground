@@ -4,7 +4,12 @@ local Intel = ns.Intel
 ---------------------------------------------------------------------------
 -- Flags: exact positions (carried / dropped flags)
 ---------------------------------------------------------------------------
+-- Flag textures: file IDs on the Midnight client (WoW Forever, live
+-- 2026-11-24), texture paths on older clients.
+local FLAG_FILES = { [137200] = "A", [137218] = "H" }
+
 function Intel.FlagTeam(tex)
+  if FLAG_FILES[tex] then return FLAG_FILES[tex] end
   if type(tex) == "string" then
     if tex:find("Alliance") then
       return "A"
@@ -14,14 +19,23 @@ function Intel.FlagTeam(tex)
   end
 end
 
-function Intel.Flags()
+-- Blizzard's map reads C_PvP.GetBattlefieldFlagPosition(index, mapID); the
+-- global without a map is the older clients' API. WoW Forever (live
+-- 2026-11-24) gives your team's carrier and no position for theirs, even
+-- in view.
+local function FlagPosition(i, mapID)
+  if C_PvP and C_PvP.GetBattlefieldFlagPosition then return C_PvP.GetBattlefieldFlagPosition(i, mapID) end
+  return GetBattlefieldFlagPosition(i)
+end
+
+function Intel.Flags(mapID)
   local out = {}
-  if not (GetNumBattlefieldFlagPositions and GetBattlefieldFlagPosition) then
+  if not (GetNumBattlefieldFlagPositions and (C_PvP and C_PvP.GetBattlefieldFlagPosition or GetBattlefieldFlagPosition)) then
     return out
   end
   local okN, n = pcall(GetNumBattlefieldFlagPositions)
-  for i = 1, okN and n or 0 do
-    local ok, x, y, tex = pcall(GetBattlefieldFlagPosition, i)
+  for i = 1, okN and Intel.plain(n) and n or 0 do
+    local ok, x, y, tex = pcall(FlagPosition, i, mapID)
     if ok and Intel.ValidXY(x, y) then
       out[#out + 1] = { x = x, y = y, team = Intel.FlagTeam(tex) }
     end
@@ -61,7 +75,7 @@ end
 -- its position is mine: learn my area's spot.
 function Intel.ScanFlags(mapID, now)
   if Intel.ICarryFlag() then
-    local flags, pick = Intel.Flags(), nil
+    local flags, pick = Intel.Flags(mapID), nil
     for _, f in ipairs(flags) do
       if f.team ~= Intel.MyTeam() then
         pick = pick and "many" or f
@@ -80,7 +94,7 @@ function Intel.ScanFlags(mapID, now)
   if not carrier or carrier == "many" then
     return
   end
-  local flags = Intel.Flags()
+  local flags = Intel.Flags(mapID)
   local mine
   for _, f in ipairs(flags) do
     if f.team == Intel.MyTeam() then

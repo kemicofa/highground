@@ -64,9 +64,11 @@ Keep the required `CI` check name. Failed or unexpectedly skipped prerequisites 
 
 Follow the [release skill](../.claude/skills/release/SKILL.md) when a release is requested. Bump only Highground's TOCs, add its changelog entry, update its project description and announcement, validate and build, then use the release PR workflow.
 
-GitHub receives `vX.Y.Z` at the tested commit, with the ZIP, checksum and release notes. Assets upload to a draft before publication; interrupted uploads can resume from the same commit. Existing published versions and tags are never overwritten.
+GitHub receives `vX.Y.Z` at the tested commit, with the ZIP, checksum and release notes. Assets upload to a draft before publication; interrupted uploads can resume from the same commit. Existing published versions and tags are never overwritten. A version already released from another commit stops publication, so CurseForge and Wago only receive the released commit's build.
 
 CurseForge uploads use `CURSEFORGE_TOKEN`, TOC interface versions and the upload API; there is no webhook. Wago uses `WAGO_API_KEY` and matches TOC interfaces to Wago's patch lists. A missing secret skips that destination; a missing upload tag keeps the version unpublished for retry. New CurseForge files may await moderation.
+
+A `<tag>-pending` tag, such as `curseforge-vX.Y.Z-pending`, exists while an upload runs. It is removed when the site refuses the upload. If the upload may have arrived without its tag, a retry stops instead of uploading again: check the site's files, create the missing tag at the release commit if the file is there, delete the pending tag and retry.
 
 ## Discord announcements
 

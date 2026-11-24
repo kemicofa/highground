@@ -55,10 +55,9 @@ only for the optional client-language selection and native font choice. Unknown
 client locales and corrupt saved preferences fall back to English. No Battle.net
 launcher-only languages are added as WoW locales.
 
-All seven runtime hosts and both TOC variants embed the same library and
-catalogs. Deprecated standalone hosts use their own `*DB.locale` and existing
-`config` settings page; they remain compatibility targets, not installation
-recommendations. Storage-only and generated module addons need no UI catalogs.
+Both Highground TOC variants embed the same library and catalogs. Feature
+implementations share `HighgroundDB.locale`; retired hosts no longer have
+settings pages or runtime test targets. Storage-only and generated module addons need no UI catalogs.
 
 ## Reuse outside Highground
 
@@ -149,7 +148,7 @@ Game spell names and incoming chat parsing continue to follow the client.
 Completion requires a source audit in addition to catalog coverage: a full
 catalog cannot account for text that has never been registered. The checks must
 also exercise saved language selection, switching languages in already-open
-controls, guide and preview cleanup, and all retained host manifests. Script
+controls, guide and preview cleanup, and both Highground client manifests. Script
 font and layout checks in the simulator do not replace live-client glyph review.
 
 1. Add the complete source message to `enUS.lua` under a namespaced key.

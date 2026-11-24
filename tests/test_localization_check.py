@@ -38,8 +38,8 @@ assert(loadfile("translation.lua"))(L)
 L:SetLocale("frFR")
 assert(type(L:Format("greeting", { name = "Test" })) == "string")
 ''')
-        for addon in ("Highground", "HighgroundReputation"):
-            self.write(f"addons/{addon}/tests/performance_test.lua", "return true\n")
+        for filename in ("performance_test.lua", "reputation_performance_test.lua"):
+            self.write(f"addons/Highground/tests/{filename}", "return true\n")
         for suite in ("docs_test.lua", "command_catalog_test.lua"):
             self.write(f"addons/Highground/tests/{suite}", "return true\n")
         self.write("LICENSE", "Fixture license\n")

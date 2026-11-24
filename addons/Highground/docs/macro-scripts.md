@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Macros user guide](user-guide.md#macros)
 
-Macro lines starting with `/run` or `/script` execute Lua when you use the macro. Highground provides utility presets, generates script actions in the builder, and checks known API calls against the selected game. This guide describes the repository's [script presets](../../HighgroundMacros/src/macros/Scripts.lua) and [API-checking catalog](../../HighgroundMacros/src/macros/ScriptApi.lua).
+Macro lines starting with `/run` or `/script` execute Lua when you use the macro. Highground provides utility presets, generates script actions in the builder, and checks known API calls against the selected game. This guide describes the repository's [script presets](../features/macros/macros/Scripts.lua) and [API-checking catalog](../features/macros/macros/ScriptApi.lua).
 
 ## Use the presets and builder
 
@@ -62,4 +62,4 @@ Use the localized item name if your client is not English. Generate the macro in
 
 ## Maintaining script support
 
-Update [Scripts.lua](../../HighgroundMacros/src/macros/Scripts.lua) for presets and builder actions, and [ScriptApi.lua](../../HighgroundMacros/src/macros/ScriptApi.lua) for diagnostics. Keep explanations and autocomplete aligned with those definitions. The generator also keeps Classic Era and TBC variants, used only by the retained standalone tests. From `addons/Highground/`, run `luajit tests/simulation_test.lua macroscripts`; run the [full suite](../../../docs/releases.md#local-build) before releasing shared changes.
+Update [Scripts.lua](../features/macros/macros/Scripts.lua) for presets and builder actions, and [ScriptApi.lua](../features/macros/macros/ScriptApi.lua) for diagnostics. Keep explanations and autocomplete aligned with those definitions. The generator also retains Classic Era and TBC definitions; Highground ships Retail, Forever and Cata manifests. From `addons/Highground/`, run `luajit tests/simulation_test.lua macroscripts`; run the [full suite](../../../docs/releases.md#local-build) before releasing shared changes.

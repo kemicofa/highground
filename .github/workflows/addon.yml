@@ -1,4 +1,4 @@
-# Test every retained host; only Highground produces a distribution artifact.
+# Test Highground and produce its complete distribution artifact.
 name: Addon
 
 on:
@@ -16,8 +16,8 @@ jobs:
   build:
     name: Test
     runs-on: ubuntu-24.04
-    # The full Highground simulation suite runs longer than the standalone suites.
-    timeout-minutes: ${{ inputs.addon == 'Highground' && 25 || 10 }}
+    # Highground includes all feature suites and simulation groups.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

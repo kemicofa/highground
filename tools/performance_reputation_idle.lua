@@ -1,16 +1,16 @@
--- From addons/HighgroundReputation: luajit ../../tools/performance_reputation_idle.lua
--- [followed|paused] [never|closed|suspended|parent-hidden|visible] [HighgroundReputation|Highground]
+-- From addons/Highground: luajit ../../tools/performance_reputation_idle.lua
+-- [followed|paused] [never|closed|suspended|parent-hidden|visible] [Highground]
 -- [quiet|guild-events] (guild-events replays six native roster updates/minute)
 -- Reproduce the live capture's blind spot: two saved organizations, offline
 -- moderators and no queued traffic. Simulator allocations are not WoW memory.
 jit.off()
-local F = dofile("tests/fixture.lua")
+local F = dofile("tests/reputation/fixture.lua")
 local mode = arg[1] or "followed"
-local ui, addon = arg[2] or "never", arg[3] or "HighgroundReputation"
+local ui, addon = arg[2] or "never", arg[3] or "Highground"
 local workload = arg[4] or "quiet"
 assert(mode == "followed" or mode == "paused", "expected followed or paused")
 assert(({ never = true, closed = true, suspended = true, ["parent-hidden"] = true, visible = true })[ui], "unknown UI state")
-assert(addon == "Highground" or addon == "HighgroundReputation", "unknown addon")
+assert(addon == "Highground", "unknown addon")
 assert(workload == "quiet" or workload == "guild-events", "unknown event workload")
 local native = F.native("Owner")
 native[42].members["Owner-Realm"].presence = 3

@@ -305,15 +305,5 @@ return function(addon)
     equal(#sim.sounds, 1, "the named duel opponent is watched regardless of faction")
   end)
 
-  if addon == "HighgroundArena" then
-    test("standby does not hook duel actions", function()
-      local sim = setup(16001, {}, function(s) s.otherAddons = { Highground = true } end)
-      player(sim, "target", "Sneak")
-      sim.env.StartDuel("target")
-      sim:event("DUEL_REQUESTED", "Sneak-Realm")
-      assert(hidden(sim))
-      equal(sim.ns.Arena.duel, nil)
-    end)
-  end
   t.finish("Duels: " .. t.tests .. " scenarios")
 end

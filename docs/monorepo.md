@@ -2,24 +2,24 @@
 
 [Documentation](README.md) · [Repository overview](../README.md) · [Builds and releases](releases.md)
 
-Highground is the only supported distribution. The former standalone hosts remain as source and test fixtures; they are deprecated and never published. Their directory names describe code ownership, not separate products to install.
+Highground is the only supported distribution. The six former standalone hosts are retired. Their feature sources and regression tests now belong to Highground.
 
 ## What's here
 
 | Location | What it holds |
 | --- | --- |
-| `libs/HighgroundKit/` | Shared themes, UI, utilities, settings, nearby enemies, bounties, journals, fonts and legacy host bootstrap |
-| `addons/Highground/` | The supported addon: kill order, settings, profiles, hub and `/hg`; imports feature code |
-| `addons/HighgroundMacros/`, `HighgroundBattlegrounds/`, `HighgroundArena/`, `HighgroundBounties/`, `HighgroundNearby/`, `HighgroundReputation/` | Retained feature sources, legacy entry points and regression tests; TOCs declare `X-Deprecated: true` |
+| `libs/HighgroundKit/` | Shared themes, UI, utilities, settings, nearby enemies, bounties, journals and fonts |
+| `addons/Highground/` | The supported addon: kill order, settings, profiles, hub and `/hg`; owns the feature code |
+| `addons/Highground/features/` | Feature implementations and command catalogs, in ordinary directories |
 | `addons/HighgroundModule*/` | Six bundled native switches for Highground's embedded modules |
 | `addons/HighgroundBountyData/`, `addons/HighgroundReputationData/` | Required bundled owners of shared SavedVariables |
 | `scripts/` | Metadata, ZIP builds, release planning, publication, source-worktree selection and battleground recording reports |
 | `tests/`, `tools/` | Repository checks, test runner, WoW simulator, lint, previews, profilers and the developer-only [API probe](../tools/apiprobe/README.md) |
-| `.github/` | Host-test matrix, Highground package, required CI gate, publication and announcement |
+| `.github/` | Highground tests/package, required CI gate, publication and announcement |
 
 ## Source installation
 
-Keep the repository intact: Highground's `libs/` and `features/` symlinks point into the shared source folders, so copying only `addons/Highground` breaks them. For ordinary files, [build a ZIP](releases.md#local-build).
+Keep the repository intact: Highground's `libs/` symlink points into the shared library, so copying only `addons/Highground` breaks that link. For ordinary files, [build a ZIP](releases.md#local-build).
 
 To load a checkout in the game, use the link manager from that checkout:
 
@@ -34,11 +34,11 @@ It links Highground, both data addons and all six module folders through one poi
 ## Who owns what
 
 - Highground owns the kill order, settings, profiles, setup, main window, `/hg` and its half of `Macros.Host`.
-- Macros, battlegrounds, arena and reputation implementations remain in their feature owner's `src/`. Highground imports them through `features/<name> -> ../../<Addon>/src`; the bounty alert sound uses the same pattern.
+- Macros, battlegrounds, arena and reputation implementations live in `addons/Highground/features/<name>/`, alongside feature command catalogs and the bounty alert sound. These are real directories, not links to other addons.
 - Bounty and Nearby runtime code live in `libs/HighgroundKit/`. Shared stealth cues and source attribution live in `libs/HighgroundKit/sounds/`.
-- Each retained UI host links `libs -> ../../libs/HighgroundKit`. Storage-only addons have no library link.
+- Highground links `libs -> ../../libs/HighgroundKit`. Storage-only and module addons have no library link.
 
-`tests/test_layout.py` enforces the boundary: legacy hosts load only their own files, `src/` and `libs/`; only Highground imports another host's `src/`. Data/module folders may link their declared brand icon, with no other runtime links. Put new features in Highground or the appropriate existing feature source, and reusable services in the library.
+`tests/test_layout.py` enforces the owned feature directories and nine-folder bundle. Data/module folders may link their declared brand icon, with no other runtime links. Put feature code in Highground and reusable services in the library.
 
 ### Bundled modules and data
 
@@ -48,24 +48,22 @@ These switches are independent of the deprecated standalone hosts. Keep all six 
 
 Module folders contain no duplicate runtime or SavedVariables. Their `X-Highground-Module` metadata distinguishes them from required data dependencies. All bundled folders declare `X-Internal: true`, and Highground lists them in `X-Bundled-Addons`; none gets a separate release. Keep the complete bundle installed. Old source installations without module folders retain their previous behavior and explain how to obtain native switches; incomplete new bundles leave missing modules unavailable.
 
-`HighgroundBountyData` owns `HighgroundBountyNetworkDB`; `HighgroundReputationData` owns `HighgroundReputationNetworkDB`. Their separate SavedVariables files preserve shared records when moving from a legacy host to Highground. Private settings and histories remain in each host's own database; see [migration](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon).
+`HighgroundBountyData` owns `HighgroundBountyNetworkDB`; `HighgroundReputationData` owns `HighgroundReputationNetworkDB`. Their separate SavedVariables files preserve shared records when moving from a legacy host to Highground. Old standalone private settings and histories remain in their original databases; see [migration](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon).
 
-### Shared runtime and legacy compatibility
+### Shared runtime and legacy installations
 
-Highground and the retained hosts share `ns.Router`, `Kit.Windows` and `Kit.AttachNavigation`. Feature routers own tabs and drafts; macros reach these services through `Macros.Host`. See [UI routing](../addons/Highground/docs/router.md).
+Highground's hub and feature workspaces share `ns.Router`, `Kit.Windows` and `Kit.AttachNavigation`. Feature routers own tabs and drafts; macros reach these services through `Macros.Host`. See [UI routing](../addons/Highground/docs/router.md).
 
-Per-host names come from `ns`: font/sound paths, chat labels, frame prefixes and SavedVariables names. `libs/standalone/Bootstrap.lua` supplies client detection and names for legacy tests; `libs/standalone/Main.lua` loads saved settings and registers legacy commands. These files remain because the tests exercise shared code in those hosts.
-
-Legacy TOCs still list Highground in `OptionalDeps`. If both are loaded, the legacy host stays inactive: event/timer/message registrations and sending are suppressed, and its command redirects to `/hg`. Nearby similarly stands by when legacy Bounties is loaded. This compatibility protects existing installations; it does not make those packages supported distributions.
+The retired host entry points, TOCs and bootstrap have been removed. Highground still detects old standalone installations and tells players exactly which folders to remove. This cleanup preserves that advice, the network formats used by older clients, and the two shared-data owners.
 
 ## Releases
 
-Only Highground has active release metadata. Default build/release discovery excludes `X-Deprecated: true` and `X-Internal: true`; test inventory can explicitly include deprecated hosts. Shared-source tests continue across those hosts, while CI builds and uploads only Highground. Imported feature changes require only a Highground version bump. See [builds and releases](releases.md#shared-files).
+Only Highground has active release metadata. Build/release discovery excludes `X-Internal: true` bundle members. CI runs Highground and repository tests, and builds/uploads only Highground. Imported feature changes require only a Highground version bump. See [builds and releases](releases.md#shared-files).
 
 ## Add a feature
 
-1. Add the implementation to Highground, an existing feature owner's `src/`, or the shared library according to ownership.
-2. Register runtime files in Highground's relevant TOCs/XML. Keep retained host manifests consistent when they load the shared feature under test.
+1. Add the implementation to Highground, its `features/<name>/` directory, or the shared library according to ownership.
+2. Register runtime files in Highground's relevant TOCs/XML.
 3. Add focused behavioral coverage, review `/hg guide` and the relevant preview, update Highground's user docs, and check command/UI coverage in both directions using the [PR review checklist](#pull-request-review).
 4. If a feature needs a native module switch, use the existing internal `HighgroundModule*` pattern and bundle it with Highground. Do not create another public standalone release or publishing destination.
 

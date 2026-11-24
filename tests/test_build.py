@@ -7,12 +7,11 @@ from support import ROOT, TempTestCase, addons, build
 
 
 class PackageTests(TempTestCase):
-    def test_standalone_groups_and_bundle_dependencies_stay_separate(self):
+    def test_only_data_addons_are_required_dependencies(self):
         required = set(addons.field(ROOT / 'addons' / 'Highground', 'Dependencies').replace(',', ' ').split())
         for suffix in ('Battlegrounds', 'Arena', 'Nearby', 'Bounties', 'Reputation', 'Macros'):
             name = 'Highground' + suffix
-            for toc in addons.tocs(ROOT / 'addons' / name):
-                self.assertIn('## Group: ' + name + '\n', toc.read_text())
+            self.assertFalse((ROOT / 'addons' / name).exists())
             self.assertNotIn(name, required)
         self.assertEqual(required, {'HighgroundBountyData', 'HighgroundReputationData'})
 
@@ -75,23 +74,6 @@ class PackageTests(TempTestCase):
         self.assertEqual(version, addon.version)
         self.assertNotIn("## [2.7.4]", (self.output / "RELEASE_NOTES.md").read_text())
 
-    def test_shared_files_are_copied_into_the_macros_package(self):
-        addon = self.manifest["HighgroundMacros"]
-        self.assertTrue((addon.path / "libs").is_symlink())
-        _, archive = build.build(addon, self.output)
-        with zipfile.ZipFile(archive) as package:
-            names = set(package.namelist())
-            for filename in ("HighgroundMacros.toc", "HighgroundMacros_Cata.toc", "libs/standalone/Bootstrap.lua",
-                             "Host.lua", "Main.lua", "src/macros/Builder.lua", "src/macros/Ranks.lua",
-                             "libs/ui/kit/Header.lua", "libs/ui/kit/Windows.lua", "libs/ui/kit/Dialog.lua", "libs/media/JetBrainsMono-Bold.ttf",
-                             "README.md", "CHANGELOG.md", "LICENSE"):
-                self.assertIn(f"HighgroundMacros/{filename}", names)
-            for filename in ("src/macros/Host.lua", "src/macros/Highground.lua", "libs/core/State.lua", "shared"):
-                self.assertNotIn(f"HighgroundMacros/{filename}", names)
-            self.assertTrue(all(name.startswith("HighgroundMacros/") for name in names))
-            self.assertEqual(package.read("HighgroundMacros/src/macros/Builder.lua"),
-                             (ROOT / "addons" / "HighgroundMacros" / "src" / "macros" / "Builder.lua").read_bytes())
-
     def test_every_addon_ships_the_repository_license(self):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
@@ -117,8 +99,7 @@ class PackageTests(TempTestCase):
                     self.assertIn(f"{name}/libs/media/HighgroundCrest.txt", sources)
 
     def test_stealth_clients_bundle_both_sounds_and_their_source_notice(self):
-        for name in ("Highground", "HighgroundNearby", "HighgroundBounties",
-                     "HighgroundBattlegrounds", "HighgroundArena"):
+        for name in ("Highground",):
             with self.subTest(addon=name):
                 _, archive = build.build(self.manifest[name], self.output / name)
                 with zipfile.ZipFile(archive) as package:
@@ -128,18 +109,16 @@ class PackageTests(TempTestCase):
                         if sound.endswith(".ogg"):
                             self.assertTrue(data.startswith(b"OggS"))
                     self.assertIn(f"{name}/libs/core/Stealth.lua", package.namelist())
-                    if name in ("Highground", "HighgroundNearby", "HighgroundBounties"):
-                        for sound in ("nearby.ogg", "nearby.txt"):
-                            data = package.read(f"{name}/libs/sounds/{sound}")
-                            self.assertEqual(data, (ROOT / "libs/HighgroundKit/sounds" / sound).read_bytes())
-                            if sound.endswith(".ogg"):
-                                self.assertTrue(data.startswith(b"OggS"))
-                    if name in ("Highground", "HighgroundBattlegrounds", "HighgroundArena"):
-                        self.assertIn(f"{name}/libs/pvp/Stealth.lua", package.namelist())
+                    for sound in ("nearby.ogg", "nearby.txt"):
+                        data = package.read(f"{name}/libs/sounds/{sound}")
+                        self.assertEqual(data, (ROOT / "libs/HighgroundKit/sounds" / sound).read_bytes())
+                        if sound.endswith(".ogg"):
+                            self.assertTrue(data.startswith(b"OggS"))
+                    self.assertIn(f"{name}/libs/pvp/Stealth.lua", package.namelist())
 
     def test_battleground_hosts_bundle_alert_sounds_and_their_notice(self):
         sounds = [f"alert-{name}.ogg" for name in ("capture", "objective", "resurrection", "sap")]
-        for name in ("Highground", "HighgroundBattlegrounds"):
+        for name in ("Highground",):
             with self.subTest(addon=name):
                 _, archive = build.build(self.manifest[name], self.output / name)
                 with zipfile.ZipFile(archive) as package:
@@ -169,16 +148,14 @@ class PackageTests(TempTestCase):
                     self.assertLess(entries.index(modules[0]), entries.index(modules[1]))
                     self.assertLess(entries.index(modules[1]), entries.index("libs/ui/kit/Windows.lua"))
                     self.assertLess(entries.index("libs/ui/kit/Header.lua"), entries.index(modules[2]))
-                if name in ("Highground", "HighgroundBounties", "HighgroundNearby"):
-                    self.assertIn(f"{name}/libs/bounty/Navigation.lua", sources)
-                if name in ("Highground", "HighgroundMacros"):
-                    prefix = "features/macros/macros" if name == "Highground" else "src/macros"
-                    self.assertIn(f"{name}/{prefix}/Navigation.lua", sources)
+                self.assertIn(f"{name}/libs/bounty/Navigation.lua", sources)
+                prefix = "features/macros/macros"
+                self.assertIn(f"{name}/{prefix}/Navigation.lua", sources)
 
     def test_reputation_clients_bundle_native_services_and_one_data_owner(self):
         self.assertNotIn("HighgroundReputationData", self.manifest)
-        source = ROOT / "addons/HighgroundReputation/src/reputation"
-        for name, prefix in (("Highground", "features/reputation/reputation"), ("HighgroundReputation", "src/reputation")):
+        source = ROOT / "addons/Highground/features/reputation/reputation"
+        for name, prefix in (("Highground", "features/reputation/reputation"),):
             _, path = build.build(self.manifest[name], self.output / name)
             with zipfile.ZipFile(path) as package:
                 for file in source.glob("*.lua"):
@@ -195,7 +172,7 @@ class PackageTests(TempTestCase):
 
     def test_networking_clients_bundle_protocol_registry_after_the_transport(self):
         modules = ("libs/core/Network.lua", "libs/core/Protocols.lua", "libs/core/ProtocolTransport.lua")
-        for name in ("Highground", "HighgroundBattlegrounds", "HighgroundBounties", "HighgroundNearby", "HighgroundReputation"):
+        for name in ("Highground",):
             addon = self.manifest[name]
             with self.subTest(addon=name):
                 sources = build.package_sources(addon)
@@ -209,7 +186,7 @@ class PackageTests(TempTestCase):
 
     def test_bounty_clients_bundle_one_persistent_data_owner(self):
         self.assertNotIn("HighgroundBountyData", self.manifest, "data helper is not released independently")
-        for name in ("Highground", "HighgroundBounties", "HighgroundNearby"):
+        for name in ("Highground",):
             with self.subTest(addon=name):
                 addon = self.manifest[name]
                 _, archive = build.build(addon, self.output / name)
@@ -266,7 +243,7 @@ class BuildFailureTests(TempTestCase):
         self.assertBuildFails("summary")
 
     def test_missing_xml_dependency_fails(self):
-        (self.addon.path / "features/battlegrounds/map/Pins.lua").unlink()  # through the link
+        (self.addon.path / "features/battlegrounds/map/Pins.lua").unlink()
         self.assertBuildFails("Missing package file: features/battlegrounds/map/Pins.lua")
 
     def test_manifest_cannot_escape_addon_directory(self):

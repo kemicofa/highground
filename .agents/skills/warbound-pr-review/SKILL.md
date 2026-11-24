@@ -11,7 +11,7 @@ Use the active worktree's [PR template](../../../.github/pull_request_template.m
 
 At the start, identify the changed features, commands, UI actions, documentation, and affected hosts. Follow shared implementations and callers rather than assuming one addon directory limits the impact. Review new behavior, fixes, removals, renames, defaults, and refactors; keep the review scoped to this change and its effects.
 
-For Highground work, also apply [highground-guide-preview-review](../highground-guide-preview-review/SKILL.md). It owns the detailed guide and interactive-preview review; record its two decisions separately in the PR checklist. Highground is the supported distribution. Retained standalone hosts matter for shared-source compatibility tests, not new installation guidance.
+For Highground work, also apply [highground-guide-preview-review](../highground-guide-preview-review/SKILL.md). It owns the detailed guide and interactive-preview review; record its two decisions separately in the PR checklist. Highground is the supported distribution. Retired standalone hosts are no longer runtime targets; preserve migration guidance for old installations.
 
 For changes to Highground commands, features, settings, or shared handlers, also apply the selected worktree's [highground-command-ui-review](../highground-command-ui-review/SKILL.md). It owns command ownership/discovery, meaningful argument coverage, usable UI parity, and the command coverage check. Preserve those requirements when filling this checklist.
 
@@ -31,7 +31,7 @@ Use these starting points, verifying paths against the active branch and followi
 | Commands | `addons/Highground/commands/`, `config/Commands.lua`, feature command handlers/catalogs, and command documentation. Compare registration, dispatch, aliases, meaningful argument modes, defaults, validation, availability, owning-addon discovery, the combined reference, and help. Derive references from owned definitions rather than adding handwritten duplicate catalogs. |
 | UI | `addons/Highground/options/`, `hub/`, and the affected feature/shared controls. The command help page uses `options/Tools.lua`; actionable previews use `options/Previews.lua`. Trace controls to the behavior they invoke. |
 | Test/preview | `/hg test` for all-addon previews, `/hg bg test` for battleground panels, affected feature preview commands, their visible controls, and guide samples. Check representative states, start/interaction/stop, cancellation, and restoration of live state using the guide/preview skill. |
-| Compatibility and saved state | Relevant client/module guards, shared callers and retained hosts, persistence/migrations, and existing behavioral tests. Name applicable variants rather than claiming every host was tested. |
+| Compatibility and saved state | Relevant client/module guards, shared callers and old installations, persistence/migrations, and existing behavioral tests. Name applicable variants rather than claiming every host was tested. |
 | Performance | For runtime changes, use the applicable performance review instructions and [performance guidance](../../../docs/performance.md), including the required budgets. A prose-only change can explain why runtime checks are unnecessary. |
 | Validation | [Development](../../../addons/Highground/docs/development.md), [simulations](../../../addons/Highground/docs/simulations.md), the active scenario registry, and `tests/run.sh`. Verify maintained test instructions and record commands, working directories, results, and any coverage limits. |
 

@@ -1,4 +1,4 @@
--- From addons/HighgroundReputation:
+-- From addons/Highground:
 -- luajit ../../tools/performance_reputation_discovery.lua [guild|community] [members] [moderators] [minutes]
 -- Real Reputation ticks, closed UI, no other addon answering discovery.
 -- LuaJIT interpreter; allocation samples briefly stop GC in this diagnostic only.
@@ -10,7 +10,7 @@ assert(kind == "guild" or kind == "community", "expected guild or community")
 assert(count >= 2 and count <= 10000 and count % 1 == 0, "expected 2..10000 members")
 assert(moderators >= 0 and moderators < count and moderators % 1 == 0, "invalid moderator count")
 assert(minutes >= 1 and minutes <= 30 and minutes % 1 == 0, "expected 1..30 minutes")
-local s, counts = dofile("tests/performance_fixture.lua")("HighgroundReputation", kind == "guild", count, moderators)
+local s, counts = dofile("tests/reputation/performance_fixture.lua")("Highground", kind == "guild", count, moderators)
 local W, O = s.ns.Reputation, s.ns.Organizations
 local guildReads, requests = 0, 0
 local guildInfo = s.env.GetGuildRosterInfo

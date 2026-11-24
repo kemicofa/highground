@@ -11,7 +11,7 @@ class AssetUsageTests(TempTestCase):
     def setUp(self):
         super().setUp()
         self.copies = self.copy_addons()
-        self.addon = self.copies['HighgroundMacros']
+        self.addon = self.copies['Highground']
 
     def include(self, addon, filename):
         for toc in addons.tocs(addon.path):
@@ -34,10 +34,9 @@ class AssetUsageTests(TempTestCase):
         with self.assertRaisesRegex(ValueError, 'unapproved package asset.*banner.webm'):
             build.build(self.addon, self.output)
 
-    def test_asset_used_only_by_another_addon_is_rejected(self):
-        (self.addon.path / 'logos').symlink_to(self.copies['Highground'].path / 'assets/logos',
-                                              target_is_directory=True)
-        self.include(self.addon, 'logos/Battlegrounds.tga')
+    def test_asset_with_an_unloaded_reader_is_rejected(self):
+        for toc in addons.tocs(self.addon.path):
+            toc.write_text(toc.read_text().replace('\nhub/TourSteps.lua\n', '\n'))
         with self.assertRaisesRegex(ValueError, 'unused package asset.*reader is not loaded'):
             build.build(self.addon, self.output)
 
@@ -165,7 +164,7 @@ class UploadBoundaryTests(TempTestCase):
 
     def test_unknown_or_wrong_project_cannot_receive_the_archive(self):
         for project, error in [('unknown', 'known addon project'),
-                               (self.manifest['HighgroundBounties'].project, 'known addon project')]:
+                               ('retired-project', 'known addon project')]:
             with self.subTest(project=project), patch.object(curseforge, 'request') as request, \
                     self.assertRaisesRegex(ValueError, error):
                 self.upload(project=project)

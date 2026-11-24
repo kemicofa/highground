@@ -6,7 +6,7 @@ from unittest.mock import patch
 from support import TempTestCase, release_check
 
 PUBLISH, WAITING, PUBLISHED = release_check.PUBLISH, release_check.WAITING, release_check.PUBLISHED
-BUILDER = "addons/HighgroundMacros/src/macros/Builder.lua"
+BUILDER = "addons/Highground/features/macros/macros/Builder.lua"
 
 
 class DecideTests(unittest.TestCase):
@@ -41,13 +41,13 @@ class DecideTests(unittest.TestCase):
 
 
 class SharedFilesTests(TempTestCase):
-    def test_shared_files_are_what_both_packages_hold(self):
-        src = {name: release_check.sources(a) for name, a in self.manifest.items()}
-        shared = src["Highground"] & src["HighgroundMacros"]
-        self.assertIn(BUILDER, shared)
-        self.assertIn("libs/HighgroundKit/ui/kit/Dialog.lua", shared)
-        self.assertNotIn("addons/Highground/core/Scoring.lua", shared, "Highground only")
-        self.assertNotIn("addons/HighgroundMacros/Main.lua", shared, "Macros only")
+    def test_highground_owns_feature_library_and_bundle_sources(self):
+        sources = release_check.sources(self.manifest["Highground"])
+        self.assertIn(BUILDER, sources)
+        self.assertIn("libs/HighgroundKit/ui/kit/Dialog.lua", sources)
+        self.assertIn("addons/HighgroundModuleMacros/HighgroundModuleMacros.toc", sources)
+        self.assertIn("addons/HighgroundBountyData/HighgroundBountyData.toc", sources)
+        self.assertFalse(any(path.startswith("addons/HighgroundMacros/") for path in sources))
 
     def test_shared_files_are_computed_per_pair(self):
         # A and B share "ab", which changed since B's release. No file is in all

@@ -13,7 +13,7 @@ sys.path.insert(0, str(root.parent.parent / "tools" / "lint"))
 import lint  # noqa: E402
 
 # Highground's own folders, then what it loads from the library (libs/) and
-# from each standalone addon's src/ (features/<name>/).
+# from the owned features/<name>/ directories.
 BG = "features/battlegrounds"
 runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub", "libs/locale",
                 "libs/config/themes", "libs/core", "libs/social", "libs/ui", "libs/world", "libs/pvp", "libs/bounty",

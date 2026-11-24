@@ -46,7 +46,3 @@ Rows are `<seconds since start> <kind> <text>`. `python3 scripts/bg_profile.py <
 | `node`, `poi`, `widget`, `vignette`, `flag` | Base ownership and capture timers, raw map POIs and icons, widget text (numbers alone at most every 15 s), vignettes, flag carriers and respawn |
 | `res`, `obj` | What the resurrection and objective windows show, on a change of rows and every 10 s |
 | `comms`, `area`, `summary` | Chat lockdown and send blocks, your subzone, and a 30 s roster, timer-statistics, memory and frame-rate summary |
-
-## Standalone hosts
-
-Retained standalone hosts check their catalog settings on load (`Standalone.Schema()` in [libs/standalone/Main.lua](../../../libs/HighgroundKit/standalone/Main.lua)): a value of the wrong type, NaN or out of range is cleared so its default applies.

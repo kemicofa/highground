@@ -19,7 +19,7 @@ The registry covers all eight standard Cataclysm battlegrounds, fifteen Retail b
 | Strand of the Ancients | Observed graveyards, visible round/gate/relic status and announcements | No inferred vehicle cooldown or gate destruction timing |
 | Ashran, Wintergrasp | Retail registry, resurrection waves, visible event/siege/round status and announcements | No prediction for hidden events; Cata outdoor Wintergrasp is not implemented |
 
-Each battleground has a file under [HighgroundBattlegrounds/src/config/battlegrounds/](../../HighgroundBattlegrounds/src/config/battlegrounds/) that declares client support, implemented scope and rule provenance. Highground loads these through `features/battlegrounds/`. See [editing battleground rules](battleground-rules.md) for fields and override precedence.
+Each battleground has a file under [features/battlegrounds/config/battlegrounds/](../features/battlegrounds/config/battlegrounds/) that declares client support, implemented scope and rule provenance. Highground loads these through `features/battlegrounds/`. See [editing battleground rules](battleground-rules.md) for fields and override precedence.
 
 ## Class and targeting coverage
 

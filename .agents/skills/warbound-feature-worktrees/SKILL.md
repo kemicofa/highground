@@ -1,6 +1,6 @@
 ---
 name: warbound-feature-worktrees
-description: Require a dedicated sibling Git worktree and early draft pull request for every Warbound feature, including Highground and its shared or standalone addons. Integrate through the PR while keeping WoW Forever linked to main by default. Applies only to Warbound feature work; game relinking is on demand.
+description: Require a dedicated sibling Git worktree and early draft pull request for every Warbound feature, including Highground and its shared or bundled addons. Integrate through the PR while keeping WoW Forever linked to main by default. Applies only to Warbound feature work; game relinking is on demand.
 ---
 
 # Warbound feature worktrees

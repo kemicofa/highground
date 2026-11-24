@@ -28,7 +28,7 @@ cover unfinished local checks or required manual verification.
   Review: pending — map UI actions to commands, or justify each intentional UI-only exception.
 - [ ] **Test/preview:** relevant test commands, preview controls, sample states, and start/stop cleanup are current.
   Review: pending — identify `/hg test`, feature previews, or the actual equivalent and affected hosts; explain updates or why none are needed.
-- [ ] **Compatibility and saved state:** affected clients, module states, shared/legacy hosts, persistence, and migrations are accounted for, if relevant.
+- [ ] **Compatibility and saved state:** affected clients, module states, shared code and old installations, persistence, and migrations are accounted for, if relevant.
   Review: pending — name the affected cases and evidence, or explain why they are unaffected.
 - [ ] **Performance:** runtime changes have been reviewed for hot paths, allocations, and applicable performance budgets.
   Review: pending — record the review/check results, or explain why no runtime performance review is needed.

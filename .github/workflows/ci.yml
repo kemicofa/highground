@@ -82,15 +82,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Deprecated hosts still exercise shared feature code, but are not packaged.
         addon:
           - Highground
-          - HighgroundArena
-          - HighgroundBattlegrounds
-          - HighgroundBounties
-          - HighgroundMacros
-          - HighgroundNearby
-          - HighgroundReputation
     uses: ./.github/workflows/addon.yml
     with:
       addon: ${{ matrix.addon }}

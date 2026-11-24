@@ -1,10 +1,10 @@
 # UI routing
 
-Highground is the only supported distribution. References below to standalone hosts describe retained source and regression coverage, not separate supported downloads.
+Highground is the only supported distribution. Feature workspaces and their regression coverage live under Highground.
 
 [Documentation](README.md) · [Development](development.md)
 
-HighgroundKit provides `ns.Router`, a synchronous Lua 5.1 router for named UI destinations. Highground and all six standalone UI addons load it. The hub, feature pages, guides and ordinary dialog return paths use the same library.
+HighgroundKit provides `ns.Router`, a synchronous Lua 5.1 router for named UI destinations. Highground and all six feature workspaces use it. The hub, feature pages, guides and ordinary dialog return paths use the same library.
 
 The library loads from `libs/core/Router.lua`, then `libs/core/RouterNavigation.lua`, before its consumers in every UI TOC. It has no WoW API dependencies, creates no frames and installs no timers. Storage-only companion addons do not load UI services.
 
@@ -195,4 +195,4 @@ luajit tests/simulation_test.lua router
 luajit tests/ui_navigation_test.lua
 ```
 
-The pure tests cover history semantics, capture, retirement, guards, redirects, malformed locations, failures, listener cleanup and state isolation. Integration scenarios exercise the hub and standalone features on Retail, Cata and Forever: drafts, filters, mode changes, nested dialogs, organization redirects, scope cleanup, combat, custom routes, closing and reopening, and returns from guides, placement, dialogs and tools. `ui_navigation_test.lua` also runs from HighgroundBounties, HighgroundNearby and HighgroundMacros; Reputation has `tests/navigation_test.lua`. Run `bash tests/run.sh` from the repository root for all addon and packaging checks.
+The pure tests cover history semantics, capture, retirement, guards, redirects, malformed locations, failures, listener cleanup and state isolation. Integration scenarios exercise the hub and feature workspaces on Retail, Cata and Forever: drafts, filters, mode changes, nested dialogs, organization redirects, scope cleanup, combat, custom routes, closing and reopening, and returns from guides, placement, dialogs and tools. `tests/ui_navigation_test.lua` covers feature routing; Reputation has `tests/reputation_navigation_test.lua`. Run `bash tests/run.sh` from the repository root for all addon and packaging checks.

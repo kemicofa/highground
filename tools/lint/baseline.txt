@@ -3,12 +3,12 @@
 # (--strict fails); remove an entry when fixing it, or later. Format:
 # <repository path> <rule> <name>
 # Introduced by the translation work (#212): imported but not yet used.
-addons/HighgroundMacros/src/macros/Analyze.lua unused Localization
-addons/HighgroundMacros/src/macros/Backups.lua unused Localization
-addons/HighgroundMacros/src/macros/Builder.lua unused Localization
-addons/HighgroundMacros/src/macros/Compiler.lua unused Localization
-addons/HighgroundMacros/src/macros/ImportReview.lua unused Localization
-addons/HighgroundMacros/src/macros/Ranks.lua unused Localization
-addons/HighgroundMacros/src/macros/Share.lua unused Localization
-addons/HighgroundMacros/src/macros/Store.lua unused Localization
-addons/HighgroundMacros/src/macros/Window.lua unused Localization
+addons/Highground/features/macros/macros/Analyze.lua unused Localization
+addons/Highground/features/macros/macros/Backups.lua unused Localization
+addons/Highground/features/macros/macros/Builder.lua unused Localization
+addons/Highground/features/macros/macros/Compiler.lua unused Localization
+addons/Highground/features/macros/macros/ImportReview.lua unused Localization
+addons/Highground/features/macros/macros/Ranks.lua unused Localization
+addons/Highground/features/macros/macros/Share.lua unused Localization
+addons/Highground/features/macros/macros/Store.lua unused Localization
+addons/Highground/features/macros/macros/Window.lua unused Localization

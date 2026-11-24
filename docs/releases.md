@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Repository overview](../README.md) · [Monorepo](monorepo.md)
 
-Highground is the only supported distribution. It has one version, changelog and release ZIP. The six former standalone addons are deprecated and receive no new releases. Their source folders remain because Highground imports feature code from them and regression tests still exercise the legacy hosts.
+Highground is the only supported distribution. It has one version, changelog and release ZIP. The six former standalone addons are deprecated and receive no new releases. Their feature code and retained regression tests now live under Highground.
 
 [scripts/addons.py](../scripts/addons.py) reads TOC metadata. Its default manifest contains only Highground: `X-Deprecated: true` excludes legacy hosts; `X-Internal: true` excludes bundled data addons and module switches. Do not bump legacy versions when changing imported feature code.
 
@@ -10,21 +10,21 @@ Highground is the only supported distribution. It has one version, changelog and
 | --- | --- | --- | --- |
 | Highground | `vX.Y.Z`, the repository's Latest release | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
 
-The tags `curseforge-vX.Y.Z` and `wago-vX.Y.Z` record completed uploads. Historical standalone releases and changelogs remain available as archives.
+The tags `curseforge-vX.Y.Z` and `wago-vX.Y.Z` record completed uploads. Historical standalone releases and changelogs remain available in Git tags/history.
 
 ## Local build
 
 Run from the repository root. Tests require Python 3.10+, LuaJIT and Bash. Builds use Python's standard library.
 
 ```sh
-bash tests/run.sh --jobs 4                      # all retained host and repository tests
+bash tests/run.sh --jobs 4                      # all Highground and repository tests
 bash tests/run.sh --addons-only Highground      # Highground validator and Lua tests
 bash tests/run.sh --repository-only             # packaging, release and integration tests
 python3 scripts/build.py                        # the Highground bundle
 python3 scripts/build.py Highground             # the same bundle, explicitly selected
 ```
 
-Build and publication commands reject deprecated standalone names. Low-level packaging helpers remain usable by legacy regression tests; those packages are never CI distribution artifacts.
+Build and publication commands reject deprecated standalone names. The supported bundle contains Highground, both data addons and all six module switches.
 
 | Output | Contents |
 | --- | --- |
@@ -50,10 +50,10 @@ The [CI and release workflow](../.github/workflows/ci.yml) runs on ready pull re
 
 Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs, except the generated `commands.md`, the build-checked `curseforge.md` and deleted addon docs (the package lists them). `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks. Documentation-only PRs instead run the **Documentation checks** job: `tests/test_links.py` and `tests/test_docs.py` (relative links, guide indexes, the simulation group table and the 400-line limit for addon Markdown).
 
-Source symlinks cross host boundaries, so all retained hosts still receive validation and Lua regression coverage.
+Highground owns all feature suites, including migrated Bounties and Reputation coverage. Repository tests check the full bundle and release tooling.
 
 - **Repository checks:** run packaging, release, layout and cross-addon integration tests once, then validate and preview the announcement.
-- **Addon tests:** the matrix calls [addon.yml](../.github/workflows/addon.yml) for Highground and each legacy host. Up to four isolated Lua suites run per job, including separate Highground simulation groups. Only Highground builds and uploads a distribution artifact, retained for 14 days.
+- **Addon tests:** the matrix calls [addon.yml](../.github/workflows/addon.yml) for Highground. Up to four isolated Lua suites run per job, including separate Highground simulation groups. Only Highground builds and uploads a distribution artifact, retained for 14 days.
 - **CI:** the required aggregate check succeeds when change detection succeeds and repository checks and every host's tests pass, or when a documentation-only PR skips both test jobs and passes the documentation checks. On `main`, it fetches tags/history once and runs `release_plan.py` to select an unpublished Highground version. A missing announcement blocks publication.
 - **Publish Highground:** runs on `main` only when publication is due. It downloads the tested artifact and runs `publish.py` without repeating tests or builds.
 - **Announce release:** runs after successful publication, or when the publisher is skipped so an interrupted announcement can retry.
@@ -86,7 +86,7 @@ CI uses `DISCORD_BOT_TOKEN` and `DISCORD_ANNOUNCEMENTS_CHANNEL_ID`; the bot need
 
 ## Shared files
 
-Shared runtime code remains in `libs/HighgroundKit/` and retained feature owners' `src/` directories. Highground imports and packages the files it needs, including its bundled dependencies. A change to that imported code ships in the next Highground release; deprecated hosts need no version bump and cannot block it.
+Runtime code lives in `libs/HighgroundKit/` and `addons/Highground/features/`. Highground imports and packages the files it needs, including its bundled dependencies. A change to that imported code ships in the next Highground release; deprecated hosts need no version bump and cannot block it.
 
 ```sh
 python3 scripts/release_check.py Highground

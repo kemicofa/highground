@@ -1,4 +1,4 @@
--- Exercised through every retained host manifest by ui_components.lua.
+-- Exercised through Highground's client manifests by ui_components.lua.
 return function(s, t, fire)
   local K, Core, Theme = s.ns.Kit, s.ns.Core, s.ns.Theme
   t.test("page tabs confirm navigation, preserve selection and disable menu destinations", function()

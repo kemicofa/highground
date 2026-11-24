@@ -32,8 +32,7 @@ class TempTestCase(unittest.TestCase):
         self.addCleanup(temp.cleanup)
         self.temp = Path(temp.name)
         self.output = self.temp / "dist"
-        # Legacy hosts retain packaging/shared-source coverage without becoming release targets.
-        self.manifest = addons.load(include_deprecated=True)
+        self.manifest = addons.load()
 
     def copy_addons(self):
         """Editable copies of addons/ and libs/ (links kept, tests left out); returns the manifest."""
@@ -41,4 +40,4 @@ class TempTestCase(unittest.TestCase):
         for folder in ("addons", "libs"):
             shutil.copytree(ROOT / folder, root / folder, symlinks=True,
                             ignore=shutil.ignore_patterns("tests", "__pycache__"))
-        return addons.load(root, include_deprecated=True)
+        return addons.load(root)

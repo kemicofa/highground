@@ -1,2 +1,2 @@
 local test, _, equal = ...
-assert(loadfile("../HighgroundBounties/tests/suggestions/client.lua"))({ test = test, equal = equal }, "Highground")
+assert(loadfile("tests/bounties/suggestions/client.lua"))({ test = test, equal = equal }, "Highground")

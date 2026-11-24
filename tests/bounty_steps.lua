@@ -1,6 +1,6 @@
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " bounty steps")
-  local fixture = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local fixture = dofile("tests/bounties/public/fixture.lua")
   local flow = dofile("../../tests/bounty_flow.lua")
   local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
   local function new(build, name, saved)

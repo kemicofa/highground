@@ -9,18 +9,21 @@ import discord_release
 import release_plan
 
 
+RETIRED = ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation")
+
+
 class DistributionTests(TempTestCase):
     def test_release_discovery_excludes_deprecated_and_internal_addons(self):
         self.assertEqual(list(addons.load()), ["Highground"])
-        self.assertEqual(len(self.manifest), 7, "legacy source coverage remains available")
+        self.assertEqual(list(self.manifest), ["Highground"], "no retired source hosts remain")
         for name, addon in self.manifest.items():
             self.assertEqual(addon.deprecated, name != "Highground")
 
     def test_inconsistent_deprecation_between_clients_fails_discovery(self):
         copies = self.copy_addons()
-        addon = copies["HighgroundMacros"]
-        toc = addon.path / "HighgroundMacros_Cata.toc"
-        toc.write_text(toc.read_text().replace("## X-Deprecated: true\n", ""))
+        addon = copies["Highground"]
+        toc = addon.path / "Highground_Cata.toc"
+        toc.write_text(toc.read_text() + "\n## X-Deprecated: true\n")
         with self.assertRaisesRegex(ValueError, "same X-Deprecated"):
             addons.load(addon.path.parent.parent)
 
@@ -36,7 +39,7 @@ class DistributionTests(TempTestCase):
                                     ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation"))})
 
     def test_explicit_standalone_build_and_release_commands_are_rejected(self):
-        for name in self.manifest.keys() - {"Highground"}:
+        for name in ("Highground" + suffix for suffix in RETIRED):
             for script, args in (("build.py", ["--output-dir", str(self.output)]),
                                  ("release_check.py", []),
                                  ("publish.py", ["--repository", "owner/repo", "--commit", COMMIT])):
@@ -50,9 +53,9 @@ class DistributionTests(TempTestCase):
     def test_legacy_publish_functions_reject_before_reading_artifacts_or_contacting_services(self):
         with patch.object(publish, "lookup") as lookup, patch.object(publish, "gh") as gh, \
                 patch.object(curseforge, "upload") as upload:
-            for addon in self.manifest.values():
-                if not addon.deprecated:
-                    continue
+            for addon in [self.copy_addons()["Highground"]]:
+                for toc in addons.tocs(addon.path):
+                    toc.write_text(toc.read_text() + "\n## X-Deprecated: true\n")
                 for method, extra in ((publish.publish_release, []),
                                       (publish.publish_curseforge, ["token"]),
                                       (publish.publish_wago, ["token"])):
@@ -75,11 +78,12 @@ class DistributionTests(TempTestCase):
 
     def test_new_announcements_cannot_promote_a_deprecated_distribution(self):
         path = self.temp / "announcement.json"
-        for name, addon in self.manifest.items():
-            path.write_text(json.dumps({"releases": {name: addon.version},
+        for name in ("Highground", *("Highground" + suffix for suffix in RETIRED)):
+            version = self.manifest["Highground"].version
+            path.write_text(json.dumps({"releases": {name: version},
                                         "changes": ["Updated Highground."], "notice": ""}))
-            if addon.deprecated:
+            if name != "Highground":
                 with self.subTest(addon=name), self.assertRaisesRegex(ValueError, "must match a public addon"):
                     discord_release.load_plan(path, addons.load())
             else:
-                self.assertEqual(discord_release.load_plan(path, addons.load())["releases"], {name: addon.version})
+                self.assertEqual(discord_release.load_plan(path, addons.load())["releases"], {name: version})

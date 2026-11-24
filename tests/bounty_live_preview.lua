@@ -1,6 +1,6 @@
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " live bounty preview")
-  local fixture = dofile("../HighgroundBounties/tests/public/fixture.lua")
+  local fixture = dofile("tests/bounties/public/fixture.lua")
   local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
   local flow = dofile("../../tests/bounty_flow.lua")
   local function new(build)
@@ -13,7 +13,7 @@ return function(addon)
       end })
   end
   local function command(s, text)
-    s:slash(addon:upper(), (addon == "HighgroundBounties" and "" or "bounty ") .. text)
+    s:slash(addon:upper(), "bounty " .. text)
   end
   local function fit(s, w)
     assert(not w.viewport, "gameplay posters have no nested scroll area")

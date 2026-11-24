@@ -19,9 +19,9 @@ class PerformanceCheckTests(unittest.TestCase):
             target = self.root / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / name, target)
-        for addon in ("Highground", "HighgroundReputation"):
-            suite = self.root / "addons" / addon / "tests/performance_test.lua"
-            suite.parent.mkdir(parents=True)
+        for filename in ("performance_test.lua", "reputation_performance_test.lua"):
+            suite = self.root / "addons/Highground/tests" / filename
+            suite.parent.mkdir(parents=True, exist_ok=True)
             suite.write_text('dofile("runtime.lua")\n')
             (suite.parent.parent / "runtime.lua").write_text("return true\n")
         self.git("add", ".")

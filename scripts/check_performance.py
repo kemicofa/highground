@@ -9,7 +9,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
-SUITES = ("Highground", "HighgroundReputation")
+SUITES = ("tests/performance_test.lua", "tests/reputation_performance_test.lua")
 SOURCE_DIRS = ("addons", "libs", "tools", "tests")
 
 
@@ -27,8 +27,8 @@ def run_suites(root: Path) -> int:
     if not shutil.which("luajit"):
         print("Performance checks require LuaJIT (Lua 5.1).", file=sys.stderr)
         return 1
-    for addon in SUITES:
-        result = subprocess.run(["luajit", "tests/performance_test.lua"], cwd=root / "addons" / addon)
+    for suite in SUITES:
+        result = subprocess.run(["luajit", suite], cwd=root / "addons/Highground")
         if result.returncode:
             print("Performance check failed. See docs/performance.md for known regression patterns.", file=sys.stderr)
             return result.returncode

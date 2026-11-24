@@ -38,24 +38,20 @@ LEGACY = "older-client branch after the modern API"
 ALLOWED = {
     "addons/Highground/core/Modules.lua": (
         {"DisableAddOn", "EnableAddOn", "GetAddOnEnableState", "GetAddOnMetadata", "SaveAddOns"}, LOADS_BEFORE_API),
-    "libs/HighgroundKit/standalone/Bootstrap.lua": ({"GetAddOnMetadata", "IsAddOnLoaded"}, LOADS_BEFORE_API),
-    "addons/HighgroundNearby/Host.lua": ({"IsAddOnLoaded"}, LOADS_BEFORE_API),
     "addons/Highground/options/Register.lua": (
         {"InterfaceOptionsFrame_OpenToCategory", "InterfaceOptions_AddCategory"}, LEGACY),
-    "libs/HighgroundKit/standalone/Settings.lua": (
-        {"InterfaceOptionsFrame_OpenToCategory", "InterfaceOptions_AddCategory"}, LEGACY),
-    "addons/HighgroundReputation/src/reputation/Menus.lua": (
+    "addons/Highground/features/reputation/reputation/Menus.lua": (
         {"UIDropDownMenu_AddButton", "UIDropDownMenu_CreateInfo"}, LEGACY),
-    "addons/HighgroundBattlegrounds/src/map/Flags.lua": (
+    "addons/Highground/features/battlegrounds/map/Flags.lua": (
         {"GetBattlefieldFlagPosition", "GetNumBattlefieldFlagPositions"}, LEGACY),
-    "addons/HighgroundMacros/src/macros/Sources.lua": ({"UnitBuff"}, LEGACY),
+    "addons/Highground/features/macros/macros/Sources.lua": ({"UnitBuff"}, LEGACY),
     # Chat fallback used only where addon channels are unavailable (Cata).
     "libs/HighgroundKit/core/ProtocolTransport.lua": ({"SendChatMessage"}, LEGACY),
     # Hooks (does not call) the legacy global to notice manual whispers.
     "libs/HighgroundKit/core/Comms.lua": ({"SendChatMessage"}, LEGACY),
-    "addons/HighgroundBattlegrounds/src/timers/Mechanics.lua": ({"GetNumWorldStateUI", "GetWorldStateUIInfo"}, LEGACY),
-    "addons/HighgroundArena/src/arena/Activity.lua": ({"UnitDebuff"}, LEGACY),
-    "addons/HighgroundMacros/src/macros/Suggest.lua": (
+    "addons/Highground/features/battlegrounds/timers/Mechanics.lua": ({"GetNumWorldStateUI", "GetWorldStateUIInfo"}, LEGACY),
+    "addons/Highground/features/arena/arena/Activity.lua": ({"UnitDebuff"}, LEGACY),
+    "addons/Highground/features/macros/macros/Suggest.lua": (
         {"GetNumSpellTabs", "GetSpellBookItemName", "GetSpellTabInfo", "IsPassiveSpell"}, LEGACY),
 }
 

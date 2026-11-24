@@ -199,7 +199,7 @@ return function(addon)
     s:assertHealthy()
   end)
 
-  if addon == "Highground" or addon == "HighgroundNearby" or addon == "HighgroundBounties" then
+  do
     t.test("shared sightings credit their observer and private imports belong to the importer", function()
       local poster = new(16001, nil, { name = "Poster" })
       local bounty = assert(poster.ns.Bounty.Add("Wanted-Realm", 0))

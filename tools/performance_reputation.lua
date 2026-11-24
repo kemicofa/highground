@@ -1,4 +1,4 @@
--- Run from addons/HighgroundReputation:
+-- Run from addons/Highground:
 -- luajit ../../tools/performance_reputation.lua [members] [moderators] [community|guild]
 -- Includes simulator costs; these numbers are not in-game memory or FPS.
 jit.off()
@@ -6,7 +6,7 @@ local count, moderators, kind = tonumber(arg[1]) or 1000, tonumber(arg[2]) or 20
 assert(count >= 2 and count <= 10000 and count % 1 == 0, "expected 2..10000 members")
 assert(moderators >= 0 and moderators < count and moderators % 1 == 0, "moderators must be fewer than members")
 assert(kind == "community" or kind == "guild", "expected community or guild")
-local s, counts = dofile("tests/performance_fixture.lua")("Highground", kind == "guild", count, moderators)
+local s, counts = dofile("tests/reputation/performance_fixture.lua")("Highground", kind == "guild", count, moderators)
 local W = s.ns.Reputation
 
 local function Measure(label, run)

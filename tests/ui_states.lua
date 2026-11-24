@@ -1,8 +1,8 @@
 -- The shared state contracts must work in every packaged UI and client.
 return function(addon)
   local t = dofile("../../tools/harness.lua")(addon .. " UI states")
-  local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
-  local battlegrounds = addon == "Highground" or addon == "HighgroundBattlegrounds"
+  local F = dofile("tests/bounties/public/fixture.lua")
+  local battlegrounds = addon == "Highground"
   local runtime = dofile("../../tools/wowsim/" .. (battlegrounds and "battleground/" or "") .. "runtime.lua")
   local function new(client, build, options)
     options = options or {}
@@ -132,7 +132,7 @@ return function(addon)
       s:assertHealthy()
     end)
 
-    if addon == "Highground" or addon == "HighgroundBounties" or addon == "HighgroundNearby" then
+    do
       t.test(label .. ": unavailable claim storage never presents an empty payment ledger", function()
         local database = { version = 99, futureData = "preserve" }
         local s = new(case[1], case[2], { network = database })

@@ -21,7 +21,7 @@ ASSETS = {
     "libs/HighgroundKit/sounds/nearby.ogg": (("libs/HighgroundKit/world/Nearby.lua", "nearby.ogg"),),
     **{f"libs/HighgroundKit/sounds/alert-{name}.ogg": (("libs/HighgroundKit/core/Alerts.lua", f"alert-{name}.ogg"),)
        for name in ("capture", "objective", "resurrection", "sap")},
-    "addons/HighgroundBounties/src/sounds/bounty.ogg": (("libs/HighgroundKit/bounty/Alerts.lua", "bounty.ogg"),),
+    "addons/Highground/features/bounties/sounds/bounty.ogg": (("libs/HighgroundKit/bounty/Alerts.lua", "bounty.ogg"),),
     **{f"addons/Highground/sounds/{name}.ogg": (("addons/Highground/ui/Sniper.lua", f"{name}.ogg"),)
        for name in ("go", "lockon")},
     **{f"addons/Highground/assets/sniper/{name}.tga": (("addons/Highground/ui/Sniper.lua", f"{name}.tga"),)

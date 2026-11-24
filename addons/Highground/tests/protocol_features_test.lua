@@ -1,5 +1,5 @@
 local t = dofile("../../tools/harness.lua")("feature protocol compatibility")
-local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+local F = dofile("tests/bounties/public/fixture.lua")
 local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function New(name, addon, client)
   return F.new(name, { addon = addon, client = client, runtime = runtime })
@@ -8,13 +8,9 @@ local function Caps(s, sender, body)
   s:event("CHAT_MSG_ADDON", "HighgroundN", "1|" .. s.ns.Scope.Social() .. "|" .. body, "WHISPER", sender)
 end
 
-t.test("all networking packages load the registry and advertise only their loaded features", function()
+t.test("Highground loads the registry and advertises its loaded features", function()
   local expected = {
     Highground = { "users", "intel", "timers", "capture", "spectags", "guild", "offer", "claim", "deaths", "reputation", "profiles" },
-    HighgroundBattlegrounds = { "intel", "timers", "capture", "spectags" },
-    HighgroundBounties = { "guild", "offer", "claim", "deaths" },
-    HighgroundNearby = { "guild", "offer", "claim", "deaths" },
-    HighgroundReputation = { "reputation" },
   }
   for _, client in ipairs({ "retail", "cata" }) do
     for addon, ids in pairs(expected) do
@@ -37,7 +33,7 @@ t.test("all networking packages load the registry and advertise only their loade
 end)
 
 t.test("bounty formats select a compatible schema and never discard completion terms", function()
-  local s = New("Poster", "HighgroundBounties")
+  local s = New("Poster", "Highground")
   local p, codec = s.ns.Bounty.Public, s.ns.Codec
   local function Kind(value, target)
     local text, problem = p.Encode("offer", value, nil, nil, target)
@@ -65,7 +61,7 @@ t.test("bounty formats select a compatible schema and never discard completion t
 end)
 
 t.test("real bounty transfers preserve legacy delivery and block explicit incompatible recipients", function()
-  local a, b = New("Poster", "HighgroundBounties"), New("Hunter", "HighgroundNearby")
+  local a, b = New("Poster", "Highground"), New("Hunter", "Highground")
   local p = a.ns.Bounty.Public
   local offer = F.post(a)
   offer.audience = "global"
@@ -90,7 +86,7 @@ t.test("real bounty transfers preserve legacy delivery and block explicit incomp
 end)
 
 t.test("queued bounty bytes are checked again after capability changes", function()
-  local s = New("Poster", "HighgroundBounties")
+  local s = New("Poster", "Highground")
   local p, offer = s.ns.Bounty.Public, F.post(s)
   offer.audience = "global"
   s.env.wipe(p.outbox)

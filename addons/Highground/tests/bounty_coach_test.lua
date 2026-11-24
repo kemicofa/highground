@@ -1,6 +1,6 @@
 local flow = dofile("../../tests/bounty_flow.lua")
 local t = dofile("../../tools/harness.lua")("bounty coach")
-local F = dofile("../HighgroundBounties/tests/public/fixture.lua")
+local F = dofile("tests/bounties/public/fixture.lua")
 local runtime = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function new(build)
   local s = F.new("Tester", { addon = "Highground", build = build, client = build == 40402 and "cata" or "retail",

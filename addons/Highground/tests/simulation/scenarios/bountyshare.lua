@@ -1,7 +1,7 @@
 local test, newClient, equal = ...
 -- Exercise the existing full-feature setup; fresh installs are covered by onboarding.
 local function new(client, saved, configure) return newClient(client, saved or {}, configure) end
-assert(loadfile("../HighgroundBounties/tests/sharing.lua"))(test, new, equal)
+assert(loadfile("tests/bounties/sharing.lua"))(test, new, equal)
 
 test("clicking a bounty link returns to the separate board after import", function()
   local sim = new("retail")
@@ -16,17 +16,9 @@ test("clicking a bounty link returns to the separate board after import", functi
   sim:assertHealthy()
 end)
 
-test("Highground and standalone Bounties exchange chat links in both directions", function()
+test("Highground players exchange chat links in both directions", function()
   local full = new("retail")
-  local standalone = new("retail", nil, function(sim)
-    sim.addon = "HighgroundBounties"
-    sim.manifest = "../HighgroundBounties/HighgroundBounties.toc"
-    local load = sim.load
-    function sim:load(path)
-      if path:sub(1, 3) ~= "../" then path = "../HighgroundBounties/" .. path end
-      return load(self, path)
-    end
-  end)
+  local peer = new("retail")
   local function transfer(sender, recipient)
     local text = sender.chatDraft
     for _, filter in ipairs(recipient.chatFilters.CHAT_MSG_WHISPER) do
@@ -36,20 +28,20 @@ test("Highground and standalone Bounties exchange chat links in both directions"
     end
     recipient.env.SetItemRef(assert(text:match("|H([^|]+)|h")))
     local w = recipient.ns.Bounty.Share.win
-    assert(w and w:IsShown(), "other addon's link opens the preview")
+    assert(w and w:IsShown(), "other player's link opens the preview")
     w.import.scripts.OnClick(w.import)
     recipient:assertHealthy()
   end
   full:command("bounty add 9999999 Rival; " .. string.rep("n", 60))
   full:command("bounty share Rival")
   full:advance(0.05)
-  transfer(full, standalone)
-  equal(standalone.ns.Bounty.Entry("Rival").gold, 9999999, "standalone imports the maximum gold reward")
-  equal(#standalone.ns.Bounty.Entry("Rival").note, 60, "full-length note preserved")
-  standalone:slash("HIGHGROUNDBOUNTIES", "add Friendly")
-  standalone:slash("HIGHGROUNDBOUNTIES", "share Friendly")
-  standalone:advance(0.05)
-  transfer(standalone, full)
+  transfer(full, peer)
+  equal(peer.ns.Bounty.Entry("Rival").gold, 9999999, "peer imports the maximum gold reward")
+  equal(#peer.ns.Bounty.Entry("Rival").note, 60, "full-length note preserved")
+  peer:slash("HIGHGROUND", "bounty add Friendly")
+  peer:slash("HIGHGROUND", "bounty share Friendly")
+  peer:advance(0.05)
+  transfer(peer, full)
   equal(full.ns.Bounty.Entry("Friendly").gold, 0, "Highground imports a bounty without gold")
   equal(full.ns.Bounty.Entry("Friendly").note, nil, "empty note round trip")
 end)

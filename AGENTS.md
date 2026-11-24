@@ -8,7 +8,7 @@ Use [.github/pull_request_template.md](.github/pull_request_template.md) for new
 
 ## Highground guide and preview review
 
-For changes to Highground, any Highground subaddon or standalone addon, or their shared code and relevant documentation, always apply [highground-guide-preview-review](.agents/skills/highground-guide-preview-review/SKILL.md). This requirement covers features, fixes, refactors, settings, assets, and commands across Warbound worktrees; it does not apply to unrelated projects.
+For changes to Highground, any Highground module or data addon, or their shared code and relevant documentation, always apply [highground-guide-preview-review](.agents/skills/highground-guide-preview-review/SKILL.md). This requirement covers features, fixes, refactors, settings, assets, and commands across Warbound worktrees; it does not apply to unrelated projects.
 
 Review guide and interactive-preview impact when starting the work, then double-check the actual diff before an authorized commit, PR readiness, or completion. Complete needed updates to the in-game Feature guide and `/hg test` or relevant equivalents, or give a specific reason each does not need updating. Follow the skill's handling of early draft work and pending verification. Include separate guide, preview, and validation conclusions in the final response and applicable PR description.
 
@@ -20,7 +20,7 @@ For changes to Highground commands, addon features, settings or shared handlers,
 
 ## Localization review
 
-For Highground and its compatibility hosts, always apply [highground-localization-review](.agents/skills/highground-localization-review/SKILL.md) when changing player-facing text, features, settings, guides, previews, localization infrastructure or shared code. Review the intended change at the start and the actual staged/final diff before committing, PR readiness or completion. Maintain English as the default/fallback, register new or changed display copy through the reusable library, and review affected translations and hosts; unrelated legacy copy does not require a bulk rewrite. Run `python3 scripts/check_localization.py --staged`, complete the PR template's Localization item, and report the update or a specific no-update reason plus validation and remaining gaps. Use this repository skill copy when another version is installed globally.
+For Highground and its bundled modules, always apply [highground-localization-review](.agents/skills/highground-localization-review/SKILL.md) when changing player-facing text, features, settings, guides, previews, localization infrastructure or shared code. Review the intended change at the start and the actual staged/final diff before committing, PR readiness or completion. Maintain English as the default/fallback, register new or changed display copy through the reusable library, and review affected translations and hosts; unrelated legacy copy does not require a bulk rewrite. Run `python3 scripts/check_localization.py --staged`, complete the PR template's Localization item, and report the update or a specific no-update reason plus validation and remaining gaps. Use this repository skill copy when another version is installed globally.
 
 ## CurseForge copy
 

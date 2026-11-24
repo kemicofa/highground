@@ -38,4 +38,4 @@ Shared bounty identities, published contributions and their payment commitments,
 
 Scope changes discard stale journal notes, delete callbacks, match state, bounty drafts, pending alerts and profile applications. Shared storage remains available through the corresponding audience checks.
 
-`tests/data_scope.lua` runs against Highground and the retained legacy host manifests. It covers alt login and reload, factions, regions, realms, games, all five Forever rulesets, GUID availability, legacy retention and live scope changes. Existing bounty gold, guild/community, reputation, macro and match simulations cover shared behavior and permissions.
+`tests/data_scope.lua` runs against Highground's client manifests. It covers alt login and reload, factions, regions, realms, games, all five Forever rulesets, GUID availability, legacy retention and live scope changes. Existing bounty gold, guild/community, reputation, macro and match simulations cover shared behavior and permissions.

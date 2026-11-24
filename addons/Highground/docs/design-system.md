@@ -36,7 +36,7 @@ Faces are `bold`, `semi`, `medium` (Barlow Condensed), `mono` (JetBrains Mono) a
 | Class Colors | [libs/config/themes/ClassColors.lua](../../../libs/HighgroundKit/config/themes/ClassColors.lua) | Highground branding with stronger class-coloured enemy surfaces |
 | Dark | [libs/config/themes/Dark.lua](../../../libs/HighgroundKit/config/themes/Dark.lua) | Near-black wells, neutral graphite panels and violet accents, which also replace bounty gold; keeps Highground's class surfaces |
 
-The choice is saved in each addon's `Core.db.theme` (nil for Highground, selected by `ns.DEFAULT_THEME`; choosing Class Colors stores `"classcolors"`). Highground remains the inheritance base for missing or invalid tokens. Highground has Shared appearance and addon-specific Appearance pages; every standalone addon has a theme picker, text-size control and Reduced motion toggle in its settings. Explicit saved theme names and saved opacity, font and layout preferences remain valid.
+The choice is saved in `Core.db.theme` (nil for Highground, selected by `ns.DEFAULT_THEME`; choosing Class Colors stores `"classcolors"`). Highground remains the inheritance base for missing or invalid tokens. Highground has Shared appearance and feature-specific Appearance pages with theme, text-size and Reduced motion controls. Explicit saved theme names and saved opacity, font and layout preferences remain valid.
 
 Highground includes class surfaces by default. Choose **Class Colors** in Appearance, or use `/hg theme classcolors`, for stronger tinting. Both keep class identity across the enemy row independently of health, including the Line health style and hidden health bars. Both use the same client/custom class colours as the class strip. The `alpha.classRow` token controls its maximum tint (0.40 in Highground and Dark, 0.55 in Class Colors, zero in the other presets); `Theme.EnemyRowColor` reduces the tint as needed for readable text over health, zebra, target and hover layers. Unknown classes keep a neutral surface. Dead and unseen rows retain their existing dimming, and target/focus marks and tactical chips keep their meanings.
 
@@ -48,7 +48,7 @@ The target marker's default ring uses `sniperTheme`: gold in Highground, Class C
 2. Override the palette's differences. `DefineTheme` resolves a complete, independent copy of the base tokens at load time, so shared typography and semantic colours cannot drift. `tests/simulation/scenarios/themes.lua` checks the resolved themes for missing tokens and valid values.
 3. Keep the base spacing, dimensions, type sizes and outline flags. A switch never moves or resizes frames, including secure frames in combat. Reserve decorative faces for window titles; body text and numbers share the same faces across themes.
 4. For a light theme, set `darkFrames = "highground"`: tooltips and chat stay dark and take their colours from that theme.
-5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (Highground and six retained legacy hosts; the two data addons have no UI). Run the full test suite and the contrast scenarios.
+5. List the file after `libs/config/Theme.lua` in every TOC that loads the theme system (both Highground client variants; data and module addons have no UI). Run the full test suite and the contrast scenarios.
 
 `Theme.Register(name, tokens)` adds a theme at runtime. Missing or invalid tokens fall back to the base theme.
 
@@ -213,9 +213,9 @@ Grids reuse existing widgets, allocate no temporary visible-item list, and skip 
 
 `Kit.ScrollText(parent, options)` adds a `.text` paragraph and `SetText(text)`, with optional `role`, `color` and `bottomPadding`. It reflows on width, font and theme changes. Use `Scroll(0)` when selecting a different record; updating text otherwise preserves the offset within the new range. Only the scroll body has a measured height, so longer replacement text cannot be clipped by an earlier fixed FontString height. Bounty death reports and reputation history share this component; the bounty details page uses `ScrollArea`; standalone wanted popups never contain one.
 
-Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`, or `HighgroundMacrosDB` in Highground Macros). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
+Dialog positions are saved in `Core.db.windows[key]` (`HighgroundDB`). A dialog's close button is `frame.close`; the Highground window hides it while it shows the dialog.
 
-`Kit.Dialog` automatically registers with `Kit.Windows`. Opening a main tool immediately hides the previous tool, including its controls, so journals, bounties, macros and the hub cannot interleave. Reparented pages share their host's slot. The coordinator is shared as `HighgroundWindowCoordinator` across standalone addons; gameplay HUDs remain independent.
+`Kit.Dialog` automatically registers with `Kit.Windows`. Opening a main tool immediately hides the previous tool, including its controls, so journals, bounties, macros and the hub cannot interleave. Reparented pages share their host's slot. The coordinator is exposed as `HighgroundWindowCoordinator`; gameplay HUDs remain independent.
 
 Use `child = true` for a temporary editor or confirmation. It replaces its owner and returns to it on Close or Escape; `Kit.CopyBox` uses this behavior by default. Nested editors return one step at a time. Call `Kit.Windows.Close(editor)` when a review completes a hidden editor, so it returns to the original tool. Opening a different main tool clears old return paths. Hosts can provide `onResume` to restore their selected page; borrowed pages stay hidden when returned to their original parent. Use the shared coordinator instead of raising competing windows or adding screen-specific hide lists.
 
@@ -263,7 +263,7 @@ Use these before hand-rolling the same layout in a page. Labels and texts accept
 
 Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
 
-Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them through Highground.
 
 ## Building blocks
 
@@ -284,7 +284,7 @@ Use these before hand-rolling the same layout in a page. Each block is a plain f
 
 Setters that repeat the current value are free: `Header:SetTitle`/`SetSub`/`SetActions` with unchanged values do not reflow, and `ScrollText:SetText` with the same text does not refresh. Header and scroll-area layouts write geometry only when it changes.
 
-Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them in every retained host.
+Prefer an undo (as in `Kit.Browser`) to a confirmation when an action can be reversed. Owners cancel a pending confirmation when its subject changes, for example selecting another profile. Home and Profiles use these blocks; `tests/ui_blocks.lua` covers them through Highground.
 
 ## Collection and control states
 
@@ -296,7 +296,7 @@ Use `Kit.StatusText(region, text, tone)` for changing feedback; omitting tone re
 
 ## Runtime cost
 
-These defaults live in HighgroundKit and apply to Highground and six retained legacy hosts:
+These defaults live in HighgroundKit and apply to all Highground features:
 
 - Standard rounded controls share `media/ControlCorners.tga`, a 2 KiB alpha atlas generated by `python3 tools/control_corners.py`. A default button creates 55 frames/regions instead of 115; custom radii retain their existing shape renderer. Ship the shared media directory with the kit.
 - Button and toggle enabled-state setters skip unchanged states. Polling a control must not repaint it, clear an active press or restart a transition. Colours and gradients use the shared `Theme.Paint` cache, with its existing weak region registry and reused gradient storage.
@@ -304,7 +304,7 @@ These defaults live in HighgroundKit and apply to Highground and six retained le
 - Motion uses one driver only during active transitions. Use `Util.Every` for periodic background work: it uses native timers where available and returns cancellable `Start`/`Stop` handles. `Util.RunGuarded(stage, fn)` protects argument-free callbacks that need only success, without packing result tables; use `Util.Guard` when arguments/results matter. Visible-only feature refreshes must check visibility or stop their handle on hide; real data changes should refresh through events.
 - Build expensive page content on first use, keep reusable rows, and refresh the affected controls. Reserve full theme/font passes for corresponding global changes. Never force garbage collection during interactions.
 
-`tests/ui_components.lua` exercises the same shared controls through Highground's and retained legacy hosts' real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profilers](../../../docs/performance.md#profilers) to compare allocations; their simulator heap is not WoW's memory meter.
+`tests/ui_components.lua` exercises the same shared controls through Highground's real manifests on Cata, Retail and Forever. It enforces the button object budget and verifies that repeated colour, text, font, enabled-state and grid updates perform no native writes, while actual changes still repaint or reflow. `tests/performance_test.lua` covers lazy pages, hidden views, guide cleanup, scoring allocation budgets and cooldown changes. Use the [profilers](../../../docs/performance.md#profilers) to compare allocations; their simulator heap is not WoW's memory meter.
 
 ## Rules
 

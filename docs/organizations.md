@@ -24,7 +24,9 @@ Native club IDs tell identically named communities apart and survive renames; cl
 
 On WoW Forever, community members are limited to players this character can address. The native GUID/server check wins over a realm or ruleset suffix; a bare name with no native confirmation is skipped. This also filters moderator discovery and invalidates queued whispers when eligibility changes.
 
-`ns.Guild` ([Guild.lua](../libs/HighgroundKit/social/Guild.lua)) owns the classic guild roster and rank flags. `ns.Scope` ([Scope.lua](../libs/HighgroundKit/core/Scope.lua)) supplies the boundaries: `Region()` is game and region, `Key()` is the economy (realm, or ruleset on Forever), and `Social()` allows cross-realm communities while keeping Forever rulesets apart.
+`Member(id, name)` reads the member live through a native ID hint. A name a full community roster did not list is answered as absent without reading the roster again, until that community's next roster event and for at most 30 seconds.
+
+`ns.Guild` ([Guild.lua](../libs/HighgroundKit/social/Guild.lua)) owns the classic guild roster and rank flags. A `GUILD_ROSTER_UPDATE` only marks the roster stale; the next reader reads it once, and readers otherwise reuse it for five seconds. `ns.Scope` ([Scope.lua](../libs/HighgroundKit/core/Scope.lua)) supplies the boundaries: `Region()` is game and region, `Key()` is the economy (realm, or ruleset on Forever), and `Social()` allows cross-realm communities while keeping Forever rulesets apart.
 
 ## Bounties
 

@@ -35,6 +35,11 @@ function G.ReadRoster()
   end
 end
 
+-- The game reports roster updates often, and a large guild costs a call
+-- per member to read. An update only marks the copy stale: the next reader
+-- reads it once, however many updates arrived in between.
+function G.Stale() G.rosterRead = nil end
+
 function G.EnsureRoster()
   if G.rosterKey ~= G.Key() then G.Clear() end
   if GetTime() - (G.rosterRead or -math.huge) >= 5 then G.ReadRoster() end

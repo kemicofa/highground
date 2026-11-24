@@ -142,9 +142,14 @@ t.test("Cata health text rounds, clamps and colours execute, live and stale read
   retail:enemy("Text")
   retail:join()
   local rr = rowFor(retail, "Text")
-  rr.entry.hpPct = 0.5
+  local secret = { secret = true }
+  rr.entry.hpPct, rr.entry.hpSeen, rr.entry.unit = nil, secret, "nameplate1"
   retail.ns.Core.UpdateHealthText(rr, rr.entry)
-  assert(not rr.hpText:IsShown(), "no health text where enemy health is secret")
+  equal(rr.hpText.text, "<secret>%", "the widget formats secret health; Highground never reads it")
+  equal(rr.hpText.wbToken, "text", "bright while in view")
+  rr.entry.hpSeen = nil
+  retail.ns.Core.UpdateHealthText(rr, rr.entry)
+  assert(not rr.hpText:IsShown(), "no text without a reading")
 end)
 
 t.finish("Health: " .. t.tests .. " tests")

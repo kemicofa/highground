@@ -48,6 +48,8 @@ local SCAN = { "target", "focus", "mouseover", "softenemy" }
 for i = 1, 4 do SCAN[#SCAN + 1] = ns.UnitTokens.arena[i] end
 for i = 1, 40 do SCAN[#SCAN + 1] = ns.UnitTokens.nameplate[i] end
 local TARGET_OF = ns.UnitTokens.target
+-- Health as 0-100 on the Midnight client: secret, but drawable and printable.
+local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
 
 -- Readings reused per enemy instead of new tables every tick. Fields are
 -- rewritten on each reading; e.cast / e.specManaObservation point at them
@@ -66,19 +68,30 @@ local function ManaObservation(e, mana, level, at)
   return o
 end
 
+local function Claim(unit)
+  local key = Core.CanonUnit(unit)
+  if key and Core.enemies[key] and not Core.unitFor[key] then
+    Core.unitFor[key] = unit
+    return 1
+  end
+  return 0
+end
+
 function Core.ScanUnits()
   for _, e in pairs(Core.enemies) do ns.FilterCooldownState(e, Core.db) end
   wipe(Core.unitFor)
   local visible = 0
   for i = 1, #SCAN do
     local unit = SCAN[i]
-    if Util.read(UnitExists, unit) then
-      local key = Core.CanonUnit(unit)
-      if key and Core.enemies[key] and not Core.unitFor[key] then
-        Core.unitFor[key] = unit
-        visible = visible + 1
-      end
-    end
+    if Util.read(UnitExists, unit) then visible = visible + Claim(unit) end
+  end
+  -- Teammates' targets come last: an enemy only a teammate targets still
+  -- has live health while your client can see it. Messages can't share it
+  -- (secret on the Midnight client, chat lockdown in matches).
+  local group, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    local unit = TARGET_OF[group[i]]
+    if Util.read(UnitIsVisible, unit) then visible = visible + Claim(unit) end
   end
   Core.db.liveStats = Core.db.liveStats or {}
   Core.db.liveStats.maxVisible = math.max(Core.db.liveStats.maxVisible or 0, visible)
@@ -155,6 +168,19 @@ function Core.ScanUnits()
       end
       -- Current health: plain on Cata (scores + exec), secret on retail.
       e.hpPct = Util.HealthFraction(unit)
+      -- 0-100 for the board, kept after the unit is gone (e.lastSeen): plain
+      -- on Cata, secret on the Midnight client and only ever drawn.
+      if e.dead then
+        e.hpSeen = nil
+      elseif SCALE_100 then
+        e.hpSeen = Util.call(UnitHealthPercent, unit, true, SCALE_100)
+      else
+        e.hpSeen = e.hpPct and e.hpPct * 100
+      end
+      -- Green to red on the Midnight client: the curve's colour, kept with
+      -- the reading and only handed to the bar.
+      e.hpTint = not e.dead and SCALE_100 and Core.healthCurve and Core.StyleChoice("barColor").key == "health"
+        and Util.call(UnitHealthPercent, unit, true, Core.healthCurve) or nil
       -- Mana (plain on Cata). Only while mana is their shown power: a
       -- shapeshifted druid reports 0 mana in cat/bear form.
       local ptype = Util.read(UnitPowerType, unit)
@@ -226,6 +252,7 @@ function Core.ScanUnits()
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
         e.crowdControlled = false
         e.dead = e.diedAt ~= nil and GetTime() - e.diedAt < 35
+        if e.dead then e.hpSeen, e.hpTint = nil, nil end
       end
     end
   end

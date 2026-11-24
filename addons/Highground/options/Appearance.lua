@@ -270,6 +270,38 @@ if owner == "battlegrounds" then
 elseif not owner then
   Cycle("highground.appearance.bar_texture.5592a1", "bar", A.bars)
   Cycle("highground.appearance.health_bar_color.0e69b9", "barColor", A.barColors)
+  -- Custom colour: a swatch button opening the colour picker, plus Default.
+  do
+    local label = Label("shared.ui.custom_color.34cfc6")
+    local button = Kit.Button(P, "", 120, Z("control"))
+    button:SetPoint("TOPLEFT", CONTROL_X, page.y)
+    button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 28, 0)
+    local swatch = Theme.Fill(button, "OVERLAY", "white")
+    swatch:SetSize(14, 14); swatch:SetPoint("LEFT", 8, 0)
+    local reset = ns.Localization.Bind(Kit.Button(P, ns.Locale:Get("highground.appearance.default.808d7d"), 70, Z("control")), "highground.appearance.default.808d7d")
+    reset:SetPoint("LEFT", button, "RIGHT", S("sm") + S("xs"), 0)
+    local function Hex(c) return string.format("#%02X%02X%02X", c.r * 255 + 0.5, c.g * 255 + 0.5, c.b * 255 + 0.5) end
+    button:SetScript("OnClick", function()
+      local c, saved = Core.BarCustomColor(), Core.StyleDB().barCustom
+      local previous = saved and { unpack(saved) }
+      Options.PickColor({ c.r, c.g, c.b }, function(r, g, b) Core.SetBarCustomColor(r, g, b); Options.RefreshPage(page) end,
+        function() Core.SetBarCustomColor(previous and previous[1], previous and previous[2], previous and previous[3]); Options.RefreshPage(page) end,
+        button)
+    end)
+    reset:SetScript("OnClick", function() Core.SetBarCustomColor(); Options.RefreshPage(page) end)
+    button:HookScript("OnHide", function() Options.ClosePickerFor(button) end)
+    Kit.Tooltip(button, function() return { ns.Locale:Get("shared.ui.custom_color.34cfc6"), ns.Locale:Get("shared.ui.bar_color_used_when_health_bar_color.56d2e5") } end)
+    page.barCustom = button
+    refreshers[#refreshers + 1] = { label = label, refresh = function()
+      local c, on = Core.BarCustomColor(), Core.StyleChoice("barColor").key == "custom"
+      Theme.Paint(swatch, { c.r, c.g, c.b })
+      button:SetText(Hex(c))
+      button:SetEnabled(on)
+      reset:SetEnabled(on and Core.StyleDB().barCustom ~= nil)
+      label:SetAlpha(on and 1 or Theme.Alpha("disabled"))
+    end }
+    Next()
+  end
   Options.Section(page, ns.Locale:Get("highground.appearance.borders.685f23"), nil, "highground.appearance.borders.685f23", nil)
   Stepper("highground.appearance.border_size.544ebf", Core.BorderSize, Core.SetBorderSize, A.border.step, Pixels, function() return A.border.default end)
   Cycle("highground.appearance.border_color.06186d", "borderColor", A.borderColors)
@@ -286,11 +318,12 @@ P, page.child = basic, basic
 page.detailBody:SetHeight(detailsHeight)
 basic:SetHeight(-detailsTop + 46 + detailsHeight)
 else P:SetHeight(-page.y + 12) end
-page.elementBoxes = elementBoxes
+page.elementBoxes, page.metricRows = elementBoxes, metricRows
 page.RefreshAppearance = function()
   local compact = Compact()
   for _, r in ipairs(refreshers) do
-    r.off = r.metric and compact and r.metric.normalOnly
+    -- Health sizes apply to their own Health style only.
+    r.off = r.metric and (compact and r.metric.normalOnly or r.metric.style and r.metric.style ~= Core.HealthStyle())
     if r.sniperGap then
       local placement = Core.SniperPlacement()
       r.off = not (placement.gapX or placement.gapY)

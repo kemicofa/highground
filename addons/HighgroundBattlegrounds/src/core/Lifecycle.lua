@@ -23,7 +23,7 @@ Core.TICK_STAGES = {
   { "capplates", "UpdateCapPlates" }, -- ui/CapPlates.lua
   { "healermarks", "UpdateHealerMarks" }, -- ui/HealerMarks.lua
   { "burstmarks", "UpdateBurstMarks" }, -- ui/BurstMarks.lua
-  { "dock", "Dock" }, -- ui/Compact.lua
+  { "dock", "Dock" }, -- ui/Dock.lua
   { "score", "Recompute" }, -- core/Scoring.lua
   { "targetbtn", "UpdateTargetButton" }, -- ui/Actions.lua
   { "render", "Render" }, -- ui/Render.lua

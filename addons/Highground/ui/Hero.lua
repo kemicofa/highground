@@ -45,6 +45,7 @@ function Core.UpdateHero(e, isGo)
   Core.hero.dist:SetShown(show)
   Core.hero.unitText:SetShown(show)
   Core.hero.hp:SetShown(show)
+  if not (show and Core.hero.barMode) then Core.hero.hpText:Hide() end
   for _, t in ipairs(Core.hero.meter) do
     t:SetShown(show and full)
   end
@@ -70,7 +71,7 @@ function Core.UpdateHero(e, isGo)
 
   wipe(summary); wipe(bits)
   summary[1] = Core.ClassName(e)
-  if e.hpPct then summary[#summary + 1] = ns.Locale:Format("highground.hero.value1_hp.d9b092", Fill(HP, "value1", string.format("%d", math.floor(e.hpPct * 100 + 0.5)))) end
+  if e.hpPct and not Core.hero.barMode then summary[#summary + 1] = ns.Locale:Format("highground.hero.value1_hp.d9b092", Fill(HP, "value1", string.format("%d", math.floor(e.hpPct * 100 + 0.5)))) end
   if (e.allyCount or 0) > 0 then summary[#summary + 1] = ns.Locale:Format("highground.hero.e_allycount_targeting.06ff4d", Fill(ALLIES, "e_allyCount", string.format("%d", e.allyCount))) end
   Core.hero.sub:SetText(table.concat(summary, "  \194\183  "))
   local stacks = Core.CarrierStacks(e)
@@ -107,7 +108,8 @@ function Core.UpdateHero(e, isGo)
   for s, t in ipairs(Core.hero.meter) do
     Theme.Paint(t, s > lit and "overlaySelected" or isGo and "kill" or "accent")
   end
-  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, e.testHp or e.hpPct), e.testHp)
+  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, Core.PlainHealth(e)), e.testHp, e)
+  if Core.hero.barMode then Core.UpdateHealthText(Core.hero, e) end
 
   if isGo then
     ns.Localization.Bind(Core.hero.label, "highground.hero.attack_protection_ended.fbaaee")

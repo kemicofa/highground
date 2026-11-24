@@ -194,7 +194,7 @@ test("a seen enemy's mana fills the mana bar on Cata", function()
   equal(r.mana.value, 0.3, "mana fraction")
 end)
 
-test("health fills the row with a percentage; the thin line style remains", function()
+test("health is a bar under the name with a percentage; fill and thin line styles remain", function()
   local sim = new("cata")
   sim:command("bg test")
   sim:advance(0.5)
@@ -204,13 +204,26 @@ test("health fills the row with a percentage; the thin line style remains", func
     if r.entry and r.entry.testHp == 0.28 then low = r end
   end
   assert(low, "test enemy under the execute threshold")
-  equal(core.HealthFill(), true, "fill is the default health style")
+  equal(core.HealthStyle(), "bar", "bar is the default health style")
+  equal(low.hp:GetHeight(), core.Metric("healthBar", false), "bar thickness setting")
+  assert(low.hp.bg:GetAlpha() > 0, "the bar sits on a visible track")
+  equal(select(2, low.hpText:GetPoint(1)), low.hp, "percentage at the end of the bar")
+  assert(low.hp:GetFrameLevel() < low.content:GetFrameLevel(), "the percentage draws over the bar")
+  equal(low.hpText.text, "28%", "health percentage")
+  equal(low.hpText:IsShown(), true, "percentage shown")
+  local seen
+  for _, r in ipairs(core.rows) do if r.entry and r.entry.hpSeen then seen = r end end
+  assert(seen and seen.hp.value == 85 and seen.hpText.text == "85%", "a sample shows last seen health")
+  sim:advance(core.O("healthMemory"))
+  equal(seen.hpText:IsShown(), false, "then unknown health")
+  core.SetMetric("healthBar", 14, false)
+  equal(low.hp:GetHeight(), 14, "thickness applies at once out of combat")
+
+  core.SetStyleChoice("healthStyle", "fill")
   local top
   for _, p in ipairs(low.hp.points) do if p[1] == "TOPLEFT" then top = p end end
   assert(top, "health spans the row's height")
   assert(low.hp:GetFrameLevel() < low.content:GetFrameLevel(), "texts and icons draw over the fill")
-  equal(low.hpText.text, "28%", "health percentage")
-  equal(low.hpText:IsShown(), true, "percentage shown")
   assert(low.mana:GetHeight() >= 3, "mana is a readable bar")
 
   core.SetStyleChoice("barColor", "health")
@@ -229,7 +242,7 @@ test("health fills the row with a percentage; the thin line style remains", func
   retail:command("bg test")
   retail:advance(0.5)
   for _, r in ipairs(retail.ns.Core.rows) do
-    if r.entry then equal(r.hpText:IsShown(), false, "retail cannot read health, so no percentage") end
+    if r.entry and not r.entry.dead then equal(r.hpText:IsShown(), true, "retail previews show the percentage too") end
   end
 end)
 
@@ -241,12 +254,13 @@ test("the kill-target card can be hidden and the enemy list moves up", function(
   sim:advance(1)
   local core = sim.ns.Core
   local top = core.rows[1].points[1][3]
-  local height = sim.env.HighgroundFrame:GetHeight()
+  local height, card = sim.env.HighgroundFrame:GetHeight(), core.HERO_H
+  equal(card, core.THEME.main.hero + core.Metric("healthBar", false) + 6, "Bar style: the card grows to fit its bar")
   core.SetElement("hero", false)
   equal(core.hero:IsShown(), false, "card hidden")
   equal(core.heroBtn:IsShown(), false, "its click button too")
-  equal(core.rows[1].points[1][3], top + core.THEME.main.hero, "rows move up by the card's height")
-  equal(sim.env.HighgroundFrame:GetHeight(), height - core.THEME.main.hero, "panel shrinks")
+  equal(core.rows[1].points[1][3], top + card, "rows move up by the card's height")
+  equal(sim.env.HighgroundFrame:GetHeight(), height - card, "panel shrinks")
   equal(sim.env.HighgroundDB.style.hide.hero, true, "saved")
   sim:setCombat(true)
   core.SetElement("hero", true)
@@ -298,6 +312,7 @@ test("long enemy names use the room of empty slots and stop before shown ones", 
   sim:advance(1.5)
   local C, r = sim.ns.Core, sim.ns.Core.rows[1]
   local e = r.entry
+  C.SetElement("healthText", false) -- the percentage is a shown slot (checked below)
   local function right(f) local b = sim.bounds(f); return b[1] + b[3] end
   local function left(f) return sim.bounds(f)[1] end
   for _, compact in ipairs({ true, false }) do
@@ -316,4 +331,9 @@ test("long enemy names use the room of empty slots and stop before shown ones", 
     assert(r.spec:GetText() ~= "", mode .. ": a carrier fills the spec slot")
     if compact then assert(right(r.name) <= left(r.spec), "compact: the name stops before spec text") end
   end
+  C.SetElement("healthText", true)
+  sim:command("compact on")
+  e.carrier = nil
+  C.Render()
+  assert(r.hpText:IsShown() and right(r.name) <= left(r.hpText), "compact: the name stops before the percentage")
 end)

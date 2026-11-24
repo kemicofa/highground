@@ -82,6 +82,9 @@ local function Style(style)
     elseif key == "frameless" or key == "hideHero" then assert(type(v) == "boolean", "invalid " .. key)
     elseif key == "fontScale" then assert(Finite(v, A.fontScale.min, A.fontScale.max), "invalid text size")
     elseif key == "border" then assert(Finite(v, A.border.min, A.border.max), "invalid border")
+    elseif key == "barCustom" then
+      assert(type(v) == "table" and #v == 3, "invalid custom bar color")
+      for i = 1, 3 do assert(Finite(v[i], 0, 1), "invalid custom bar color") end
     elseif key == "layouts" then
       assert(type(v) == "table", "invalid panel layouts")
       for owner, compact in pairs(v) do

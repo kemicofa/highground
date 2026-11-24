@@ -131,6 +131,7 @@ function Core.MetricDefault(key, compact)
   local timers = compact and Core.THEME.compact.timers or Core.THEME.timers
   if key == "width" or key == "row" or key == "gap" or key == "padding" then return main[key] end
   if key == "health" then return compact and 2 or 3 end
+  if key == "healthBar" then return compact and 5 or 10 end
   if key == "timerWidth" then return Core.THEME.timers.width end
   if key == "timerRow" then return timers.row end
   if key == "timerGap" then return timers.gap end
@@ -149,12 +150,35 @@ function Core.Metric(key, compact)
   return Clamp(math.floor(v + 0.5), Core.MetricRange(key, compact))
 end
 
-function Core.HealthFill()
-  return Core.StyleChoice("healthStyle").key == "fill"
+-- "bar", "fill" or "line" (Health style).
+function Core.HealthStyle()
+  return Core.StyleChoice("healthStyle").key
 end
 
--- Health bars follow the class (default), the unit's faction, or how much
--- health is left (when readable: pct is nil on retail).
+function Core.HealthFill()
+  return Core.HealthStyle() == "fill"
+end
+
+-- Custom bar colour { r, g, b } (Health bar color: Custom colour); the
+-- theme's success green until one is picked.
+local custom = {}
+function Core.BarCustomColor()
+  local c, default = Core.StyleDB().barCustom, ns.Theme.Rgb("success")
+  if type(c) ~= "table" then c = default end
+  custom.r, custom.g, custom.b = c[1] or default[1], c[2] or default[2], c[3] or default[3]
+  return custom
+end
+
+-- nil restores the default.
+function Core.SetBarCustomColor(r, g, b)
+  r, g, b = Number(r), Number(g), Number(b)
+  Core.StyleDB().barCustom = r and g and b and { Clamp(r, 0, 1), Clamp(g, 0, 1), Clamp(b, 0, 1) } or nil
+  return Core.ApplyStyle("barColor")
+end
+
+-- Health bars follow the class (default), the unit's faction, how much
+-- health is left (readable pct; on the Midnight client ui/Health.lua uses
+-- Core.healthCurve instead), or one custom colour.
 -- Green to red: one { r, g, b } per band, refreshed from its token per call.
 local BANDS = { success = {}, warning = {}, danger = {} }
 local function Band(name)
@@ -164,9 +188,10 @@ local function Band(name)
 end
 function Core.BarColor(classColor, team, pct)
   local mode = Core.StyleChoice("barColor").key
+  if mode == "custom" then return Core.BarCustomColor() end
   if mode == "health" then
     if type(pct) ~= "number" then return classColor end
-    return Band(pct > 0.6 and "success" or pct > 0.3 and "warning" or "danger")
+    return Band(pct >= 0.6 and "success" or pct >= 0.3 and "warning" or "danger")
   end
   if mode ~= "faction" then return classColor end
   local T = ns.Timers
@@ -260,7 +285,7 @@ function Core.ResetStyle(owner)
   if not owner then Core.db.style = {}; return Changed() end
   local style = Core.StyleDB()
   if owner == "shared" then
-    for _, key in ipairs({ "font", "fontScale", "bar", "barColor", "border", "borderColor", "frameless" }) do style[key] = nil end
+    for _, key in ipairs({ "font", "fontScale", "bar", "barColor", "barCustom", "border", "borderColor", "frameless" }) do style[key] = nil end
   else
     for _, def in ipairs(A.panels) do if def.module == owner then Sub("scales")[def.key] = 1 end end
     for _, layout in ipairs({ "normal", "compact" }) do

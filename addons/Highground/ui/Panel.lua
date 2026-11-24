@@ -104,6 +104,13 @@ do
   Core.hero.hp:SetPoint("BOTTOMRIGHT")
   Core.StatusBar(Core.hero.hp)
   Core.hero.hp:SetMinMaxValues(0, 1)
+  -- Track and percentage, shown in the Bar health style (ui/Compact.lua).
+  Core.hero.hp.bg = Theme.Paint(Core.Surface(Core.hero.hp, "BACKGROUND"), "bg")
+  Core.hero.hp.bg:SetAllPoints()
+  Core.SetSurfaceAlpha(Core.hero.hp.bg, 0)
+  Core.hero.hpText = Theme.Text(Core.hero.hp, "labelOutline")
+  Core.hero.hpText:SetJustifyH("RIGHT")
+  Core.hero.hpText:Hide()
   Core.hero.exec = Core.TokenBorder(Core.hero, "attackEdge")
   Core.hero.exec:SetAlpha(0)
 

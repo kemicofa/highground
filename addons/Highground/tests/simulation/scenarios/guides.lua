@@ -128,6 +128,9 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     go(C, "immunity"); equal(C.target:GetText(), "IMMUNE"); equal(Core.PickHeroTarget(), nil)
     go(C, "control"); equal(C.target:GetText(), "CC")
     go(C, "unknown"); equal(C.target:GetText(), "--"); equal(Core.PickHeroTarget(), nil)
+    go(C, "lastseen"); equal(C.target, Core.rows[1].hp, "the muted bar is highlighted")
+    equal(Core.rows[1].hp.value, 64, "last seen health drawn"); equal(Core.rows[1].hpText:GetText(), "64%")
+    equal(Core.rows[1].hpText.wbToken, "textMuted", "muted percentage")
     go(C, "crosshair"); local scene = E.page.scene
     equal(C.target, scene.scope); assert(scene.scope ~= Core.sniper)
     assert(not Core.testMode and not Core.frame:IsVisible(), "only markers need a separate scene")

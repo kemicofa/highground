@@ -41,7 +41,8 @@ ns.UIConfig = {
       ns.Localization.Define({ module = "battlegrounds", key = "row", label = ns.Locale:Get("shared.ui.enemy_row_height.80c620"), normal = { 28, 48 }, compact = { 16, 30 }, step = 1 }, { label = "shared.ui.enemy_row_height.80c620" }),
       ns.Localization.Define({ module = "battlegrounds", key = "gap", label = ns.Locale:Get("shared.ui.row_spacing.502469"), min = 0, max = 12, step = 1 }, { label = "shared.ui.row_spacing.502469" }),
       ns.Localization.Define({ module = "battlegrounds", key = "padding", label = ns.Locale:Get("shared.ui.panel_padding.3dc00b"), min = 0, max = 16, step = 1 }, { label = "shared.ui.panel_padding.3dc00b" }),
-      ns.Localization.Define({ module = "battlegrounds", key = "health", label = ns.Locale:Get("shared.ui.health_bar_height.6da8b2"), min = 1, max = 12, step = 1 }, { label = "shared.ui.health_bar_height.6da8b2" }),
+      ns.Localization.Define({ module = "battlegrounds", key = "health", style = "line", label = ns.Locale:Get("shared.ui.thin_line_height.dadca8"), min = 1, max = 12, step = 1 }, { label = "shared.ui.thin_line_height.dadca8" }),
+      ns.Localization.Define({ module = "battlegrounds", key = "healthBar", style = "bar", label = ns.Locale:Get("shared.ui.bar_thickness.18928a"), normal = { 6, 20 }, compact = { 3, 10 }, step = 1 }, { label = "shared.ui.bar_thickness.18928a" }),
       ns.Localization.Define({ module = "battlegrounds", key = "timerWidth", label = ns.Locale:Get("shared.ui.timer_panel_width.9ba638"), min = 200, max = 420, step = 10, normalOnly = true }, { label = "shared.ui.timer_panel_width.9ba638" }),
       ns.Localization.Define({ module = "battlegrounds", key = "timerRow", label = ns.Locale:Get("shared.ui.timer_row_height.53a02f"), normal = { 24, 48 }, compact = { 14, 28 }, step = 1 }, { label = "shared.ui.timer_row_height.53a02f" }),
       ns.Localization.Define({ module = "battlegrounds", key = "timerGap", label = ns.Locale:Get("shared.ui.timer_row_spacing.821ba3"), min = 0, max = 12, step = 1 }, { label = "shared.ui.timer_row_spacing.821ba3" }),
@@ -59,7 +60,7 @@ ns.UIConfig = {
       ns.Localization.Define({ key = "icon", label = ns.Locale:Get("shared.ui.spec_icon.01b283"), desc = ns.Locale:Get("shared.ui.class_icon_until_the_spec_is_known.63e7fe") }, { label = "shared.ui.spec_icon.01b283", desc = "shared.ui.class_icon_until_the_spec_is_known.63e7fe" }),
       ns.Localization.Define({ key = "spec", label = ns.Locale:Get("shared.ui.spec_text.1b31ca"), desc = ns.Locale:Get("shared.ui.capture_timers_flag_carriers_and_the_spec.f5a475") }, { label = "shared.ui.spec_text.1b31ca", desc = "shared.ui.capture_timers_flag_carriers_and_the_spec.f5a475" }),
       ns.Localization.Define({ key = "health", label = ns.Locale:Get("shared.ui.health_bar.ed43a3") }, { label = "shared.ui.health_bar.ed43a3" }),
-      ns.Localization.Define({ key = "healthText", label = ns.Locale:Get("shared.ui.health.e2324e"), cata = true }, { label = "shared.ui.health.e2324e" }),
+      ns.Localization.Define({ key = "healthText", label = ns.Locale:Get("shared.ui.health.e2324e"), desc = ns.Locale:Get("shared.ui.health_percentage_on_the_bar_or_beside.7cc27d") }, { label = "shared.ui.health.e2324e", desc = "shared.ui.health_percentage_on_the_bar_or_beside.7cc27d" }),
       ns.Localization.Define({ key = "mana", label = ns.Locale:Get("shared.ui.mana_bar.a532dd"), desc = ns.Locale:Get("shared.ui.mana_users_once_seen.62442b"), cata = true }, { label = "shared.ui.mana_bar.a532dd", desc = "shared.ui.mana_users_once_seen.62442b" }),
       ns.Localization.Define({ key = "trinket", label = ns.Locale:Get("shared.ui.pvp_trinket.7581a2"), cata = true }, { label = "shared.ui.pvp_trinket.7581a2" }),
       ns.Localization.Define({ key = "status", label = ns.Locale:Get("shared.ui.status_chip.8f98ef"), desc = ns.Locale:Get("shared.ui.immune_def_cc_burst.dc84fa") }, { label = "shared.ui.status_chip.8f98ef", desc = "shared.ui.immune_def_cc_burst.dc84fa" }),
@@ -79,9 +80,11 @@ ns.UIConfig = {
       ns.Localization.Define({ key = "blizzard", label = ns.Locale:Get("shared.ui.blizzard.f6221a"), file = "Interface\\TargetingFrame\\UI-StatusBar" }, { label = "shared.ui.blizzard.f6221a" }),
       ns.Localization.Define({ key = "raid", label = ns.Locale:Get("shared.ui.raid_frames.b610fc"), file = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill" }, { label = "shared.ui.raid_frames.b610fc" }),
     },
-    -- Fill: health fills the whole enemy row, mana is a bar along its
-    -- bottom. Line: thin health and mana lines along the bottom.
+    -- Bar (default): a thick bar on a track under the name, percentage at
+    -- its end. Fill: health fills the whole enemy row, mana is a bar along
+    -- its bottom. Line: thin health and mana lines along the bottom.
     healthStyles = {
+      ns.Localization.Define({ key = "bar", label = ns.Locale:Get("shared.ui.bar_under_the_name.edff3e") }, { label = "shared.ui.bar_under_the_name.edff3e" }),
       ns.Localization.Define({ key = "fill", label = ns.Locale:Get("shared.ui.fill_the_row.a7132a") }, { label = "shared.ui.fill_the_row.a7132a" }),
       ns.Localization.Define({ key = "line", label = ns.Locale:Get("shared.ui.thin_line.92f627") }, { label = "shared.ui.thin_line.92f627" }),
     },
@@ -89,6 +92,7 @@ ns.UIConfig = {
       ns.Localization.Define({ key = "class", label = ns.Locale:Get("shared.ui.class_colors.6cfb0e") }, { label = "shared.ui.class_colors.6cfb0e" }),
       ns.Localization.Define({ key = "faction", label = ns.Locale:Get("shared.ui.faction_colors.8df4ef") }, { label = "shared.ui.faction_colors.8df4ef" }),
       ns.Localization.Define({ key = "health", label = ns.Locale:Get("shared.ui.green_to_red.b946ee") }, { label = "shared.ui.green_to_red.b946ee" }),
+      ns.Localization.Define({ key = "custom", label = ns.Locale:Get("shared.ui.custom_color.34cfc6") }, { label = "shared.ui.custom_color.34cfc6" }),
     },
     border = { default = 1, min = 0, max = 4, step = 1 },
     borderColors = {

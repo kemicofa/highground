@@ -74,7 +74,8 @@ local function PaintEdge(edge, color, alpha, readable)
     Theme.Paint(edge, Theme.ClassColor(color))
   elseif color then Core.ClassPaint(edge, color)
   else Theme.Paint(edge, readable and "textMuted" or "border") end
-  edge:SetAlpha((alpha or 1) * (edge.wbHealthKnown == false and Theme.Alpha("healthLineUnseen") or 1))
+  edge:SetAlpha((alpha or 1) * (edge.wbHealthKnown == false and Theme.Alpha("healthLineUnseen")
+    or edge.wbHealthStale and Theme.Alpha("healthLineStale") or 1))
 end
 function Hud.PaintEnemy(surface, color)
   surface.wbEnemyColor = color
@@ -100,12 +101,14 @@ function Hud.HealthLine(bar)
 end
 
 -- Unknown health keeps the existing faded treatment, including after a
--- theme switch. This flag only describes whether the API drew a reading.
-function Hud.HealthKnown(bar, known)
+-- theme switch. These flags only describe whether a reading was drawn, and
+-- whether it is the last one seen rather than a live one.
+function Hud.HealthKnown(bar, known, stale)
   local line = bar.wbHealthLine
   if not line then return end
-  line.wbHealthKnown = known
-  line:SetAlpha(Theme.Alpha("healthLine") * (known and 1 or Theme.Alpha("healthLineUnseen")))
+  line.wbHealthKnown, line.wbHealthStale = known, known and stale or nil
+  line:SetAlpha(Theme.Alpha("healthLine") * (not known and Theme.Alpha("healthLineUnseen")
+    or stale and Theme.Alpha("healthLineStale") or 1))
 end
 
 function Hud.EnemySurface(parent)

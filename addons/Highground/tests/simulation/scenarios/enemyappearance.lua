@@ -10,6 +10,7 @@ local function make(client, saved, disabled)
     F.configure(disabled)(s, env)
     if client == "forever" then env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end end
     dofile("../../tools/wowsim/geometry.lua")(s)
+    dofile("../../tools/wowsim/anchors.lua")(s)
   end)
 end
 for _, client in ipairs({ "cata", "retail", "forever" }) do
@@ -19,10 +20,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:command("enemy")
     local p = O.byKey["battlegrounds-appearance"]
     click(p.preview); click(p.applyEnemyPreset)
-    assert(C.hero:IsShown() and not C.rows[1].rank:IsShown(), "readable preset emphasizes the card and names")
-    equal(C.rows[1]:GetHeight(), 44, "readable row")
-    equal(C.rows[1].hp:GetHeight(), 16, "readable health")
-    equal(C.frame:GetWidth(), 380, "readable width")
+    assert(not C.hero:IsShown() and C.rows[1].rank:IsShown(), "preset preserves default visibility")
+    equal(C.rows[1]:GetHeight(), 38, "readable row stays close to normal density")
+    near(C.rows[1].hp:GetHeight(), 12, "readable health")
+    equal(C.frame:GetWidth(), 320, "preset preserves the normal width")
     near(C.rows[1].base.colorTexture[4], 0.95, "solid row background")
     equal(C.StyleChoice("barColor").key, "class", "shared color preserved")
     equal(C.StyleChoice("bar").key, "flat", "shared texture preserved")
@@ -62,7 +63,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local frames = #s.frames
     for _ = 1, 3 do
       s:command("enemy preset compact"); assert(C.compact and not C.hero:IsShown())
-      s:command("enemy preset readable"); assert(not C.compact and C.hero:IsShown())
+      s:command("enemy preset readable"); assert(C.compact and not C.hero:IsShown())
+      s:command("compact off")
     end
     equal(#s.frames, frames, "presets reuse existing rows and controls")
     click(p.preview); assert(not C.testMode and not O.AppearancePreview.session, "preview stops")
@@ -108,6 +110,77 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     C.ResetStyle("battlegrounds")
     equal(C.db.style.enemyColor, nil, "owner reset clears override")
     s:assertHealthy(); again:assertHealthy()
+  end)
+
+  test(client .. " enemy presets preserve visibility, geometry preferences and the live roster", function()
+    local s = make(client)
+    for i = 1, 12 do s:enemy("Enemy" .. i, { health = 25 + i * 5 }) end
+    s:join(); s:advance(1); s:command("rows 5")
+    local C = s.ns.Core
+    assert(not C.ShowsElement("hero"), "hero is opt-in on a fresh install")
+    C.SetMetric("width", 350, false); C.SetMetric("width", 280, true)
+    C.SetMetric("padding", 7, false); C.SetMetric("padding", 5, true)
+    C.SetMetric("row", 33, true); C.SetPanelScale("main", 1.15)
+    C.SetElement("rank", false); C.SetElement("distance", false)
+    local order, scale, position = { unpack(C.displayOrder) }, C.frame:GetScale(), C.pos.point
+    for _, hero in ipairs({ false, true }) do
+      s:command("enemy hero " .. (hero and "on" or "off"))
+      for _, preset in ipairs({ "readable", "default", "compact", "readable", "default" }) do
+        s:command("enemy preset " .. preset)
+        equal(C.ShowsElement("hero"), hero, "preset preserves explicit hero choice")
+        equal(C.hero:IsShown(), hero, "hero visibility follows that choice")
+        assert(not C.ShowsElement("rank") and not C.ShowsElement("distance"), "element choices preserved")
+        equal(C.Metric("width", false), 350, "normal width preserved")
+        equal(C.Metric("width", true), 280, "compact width preserved")
+        equal(C.Metric("padding", false), 7, "normal padding preserved")
+        equal(C.Metric("padding", true), 5, "compact padding preserved")
+        equal(C.frame:GetScale(), scale, "panel scale preserved")
+        equal(C.pos.point, position, "saved position preserved")
+        equal(C.db.rows, 5, "configured row limit preserved")
+        equal(#C.displayOrder, #order, "full roster retained")
+        for i, entry in ipairs(order) do equal(C.displayOrder[i], entry, "sort order preserved") end
+        for i, row in ipairs(C.rows) do
+          equal(row:IsShown(), i <= 5, "usual enemy count")
+          if i <= 5 then
+            equal(row.entry, order[i], "same enemy in each row")
+            assert(row:GetAttribute("macrotext1"):find(C.DisplayName(order[i].key), 1, true), "target binding retained")
+          end
+        end
+        if not C.IsCompact() then equal(C.Metric("row", true), 33, "inactive layout preserved") end
+      end
+    end
+    s:assertHealthy()
+  end)
+
+  test(client .. " health-style and theme transitions finish every row without anchor cycles", function()
+    local s = make(client)
+    s:command("enemy")
+    local C, p = s.ns.Core, s.ns.Options.byKey["battlegrounds-appearance"]
+    click(p.preview)
+    local order = { unpack(C.displayOrder) }
+    for _, compact in ipairs({ false, true, false }) do
+      s:command("compact " .. (compact and "on" or "off"))
+      for _, from in ipairs({ "bar", "fill", "line" }) do
+        for _, to in ipairs({ "bar", "fill", "line" }) do
+          s:command("enemy style " .. from)
+          p.enemyControls.style:SetValue(to)
+          equal(C.HealthStyle(), to, "UI commits style")
+          for i, row in ipairs(C.rows) do
+            equal(row.barMode, to == "bar", "every row completes style transition")
+            equal(row.fillMode, to == "fill", "every row completes fill transition")
+            near(row:GetHeight(), C.ROW_H, "consistent row height")
+            equal(select(3, row:GetPoint()), -C.LIST_TOP - (i - 1) * (C.ROW_H + C.GAP), "even row spacing")
+          end
+        end
+      end
+      for _, theme in ipairs(s.ns.Theme.Names()) do
+        s:command("enemy style bar"); p.enemyControls.style:SetValue("fill")
+        s:command("theme " .. theme)
+        for i, entry in ipairs(order) do equal(C.rows[i].entry, entry, "theme keeps the enemy list") end
+      end
+    end
+    click(p.preview); assert(not C.testMode, "preview stops after repeated transitions")
+    s:assertHealthy()
   end)
 end
 

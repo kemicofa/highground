@@ -335,23 +335,21 @@ function Core.ApplyEnemyStyle()
 end
 
 -- Explicit presets only: installation and theme switches never overwrite a
--- player's layout. Apply once so the secure geometry can defer as a whole.
+-- player's choices. Visibility, width, scale and the inactive layout survive.
+-- Only Compact bars explicitly changes docking; Readable keeps the layout.
 function Core.SetEnemyPreset(key)
   if not Find(A.enemyPresets, key) then return false end
   local style = Core.StyleDB()
-  for _, layout in ipairs({ "normal", "compact" }) do
-    for _, metric in ipairs({ "width", "row", "gap", "padding", "health", "healthBar" }) do Sub(layout)[metric] = nil end
-  end
-  style.hide, style.healthStyle, style.enemyColor, style.enemyBar, style.enemyCustom = nil, nil, nil, nil, nil
+  if key == "compact" then Core.db.compact = true end
+  local compact = Core.IsCompact()
+  local metrics = Sub(compact and "compact" or "normal")
+  for _, metric in ipairs({ "row", "gap", "health", "healthBar" }) do metrics[metric] = nil end
+  style.healthStyle, style.enemyColor, style.enemyBar, style.enemyCustom = nil, nil, nil, nil
   for _, def in ipairs(A.enemyNumbers) do style[def.key] = nil end
-  Core.db.compact = key == "compact"
   if key ~= "default" then
     style.healthStyle, style.enemyColor, style.enemyBar = "bar", "health", "blizzard"
     style.enemyBackground, style.enemyNames = 0.95, 0.85
-    Sub("hide").rank, Sub("hide").hero = true, key == "compact"
-    local normal, compact = Sub("normal"), Sub("compact")
-    normal.width, normal.row, normal.gap, normal.healthBar = 380, 44, 4, 16
-    compact.width, compact.row, compact.gap, compact.healthBar = 300, 28, 2, 8
+    metrics.row, metrics.gap, metrics.healthBar = compact and 26 or 38, compact and 1 or 2, compact and 6 or 12
   end
   Core.ApplyStyle()
   return true

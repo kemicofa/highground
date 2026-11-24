@@ -48,6 +48,8 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 
 `C_Secrets` reports per unit what is secret: `ShouldUnitHealthMaxBeSecret`, `ShouldUnitPowerBeSecret`, `ShouldUnitPowerMaxBeSecret`, `ShouldUnitSpellCastingBeSecret` and `ShouldUnitIdentityBeSecret` return true; `ShouldUnitThreatStateBeSecret` returns false.
 
+The two-argument checks agree with the reads they guard, so they can replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`). With an enemy as target: `HasSecretRestrictions()` and `CanCompareUnitTokens("target", "player")` return true, and `ShouldUnitAuraIndexBeSecret("target", 1)` returns true, matching the refused auras. `ShouldUnitComparisonBeSecret("targettarget", "player")` matched `UnitIsUnit("targettarget", "player")` in every paired read: true with a secret result, false with a plain one. With a teammate as target, `ShouldUnitIdentityBeSecret` returns false (true for enemies), while `ShouldUnitAuraIndexBeSecret` still returns true, so teammates' auras are likely secret too (no aura read made). Read live in Arathi Basin, build 71037, 2026-11-24.
+
 ### Loss of control
 
 `C_LossOfControl.GetActiveLossOfControlDataCountByUnit(unit)` is readable for enemies on `target`, `nameplateN` and `raidNtarget`: 1 while the enemy is controlled, 0 within 0.1 s after the effect ends. In `GetActiveLossOfControlDataByUnit(unit, 1)` only `priority` and `displayType` are readable, and they don't separate kinds: Gouge, Cheap Shot and Kidney Shot all read 5 and 2. The type, duration, spell and icon are secret.
@@ -55,6 +57,22 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 ### Flag positions
 
 Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old global `GetBattlefieldFlagPosition` no longer exists, while `GetNumBattlefieldFlagPositions` does. In Warsong Gulch, with both flags carried, the count read 2: your team's carrier had a readable position (`0.50, 0.14`), the enemy carrier had `nil` even when targeted 30 yards away. Textures are file IDs: 137200 is the Alliance flag, 137218 the Horde flag.
+
+### Enemy's target
+
+With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` returns true and `UnitName` returns the name of the player the enemy targets, your own or a teammate's, neither secret. `UnitIsUnit("targettarget", "player")` is secret (true when the enemy targets you, false otherwise). To tell who an enemy targets, compare names with yours and your group's. The same works for every visible nameplate: `UnitName("nameplateNtarget")` read plainly for enemies and teammates alike, with the surname as the second return, and one read showed three enemies targeting you. So Highground can count the visible enemies on you or on a healer, not only your target's. Read live in Arathi Basin, build 71037, 2026-11-24.
+
+### Interaction distance
+
+`CheckInteractDistance(unit, i)` is readable for an enemy player, in and out of combat. Indexes 1 and 4 give the 28-yard band: true near the enemy, false farther away. Indexes 2, 3 and 5 turned true only in melee range, so they mark a melee band rather than 10 or 11 yards. Read live in Arathi Basin, build 71037, 2026-11-24.
+
+### In combat
+
+`UnitAffectingCombat(unit)` stays readable for an enemy player during a match: it read true for an enemy in a fight and false for one out of it, neither secret. "Not in combat" can mark an enemy arriving or drinking. Read live in Arathi Basin, build 71037, 2026-11-24.
+
+### Tooltip lines
+
+Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy player, the name line included: name, guild, "Level 32 Night Elf (Player)", class, faction and "PvP". `rightText` is nil. The lines can be displayed but not read, so they reveal nothing the direct reads hide. Read live in Arathi Basin, build 71037, 2026-11-24.
 
 ## Teammate reads
 
@@ -79,46 +97,16 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.
 
-**Enemy's target.** If readable, Highground could alert "targeting you" or "on our healer" on WoW Forever.
-
-```
-/run local a=UnitIsUnit("targettarget","player") local n=UnitName("targettarget") print("ToT",n,issecretvalue(n),"me",a,issecretvalue(a))
-```
-
-**Interaction distance.** `CheckInteractDistance(unit, 1-5)` gives fixed distance bands (about 10, 11 and 28 yards). Readable bands would refine range when spells don't cover them.
-
-```
-/run for i=1,5 do local v=CheckInteractDistance("target",i) print(i,v,issecretvalue(v)) end
-```
-
-**In combat.** `UnitAffectingCombat` read `false` right after the gates opened. Check that it stays readable while the enemy fights; "not in combat" could mark someone arriving or drinking.
-
-```
-/run print(UnitAffectingCombat("target"),issecretvalue(UnitAffectingCombat("target")))
-```
-
-**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Outside a battleground a friendly Tauren druid in Moonkin form read `Humanoid 7581785 false`: the model file ID is plain there, and `UnitCreatureType` doesn't change with form (live, 2026-11-24). Highground uses it (#326) where readable; Tauren and Night Elf are thought to share this model, and a later druid race may bring its own (IDs seen are counted in `liveStats.druidModels`). Still to check: an enemy inside a match (identity reads are secret there) and that caster form reads a different ID. Target the druid and run:
+**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Outside a battleground a friendly Tauren druid in Moonkin form read `Humanoid 7581785 false`: the model file ID is plain there, and `UnitCreatureType` doesn't change with form (live, 2026-11-24). Highground uses it (#326) where readable; Tauren and Night Elf are thought to share this model, and a later druid race may bring its own (IDs seen are counted in `liveStats.druidModels`). Still to check: an enemy inside a match (identity reads are secret there) and that caster form reads a different ID. Needs a level bracket where druids have Moonkin Form; a level 33 match had none. Target the druid and run:
 
 ```
 /run local m=CreateFrame("PlayerModel",nil,UIParent)m:SetSize(9,9)m:SetPoint("CENTER")m:SetUnit("target")C_Timer.After(1,function()local f=m:GetModelFileID()print(UnitCreatureType("target"),f,issecretvalue(f))m:Hide()end)
 ```
 
-**Arena crowd-control duration.** `C_PvP.GetArenaCrowdControlDuration(unit)` returned a duration object for an enemy in a battleground. It may be the PvP trinket cooldown in a form a cooldown widget can draw without Highground reading it. List its methods first:
+**Arena crowd-control duration.** `C_PvP.GetArenaCrowdControlDuration(unit)` returns a `LuaDurationObject`, the PvP trinket cooldown that `C_PvP.RequestCrowdControlSpell(unit)` asks the server for; `GetArenaCrowdControlInfo(unit)` gives its spell, start and duration. Its metatable is hidden, so list methods from Blizzard's `LuaDurationObjectAPI` documentation (`IsZero`, `HasSecretValues`, `GetRemainingDuration`...). For enemy targets in Arathi Basin (levels 30-39, build 71037, 2026-11-24), every read after a request was `IsZero` true, `HasSecretValues` true, 0 remaining, and the info call returned nothing. Enemies at those levels rarely carry a PvP trinket, so this isn't conclusive. Still to check: an enemy right after a trinket or a trinket-like racial, in a higher bracket. If it fills, `Cooldown:SetCooldownFromDurationObject` could draw it without Highground reading it.
 
 ```
-/run local d=C_PvP.GetArenaCrowdControlDuration("target") print(d,type(d)) local m=d and getmetatable(d) if type(m)=="table" and type(m.__index)=="table" then for k in pairs(m.__index) do print(k) end end
-```
-
-**Tooltip lines.** `C_TooltipInfo.GetUnit(unit)` returned readable fields with secret GUIDs; the probe didn't open its `lines`. Some may hold text the direct reads hide.
-
-```
-/run for i,l in ipairs(C_TooltipInfo.GetUnit("target").lines) do print(i,l.leftText,issecretvalue(l.leftText)) end
-```
-
-**Ask the game what is secret.** The two-argument `C_Secrets` checks (`ShouldUnitComparisonBeSecret`, `CanCompareUnitTokens`, `ShouldUnitAuraIndexBeSecret`...) weren't called. Capability checks through `C_Secrets` could replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`).
-
-```
-/run print(C_Secrets.CanCompareUnitTokens("target","player"),C_Secrets.ShouldUnitComparisonBeSecret("target","player"))
+/run local u="target" C_PvP.RequestCrowdControlSpell(u) C_Timer.After(1,function()local d=C_PvP.GetArenaCrowdControlDuration(u) print("zero",d:IsZero(),"sec",d:HasSecretValues(),"rem",d:GetRemainingDuration(),"info",C_PvP.GetArenaCrowdControlInfo(u))end)
 ```
 
 Record results here with the date and build.

@@ -189,6 +189,14 @@ local function Prune(now)
   end
 end
 
+-- Your own party or raid. A queued instance group is not who you play with
+-- out here, and its chat is the instance's.
+function Share.GroupChannel()
+  local home = LE_PARTY_CATEGORY_HOME
+  if Util.read(IsInRaid, home) then return "RAID" end
+  if Util.read(IsInGroup, home) then return "PARTY" end
+end
+
 local groupT = (math.random and math.random() or 0) * Share.GROUP_EVERY
 local guildT = (math.random and math.random() or 0) * Share.GUILD_EVERY
 function Share.Tick(elapsed)
@@ -202,8 +210,8 @@ function Share.Tick(elapsed)
   local now = GetTime()
   if groupT >= Share.GROUP_EVERY then
     groupT = 0
-    local channel = Comms.GroupChannel()
-    if channel == "RAID" or channel == "PARTY" then Batch("group", channel, now) else wipe(queues.group) end
+    local channel = Share.GroupChannel()
+    if channel then Batch("group", channel, now) else wipe(queues.group) end
   end
   if guildT >= Share.GUILD_EVERY then
     guildT = 0
@@ -293,7 +301,7 @@ function Share.Receive(text, channel, sender)
       end
     end
   end
-  if changed and ns.Nearby.Update then ns.Nearby.Update() end
+  if changed then ns.Nearby.Refresh() end
 end
 
 -- One line for /hg nearby.

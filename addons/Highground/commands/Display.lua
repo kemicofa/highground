@@ -55,6 +55,8 @@ function Commands.arena(arg, msg, say)
   end
   say(ns.Locale:Format("highground.display.arena_duels_value2_hg_arena_on_off.ebae9d", { value2 = (Core.On("arena") and "on" or "off") }))
 end
+-- Games without arenas have no Arena module, so no command (core/Modules.lua).
+if not ns.Modules.byKey.arena then Commands.arena = nil end
 
 function Commands.call(arg, msg, say)
   if Core.CALL_CHANNELS[arg] then

@@ -348,6 +348,6 @@ end
 
 Options.appearance = Build("appearance")
 for _, owner in ipairs({ "battlegrounds", "arena", "nearby", "bounties" }) do
-  Build(Options.addonPages[owner].appearance, owner)
+  if Options.addonPages[owner] then Build(Options.addonPages[owner].appearance, owner) end
 end
 ns.RefreshOpacityOption = Options.appearance.RefreshAppearance

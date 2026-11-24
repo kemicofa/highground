@@ -17,6 +17,14 @@ local M = { list = {
     description = ns.Locale:Get("highground.modules.macro_presets_the_macro_builder_and_spell.4132f4") }, { name = "highground.modules.macros.899bd6", description = "highground.modules.macro_presets_the_macro_builder_and_spell.4132f4" }),
 }, byKey = {}, featureOwners = {} }
 ns.Modules = M
+-- A game without arenas (WoW Forever) has no Arena module: no page, switch,
+-- command, preview or guide chapter, and its features stay off.
+local game = ns.Games and ns.Games[ns.GAME]
+if game and not game.arenaSize then
+  for i = #M.list, 1, -1 do
+    if M.list[i].key == "arena" then table.remove(M.list, i) end
+  end
+end
 local api = C_AddOns or {}
 local metadata = api.GetAddOnMetadata or GetAddOnMetadata
 -- Installed folders change after a client restart. Include disabled copies,
@@ -78,7 +86,7 @@ function M.FeatureEnabled(key) return M.Active(M.featureOwners[key]) end
 -- old links cannot reopen a disabled module or restart its previews.
 function M.Require(key)
   if M.Active(key) then return true end
-  if ns.Hub then ns.Hub.Show("module-" .. key) end
+  if ns.Hub and M.byKey[key] then ns.Hub.Show("module-" .. key) end
   return false
 end
 

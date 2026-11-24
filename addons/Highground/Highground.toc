@@ -32,7 +32,6 @@ libs/locale/ruRU.lua
 libs/locale/zhCN.lua
 libs/locale/zhTW.lua
 libs/locale/Highground.lua
-core/Modules.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
@@ -44,6 +43,7 @@ config/Focus.lua
 features/battlegrounds/config/forever/Classes.lua
 features/battlegrounds/config/retail/Classes.lua
 libs/config/Client.lua
+core/Modules.lua
 features/battlegrounds/config/Battlegrounds.lua
 features/battlegrounds/config/battlegrounds/AlteracValley.lua
 features/battlegrounds/config/battlegrounds/ArathiBasin.lua

@@ -119,7 +119,10 @@ function Hub.Sections()
   end
   for _, s in ipairs(LAYOUT) do
     if s.group then
-      list[#list + 1] = { group = s.group, labelKey = ns.Localization.Key(s, "groupLabel"), module = s.module, collapsed = s.collapsed }
+      -- No group for an addon this game lacks; its pages are never registered.
+      if not s.module or ns.Modules.byKey[s.module] then
+        list[#list + 1] = { group = s.group, labelKey = ns.Localization.Key(s, "groupLabel"), module = s.module, collapsed = s.collapsed }
+      end
     elseif OWN[s.key] then
       add(s)
     else

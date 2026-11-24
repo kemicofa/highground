@@ -1,7 +1,8 @@
 local _, ns = ...
 local C = ns.CommandCatalog
--- Retained standalone hosts have their own slash entry points.
-if not C then return end
+-- Retained standalone hosts have their own slash entry points. Games
+-- without arenas have no Arena module (core/Modules.lua).
+if not C or ns.Modules and not ns.Modules.byKey.arena then return end
 C.Register("arena", "highground.modules.arena.1a4ba8", {
   C.Action("arena", "arena.commands.show_arena_and_duel_panel_status_in.81994c", "arena.commands.show_arena_status.d5cf4d"),
   C.Link("arena on", "arena.commands.enable_or_disable_the_arena_and_duel.ec3e83", "arena-settings", "arena.commands.arena_panel_switch.3e4654", { aliases = { "arena off" } }),

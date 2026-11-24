@@ -142,7 +142,7 @@ assert(#sim.sent == sent, "changing display language never sends data")
 assert(adapter.SetPreference("frFR"))
 assert(l:Get("locale.title") == "Langue", "this test uses the shipped French catalog")
 assert(ns.CommandCatalog.groups[2].label ~= "Battlegrounds", "owning-addon command heading is translated")
-assert(ns.Options.byKey["arena-settings"].name ~= "Arena: Settings", "generated page names refresh after login")
+assert(ns.Options.byKey["nearby-appearance"].name ~= "Nearby: Appearance", "generated page names refresh after login")
 ns.Onboarding.Start("features")
 local coach = ns.Onboarding.Coach
 local before, body = coach.index, coach.win.body:GetText()

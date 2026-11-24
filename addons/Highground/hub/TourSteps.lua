@@ -63,7 +63,10 @@ O.steps = {
     actions = { native("users"), page("highground.commands.open_addon_users.1c5288", "users") } }, { label = "highground.hub.addon_users.1e4e6f", summary = "highground.toursteps.read_channel_membership_version_reports_and_discovery.acd1fd" }),
 }
 
-function O.Available(step) return not step.available or step.available() end
+function O.Available(step)
+  if step.module and not ns.Modules.byKey[step.module] then return false end -- not in this game
+  return not step.available or step.available()
+end
 function O.Guides(extra)
   local result = {}
   for _, step in ipairs(O.steps) do

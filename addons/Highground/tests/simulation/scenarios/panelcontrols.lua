@@ -84,6 +84,33 @@ test(client .. " unlocking a compact column in combat explains why dragging must
 end)
 end
 
+for _, compact in ipairs({ false, true }) do
+test((compact and "a docked column" or "the main panel") .. " released in combat stops moving once combat ends", function()
+  local sim = new("cata")
+  local C = sim.ns.Core
+  sim:enemy("Enemy"); sim:join()
+  if compact then sim:command("compact on") end
+  sim:command("unlock")
+  local frame, stops = C.frame, 0
+  frame.StopMovingOrSizing = function()
+    assert(not sim.combat, "a panel with secure rows can't stop moving in combat")
+    stops = stops + 1
+  end
+  local handle = compact and sim.env.HighgroundTimersFrame or frame
+  handle.scripts.OnDragStart(handle)
+  frame:ClearAllPoints(); frame:SetPoint("CENTER", sim.env.UIParent, "CENTER", 70, 90)
+  sim:setCombat(true)
+  handle.scripts.OnDragStop(handle)
+  equal(stops, 0, "still following the cursor in combat")
+  handle.scripts.OnDragStart(handle); handle.scripts.OnDragStop(handle)
+  equal(stops, 0, "a drag tried in combat changes nothing")
+  sim:setCombat(false)
+  equal(stops, 1, "stopped when combat ends")
+  equal(C.pos.point[3], 70); equal(C.pos.point[4], 90)
+  sim:assertHealthy()
+end)
+end
+
 test("saved profiles and reloads keep lock controls and frameless headers in sync", function()
   local sim = new("cata")
   local C, H = sim.ns.Core, sim.ns.Hub

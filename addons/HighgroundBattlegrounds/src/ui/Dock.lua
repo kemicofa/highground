@@ -85,16 +85,35 @@ function Core.Undock()
   end
 end
 
--- Dragging a docked window moves the whole column.
+-- Dragging a docked window moves the whole column. A protected head can't
+-- stop in combat: a drag released then ends, and is saved, after combat.
+local moving, regen -- the head being dragged
+local function StopColumn(head)
+  if InCombatLockdown() and Protected(head) then
+    if moving ~= head then return end
+    if not regen then
+      regen = CreateFrame("Frame")
+      regen:SetScript("OnEvent", function(f)
+        f:UnregisterEvent("PLAYER_REGEN_ENABLED")
+        if moving then ns.Util.RunGuarded("column drag", function() StopColumn(moving) end) end
+      end)
+    end
+    regen:RegisterEvent("PLAYER_REGEN_ENABLED")
+    return
+  end
+  moving = nil
+  head:StopMovingOrSizing()
+  local p, _, rp, x, y = head:GetPoint()
+  Core.pos.point = { p, rp, x, y }
+end
+
 function Core.DockDrag(w, start)
   local head = Core.DockHead()
   if not head then return false end
   if start then
-    if not (Core.db.locked or (InCombatLockdown() and Protected(head))) then head:StartMoving() end
+    if not (Core.db.locked or (InCombatLockdown() and Protected(head))) then moving = head; head:StartMoving() end
   else
-    head:StopMovingOrSizing()
-    local p, _, rp, x, y = head:GetPoint()
-    Core.pos.point = { p, rp, x, y }
+    StopColumn(moving or head)
   end
   return true
 end

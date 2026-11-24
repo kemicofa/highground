@@ -32,7 +32,7 @@ local function pins(sim)
   for _, pin in ipairs(sim.env.WorldMapFrame.pins) do
     local item, lines = pin.item, {}
     if item.tooltip then item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }) end
-    out[#out + 1] = { label = item.label or "", tip = table.concat(lines, "\n") }
+    out[#out + 1] = { label = item.label or "", tip = table.concat(lines, "\n"), x = pin.x, y = pin.y }
   end
   return out
 end
@@ -238,6 +238,37 @@ t.test("graveyard pins follow ownership changes and name each clock's source", f
   assert(pinWith(sim, "graveyard: Stables").tip:find("(from a teammate)", 1, true), "teammate's clock named")
   g.wave, g.conf, g.bins, g.votes = nil, nil, { [5] = 2 }, 2
   assert(pinWith(sim, "graveyard: Stables").tip:find("(estimated from enemy deaths)", 1, true), "votes named")
+end)
+
+-- WoW Forever Darkspear Islands, 2026-11-24: the Shipwreck Cove pin sat
+-- below the spirit healer, although its release position was saved.
+t.test("saved release positions pin graveyards where they are; a base icon guess sits below it", function()
+  local sim = new("retail", nil, function(s)
+    s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+    s.env.loadstring_untainted, s.secureSnippets = nil, false
+    s.rated, s.blitz = false, false
+    s.faction, s.scores[1].faction = 0, 0
+  end)
+  sim:enemy("Enemy With Surname")
+  local T = sim.ns.Timers
+  T.LearnedDB().gyLearned = { [2524] = {
+    { team = "H", x = 0.4523, y = 0.3634, label = "Shipwreck Cove", exact = true, fromPlace = false },
+    { team = "H", x = 0.6, y = 0.45, label = "Abandoned Tower", fromPlace = false },
+  } }
+  sim:join(2524, 2997, "Darkspear Islands")
+  local cove = pinWith(sim, "graveyard: Shipwreck Cove")
+  equal(cove.x .. "," .. cove.y, "0.4523,0.3634", "at the saved release position")
+  local tower = pinWith(sim, "graveyard: Abandoned Tower")
+  assert(math.abs(tower.y - 0.475) < 1e-9, "a guessed spot sits below the base icon: " .. tower.y)
+  -- Released at the tower's spirit healer: its saved guess becomes exact.
+  sim.releasePosition, sim.healerTime = { x = 0.61, y = 0.43 }, 12
+  sim.units.player.ghost = true
+  sim:advance(0.5)
+  local saved = T.LearnedDB().gyLearned[2524][2]
+  equal(saved.x .. "," .. saved.y .. "," .. tostring(saved.exact), "0.61,0.43,true", "saved at the release position")
+  tower = pinWith(sim, "graveyard: Abandoned Tower")
+  equal(tower.x .. "," .. tower.y, "0.61,0.43", "and pinned there")
+  equal(#T.LearnedDB().gyLearned[2524], 2, "no second tower graveyard")
 end)
 
 t.finish("Battleground timers: " .. t.tests .. " tests")

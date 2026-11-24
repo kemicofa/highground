@@ -142,7 +142,7 @@ The definitions live in [BattleForGilneas.lua](../../HighgroundBattlegrounds/src
 
 ## Graveyard map labels
 
-All battleground graveyard pins use compact names, with full names on hover. Timer-window names retain their full wording.
+All battleground graveyard pins use compact names, with full names on hover. Timer-window names retain their full wording. A graveyard placed from the game's release position (dying there once is enough; it is saved per map) is pinned exactly there. One known only from its base icon is pinned just below the icon until then.
 
 | Battleground | Map labels |
 | --- | --- |

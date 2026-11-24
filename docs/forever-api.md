@@ -74,6 +74,10 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 
 Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy player, the name line included: name, guild, "Level 32 Night Elf (Player)", class, faction and "PvP". `rightText` is nil. The lines can be displayed but not read, so they reveal nothing the direct reads hide. Read live in Arathi Basin, build 71037, 2026-11-24.
 
+### PvP trinket
+
+`C_PvP.GetArenaCrowdControlDuration(unit)` returns a `LuaDurationObject` for the PvP trinket cooldown that `C_PvP.RequestCrowdControlSpell(unit)` asks the server for, and `GetArenaCrowdControlInfo(unit)` its spell, start and duration. For enemy targets in a battleground the object stays empty: every read after a request, including right after the target used its PvP trinket, was `IsZero` true, `HasSecretValues` true, 0 remaining, and the info call returned nothing. The calls likely serve arena opponents (`arenaN`) only; arenas weren't checked. Read live in Arathi Basin, build 71037, 2026-11-24.
+
 ## Teammate reads
 
 - `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
@@ -92,6 +96,7 @@ Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy p
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
 | Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
 | Enemy power type readable; a Moonkin's model file ID readable outside a match | Druid form estimates on WoW Forever: ~Restoration, ~Feral, ~Balance from a Moonkin model (#326) |
+| Enemies' target names readable | On you, on your healer and the header's ON YOU count on WoW Forever (#339) |
 
 ## Leads to try
 
@@ -101,12 +106,6 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 
 ```
 /run local m=CreateFrame("PlayerModel",nil,UIParent)m:SetSize(9,9)m:SetPoint("CENTER")m:SetUnit("target")C_Timer.After(1,function()local f=m:GetModelFileID()print(UnitCreatureType("target"),f,issecretvalue(f))m:Hide()end)
-```
-
-**Arena crowd-control duration.** `C_PvP.GetArenaCrowdControlDuration(unit)` returns a `LuaDurationObject`, the PvP trinket cooldown that `C_PvP.RequestCrowdControlSpell(unit)` asks the server for; `GetArenaCrowdControlInfo(unit)` gives its spell, start and duration. Its metatable is hidden, so list methods from Blizzard's `LuaDurationObjectAPI` documentation (`IsZero`, `HasSecretValues`, `GetRemainingDuration`...). For enemy targets in Arathi Basin (levels 30-39, build 71037, 2026-11-24), every read after a request was `IsZero` true, `HasSecretValues` true, 0 remaining, and the info call returned nothing. Enemies at those levels rarely carry a PvP trinket, so this isn't conclusive. Still to check: an enemy right after a trinket or a trinket-like racial, in a higher bracket. If it fills, `Cooldown:SetCooldownFromDurationObject` could draw it without Highground reading it.
-
-```
-/run local u="target" C_PvP.RequestCrowdControlSpell(u) C_Timer.After(1,function()local d=C_PvP.GetArenaCrowdControlDuration(u) print("zero",d:IsZero(),"sec",d:HasSecretValues(),"rem",d:GetRemainingDuration(),"info",C_PvP.GetArenaCrowdControlInfo(u))end)
 ```
 
 Record results here with the date and build.

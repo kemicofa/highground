@@ -48,6 +48,7 @@ local SCAN = { "target", "focus", "mouseover", "softenemy" }
 for i = 1, 4 do SCAN[#SCAN + 1] = ns.UnitTokens.arena[i] end
 for i = 1, 40 do SCAN[#SCAN + 1] = ns.UnitTokens.nameplate[i] end
 local TARGET_OF = ns.UnitTokens.target
+local NONE = {}
 -- Health as 0-100 on the Midnight client: secret, but drawable and printable.
 local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
 -- Druid power types guess a spec where nothing else can (core/Specs.lua).
@@ -109,6 +110,9 @@ function Core.ScanUnits()
   Core.db.liveStats = Core.db.liveStats or {}
   Core.db.liveStats.maxVisible = math.max(Core.db.liveStats.maxVisible or 0, visible)
 
+  -- Whom enemies target, by player key: you, and teammates who heal.
+  local myKey = Core.CanonUnit("player")
+  local healers = Core.TeamHealers and Core.TeamHealers() or NONE
   for key, e in pairs(Core.enemies) do
     local unit = Core.unitFor[key]
     e.unit = unit
@@ -237,11 +241,22 @@ function Core.ScanUnits()
       if not e.dead then
         e.diedAt = nil
       end
-      -- Is this enemy targeting you? Plain -> icon + reason; secret -> icon only.
+      -- Is this enemy targeting you or a teammate who heals? UnitIsUnit is
+      -- secret on the Midnight client, but the name of an enemy's target is
+      -- plain (WoW Forever, live 2026-11-24), so player keys decide there.
+      -- A secret answer without a readable name only lights the row's eye.
       -- Never truth-test a possibly-secret value ("x and y or z" does): only
       -- plain() / type() / issecret() may touch it before it's known plain.
-      e.onMeRaw = Util.call(UnitIsUnit, TARGET_OF[unit], "player")
-      e.onMe = Util.value(e.onMeRaw) == true
+      local onMe = Util.call(UnitIsUnit, TARGET_OF[unit], "player")
+      local targetKey
+      if not Core.plain(onMe) or next(healers) then targetKey = Core.CanonUnit(TARGET_OF[unit]) end
+      e.onMeRaw = onMe
+      if Core.plain(onMe) then
+        e.onMe = onMe == true
+      else
+        e.onMe = targetKey ~= nil and targetKey == myKey
+      end
+      e.onHealer = not e.onMe and targetKey and healers[targetKey] and targetKey or nil
       -- Raid marker (team calls). Remembered while out of sight, and kept
       -- when the call fails (raw pcall: nil from the game clears it).
       local okMark, mark = pcall(GetRaidTargetIndex, unit)
@@ -278,7 +293,7 @@ function Core.ScanUnits()
     else
       e.wasVisible = false
       e.range, e.rangeRaw, e.yards = nil, nil, nil
-      e.onMe, e.onMeRaw = false, nil
+      e.onMe, e.onMeRaw, e.onHealer = false, nil, nil
       e.cast = nil
       if GetTime() - (e.lastSeen or 0) > 4 then
         -- Out of sight for a while: drop stale aura state.

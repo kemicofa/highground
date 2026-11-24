@@ -190,6 +190,51 @@ test("an enemy only a teammate targets gets that unit while visible", function()
   end
 end)
 
+test("a secret UnitIsUnit falls back to the name of the enemy's target", function()
+  local s, _, env, core, enemy = client("retail")
+  local secret = { secret = true }
+  env.UnitIsUnit = function() return secret end
+  local targetOf = "Player"
+  env.CanonUnit = function(unit)
+    if unit == "player" then return "Player" end
+    if unit == "targettarget" then return targetOf end
+    return "Enemy"
+  end
+  core.TeamHealers = function() return { Healer = true } end
+  local P = env.P
+  env.P = function(key) if key == "onHealer" then return 10 end return P(key) end
+  core.ScanUnits()
+  assert(enemy.onMe and enemy.onMeRaw == secret and not enemy.onHealer, "your name means on you")
+  targetOf = "Healer"
+  core.ScanUnits()
+  core.Score(enemy)
+  assert(not enemy.onMe and enemy.onHealer == "Healer" and enemy.comp.peel == 10, "a healer's name scores the peel")
+  targetOf = "Other"
+  core.ScanUnits()
+  assert(not enemy.onMe and not enemy.onHealer, "anyone else is neither")
+  s.visible = false
+  targetOf = "Healer"
+  core.ScanUnits()
+  assert(not enemy.onMe and not enemy.onHealer, "out of view clears both")
+end)
+
+test("a plain UnitIsUnit decides on you; names still find healers", function()
+  local _, _, env, core, enemy = client("cata")
+  local targetOf = "Healer"
+  env.UnitIsUnit = function() return false end
+  env.CanonUnit = function(unit)
+    if unit == "player" then return "Player" end
+    return unit == "targettarget" and targetOf or "Enemy"
+  end
+  core.TeamHealers = function() return { Healer = true, Player = true } end
+  core.ScanUnits()
+  assert(not enemy.onMe and enemy.onHealer == "Healer", "on a teammate who heals")
+  targetOf = "Player"
+  env.UnitIsUnit = function() return true end
+  core.ScanUnits()
+  assert(enemy.onMe and not enemy.onHealer, "a healer on you is on you, not a peel")
+end)
+
 test("auras refused: the loss-of-control count marks crowd control, kind unknown", function()
   local s, _, env, core, enemy = client("retail")
   env.C_UnitAuras = { GetUnitAuras = function() error("Auras cannot be accessed when secret") end }

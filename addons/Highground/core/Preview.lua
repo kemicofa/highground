@@ -74,6 +74,8 @@ local function SeedEnemies(guided)
         testStacks = (n == 7) and 4 or nil,
         allyCount = (n == 1) and 4 or (n == 3) and 1 or 0,
         onMe = (n == 2 or n == 6),
+        -- n = 4 targets a sample teammate who heals.
+        onHealer = (n == 4) and Core.Canon("Aria") or nil,
         -- Raid markers only where enemy players can carry them.
         marker = ns.Caps.enemyMarks and ((n == 1) and 8 or (n == 5) and 7) or nil,
         -- In view (clickable, live distance); health and mana are fixed.

@@ -23,7 +23,9 @@ local function Store()
   return ns.Scope.Saved("healerTags", "social")
 end
 
-function Core.ClearPreviewHealerTags() wipe(previewTags) end
+local healersAt -- when Core.TeamHealers last read the group
+
+function Core.ClearPreviewHealerTags() wipe(previewTags); healersAt = nil end
 
 -- Whether a class has a healing spec; nil until the spec catalog is built.
 local healerClass = {}
@@ -85,6 +87,25 @@ function Core.TeamUnits(out)
   return out
 end
 
+-- Teammates who heal, by player key and by group token. Read once per tick
+-- for the healer marks and the enemy scan, and again after a mark changes.
+local healerKeys, healerUnits, healerTeam = {}, {}, {}
+function Core.TeamHealers()
+  local now = GetTime()
+  if healersAt ~= now then
+    healersAt = now
+    wipe(healerKeys); wipe(healerUnits)
+    for _, unit in ipairs(Core.TeamUnits(healerTeam)) do
+      local key = Core.TeamKey(unit)
+      if Core.TeamHealer(unit, key) then
+        if key then healerKeys[key] = true end
+        healerUnits[unit] = true
+      end
+    end
+  end
+  return healerKeys, healerUnits
+end
+
 local function UnitClassToken(unit)
   local _, class = Call(UnitClass, unit)
   if Core.plain(class) then return class end
@@ -103,6 +124,7 @@ function Core.TeamUnitByName(name)
 end
 
 local function Changed()
+  healersAt = nil
   if Core.UpdateHealerMarks then Core.UpdateHealerMarks() end
   if Core.RefreshTeamHealers then Core.RefreshTeamHealers() end
 end

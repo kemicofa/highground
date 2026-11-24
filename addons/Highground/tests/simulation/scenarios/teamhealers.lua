@@ -205,3 +205,33 @@ test("/hg test leaves the Team healers sample to its own preview button", functi
   W.Close()
   sim:assertHealthy()
 end)
+
+test("WoW Forever finds enemies on you and on your healers by their target's name", function()
+  local sim = new("retail", nil, forever)
+  local C = sim.ns.Core
+  C.SetElement("hero", true)
+  -- The game hides whether an enemy's target is you; the name stays plain.
+  local secret, isUnit = { secret = true }, sim.env.UnitIsUnit
+  sim.env.UnitIsUnit = function(a, b)
+    if b == "player" and a ~= "target" and a:find("target$") then return secret end
+    return isUnit(a, b)
+  end
+  sim.raid, sim.members = true, 2
+  sim.units.raid1 = sim.units.player
+  local healer = { name = "Lunara", classID = 5, role = "HEALER" }
+  sim.units.raid2 = healer
+  local _, onYou = sim:enemy("Alpha", { yards = 10 })
+  local _, onHealer = sim:enemy("Beta", { yards = 12 })
+  sim:join()
+  sim.units[onYou .. "target"], sim.units[onHealer .. "target"] = sim.units.player, healer
+  sim:advance(0.5)
+  local alpha, beta = sim:entry("Alpha"), sim:entry("Beta")
+  assert(alpha.onMe and not alpha.onHealer, "your name means on you")
+  assert(not beta.onMe and beta.onHealer == "Lunara-Realm", "a teammate who heals is named")
+  assert(C.subtitle.text:find("1 ON YOU", 1, true), "the header counts enemies on you")
+  assert(C.Explain(beta) and table.concat(beta.reasons, " "):find("targeting your healer Lunara", 1, true), "the reason names the healer")
+  sim.units[onYou .. "target"] = nil
+  sim:advance(0.5)
+  assert(not alpha.onMe and not C.subtitle.text:find("ON YOU", 1, true), "the count clears")
+  sim:assertHealthy()
+end)

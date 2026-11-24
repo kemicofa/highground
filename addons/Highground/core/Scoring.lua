@@ -137,6 +137,9 @@ function Core.Score(e)
   if e.onMe then
     Note(e, ns.Locale:Get("highground.scoring.targeting_you.c087c1"))
   end
+  if e.onHealer then
+    Add(e, "peel", Core.P("onHealer"), explain and Format("highground.scoring.targeting_your_healer_name.8bbe25", "name", Core.DisplayName(e.onHealer)))
+  end
   if e.burst then
     Add(e, "burst", Core.P("burst"), ns.Locale:Get("highground.scoring.bursting_pressure_forces_a_defensive.fcba5b"))
   end

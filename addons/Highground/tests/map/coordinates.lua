@@ -14,6 +14,22 @@ do
 end
 
 do
+  -- WoW Forever: C_PvP with the map, file-ID textures; the enemy carrier's
+  -- flag (ours) has no position, our carrier's (theirs) has one.
+  local s, ns, e = client({ unit = "arena1", modernFlags = true })
+  e.carrier = true
+  s.flags = { { 0.5, 0.14, 137218 }, { nil, nil, 137200 } }
+  s.tick()
+  check(s.flagMap == 1460, "flag positions are read for the current map")
+  check(ns.Test.intel[key] == nil or ns.Test.intel[key].by ~= "flag", "no position for our flag: the enemy carrier stays unplaced")
+  s.flags = { { 0.85, 0.8, 137200 } }
+  s.tick()
+  check(ns.Test.intel[key] and ns.Test.intel[key].x == 0.85 and ns.Test.intel[key].by == "flag",
+    "a client that gives our flag's position places the enemy carrier on it")
+  check(ns.Intel.FlagTeam(137200) == "A" and ns.Intel.FlagTeam(137218) == "H", "file IDs name the team")
+end
+
+do
   local s, ns = client()
   local x, y = ns.AreaXY(1339, "Silverwing Hold")
   check(x == 0.5 and y == 0.15, "configured anchors apply to every supported map alias")

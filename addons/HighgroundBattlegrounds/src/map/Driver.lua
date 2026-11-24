@@ -86,7 +86,8 @@ end
 function Intel.Probe()
   local missing = {}
   for _, path in ipairs({ "C_Map.GetBestMapForUnit", "C_Map.GetPlayerMapPosition", "C_AreaPoiInfo.GetAreaPOIForMap",
-    "C_ChatInfo.SendAddonMessage", "GetSubZoneText", "GetBattlefieldFlagPosition", "GetAreaSpiritHealerTime",
+    "C_ChatInfo.SendAddonMessage", "GetSubZoneText", C_PvP and C_PvP.GetBattlefieldFlagPosition and "C_PvP.GetBattlefieldFlagPosition"
+      or "GetBattlefieldFlagPosition", "GetAreaSpiritHealerTime",
     "CombatLogGetCurrentEventInfo", "UnitIsGhost", "C_DeathInfo.GetDeathReleasePosition" }) do
     local space, fn = path:match("^(.-)%.?([^.]+)$")
     local t = space ~= "" and _G[space] or _G

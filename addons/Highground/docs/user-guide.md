@@ -87,7 +87,7 @@ Some elements depend on your client, current observations and Appearance switche
 | Spec icons at the right edge (while hovering) | Shown when the game hasn't identified the spec. Click one to tag it; click the tagged icon again to remove the tag. Teammates with Highground receive tags while **Share observations** is on (Battlegrounds → Settings → Map and sharing), and tags are kept for later matches. A spec the game identifies this match (scoreboard, a talent-tree cast, or a Cata estimate) replaces a tag; a tag replaces earlier matches' history. The tooltip says who tagged it. |
 | `CAP 3.2` / `CAP ~3.2` | Capturing a base, with seconds remaining; `~` marks an estimated timer. Shown in the spec text's place. |
 | `FLAG`, `FLAG x3`, `ORB 30%` | Carrier information replaces the spec: flag carrier, flag debuff stacks, or extra damage taken from carrying an orb. |
-| Health bar, fill or thin line | Health when observable (**Health style** in Battlegrounds → Appearance: a bar under the name by default, the whole row, or a thin line). A muted bar is the last health seen before the enemy left view, kept for **Keep last seen health** (Target behavior, 15 s by default); a faded full bar means unknown health, not confirmed full health; a dead enemy's bar is empty. Teammates' targets count as in view while your client can see them. |
+| Health bar, fill or thin line | Health when observable (**Health style** in Battlegrounds → Appearance: a bar under the name by default, the whole row, or a thin line). A muted bar is the last health seen before the enemy left view, kept for **Keep last seen health** (Target behavior, 15 s by default); a faded full bar means unknown health, not confirmed full health; a dead enemy's bar is empty. Teammates' targets count as in view while your client can see them. In the normal Bar layout, range and priority use fitted columns beside health; every row keeps the same wider track and unchanged height. |
 | `TGT`, `FOC`, `T/F` | Your target, focus, or both. An ivory target edge and blue focus edge remain separate from class identity and the gold recommendation. Labels sit below the rank in expanded rows; compact rows keep the edges. |
 | `72%` | Health percentage, at the end of the bar or beside the name in other styles. Muted for a last-seen reading. On Cata it turns red at or below the execute threshold; Retail and WoW Forever show the game's number without Highground reading it, so the red execute outline marks that threshold there. |
 | Thin blue bottom bar | Mana for observed mana users (Cata); fades as the reading gets older. |
@@ -103,8 +103,6 @@ Some elements depend on your client, current observations and Appearance switche
 | Red edge/glow | An attack opening after defensive protection ends. A separate red outline indicates health under the execute threshold; reduced motion makes animated cues steady. |
 | Gold outline and coin | An active bounty on this enemy, when bounty markers are enabled. |
 | Dimmed row | Dead enemies are strongly dimmed; defensive protection, immunity or preserved crowd control also dims content. An enemy lost while its combat click is frozen is faded further. |
-
-In the normal layout, the health bar shares its lower line with range and priority. Those two columns reserve only enough room for their labels, keeping more width for health without making rows taller. Every row uses the same health-track width, including when its priority label is empty.
 
 The **status chip** shows one state at a time, in this precedence order:
 

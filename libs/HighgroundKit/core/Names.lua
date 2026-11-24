@@ -14,10 +14,14 @@ function Core.Canon(name)
   if type(name) ~= "string" or Core.issecret(name) or name == "" then
     return nil
   end
-  local short, realm = name:match("^([^-]+)-(.+)$")
-  if short then
+  local short, realm = name:match("^([^-]+)-(.*)$")
+  if short and realm ~= "" then
     return short .. "-" .. realm:gsub("%s", "")
   end
+  -- "Name-" was written while the realm or Forever ruleset was unknown.
+  -- It takes the current one as soon as it can be read, so both spellings
+  -- name the same player.
+  name = short or name
   realm = Core.myRealm
   if (not realm or realm == "") and ns.Caps and ns.Caps.rulesetRealms and ns.Scope then
     realm = ns.Scope.Ruleset()

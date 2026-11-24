@@ -67,8 +67,11 @@ end
 -- per saved table (false: the default one) and kind. The first store that
 -- resolves takes them over: newer pending values win, tables merge, and
 -- list entries join the newest end of their list. Lists named here keep
--- their newest entry first; other lists append.
+-- their newest entry first; other lists append. Tables named in S.MERGE
+-- use their function, merge(saved, early), for example to add counters up
+-- instead of restarting them.
 S.NEWEST_FIRST = { macroBackups = true, matches = true, bountyClaims = true, bountyKills = true }
+S.MERGE = {}
 local pending = {}
 local function Pending(db, kind)
   local slot = db or false
@@ -85,7 +88,11 @@ local function Merge(into, from, newestFirst)
   end
   for key, value in pairs(from) do
     if type(key) ~= "number" or key < 1 or key > count or key % 1 ~= 0 then
-      if type(value) == "table" and type(into[key]) == "table" then
+      local merge = S.MERGE[key]
+      if merge and type(value) == "table" then
+        if type(into[key]) ~= "table" then into[key] = {} end
+        merge(into[key], value)
+      elseif type(value) == "table" and type(into[key]) == "table" then
         Merge(into[key], value, S.NEWEST_FIRST[key])
       else into[key] = value end
     end

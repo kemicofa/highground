@@ -31,6 +31,24 @@ t.test("WoW Forever keeps two-part names whole and hides the ruleset", function(
   t.equal(C.CharacterName("Owner Bright").full, "Owner Bright-PvP", "identity keeps the ruleset")
 end)
 
+t.test("names written before the Forever ruleset is readable keep one identity", function()
+  local C, ns = Fixture({ rulesetRealms = true, hideRealmNames = true }, "")
+  local rule
+  ns.Scope.Ruleset = function() return rule end
+  local early = C.Canon("Owner Bright")
+  t.equal(early, "Owner Bright-", "no suffix while the ruleset is unknown")
+  t.equal(C.Canon(early), early, "and canonical names stay put")
+  rule = "PvP"
+  t.equal(C.Canon(early), "Owner Bright-PvP", "an early key takes the ruleset once known")
+  t.equal(C.Canon("Owner Bright"), C.Canon(early), "the same player as the plain name")
+  t.equal(C.Canon("Owner Bright-RP-PvP"), "Owner Bright-RP-PvP", "explicit suffixes are kept")
+  t.equal(C.DisplayName(early), "Owner Bright", "shown without a suffix")
+  local R = Fixture({}, nil)
+  t.equal(R.Canon("Mage"), "Mage-", "realm unknown before login")
+  R.myRealm = "Home"
+  t.equal(R.Canon("Mage-"), "Mage-Home", "and the own realm afterwards")
+end)
+
 t.test("cached answers follow realm and client rule changes; secrets bypass the cache", function()
   local C, ns = Fixture({}, nil)
   t.equal(C.DisplayName("Mage-Home"), "Mage-Home", "realm unknown at load")

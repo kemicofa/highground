@@ -19,7 +19,15 @@ Core.layoutPending = false
 -- and the big cooldowns they've used (icons with time left). Health, mana
 -- and priority are already on the row; scores stay internal (Target
 -- behavior > Refresh comparison). Rebuilt every tick while shown, so
--- cooldown timers count down live.
+-- cooldown timers count down live; the cooldown lists are reused.
+local active, downs, slots = {}, {}, {}
+local function Slot(list, n, entry, left)
+  local s = slots[n] or {}
+  slots[n] = s
+  s[1], s[2] = entry, left
+  list[#list + 1] = s
+end
+local function SoonestFirst(a, b) return a[2] < b[2] end
 function Core.ShowTooltip(self)
   local e = self.entry
   if not e then
@@ -67,16 +75,19 @@ function Core.ShowTooltip(self)
   end
   -- Cooldowns seen used: active first, then down. Ready or never seen
   -- used ones are left out.
-  local active, downs = {}, {}
+  wipe(active); wipe(downs)
+  local used = 0
   for _, entry in ipairs(Core.KitFor(e)) do
     local left = Core.CdLeft(e, entry)
     if e.activeCooldowns and e.activeCooldowns[entry[1]] then
-      active[#active + 1] = { entry, left }
+      used = used + 1
+      Slot(active, used, entry, left)
     elseif left then
-      downs[#downs + 1] = { entry, left }
+      used = used + 1
+      Slot(downs, used, entry, left)
     end
   end
-  table.sort(downs, function(a, b) return a[2] < b[2] end)
+  table.sort(downs, SoonestFirst)
   if #active + #downs > 0 then
     GameTooltip:AddLine(" ")
     local ar, ag, ab = RGB("warning")

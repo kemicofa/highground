@@ -84,7 +84,7 @@ local function OnRegen()
   if Core.UpdateTargetButton then Core.UpdateTargetButton() end
   if Core.layoutModePending then Core.ApplyLayout() end
   if Core.layoutPending and Core.frame then
-    Core.frame:SetShown(Core.active and Core.PriorityOn())
+    Core.frame:SetShown(Core.active and (Core.guidedTest or Core.PriorityOn()))
     Core.Layout()
   end
   if Core.active and Core.Render then Core.Guard("render", Core.Render) end

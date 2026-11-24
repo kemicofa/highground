@@ -40,7 +40,9 @@ local header = {} -- inputs of the subtitle text last written
 -- A language change rewrites the subtitle on the next render.
 ns.Localization.Watch(header, function() header.error = nil end)
 local ownTarget = {} -- the scope's entry while the priority panel is off
-function Core.Render()
+-- relaid: this render follows its own Layout. It never lays out again, so
+-- a row binding Layout can't settle costs one extra pass, not a loop.
+function Core.Render(relaid)
   wipe(rankOf)
   local topLive = -math.huge
   local recommended, recommendedGo = Core.PickHeroTarget()
@@ -57,10 +59,13 @@ function Core.Render()
   end
   local inCombat = InCombatLockdown()
   local needsLayout = false
-  local targetKey = UnitExists("target") and Core.CanonUnit("target") or nil
-  local focusKey = UnitExists("focus") and Core.CanonUnit("focus") or nil
+  -- A hidden panel (target recommendations off, or no match) skips its
+  -- rows, card and header; the scope below still follows the order.
+  local panel = Core.frame:IsShown()
+  local targetKey = panel and UnitExists("target") and Core.CanonUnit("target") or nil
+  local focusKey = panel and UnitExists("focus") and Core.CanonUnit("focus") or nil
   local now = GetTime()
-  for i = 1, Core.MAX_ROWS do
+  for i = 1, panel and Core.MAX_ROWS or 0 do
     local r = Core.rows[i]
     local e = r.entry
     local wanted = i <= Core.db.rows and Core.displayOrder[i] or nil
@@ -306,12 +311,12 @@ function Core.Render()
   for i = 1, Core.MAX_ROWS do
     if Core.rows[i].entry then bound = bound + 1 end
   end
-  if bound ~= math.min(#Core.order, Core.db.rows, Core.MAX_ROWS) then
+  if panel and bound ~= math.min(#Core.order, Core.db.rows, Core.MAX_ROWS) then
     needsLayout = true
   end
-  if needsLayout and not inCombat then
+  if needsLayout and not inCombat and not relaid then
     Core.Layout()
-    return Core.Render()
+    return Core.Render(true)
   end
   Core.lockIcon:SetShown(inCombat and needsLayout)
   Core.callEntry = recommended
@@ -326,9 +331,10 @@ function Core.Render()
   else
     Core.UpdateSniper(recommended, recommendedGo)
   end
-  Core.UpdateHero(recommended, recommendedGo)
+  if panel then Core.UpdateHero(recommended, recommendedGo) end
   Core.RefreshTooltip()
   Core.RefreshSpecPicker()
+  if not panel then return end
 
   -- Header: live dot while there's a roster; map tag + count on the right.
   local hasRoster = #Core.order > 0

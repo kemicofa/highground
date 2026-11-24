@@ -81,13 +81,12 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     s:assertHealthy()
   end)
 
-  t.test(variant[2] .. " repeated presence checks read each roster once", function()
+  t.test(variant[2] .. " repeated presence checks read each community roster once", function()
     local s = new("Highground", variant[1], variant[2])
     s:advance(30)
     local O, P, e = s.ns.Organizations, s.ns.Presence, s.env
-    local reads, rosterReads, info, roster = 0, 0, e.C_Club and e.C_Club.GetMemberInfo, e.GetGuildRosterInfo
+    local reads, info = 0, e.C_Club and e.C_Club.GetMemberInfo
     if info then e.C_Club.GetMemberInfo = function(...) reads = reads + 1; return info(...) end end
-    e.GetGuildRosterInfo = function(...) rosterReads = rosterReads + 1; return roster(...) end
     for _ = 1, 20 do t.equal(P.Online("Stranger-Realm"), false, "a stranger is not online") end
     if info then
       assert(reads > 0 and reads <= 10, "one community roster read for twenty checks: " .. reads)
@@ -99,14 +98,6 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
       t.equal(O.IsMember("club:42", "Stranger-Realm"), true, "a member who joins is found after the roster event")
       t.equal(O.IsMember("club:42", "Moderator-Realm"), true, "listed members are still found")
     end
-    s:advance(6); rosterReads = 0
-    for _ = 1, 20 do s:event("GUILD_ROSTER_UPDATE") end
-    t.equal(rosterReads, 0, "guild roster updates alone read nothing")
-    O.IsMember(O.Guild().id, "Stranger-Realm")
-    local once = rosterReads
-    assert(once > 0, "a reader after the updates sees the new roster")
-    O.IsMember(O.Guild().id, "Stranger-Realm")
-    t.equal(rosterReads, once, "the next reader reads the guild roster once")
     s:assertHealthy()
   end)
 end

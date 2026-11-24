@@ -329,7 +329,7 @@ local function Changed(event, ...)
     if type(unit) == "number" then memberIDs["club:" .. unit], absent["club:" .. unit] = nil, nil
     else wipe(memberIDs); wipe(absent) end
   end
-  if event == "GUILD_ROSTER_UPDATE" then G.Stale()
+  if event == "GUILD_ROSTER_UPDATE" then G.ReadRoster()
   elseif event == "PLAYER_GUILD_UPDATE" or event == "PLAYER_ENTERING_WORLD" then G.Clear(); G.RequestRoster() end
   for _, fn in ipairs(O.listeners) do U.Guard("organizations", fn, event, ...) end
 end

@@ -34,6 +34,9 @@ local Call, Plain = ns.Util.call, ns.Util.value
 function Arena.Count()
   if Arena.DuelMode() then return 1 end
   local n = Plain(Call(GetNumArenaOpponentSpecs)) or 0
+  -- Without announced specs your own team's size is the bracket's, so every
+  -- opponent has a row before combat locks them, even one revealed in combat.
+  if n == 0 and Arena.InArena() then n = Plain(Call(GetNumGroupMembers)) or 0 end
   n = math.max(n, Plain(Call(GetNumArenaOpponents)) or 0)
   for i = 1, Arena.MAX do
     if Arena.seen[i] or Plain(Call(UnitExists, ns.UnitTokens.arena[i])) then n = math.max(n, i) end
@@ -308,6 +311,11 @@ local function OnEvent(event, unit, spellID)
     local kind = select(2, IsInInstance())
     if kind == "pvp" or kind == "arena" then Arena.preview = false end
     Arena.ClearDuel()
+  elseif event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS" then
+    -- Each preparation announces new opponents: every Solo Shuffle round,
+    -- without a loading screen. Forget the last round's names, classes and
+    -- trinket requests; a reset right after entering the world is harmless.
+    Arena.Reset()
   end
   if event == "ARENA_CROWD_CONTROL_SPELL_UPDATE" then
     Guard("arena trinket", Arena.SetTrinketSpell, unit, spellID)

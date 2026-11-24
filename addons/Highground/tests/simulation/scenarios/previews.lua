@@ -56,7 +56,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(s.ns.CommandCatalog.Owner("bg test"), "battlegrounds", "battleground preview has its addon owner")
     click(all); s:advance(1)
     assert(P.AllActive() and N.preview and s.ns.Intel.testPins, "existing previews stay on")
-    assert(s.ns.Core.testMode and s.ns.Timers.previewing and s.ns.Arena.preview and B.Preview.testing)
+    assert(s.ns.Core.testMode and s.ns.Timers.previewing and B.Preview.testing)
+    equal(s.ns.Arena.preview, client ~= "forever", "Arena samples only where the game has arenas")
     assert(s.ns.Core.sniperTest.on, "all includes the target-marker test")
     equal(s.ns.Core.burstTest == true, client == "cata", "burst preview respects client support")
     equal(N.seen, byName, "live nearby records are retained")
@@ -78,7 +79,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
   test(client .. " shared previews work with battlegrounds disabled and skip disabled addons", function()
     local s = new(client, { battlegrounds = true, bounties = true })
     s:command("test all")
-    assert(s.ns.Arena.preview and s.ns.Nearby.preview)
+    assert(s.ns.Nearby.preview)
+    equal(s.ns.Arena.preview, client ~= "forever", "Arena samples only where the game has arenas")
     assert(not s.ns.Core.testMode and not s.ns.Timers.previewing and not s.ns.Core.sniperTest.on)
     assert(not s.ns.Bounty.Preview.testing and not s.ns.Intel.testPins)
     s:command("test stop"); stopped(s)
@@ -91,7 +93,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy(); off:assertHealthy()
   end)
 
-  test(client .. " preview validation protects combat, matches, duels and invalid arguments", function()
+  test(client .. " preview validation protects combat, matches and invalid arguments", function()
     local s = new(client)
     for _, command in ipairs({ "test typo", "test all stop", "bg", "bg typo", "bg test typo" }) do
       s:command(command); stopped(s)
@@ -105,8 +107,6 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:command("bg test"); s:command("test"); s:command("bg test stop"); s:command("test stop")
     equal(s:entry("LiveEnemy"), enemy, "refused previews and idle stop preserve the live roster")
     assert(s.ns.Core.active and not s.ns.Core.testMode)
-    s:leave(); s.ns.Arena.duel = { name = "Opponent" }
-    s:command("test all"); s:command("bg test"); stopped(s)
     s:assertHealthy()
   end)
 
@@ -123,7 +123,6 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(N.seen["Remembered-Realm"], remembered, "live nearby sightings survive sample cleanup")
     s:command("test all"); s:join(); stopped(s)
     s:leave(); s:command("test"); s:joinArena(); stopped(s)
-    s:leave(); s:command("test"); s:event("DUEL_REQUESTED", "Opponent"); stopped(s)
     s:assertHealthy()
   end)
 

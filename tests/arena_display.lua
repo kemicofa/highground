@@ -19,10 +19,11 @@ return function(addon)
     sim.units[token] = unit
     return unit
   end
-  local function duel(sim)
-    local unit = opponent(sim, "target")
-    sim.units.focus = unit
-    sim:event("DUEL_REQUESTED", unit.name .. "-Realm")
+  local function arena(sim)
+    sim:joinArena()
+    local unit = opponent(sim, "arena1")
+    sim.units.target, sim.units.focus = unit, unit
+    sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
     return sim.ns.Arena.rows[1], unit
   end
   local function above(sim, top, bottom, why)
@@ -34,10 +35,10 @@ return function(addon)
     assert(a[1] + a[3] <= b[1], why)
   end
 
-  for _, build in ipairs({ 16001, 120100, 40402 }) do
+  for _, build in ipairs({ 120100, 40402 }) do
     t.test(build .. ": solid health and readable icon remain separate at larger text sizes", function()
       local sim = setup(build)
-      local row = duel(sim)
+      local row = arena(sim)
       for _, scale in ipairs({ 1, 1.5, 1 }) do
         sim.ns.Core.SetFontScale(scale)
         equal(row.bar.statusColor[4], 1, "health is opaque, not the theme's faint row tint")
@@ -58,13 +59,26 @@ return function(addon)
         assert(sim.ns.Theme.Use(theme))
         equal(row.bar.statusColor[4], 1, "theme switches keep health opaque")
       end
-      equal(row.attrs.macrotext1, "/targetexact Gorak Gronnslayer-Realm", "display changes preserve protected clicks")
+      equal(row.attrs.unit, "arena1", "display changes preserve protected clicks")
+      equal(row.attrs.type1, "target")
+    end)
+  end
+
+  for _, build in ipairs({ 16001, 120100, 40402 }) do
+    t.test(build .. ": duels open no opponent panel", function()
+      local sim = setup(build)
+      opponent(sim, "target")
+      sim:event("DUEL_REQUESTED", "Gorak Gronnslayer-Realm")
+      sim:advance(0.5)
+      local win = sim.ns.Arena.win
+      assert(not (win and win:IsShown()), "the Arena panel stays closed")
+      sim:assertHealthy()
     end)
   end
 
   t.test("restricted health goes straight to native widgets; casts and CC share space", function()
     local secret, duration, scaleCurve = { secret = true }, {}, {}
-    local sim = setup(16001, function(_, env, methods)
+    local sim = setup(120100, function(_, env, methods)
       env.CurveConstants = { ScaleTo100 = scaleCurve }
       env.UnitHealthPercent = function(_, _, curve)
         assert(curve == nil or curve == scaleCurve)
@@ -72,7 +86,7 @@ return function(addon)
       end
       methods.SetFormattedText = function(f, format, value) f.formatted = { format, value } end
     end)
-    local row, unit = duel(sim)
+    local row, unit = arena(sim)
     unit.health, unit.maxHealth = secret, secret
     sim:setCombat(true); sim:advance(0.3)
     equal(row.bar.value, secret, "secret health sent to the fill without arithmetic")
@@ -101,12 +115,12 @@ return function(addon)
     assert(not row.cc:IsShown() and not row.ccText:IsShown(), "activity clears after control ends")
   end)
 
-  t.test("missing duel trinket data is unknown even when the API returns an empty duration", function()
-    local sim = setup(16001, function(_, env)
+  t.test("missing trinket data is unknown even when the API returns an empty duration", function()
+    local sim = setup(120100, function(_, env)
       env.C_PvP.GetArenaCrowdControlDuration = function() return {} end
       env.C_PvP.RequestCrowdControlSpell = function() error("unsupported unit") end
     end)
-    local row = duel(sim)
+    local row = arena(sim)
     assert(row.trinket:IsShown())
     equal(row.trinketState.text, "?", "missing data does not mean ready")
     assert(not row.trinketKnown and not row.trinketCD:IsShown())
@@ -118,59 +132,46 @@ return function(addon)
     equal(row.trinketState.text, "?")
   end)
 
-  t.test("native duel trinket data follows only the opponent and clears between duels", function()
-    local requests, queries, ready = {}, {}, false
-    local sim = setup(16001, function(s, env)
+  t.test("native trinket data follows the arena opponent and clears between rounds", function()
+    local requests, ready = {}, false
+    local sim = setup(120100, function(_, env)
       env.C_PvP.RequestCrowdControlSpell = function(unit) requests[#requests + 1] = unit end
-      env.C_PvP.GetArenaCrowdControlInfo = function(unit)
-        queries[#queries + 1] = s.units[unit]
-        return 42292, ready and 0 or 95000, ready and 0 or 120000
-      end
+      env.C_PvP.GetArenaCrowdControlInfo = function() return 42292, ready and 0 or 95000, ready and 0 or 120000 end
     end)
-    sim:event("DUEL_REQUESTED", "Gorak Gronnslayer-Realm")
+    sim:joinArena()
     local row = sim.ns.Arena.rows[1]
-    equal(#requests, 0, "no request for an unknown unit")
-    local unit = opponent(sim, "nameplate1")
-    sim:advance(0.3)
-    equal(requests[1], "nameplate1", "request as soon as the opponent becomes visible")
+    equal(#requests, 0, "no request before the opponent is seen")
+    opponent(sim, "arena1")
+    sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
+    equal(requests[1], "arena1", "request as soon as the opponent becomes visible")
     assert(row.trinketKnown and row.trinketCD:IsShown())
     equal(row.trinketState.text, "")
     equal(row.trinketCD.cooldown.start, 95)
     equal(row.trinketCD.cooldown.duration, 120)
     equal(row.trinket.texture, "Interface\\Icons\\Spell42292")
-    local bystander = opponent(sim, "target", "Bystander")
-    sim:event("ARENA_CROWD_CONTROL_SPELL_UPDATE", "target", 999)
-    equal(row.trinket.texture, "Interface\\Icons\\Spell42292", "ignore a bystander's spell")
-    sim.units.nameplate1 = bystander
-    sim:advance(0.3)
-    sim:event("ARENA_COOLDOWNS_UPDATE")
-    equal(row.trinketCD.cooldown.duration, 120, "existing timer survives losing sight")
-    for _, queried in ipairs(queries) do equal(queried, unit, "never query the reused token's new owner") end
-    sim.units.focus = unit
-    sim:advance(0.3)
-    equal(requests[#requests], "focus", "request on the newly acquired opponent token")
+    sim:event("ARENA_CROWD_CONTROL_SPELL_UPDATE", "arena2", 999)
+    equal(row.trinket.texture, "Interface\\Icons\\Spell42292", "ignore another opponent's spell")
     ready = true
     sim:event("ARENA_COOLDOWNS_UPDATE")
     assert(row.trinketKnown and not row.trinketCD:IsShown(), "client-reported readiness is distinct from unknown")
     sim:advance(2)
     assert(not row.trinketCD:IsShown(), "row ticks cannot restart a completed sweep")
-    sim:event("DUEL_FINISHED")
     sim.env.C_PvP.GetArenaCrowdControlInfo = function() end
-    sim:event("DUEL_REQUESTED", "Bystander-Realm")
-    equal(row.trinketState.text, "?", "next opponent does not inherit readiness")
+    sim:event("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
+    equal(row.trinketState.text, "?", "the next round does not inherit readiness")
     equal(row.trinket.texture, sim.ns.Arena.TRINKET_ICON)
   end)
 
-  t.test("restricted duel timing stays in the native cooldown widget", function()
+  t.test("restricted trinket timing stays in the native cooldown widget", function()
     local secret, duration = { secret = true }, {}
-    local sim = setup(16001, function(_, env)
+    local sim = setup(120100, function(_, env)
       env.C_PvP.GetArenaCrowdControlInfo = function() return secret, secret, secret end
       env.C_PvP.GetArenaCrowdControlDuration = function() return duration end
     end)
-    local row = duel(sim)
+    local row = arena(sim)
     assert(row.trinketKnown)
     equal(row.trinketCD.cooldown.object, duration)
-    sim:event("ARENA_CROWD_CONTROL_SPELL_UPDATE", "target", 42292)
+    sim:event("ARENA_CROWD_CONTROL_SPELL_UPDATE", "arena1", 42292)
     equal(row.trinket.texture, "Interface\\Icons\\Spell42292", "unreadable spell responses do not erase a known icon")
     equal(row.trinketCD.cooldown.object, duration)
   end)
@@ -191,7 +192,7 @@ return function(addon)
     assert(row.trinketCD:IsShown())
     local before = queries
     sim:leave() -- the fixture deliberately retains arena1
-    equal(queries, before, "no trinket API query outside a match or duel")
+    equal(queries, before, "no trinket API query outside a match")
     equal(row.trinket.texture, sim.ns.Arena.TRINKET_ICON)
     assert(not row.trinketKnown and not row.trinketCD:IsShown())
   end)

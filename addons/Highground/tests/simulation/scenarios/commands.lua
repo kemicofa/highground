@@ -178,7 +178,25 @@ test("/hg arena off goes through Core.SetFeature and refreshes the General page"
   equal(seen, "arena", "command uses Core.SetFeature")
   equal(sim.env.HighgroundDB.arena, false, "arena saved off")
   assert(not box:GetChecked(), "General page checkbox follows")
-  assert(sim.messages[#sim.messages]:find("Arena & duels: off", 1, true), "status line")
+  assert(sim.messages[#sim.messages]:find("Arena: off", 1, true), "status line")
+end)
+
+test("WoW Forever has no Arena command, page or switch", function()
+  local sim = new("retail", nil, function(_, env)
+    env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  end)
+  local C = sim.ns.CommandCatalog
+  equal(C.byCommand.arena, nil, "no catalog entry")
+  equal(sim.ns.Commands.arena, nil, "no handler")
+  for _, cb in ipairs(sim.ns.Options.featureBoxes) do assert(cb.key ~= "arena", "no Arena switch") end
+  equal(sim.ns.Onboarding.Find("arena"), nil, "no Arena guide chapter")
+  sim:command("arena on")
+  equal(sim.env.HighgroundDB.arena, nil, "the setting is untouched")
+  assert(not sim.ns.Core.On("arena"), "Arena features stay off")
+  for _, section in ipairs(sim.ns.Hub.Sections()) do
+    assert(section.module ~= "arena" and not (section.key or ""):find("arena", 1, true), "no Arena hub entries")
+  end
+  sim:assertHealthy()
 end)
 
 test("probe reports every result, including values after a nil", function()

@@ -15,13 +15,13 @@ Read only the Summary, the Description's intro and its section headings. A playe
 
 - Plain text, 200 characters at most. The build fails above that. Check with `printf '%s' "<summary>" | wc -m`.
 - Hook first: what the player gets in a fight. Then the headline features, then the games (Retail, Forever and Cata).
-- Headline features only: battleground intel, arena and duels, nearby enemies, bounties, macros. Pick the ones that fit.
+- Headline features only: battleground intel, arena, nearby enemies, bounties, macros. Pick the ones that fit.
 - Never mention languages, translations, performance, fixes, themes, settings, renames, versions or "new".
 
 ## Description
 
 - **Intro:** at most two sentences: what Highground is, what it does and which games it supports.
-- **Features:** one section per area a player recognizes: Battlegrounds, Arena and duels, Open world, Bounties, Reputation, Macros, the Highground window, and client extras. At most five bullets per section.
+- **Features:** one section per area a player recognizes: Battlegrounds, Arena, Open world, Bounties, Reputation, Macros, the Highground window, and client extras. At most five bullets per section.
 - **Bullets:** one line each, about 20 words at most. Start with a bold feature name, then what it does for the player. Name a command only when it is how players reach the feature.
 - **Game support:** a short table of real differences between clients. Features that work everywhere share one row.
 - **Getting started:** at most five steps from install to first use.

@@ -28,7 +28,11 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
     if game == "forever" then click(sim.ns.Community.win.later); sim:advance(3) end
     assert(O.win:IsVisible() and not O.Coach.running)
     for _, key in ipairs({ "macros", "bounties", "battlegrounds", "nearby", "arena", "reputation" }) do
-      assert(O.win.cards[key].start:IsVisible(), key .. " has a direct guide button")
+      if key == "arena" and game == "forever" then
+        assert(not (O.win.cards.arena and O.win.cards.arena:IsVisible()), "WoW Forever has no Arena guide")
+      else
+        assert(O.win.cards[key].start:IsVisible(), key .. " has a direct guide button")
+      end
     end
     assert(not O.win.cards.enemies:IsVisible() and not O.win.cards.objectives:IsVisible(), "battleground topics stay under their addon")
     assert(not O.win.cards.map:IsVisible(), "extra guides start collapsed")
@@ -61,7 +65,7 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
       for _, embedded in ipairs({ false, true }) do
         if embedded then sim.ns.Hub.Open("addons") else sim:command("guide") end
         O.Go("welcome")
-        equal(#O.Guides(false), 6, "one directory entry per subaddon")
+        equal(#O.Guides(false), #sim.ns.Modules.list, "one directory entry per subaddon")
         click(O.win.cards.battlegrounds.start)
         equal(O.PathGroup().key, "battlegrounds")
         assert(not C.running and not O.exploring, "choosing a topic starts no samples")
@@ -136,10 +140,6 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
           assert(O.win:IsVisible() and O.PathGroup() == step and not O.exploring, "addon entry offers both paths")
         else
           assert(O.exploring and (guided and O.Coach.running or O.dock:IsVisible()), step.key .. " action opens")
-        end
-        if action.preview == "arena" and game == "forever" then
-          assert(sim.ns.Arena.preview and sim.ns.Arena.win:IsVisible(), "Forever previews duels")
-          equal(sim.ns.Arena.shownCount, 1, "one duel opponent")
         end
         if action.page then
           equal(sim.ns.Hub.current, action.page)

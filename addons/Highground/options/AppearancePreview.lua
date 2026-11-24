@@ -101,7 +101,7 @@ local scenes = {
 
 local function Allowed()
   local kind = select(2, IsInInstance())
-  if InCombatLockdown() or kind == "pvp" or kind == "arena" or ns.Arena and ns.Arena.duel then
+  if InCombatLockdown() or kind == "pvp" or kind == "arena" then
     return false, ns.Locale:Get("appearance.preview.blocked_play")
   end
   if not P.session and (Core.testMode or Core.active or Core.sniperTest and Core.sniperTest.on
@@ -238,12 +238,6 @@ function O.AddAppearancePreview(page, owner)
   P.pages[#P.pages + 1] = page
 end
 
-local function DuelChanged()
-  P.Stop()
-  -- The Arena observer handles the same event after these controls load.
-  C_Timer.After(0.01, P.Refresh)
-end
-
 ns.Util.Events({
   PLAYER_REGEN_DISABLED = P.Stop,
   PLAYER_REGEN_ENABLED = function()
@@ -257,6 +251,4 @@ ns.Util.Events({
     P.Refresh()
   end,
   PLAYER_ENTERING_WORLD = function() if not Allowed() then P.Stop() end; P.Refresh() end,
-  DUEL_REQUESTED = DuelChanged, DUEL_TO_THE_DEATH_REQUESTED = DuelChanged,
-  DUEL_INBOUNDS = DuelChanged, DUEL_FINISHED = DuelChanged,
 }, "appearance previews")

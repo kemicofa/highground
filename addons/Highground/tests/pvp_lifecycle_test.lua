@@ -1,4 +1,4 @@
--- Match and duel exits after their refresh tickers stop, coalesced
+-- Match exits after their refresh tickers stop, coalesced
 -- scoreboard reads and the match journal's own row. Run from addons/Highground.
 local t = dofile("../../tools/harness.lua")("pvp lifecycle")
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
@@ -6,7 +6,6 @@ local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local function setup(client, build)
   return new(client, {}, function(s, env)
     env.GetBuildInfo = function() return "x", "1", "Nov 22 2026", build end
-    env.StartDuel, env.CancelDuel = function() end, function() end
     s.addon = "Highground"
   end)
 end
@@ -16,17 +15,20 @@ local function hidden(win) return not win or not win:IsShown() end
 for _, client in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
   local name = client[2] .. " "
 
-  t.test(name .. "a duel that ends in combat hides its secure panel once combat ends", function()
+  t.test(name .. "an arena left in combat hides its secure panel once combat ends", function()
     local sim = setup(client[1], client[2])
-    sim.units.target = { name = "Sneak", classID = 4, guid = "Player-Sneak" }
-    sim:event("DUEL_REQUESTED", "Sneak-Realm")
     local A = sim.ns.Arena
+    if client[2] == 16001 then
+      sim:joinArena()
+      assert(not A.win, "WoW Forever has no Arena panel")
+      return
+    end
+    sim:joinArena()
     sim:advance(0.5)
-    assert(A.win:IsShown(), "the duel shows its panel")
+    assert(A.win:IsShown(), "the arena shows its panel")
     sim:setCombat(true)
-    sim:event("DUEL_FINISHED")
+    sim:leave()
     t.equal(A.win:GetAlpha(), 0, "combat fades the protected panel instead of hiding it")
-    sim:advance(1)
     sim:setCombat(false)
     assert(hidden(A.win), "combat ending hides it although its ticker has stopped")
     sim:assertHealthy()

@@ -5,7 +5,7 @@
 Highground is a World of Warcraft PvP addon for Retail, WoW Forever and Cataclysm Classic.
 
 - **Battlegrounds:** stable enemy rows with priority recommendations, optional priority sorting and suggested-target card, resurrection and capture timers, flag carriers, enemy positions on the map. Target recommendations are optional.
-- **Arena & duels:** automatic opponent panels with target/focus clicks, including duels on Forever.
+- **Arena:** automatic opponent panels with target/focus clicks on Retail and Cataclysm Classic.
 - **Open world:** an optional list of nearby enemies.
 - **Bounties (alpha):** personal, guild, community and shared bounties, sighting alerts and a claims ledger. Optional suggestions identify recurring attackers against you and participating guildmates; enable **Bounty suggestions** in **Bounties → Settings**, then open them with `/hg bounty suggestions`.
 - **Player reputation (alpha):** reports, moderator decisions and optional chat filtering for your existing guild and WoW communities. Officers and community moderators enable organizations under `/hg reputation`; members discover them automatically and can queue proposals while moderators are unavailable.

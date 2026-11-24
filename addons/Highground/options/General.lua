@@ -162,13 +162,16 @@ function general.SelectGroup(name)
 end
 
 for _, owner in ipairs({ "battlegrounds", "arena", "macros" }) do
-  local page = Options.FeaturePage(Options.addonPages[owner].settings, owner)
-  Options.ToolLink(page, owner == "macros" and "macros" or "history")
-  if owner == "battlegrounds" then Options.AddTeamHealerControls(page); Options.AddNameplateControls(page) end
-  Options.AddAlertControls(page, owner)
-  if owner == "battlegrounds" then
-    page.review = Options.Link(page, ns.Locale:Get("highground.general.use_these_features.f07edd"), function()
-      if ns.Onboarding then ns.Onboarding.Reviewed("features") end
-    end)
+  local pages = Options.addonPages[owner] -- nil when this game lacks the addon
+  if pages then
+    local page = Options.FeaturePage(pages.settings, owner)
+    Options.ToolLink(page, owner == "macros" and "macros" or "history")
+    if owner == "battlegrounds" then Options.AddTeamHealerControls(page); Options.AddNameplateControls(page) end
+    Options.AddAlertControls(page, owner)
+    if owner == "battlegrounds" then
+      page.review = Options.Link(page, ns.Locale:Get("highground.general.use_these_features.f07edd"), function()
+        if ns.Onboarding then ns.Onboarding.Reviewed("features") end
+      end)
+    end
   end
 end

@@ -31,13 +31,12 @@ MOVED = {
     "SetCVar", "GetNumBattlefieldFlagPositions", "GetBattlefieldFlagPosition",
 }
 
-LOADS_BEFORE_API = "loads before libs/config/Client.lua"
 LEGACY = "older-client branch after the modern API"
 
 # path -> (moved globals read there, reason)
 ALLOWED = {
     "addons/Highground/core/Modules.lua": (
-        {"DisableAddOn", "EnableAddOn", "GetAddOnEnableState", "GetAddOnMetadata", "SaveAddOns"}, LOADS_BEFORE_API),
+        {"DisableAddOn", "EnableAddOn", "GetAddOnEnableState", "GetAddOnMetadata", "SaveAddOns"}, LEGACY),
     "addons/Highground/options/Register.lua": (
         {"InterfaceOptionsFrame_OpenToCategory", "InterfaceOptions_AddCategory"}, LEGACY),
     "addons/Highground/features/reputation/reputation/Menus.lua": (

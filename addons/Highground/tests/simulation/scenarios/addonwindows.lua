@@ -34,6 +34,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       { "reputation", "reputation", function() return ns.Reputation.UI.window end },
       { "macros", "macros", function() return ns.Macros.Window.win end },
     }
+    if client == "forever" then table.remove(tools, 2) end -- no Arena on Forever
     for _, entry in ipairs(tools) do H.Open(O.addonPages[entry[1]].settings) end
     for _, entry in ipairs(tools) do assert(not entry[3](), "settings never build a workspace") end
     for _, entry in ipairs(tools) do
@@ -120,8 +121,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     -- Macros settings are built before saved preferences are initialized.
     equal(O.byKey["macros-settings"].openTool:GetText(), translated["tools.open.macros"])
     s.ns.Core.SetFontScale(1.5)
-    for _, entry in ipairs({ { "macros", "macros" }, { "reputation", "reputation" },
-      { "bounties", "bountyboard" }, { "nearby", "journal" }, { "arena", "history" } }) do
+    local launchers = { { "macros", "macros" }, { "reputation", "reputation" },
+      { "bounties", "bountyboard" }, { "nearby", "journal" }, { "arena", "history" } }
+    if client == "forever" then table.remove(launchers) end -- no Arena on Forever
+    for _, entry in ipairs(launchers) do
       local source = assert(L.catalogs.enUS["tools.open." .. entry[2]], "every launcher has an English source")
       H.Open(O.addonPages[entry[1]].settings)
       local button = O.byKey[O.addonPages[entry[1]].settings].openTool
@@ -158,9 +161,9 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
   end)
 
   test(client .. " a failing addon switch refresh is recorded and the next one still runs", function()
-    local s = make(nil, { arena = true })
-    s.ns.Hub.Open("module-arena")
-    local p = s.ns.Hub.BuildModules("arena")
+    local s = make(nil, { nearby = true })
+    s.ns.Hub.Open("module-nearby")
+    local p = s.ns.Hub.BuildModules("nearby")
     p.problem = "first"
     local setText = p.status.SetText
     p.status.SetText = function() error("status broke") end
@@ -185,14 +188,16 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     end
     local s = make(nil, { macros = true, reputation = true, bounties = true, nearby = true, battlegrounds = true })
     local O, H = s.ns.Options, s.ns.Hub
-    H.Open("arena-settings")
-    assert(not O.byKey["arena-settings"].openTool:IsEnabled(), "Arena cannot launch disabled Battlegrounds history")
-    H.Open("module-arena")
-    local history
-    for _, button in ipairs(H.BuildModules("arena").actions) do
-      if button:GetText() == "Open match history" then history = button end
+    if client ~= "forever" then -- no Arena on Forever
+      H.Open("arena-settings")
+      assert(not O.byKey["arena-settings"].openTool:IsEnabled(), "Arena cannot launch disabled Battlegrounds history")
+      H.Open("module-arena")
+      local history
+      for _, button in ipairs(H.BuildModules("arena").actions) do
+        if button:GetText() == "Open match history" then history = button end
+      end
+      assert(history and not history:IsEnabled(), "Overview respects the tool's owning addon")
     end
-    assert(history and not history:IsEnabled(), "Overview respects the tool's owning addon")
     for _, key in ipairs({ "macros", "reputation", "bounties", "nearby" }) do
       s.ns.Hub.Open("module-" .. key)
       for _, button in ipairs(s.ns.Hub.BuildModules(key).actions) do

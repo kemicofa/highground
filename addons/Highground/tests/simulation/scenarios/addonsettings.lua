@@ -97,7 +97,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(math.abs(page.content:GetWidth() - view:GetWidth()) < 0.01, "the body receives the settled viewport width")
     assert(page.scroll.bar:IsShown(), "the themed scrollbar appears for a long page")
     equal(page.scroll:GetVerticalScroll(), 60, "valid position survives settling")
-    H.Open("arena-settings"); H.Back(); s:advance(0.02)
+    H.Open("battlegrounds-settings"); H.Back(); s:advance(0.02)
     equal(page.scroll:GetVerticalScroll(), 60, "Back preserves the Nearby reading position")
     page.scroll:SetVerticalScroll(100000)
     page.LayoutHeader(); s:advance(0.02)
@@ -144,7 +144,9 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(#s.frames, count, "destinations do not rebuild their controls")
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale)
-      for _, key in ipairs({ "general", "battlegrounds-settings", "arena-settings", "nearby", "bounty", "macros-settings" }) do
+      local keys = { "general", "battlegrounds-settings", "nearby", "bounty", "macros-settings" }
+      if client ~= "forever" then table.insert(keys, 3, "arena-settings") end -- no Arena on Forever
+      for _, key in ipairs(keys) do
         H.Open(key)
         local p = O.byKey[key]
         local hint, scroll = s.bounds(p.hint), s.bounds(p.scroll)
@@ -181,20 +183,24 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(C.Metric("nearbyWidth", false), 410, "normal layout preserved")
     equal(C.Metric("arenaWidth", true), 440, "compact layout preserved")
     assert(C.PanelCompact("nearby") and C.PanelCompact("arena"))
+    -- WoW Forever keeps the saved Arena layout but has no Arena panel.
+    local function arenaWidth(width, why)
+      if client ~= "forever" then equal(s.ns.Arena.win:GetWidth(), width, why) end
+    end
     s:command("nearby test"); s:command("arena test")
     equal(s.ns.Nearby.win:GetWidth(), 440)
-    equal(s.ns.Arena.win:GetWidth(), 440)
+    arenaWidth(440)
     C.SetMetric("width", 220, true); C.SetMetric("timerWidth", 210, false)
     C.SetPanelScale("timers", 0.75); C.SetFeature("compact", false)
     equal(s.ns.Nearby.win:GetWidth(), 440, "Battleground edits preserve Nearby geometry")
-    equal(s.ns.Arena.win:GetWidth(), 440, "Battleground edits preserve Arena geometry")
+    arenaWidth(440, "Battleground edits preserve Arena geometry")
     equal(C.PanelScale("nearby"), 1.35)
     C.SetPanelScale("nearby", 1.8)
     equal(T.WinScale(s.ns.Nearby.win), C.db.scale * 1.8)
     equal(C.PanelScale("timers"), 0.75)
     C.SetMetric("nearbyWidth", 380, true)
     equal(s.ns.Nearby.win:GetWidth(), 380)
-    equal(s.ns.Arena.win:GetWidth(), 440)
+    arenaWidth(440)
     s:command("profile save Separate")
     local P = O.Profiles
     local old = P.Snapshot()
@@ -222,8 +228,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
   test(client .. " local previews and cogwheels reach their owning addon", function()
     local s = make({ pressure = false })
     local O, H, C = s.ns.Options, s.ns.Hub, s.ns.Core
-    for _, entry in ipairs({ { "arena", "arena test", "arenaPoint" }, { "nearby", "nearby test", "nearbyPoint" },
-      { "battlegrounds", "bg test", "enemies" } }) do
+    local entries = { { "arena", "arena test", "arenaPoint" }, { "nearby", "nearby test", "nearbyPoint" },
+      { "battlegrounds", "bg test", "enemies" } }
+    if client == "forever" then table.remove(entries, 1) end -- no Arena on Forever
+    for _, entry in ipairs(entries) do
       H.Open(O.addonPages[entry[1]].previews)
       local page, button = O.byKey[O.addonPages[entry[1]].previews]
       for _, b in ipairs(page.previews) do if b.cmd == entry[2] then button = b end end

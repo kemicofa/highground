@@ -46,22 +46,18 @@ local function Objectives()
 end
 
 local function Arena()
-  local function Duel() return ns.Arena.DuelMode() end
   return {
     { id = "opponents", title = ns.Locale:Get("highground.coachsamples.meet_your_opponents.da736c"), target = function() return ns.Arena.win end,
-      feature = "arena", settingLabel = ns.Locale:Get("highground.coachsamples.enable_arena_duels_in_game.1681fb"),
-      text = function() return Duel() and ns.Locale:Get("highground.coachsamples.this_sample_shows_a_duel_opponent_the.8b3cc3")
-        or ns.Locale:Get("highground.coachsamples.these_sample_arena_opponents_show_the_panel.a0ce17") end },
+      feature = "arena", settingLabel = ns.Locale:Get("highground.coachsamples.enable_arena_panel_in_game.25e1b6"),
+      text = ns.Locale:Get("highground.coachsamples.these_sample_arena_opponents_show_the_panel.a3348a") },
     { id = "row", title = ns.Locale:Get("highground.coachsamples.target_now_keep_a_focus_for_later.e5ac6d"), target = function() return ns.Arena.rows[1] end, event = "OnEnter",
       text = ns.Locale:Get("highground.coachsamples.left_click_targets_this_opponent_right_click.e3ad6c") },
     { id = "health", title = ns.Locale:Get("highground.coachsamples.read_the_available_information.0bb233"), target = function() return ns.Arena.rows[1].bar end,
       text = ns.Locale:Get("highground.coachsamples.the_health_bar_and_row_details_show.3b37e7") },
-    { id = "status", title = function() return Duel() and ns.Locale:Get("highground.coachsamples.follow_the_duel.c74373") or ns.Locale:Get("highground.coachsamples.watch_the_escape_trinket.3999d0") end,
-      target = function() return Duel() and ns.Arena.rows[1] or ns.Arena.rows[1].trinket end,
-      text = function() return Duel() and ns.Locale:Get("highground.coachsamples.the_status_follows_the_challenge_countdown_and.0f2d4c")
-        or ns.Locale:Get("highground.coachsamples.the_trinket_icon_uses_client_reported_escape.c0b8c1") end },
+    { id = "status", title = ns.Locale:Get("highground.coachsamples.watch_the_escape_trinket.3999d0"), target = function() return ns.Arena.rows[1].trinket end,
+      text = ns.Locale:Get("highground.coachsamples.the_trinket_icon_uses_client_reported_escape.c0b8c1") },
     { id = "finish", title = ns.Locale:Get("highground.coachsamples.keep_your_attention_on_the_fight.45d72d"), target = function() return ns.Arena.win end,
-      text = ns.Locale:Get("highground.coachsamples.the_panel_follows_the_activity_and_clears.182545") },
+      text = ns.Locale:Get("highground.coachsamples.the_panel_follows_the_match_and_clears.52def5") },
   }
 end
 

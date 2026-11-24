@@ -8,13 +8,13 @@
 
 [![Highground Horde animated stream banner](assets/stream-banner/horde/Highground-Twitch-Banner-Horde-960.gif)](https://www.curseforge.com/projects/1749115)
 
-Highground is a PvP addon for Retail, WoW Forever and Cataclysm Classic. It bundles battleground tools, arenas and duels, bounties, nearby enemies, player reputation and macros. On WoW Forever, the Arena panel handles duels.
+Highground is a PvP addon for Retail, WoW Forever and Cataclysm Classic. It bundles battleground tools, arena panels, bounties, nearby enemies, player reputation and macros. WoW Forever has no arenas, so it has no Arena panel.
 
 | Included feature | What it does |
 | --- | --- |
 | Battlegrounds | Kill order, shared enemy map intel, resurrection and base timers, flag carriers and enemy cooldowns. |
 | Macros | PvP and PvE presets, a builder that explains and colours every line, highest spell ranks. `/hg macros`. |
-| Arena & duels | Opponents, target/focus clicks and casts. `/hg arena`. |
+| Arena | Opponents, target/focus clicks and casts on Retail and Cataclysm Classic. `/hg arena`. |
 | Bounties (alpha) | Personal, guild, community and shared bounties, alerts and claims. `/hg bounty`. |
 | Nearby | Open-world enemy sightings and history. `/hg nearby`. |
 | Reputation (alpha) | Player reports, moderation and chat filtering for existing guilds and WoW communities. `/hg reputation`. |

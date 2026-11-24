@@ -19,10 +19,7 @@ end
 
 function A.SetTrinketSpell(unit, spellID)
   unit = plain(unit)
-  local i
-  if A.DuelMode() then
-    if A.DuelMatches(unit) then i = 1 end
-  elseif type(unit) == "string" then i = tonumber(unit:match("^arena(%d)$")) end
+  local i = type(unit) == "string" and tonumber(unit:match("^arena(%d)$"))
   local r = i and A.rows and A.rows[i]
   if r then Spell(r, spellID) end
 end
@@ -30,8 +27,7 @@ end
 function A.UpdateTrinket(r)
   local cd, pvp, unit = r.trinketCD, C_PvP, r.unit
   if A.preview then cd:Clear(); Paint(r); return end
-  if not A.Enabled() or not (A.InArena() or A.duel) then return end
-  if not U.read(UnitExists, unit) or (A.DuelMode() and not A.DuelMatches(unit)) then return end
+  if not A.Enabled() or not A.InArena() or not U.read(UnitExists, unit) then return end
   r.trinketUnit = unit
   if A.asked[r.index] ~= unit and pvp and pvp.RequestCrowdControlSpell then
     A.asked[r.index] = unit
@@ -42,7 +38,7 @@ function A.UpdateTrinket(r)
   local hasSpell = type(id) ~= "nil" and (readable == nil or (type(readable) == "number" and readable > 0))
   if hasSpell then Spell(r, id) end
   -- An empty duration object can exist even with no trinket data. Require
-  -- a spell response before treating it as a live timer, especially in duels.
+  -- a spell response before treating it as a live timer.
   local duration = hasSpell and call(pvp and pvp.GetArenaCrowdControlDuration, unit)
   if duration and cd.SetCooldownFromDurationObject and pcall(cd.SetCooldownFromDurationObject, cd, duration, true) then
     r.trinketKnown = true
@@ -57,7 +53,7 @@ end
 
 -- Request data when the actual opponent becomes visible or changes unit
 -- token. Native cooldown events update it thereafter; row ticks never
--- restart completed sweeps. Missing duel data stays explicitly unknown.
+-- restart completed sweeps. Missing data stays explicitly unknown.
 function A.RefreshTrinket(r, exists)
   if not exists then r.trinketUnit = nil
   elseif r.trinketUnit ~= r.unit then A.UpdateTrinket(r) end

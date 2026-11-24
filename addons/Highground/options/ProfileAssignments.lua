@@ -1,6 +1,7 @@
 local _, ns = ...
 local Core, P, Kit, Theme, L = ns.Core, ns.Options.Profiles, ns.Kit, ns.Theme, ns.Locale
 local activities = { { "bg", "profiles.activity.bg" }, { "arena", "profiles.activity.arena" }, { "world", "profiles.activity.world" } }
+if not ns.Games[ns.GAME].arenaSize then table.remove(activities, 2) end -- no arenas on WoW Forever
 
 function P.CreateAssignments(parent)
   local a = CreateFrame("Frame", nil, parent)

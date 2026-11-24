@@ -16,7 +16,8 @@ local function Add(line) lines[#lines + 1] = line end
 local function Escape(text) return (text:gsub("|", "\\|")) end
 local function Availability(row)
   return row.cata and " (Cata)" or row.caps == "spellRanks" and " (WoW Forever)"
-    or (row.caps == "enemyMarks" or row.caps == "matchSharing") and " (not WoW Forever)" or row.caps and (" (requires " .. row.caps .. ")") or ""
+    or (row.caps == "enemyMarks" or row.caps == "matchSharing" or row.owner == "arena" or row.module == "arena") and " (not WoW Forever)"
+    or row.caps and (" (requires " .. row.caps .. ")") or ""
 end
 for _, group in ipairs(ns.CommandCatalog.groups) do
   Add("## " .. group.label); Add("")
@@ -31,7 +32,7 @@ for _, group in ipairs(ns.CommandCatalog.groups) do
 end
 Add("## Previews"); Add("")
 Add("Use each addon's **Previews and guide** page to start and stop samples. Open it from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved."); Add("")
-Add("`/hg bg test` toggles the battleground enemy list, target card, timers, objectives and flag carrier samples using your settings; `/hg bg test stop` ends them. `/hg test` and `/hg test all` start the catalogued previews across enabled addons, keeping existing samples on. Repeat either command to stop the set, or use `/hg test stop` to stop all samples. **Help and commands** provides **Toggle all addon previews** and **Stop all previews**. Start outside combat, matches, duels and active guides or panel placement. Managed samples stop on combat, incoming duel requests, PvP instances and guide/placement handoffs. Bounties starts its wanted-poster scene unless another bounty sample is already running. Macros and Reputation use their guides and real tools instead of test toggles."); Add("")
+Add("`/hg bg test` toggles the battleground enemy list, target card, timers, objectives and flag carrier samples using your settings; `/hg bg test stop` ends them. `/hg test` and `/hg test all` start the catalogued previews across enabled addons, keeping existing samples on. Repeat either command to stop the set, or use `/hg test stop` to stop all samples. **Help and commands** provides **Toggle all addon previews** and **Stop all previews**. Start outside combat, matches and active guides or panel placement. Managed samples stop on combat, PvP instances and guide/placement handoffs. Bounties starts its wanted-poster scene unless another bounty sample is already running. Macros and Reputation use their guides and real tools instead of test toggles."); Add("")
 Add("| Preview | Command | What it shows |"); Add("| --- | --- | --- |")
 for _, row in ipairs(ns.CommandCatalog.previews) do
   Add("| " .. row.label .. " | `/hg " .. row.cmd .. "` | " .. row.desc .. Availability(row) .. " |")

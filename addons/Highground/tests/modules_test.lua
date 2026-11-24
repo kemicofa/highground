@@ -199,7 +199,10 @@ t.test("all module combinations boot and preserve independent features on Foreve
       e.GetBuildInfo = function() return "1.60.1", "", "", 16001 end
       F.configure(off)(s, e)
     end)
-    for _, name in ipairs(F.names) do t.equal(s.ns.Modules.Active(name:lower()), not off[name:lower()], name) end
+    for _, name in ipairs(F.names) do
+      t.equal(s.ns.Modules.Active(name:lower()), name ~= "Arena" and not off[name:lower()], name)
+    end
+    t.equal(s.ns.Modules.byKey.arena, nil, "no arenas, no Arena module")
     t.equal(s.ns.Bounty.Public.ready == true, not off.bounties, "bounty service independence")
     t.equal(s.ns.Reputation.ready == true, not off.reputation, "reputation service independence")
     s:enemy("Enemy"); s:join()

@@ -29,7 +29,7 @@ local function Contexts()
     choices[#choices + 1] = { key = "bg", label = ns.Locale:Get("highground.setuplayout.battleground_panels.57e3c7") }
   end
   if Core.On("arena") then
-    choices[#choices + 1] = { key = "arena", label = ns.Games[ns.GAME].arenaSize and ns.Locale:Get("highground.toursteps.arena_duels.53e5be") or ns.Locale:Get("highground.setuplayout.duel_panel.95349d") }
+    choices[#choices + 1] = { key = "arena", label = ns.Locale:Get("profiles.panel.arena") }
   end
   if Core.On("nearby") then choices[#choices + 1] = { key = "world", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df") } end
   return choices

@@ -6,8 +6,7 @@ local Core, Theme, Kit, Hud, Util = ns.Core, ns.Theme, ns.Kit, ns.Hud, ns.Util
 local Guard = Util.Guard
 
 ---------------------------------------------------------------------------
--- Secure opponent rows: arena tokens in matches, an exact name in duels.
--- Bindings are prepared before combat; live observations never retarget them.
+-- Secure opponent rows bound to the arena unit tokens before combat.
 ---------------------------------------------------------------------------
 
 Arena.MAX = 5
@@ -20,11 +19,6 @@ function Arena.InArena()
   return kind == "arena"
 end
 
-function Arena.DuelMode()
-  return not Arena.InArena() and (Arena.duel ~= nil or
-    (Arena.preview and not ns.Games[ns.GAME].arenaSize))
-end
-
 function Arena.Enabled()
   return Timers.DB() and Core.On("arena")
 end
@@ -32,7 +26,6 @@ end
 local Call, Plain = ns.Util.call, ns.Util.value
 
 function Arena.Count()
-  if Arena.DuelMode() then return 1 end
   local n = Plain(Call(GetNumArenaOpponentSpecs)) or 0
   -- Without announced specs your own team's size is the bracket's, so every
   -- opponent has a row before combat locks them, even one revealed in combat.
@@ -58,13 +51,12 @@ function Arena.Build()
     local r = Hud.UnitRow(Arena.win, PREFIX .. "Row" .. i, { height = Arena.ROW_H, unit = "arena" .. i,
       enemy = true, restore = true, briefTip = true, tip = function(self)
         local seen = Arena.seen[self.index]
-        local lines = {}
-        if not Arena.DuelMode() then lines[#lines + 1] = { ns.Locale:Format("arena.window.opponent_self_index.b7b5b0", { self_index = self.index }), "info" } end
+        local lines = { { ns.Locale:Format("arena.window.opponent_self_index.b7b5b0", { self_index = self.index }), "info" } }
         local spec = Arena.SpecLabel(seen)
         if spec then lines[#lines + 1] = { spec, "textMuted" } end
         local activity = Arena.ActivityText and Arena.ActivityText(self.unit) or ""
         if activity ~= "" then lines[#lines + 1] = { activity, "text" } end
-        if ns.CLIENT == "cata" and not Arena.DuelMode() then
+        if ns.CLIENT == "cata" then
           lines[#lines + 1] = { ns.Locale:Get("arena.window.dr_resets_and_interrupt_cooldowns_are_estimates.971249"), "textMuted", true }
         end
         lines[#lines + 1] = { self.trinketKnown and ns.Locale:Get("arena.window.trinket_client_reported_cooldown.c849f1") or ns.Locale:Get("arena.window.trinket_timing_unavailable.f3a886"), "textMuted" }
@@ -133,35 +125,23 @@ end
 
 function Arena.RowHeight()
   local scale = math.max(1, Core.FontScale())
-  local footer = not Arena.DuelMode() and ns.CLIENT == "cata" and 16 * scale or 0
+  local footer = ns.CLIENT == "cata" and 16 * scale or 0
   return 70 + (scale - 1) * 36 + footer
-end
-
-local function Binding()
-  local duel = Arena.DuelMode() and true or false
-  return duel, duel and not Arena.preview and Arena.duel and Arena.duel.name or nil
 end
 
 -- Rows and window size are protected: they change only out of combat.
 function Arena.Layout(count)
   if InCombatLockdown() then return end
-  local duel, name = Binding()
   local scale = Core.FontScale()
-  if Arena.shownCount == count and Arena.boundDuel == duel and Arena.boundName == name and Arena.layoutScale == scale then return end
+  if Arena.shownCount == count and Arena.layoutScale == scale then return end
   for i, r in ipairs(Arena.rows) do
-    r:SetAttribute("unit", not duel and ("arena" .. i) or nil)
-    r:SetAttribute("type1", duel and "macro" or "target")
-    r:SetAttribute("type2", duel and "macro" or "focus")
-    Core.SetTargetFocus(r, i == 1 and name or nil)
-    if not duel then r.unit = "arena" .. i end
     r:SetHeight(Arena.RowHeight())
-    if Arena.LayoutActivity then Arena.LayoutActivity(r, duel) end
+    if Arena.LayoutActivity then Arena.LayoutActivity(r) end
     r:SetShown(i <= count)
   end
   Arena.PlaceRows()
   local _, top, pad, gap = Timers.Geometry(Arena.win)
   Arena.win:SetHeight(top + count * (Arena.RowHeight() + gap) - gap + pad)
-  Arena.boundDuel, Arena.boundName = duel, name
   Arena.shownCount, Arena.layoutScale = count, scale
 end
 
@@ -173,13 +153,12 @@ local PREVIEW = {
 
 local function Remember(i, unit)
   local seen = Arena.seen[i] or {}
-  if Arena.DuelMode() and not unit then return seen end
   local name = Core.FullUnitName(unit)
   local _, class = Call(UnitClass, unit)
   seen.name = name or seen.name
   if name then seen.full = name end
   seen.class = Plain(class) or seen.class
-  Arena.RememberSpec(seen, i, unit)
+  Arena.RememberSpec(seen, i)
   if seen.name or seen.class then Arena.seen[i] = seen end
   return Arena.seen[i]
 end
@@ -194,7 +173,6 @@ BuildMarks(MARKS)
 if ns.Localization then ns.Localization.Watch(MARKS, BuildMarks) end
 
 function Arena.UpdateRow(r)
-  if Arena.DuelMode() then r.unit = Arena.DuelUnit() end
   local unit = r.unit
   local exists = Plain(Call(UnitExists, unit))
   local info, hp, dead
@@ -226,7 +204,7 @@ function Arena.UpdateRow(r)
     info.displayFor, info.display = info.name, Core.DisplayName(info.name)
   end
   r.name:SetText(info and info.name and info.display
-    or (Arena.DuelMode() and ns.Locale:Get("arena.window.opponent.45482c") or (ns.Locale:Format("arena.window.enemy_r_index.842d5d", { r_index = r.index }))))
+    or ns.Locale:Format("arena.window.enemy_r_index.842d5d", { r_index = r.index }))
   Hud.PaintClass(r.name, cc)
   local _, drawn = Hud.Health(r.bar, exists and unit, dead, Arena.preview and hp)
   Timers.BarColor(r.bar, cc and Core.BarColor(cc, nil, hp) or "textMuted", 1)
@@ -246,11 +224,10 @@ end
 
 -- The panel's refresh ticker runs only while it can show.
 local function Wanted()
-  return Arena.preview or (Arena.Enabled() and (Arena.InArena() or Arena.duel ~= nil)) or false
+  return Arena.preview or (Arena.Enabled() and Arena.InArena()) or false
 end
 
 function Arena.Update()
-  if Arena.CheckDuel then Arena.CheckDuel() end
   local want = Wanted()
   if want ~= Arena.wanted then
     Arena.wanted = want
@@ -267,16 +244,10 @@ function Arena.Update()
   local count = Arena.Count()
   local before = Arena.shownCount
   Arena.Layout(count)
-  local duel, name = Binding()
-  if Arena.boundDuel ~= duel or Arena.boundName ~= name then
-    Timers.SecureHide(Arena.win)
-    return -- combat may still hold the previous opponent's secure binding
-  end
   for i = 1, Arena.shownCount or 0 do Arena.UpdateRow(Arena.rows[i]) end
   if Arena.shownCount ~= before then Arena.UpdateTrinkets() end
-  Arena.win.title:SetText(Arena.DuelMode() and ns.Locale:Get("highground.home.duel.c539e2") or ns.Locale:Get("highground.home.arena.28ee94"))
-  Hud.SetInfo(Arena.win, Arena.preview and ns.Locale:Get("arena.window.preview.f1fbb2") or
-    (Arena.DuelMode() and Arena.DuelStatus() or string.format("%dv%d", count, count)))
+  Arena.win.title:SetText(ns.Locale:Get("highground.home.arena.28ee94"))
+  Hud.SetInfo(Arena.win, Arena.preview and ns.Locale:Get("arena.window.preview.f1fbb2") or string.format("%dv%d", count, count))
   Timers.SecureShow(Arena.win)
 end
 
@@ -300,7 +271,7 @@ end
 function ns.ArenaPreview()
   if ns.Modules and not ns.Modules.Require("arena") then return false end
   if InCombatLockdown() then return nil end
-  Arena.preview = not Arena.preview and not Arena.duel and not Arena.InArena()
+  Arena.preview = not Arena.preview and not Arena.InArena()
   ns.PvPEvents.Refresh()
   Arena.Update()
   return Arena.preview
@@ -310,7 +281,7 @@ local function OnEvent(event, unit, spellID)
   if event == "PLAYER_ENTERING_WORLD" then
     local kind = select(2, IsInInstance())
     if kind == "pvp" or kind == "arena" then Arena.preview = false end
-    Arena.ClearDuel()
+    Arena.Reset()
   elseif event == "ARENA_PREP_OPPONENT_SPECIALIZATIONS" then
     -- Each preparation announces new opponents: every Solo Shuffle round,
     -- without a loading screen. Forget the last round's names, classes and

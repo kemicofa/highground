@@ -93,9 +93,12 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
   test(client .. ' inline activity choices survive switching off and cancel deleted pending assignments', function()
     local s=make(); create(s,'Arena'); local p,P,C=open(s)
     local a=p.assignments
-    assert(a:IsVisible() and a.activities.arena:IsVisible())
-    a.activities.arena:SetValue('Arena'); a.enabled:SetChecked(true)
-    local who,key=P.Context('arena'); equal(C.db.profileAssignments[who][key],'Arena')
+    -- WoW Forever has no arenas, so no Arena activity.
+    local activity=client=='forever' and 'bg' or 'arena'
+    equal(a.activities.arena==nil,client=='forever','Arena activity only where the game has arenas')
+    assert(a:IsVisible() and a.activities[activity]:IsVisible())
+    a.activities[activity]:SetValue('Arena'); a.enabled:SetChecked(true)
+    local who,key=P.Context(activity); equal(C.db.profileAssignments[who][key],'Arena')
     a.enabled:SetChecked(false); equal(C.db.profileAssignments[who][key],'Arena')
     p.SelectProfile('Default'); click(p.profileButtons.Load)
     s:setCombat(true); P.LoadProfile('Arena'); P.DeleteProfile('Arena')

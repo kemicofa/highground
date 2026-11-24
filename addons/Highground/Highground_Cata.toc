@@ -32,7 +32,6 @@ libs/locale/ruRU.lua
 libs/locale/zhCN.lua
 libs/locale/zhTW.lua
 libs/locale/Highground.lua
-core/Modules.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua
 libs/config/themes/Parchment.lua
@@ -46,6 +45,7 @@ features/battlegrounds/config/cata/Auras.lua
 features/battlegrounds/config/cata/Kits.lua
 features/battlegrounds/config/cata/SpecClues.lua
 libs/config/Client.lua
+core/Modules.lua
 features/battlegrounds/config/Battlegrounds.lua
 features/battlegrounds/config/battlegrounds/AlteracValley.lua
 features/battlegrounds/config/battlegrounds/ArathiBasin.lua
@@ -267,7 +267,6 @@ features/arena/arena/Specs.lua
 features/arena/arena/Trinkets.lua
 features/arena/arena/CataData.lua
 features/arena/arena/Activity.lua
-features/arena/arena/Duel.lua
 libs/world/Nearby.lua
 libs/world/NearbyEvents.lua
 libs/world/NearbyPreview.lua

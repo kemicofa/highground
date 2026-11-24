@@ -35,7 +35,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       t.equal(s.moduleWrites[#s.moduleWrites].name, def.addon, "only the selected addon is changed")
       t.equal(snapshot(s), before, "module changes preserve panel and profile preferences")
     end
-    t.equal(#s.moduleWrites, 6, "one native write per addon")
+    t.equal(#s.moduleWrites, #M.list, "one native write per addon")
     t.equal(s.reloads, nil, "changing switches never reloads automatically")
     s.ns.Hub.Open("addons")
     for _, def in ipairs(M.list) do assert(not O.win.cards[def.key].addon:GetChecked()) end
@@ -161,17 +161,17 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:setCombat(true)
     assert(not O.win:IsVisible(), "combat dismisses the guide")
     s:command("guide")
-    assert(not O.win.cards.arena.addon:IsEnabled() and not O.win.reload:IsEnabled())
-    click(O.win.cards.arena.addon); click(O.win.reload)
+    assert(not O.win.cards.nearby.addon:IsEnabled() and not O.win.reload:IsEnabled())
+    click(O.win.cards.nearby.addon); click(O.win.reload)
     t.equal(#s.moduleWrites, 1, "combat makes no native writes")
     t.equal(s.reloads, nil, "combat forbids reload")
     s:setCombat(false)
-    assert(O.win.cards.arena.addon:IsEnabled() and O.win.reload:IsEnabled(), "controls recover when combat ends")
+    assert(O.win.cards.nearby.addon:IsEnabled() and O.win.reload:IsEnabled(), "controls recover when combat ends")
     click(O.win.cards.macros.addon); assert(not M.Pending())
     local api = client == "cata" and s.env or s.env.C_AddOns
     api.DisableAddOn = function() end
-    click(O.win.cards.arena.addon)
-    assert(O.win.cards.arena.addon:GetChecked() and not M.Pending(), "failed writes restore native selection")
+    click(O.win.cards.nearby.addon)
+    assert(O.win.cards.nearby.addon:GetChecked() and not M.Pending(), "failed writes restore native selection")
     assert(O.win.status:GetText():find("could not change", 1, true), "native failure is visible")
     s:assertHealthy()
   end)

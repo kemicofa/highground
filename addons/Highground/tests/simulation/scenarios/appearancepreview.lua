@@ -13,6 +13,12 @@ local function same(a, b)
 end
 
 for _, client in ipairs({ "cata", "retail", "forever" }) do
+  -- Addons with appearance pages; WoW Forever has no Arena.
+  local function owners(list)
+    local out = {}
+    for _, owner in ipairs(list) do if client ~= "forever" or owner ~= "arena" then out[#out + 1] = owner end end
+    return out
+  end
   local function make(saved, disabled)
     return new(client == "cata" and "cata" or "retail", saved, function(s, env)
       F.configure(disabled)(s, env)
@@ -54,7 +60,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       click(page.preview)
       assert(not s.ns.Timers.previewing and not P.session)
     end
-    for _, owner in ipairs({ "arena", "nearby", "bounties" }) do
+    for _, owner in ipairs(owners({ "arena", "nearby", "bounties" })) do
       H.Open(O.addonPages[owner].appearance)
       local p = O.byKey[O.addonPages[owner].appearance]
       click(p.preview)
@@ -86,7 +92,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
   test(client .. " appearance previews stop on combat and matches and leave existing samples alone", function()
     local s = make({ nearby = false })
     local O, H, P = s.ns.Options, s.ns.Hub, s.ns.Options.AppearancePreview
-    for _, owner in ipairs({ "battlegrounds", "arena", "nearby", "bounties" }) do
+    for _, owner in ipairs(owners({ "battlegrounds", "arena", "nearby", "bounties" })) do
       H.Open(O.addonPages[owner].appearance)
       local p = O.byKey[O.addonPages[owner].appearance]
       click(p.preview)
@@ -111,12 +117,6 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     p.previewChoice:SetValue("flags"); click(p.preview)
     s:setCombat(true); s:setCombat(false)
     assert(not s.ns.Timers.previewing and not s.ns.Flags.flagWin:IsVisible(), "secure carriers are cleaned up")
-    p.previewChoice:SetValue("enemies"); click(p.preview)
-    s.units.nameplate1 = { name = "Challenger", classID = 4, guid = "Player-Challenger" }
-    s:event("DUEL_REQUESTED", "Challenger-Realm"); s:advance(0.1)
-    assert(not P.session and not p.preview:IsEnabled(), "duel request stops samples and refreshes availability")
-    s:event("DUEL_FINISHED"); s:advance(0.1)
-    assert(p.preview:IsEnabled(), "preview is available again after a duel")
     s:assertHealthy()
   end)
 
@@ -126,6 +126,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local positions = s.ns.Bounty.Public.Copy(s.ns.Core.pos)
     local samples = { battlegrounds = { "enemies", "marker", "resurrection", "objectives", "flags" },
       arena = { "arena" }, nearby = { "nearby" }, bounties = { "poster", "bountymarkers" } }
+    if client == "forever" then samples.arena = nil end
     for owner, choices in pairs(samples) do
       H.Open(O.addonPages[owner].appearance)
       local page = O.byKey[O.addonPages[owner].appearance]

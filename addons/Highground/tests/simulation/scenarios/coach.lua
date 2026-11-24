@@ -28,7 +28,9 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local sim = make({})
     local O = sim.ns.Onboarding
     local before = snapshot(sim)
-    for _, key in ipairs({ "panels", "enemies", "objectives", "arena", "nearby", "map", "bounty_post", "bounty_hunt" }) do
+    local keys = { "panels", "enemies", "objectives", "arena", "nearby", "map", "bounty_post", "bounty_hunt" }
+    if client == "forever" then table.remove(keys, 4) end -- no Arena on Forever
+    for _, key in ipairs(keys) do
       sim.ns.Hub.Open("checklist"); O.Go(key); O.Explore(O.Current().actions[1])
       local C = O.Coach
       assert(C.running and not sim.ns.Hub.win:IsVisible() and not O.win:IsVisible(), key .. " launches outside the hub")

@@ -54,7 +54,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | `features/battlegrounds/map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `features/battlegrounds/map/Pins.xml`) |
 | `features/battlegrounds/timers/` | Graveyards, captures, resurrection estimates, resource predictions, objective overview, observed mechanics and map layer (`ns.Timers`) |
 | `features/battlegrounds/flags/` | Flag carriers and the carrier window (`ns.Flags`); hides Blizzard's carrier frames and quest tracker |
-| `features/arena/arena/` | Arena and duel panel (`ns.Arena`), opponent identity, spec clues, client-reported trinkets, cast/CC displays and observed Cata diminishing returns and interrupts |
+| `features/arena/arena/` | Arena panel (`ns.Arena`), announced specs, client-reported trinkets, cast/CC displays and observed Cata diminishing returns and interrupts |
 | `features/reputation/reputation/` | Player reports, native-organization moderation, chat filtering, synchronization and workspace (`ns.Reputation`) |
 | `libs/world/` | Nearby enemies (`ns.Nearby`), encounter history and mute preferences (`ns.NearbyHistory`), localized honor messages (`ns.Honor`) and enemy journal UI |
 | `libs/pvp/` | Live PvP listeners and tickers (`ns.PvPEvents`), prebuilt unit tokens (`ns.UnitTokens`), stealth observers, saved match results and the match-history window (`ns.MatchHistory`) |
@@ -102,7 +102,7 @@ flowchart TD
   CORE --> OPT[Settings and commands]
   CORE --> EXP[Read-only core exports]
   EXP --> SUB[Map, timers, flags<br/>and pressure shields]
-  CORE --> FEAT[Arena/duels, nearby, bounties,<br/>reputation and macros]
+  CORE --> FEAT[Arena, nearby, bounties,<br/>reputation and macros]
   OPT & FEAT --> HUB[Highground window]
   THEME --> UI & OPT & SUB & FEAT & HUB
   EVT((WoW events)) --> CORE & SUB & FEAT
@@ -118,7 +118,7 @@ flowchart TD
 | `ns.Commands`, `ns.CommandCatalog` | `commands/`, `config/Commands.lua`, `features/*/config/Commands.lua` | Handlers by first word; addon-owned command/UI definitions and derived dispatch ownership |
 | `ns.Intel`, `ns.MapPins` | `features/battlegrounds/map/` | Enemy positions, map pins |
 | `ns.Timers`, `ns.Flags` | `features/battlegrounds/timers/`, `features/battlegrounds/flags/` | Battleground timers and windows, carriers |
-| `ns.Arena`, `ns.Nearby` | `features/arena/arena/`, `libs/world/` | Arena/duel panel, nearby enemies |
+| `ns.Arena`, `ns.Nearby` | `features/arena/arena/`, `libs/world/` | Arena panel, nearby enemies |
 | `ns.Bounty`, `ns.Macros` | `libs/bounty/`, `features/macros/macros/` | Bounties, macros |
 | `ns.Reputation` | `features/reputation/reputation/` | Player reports, moderation and filtering |
 | `ns.Network`, `ns.Guild`, `ns.Organizations` | `libs/core/Network.lua`, `libs/social/` | Shared transport and native organization services |
@@ -145,7 +145,7 @@ Other shared services worth knowing before adding a feature:
 
 | Namespace | Source | Use |
 | --- | --- | --- |
-| `ns.Modules` | `core/Modules.lua` | Module switch snapshot taken at load: `Installed`, `Selected`, `Active(key)`, `Require(key)` (opens the module's page instead of running a disabled module's command), `SetEnabled`, `Reload`. Changes apply after reload. |
+| `ns.Modules` | `core/Modules.lua` | Module switch snapshot taken at load: `Installed`, `Selected`, `Active(key)`, `Require(key)` (opens the module's page instead of running a disabled module's command), `SetEnabled`, `Reload`. Changes apply after reload. A game without arenas (WoW Forever) drops Arena from `list` and `byKey` and marks it in `absent`; `ns.OptionAvailable` then hides its settings. |
 | `ns.PreviewTests` | `commands/Previews.lua` | The preview catalog shared by `/hg test` and **Help and commands**: `StartAll`, `StopAll`, `Active`, `CanStart` |
 | `Options` | `options/Controls.lua`, `options/Register.lua` | Settings building blocks (`Get`, `Set`, `Wire`, `Toggle`, `Stepper`, `Section`, `Row`, `RefreshPage`) and page registration by key in `ns.OptionsConfig.pages` (`Register`, `Open`, `OpenPage`) |
 | `ns.PanelControls` | [libs/ui/PanelControls.lua](../../../libs/HighgroundKit/ui/PanelControls.lua) | Lock/unlock, cogwheel menus and panel opacity for HUD windows (`Locked`, `Toggle`, `Refresh`); `Core.SetPanelsLocked` |
@@ -192,7 +192,7 @@ Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts
 | `Util.ModuleEnabled(module)` | False for a disabled Highground module |
 | `Util.Events(handlers[, name, module])` | Event frame; each handler runs through `Util.Guard`. A handler can be `{ fn = f, unit = "player" }` for unit events. Unknown events are skipped; a disabled `module` registers nothing |
 | `Util.Every(seconds, fn[, name, module])` | Guarded native ticker; returns `:Stop()` / `:Start()`. OnUpdate fallback only for zero intervals or clients without tickers; a disabled `module` never schedules |
-| `PvPEvents.Listen(handlers, stage, live[, module])`, `PvPEvents.Every(seconds, fn, stage, live[, module, idle])` | Battleground/arena/duel work: events register and tickers run only while `live()` passes; dispatch allocates nothing per event. Call `PvPEvents.Refresh()` after changing what `live()` reads; a one-second check runs in PvP instances and duels |
+| `PvPEvents.Listen(handlers, stage, live[, module])`, `PvPEvents.Every(seconds, fn, stage, live[, module, idle])` | Battleground and arena work: events register and tickers run only while `live()` passes; dispatch allocates nothing per event. Call `PvPEvents.Refresh()` after changing what `live()` reads; a one-second check runs in PvP instances |
 | `PvPEvents.Call(stage, fn, ...)` | `Util.Guard` for hot paths: up to six arguments, returns success and the first result without packing tables |
 | `Util.secret(v)`, `Util.plain(v)`, `Util.value(v)` | Secret values on Retail and Forever: test, readable boolean, value or nil |
 | `Util.call(fn, ...)`, `Util.read(fn, ...)` | `pcall` returning results; first result when readable |
@@ -262,7 +262,6 @@ The state audit covers these shared boundaries:
 | Claim reviews | `Public.CLAIM_NEXT` is the one lifecycle (`claimed` → `approved` → `paid`, or `claimed` → `rejected`) for shared and organization claims; remote receipts may skip approval. Covered by `tests/public_claims_test.lua` and the bounty network suites |
 | Nearby tracking | `Nearby.State()` is `off`, `paused` (instance) or `tracking`; unit and combat-log events are registered only while tracking, and the one-second poll applies switches. Covered by `tests/nearby_events.lua` on all three clients |
 | Macro editor and preset cards | `Macros.BuildPanel.SaveStatus()` returns one save state (`combat`, `saved`, `failed`, `empty`, `invalid`, `unchanged`, `update`, `new`); a save result belongs to its exact name, destination and text, so game macro events cannot erase it. `Macros.Window.CardState()` distinguishes a preset's own saved text from another macro under the same name. Covered by the `macroedges` and `macroeditor` simulations |
-| Duels | `Arena.duelState` is `idle`, `requested`, `countdown` or `active`; phase changes own their timestamps, while bounds remain independent. `Arena.ClearDuel()` also resets the lifecycle on world changes. Covered by `tests/arena_duels.lua` in both arena clients |
 
 Other combat deferrals, unknown opponent cooldowns, router guards and network permission checks retain their existing feature-specific behavior and regression suites. Simulator checks validate transitions and load order; native game rendering and uncorrelated screenshot events still need in-game verification.
 

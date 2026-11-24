@@ -111,8 +111,6 @@ ns.Games = {
 -- late-loading clients and test stubs are honoured. Wrappers below also
 -- even out argument differences. Hot paths may keep a direct local where
 -- the capability (ns.Caps) already guarantees the function.
--- core/Modules.lua and standalone/Bootstrap.lua load before this file and
--- keep their own fallbacks.
 ---------------------------------------------------------------------------
 local Api = {}
 ns.Api = Api

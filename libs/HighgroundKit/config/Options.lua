@@ -63,9 +63,11 @@ function ns.ApplyFirstRunDefaults(db)
   for key, value in pairs(ns.OptionsConfig.firstRun) do db[key] = Copy(value) end
 end
 
--- Whether a settings entry applies to this game (caps, cata, retail, retired).
+-- Whether a settings entry applies to this game (caps, cata, retail, retired,
+-- module).
 function ns.OptionAvailable(option)
   if option.retired then return false end
+  if option.module and ns.Modules and ns.Modules.absent[option.module] then return false end
   if option.caps and not (ns.Caps and ns.Caps[option.caps]) then return false end
   local retail = ns.CLIENT == "retail"
   return not (option.cata and retail) and not (option.retail and not retail)

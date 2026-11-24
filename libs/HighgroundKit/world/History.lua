@@ -41,13 +41,16 @@ end
 local Record = History.Record
 
 -- The stored record for a name: as written, canonical, without our own
--- realm, or as "Name-" from before the realm or ruleset was known.
+-- realm, or for our own realm as "Name-" from before it could be read.
 local function Find(all, name)
   local h = Record(all[name])
   if h then return h end
   local canon = Core.Canon(name)
   if not canon then return end
-  return Record(all[canon]) or Record(all[Core.DisplayName(canon)]) or Record(all[canon:match("^[^-]+%-")])
+  h = Record(all[canon]) or Record(all[Core.DisplayName(canon)])
+  if h then return h end
+  local short = canon:match("^[^-]+")
+  if Core.Canon(short) == canon then return Record(all[short .. "-"]) end
 end
 
 function History.Get(name)

@@ -188,6 +188,9 @@ return function(addon)
     equal(H.Muted("Bitter Plot"), true, "and the mute")
     equal(all["Rogue One-PvP"].killedMe, 4, "a name written without the ruleset joins the same enemy")
     equal(all["Rogue One-"], nil, "without a second identity")
+    all["Early-"] = { times = 2, killedMe = 0, killedThem = 0, last = 1 }
+    equal(H.Get("Early").times, 2, "an older early record still names our own ruleset")
+    equal(H.Get("Early-Hardcore"), nil, "but not another one")
     sim:assertHealthy()
   end)
 

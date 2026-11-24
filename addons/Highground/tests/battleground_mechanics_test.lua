@@ -41,4 +41,27 @@ t.test("cart status rows are reused between polls and follow the widgets", funct
   equal(M.rows, list, "in place")
 end)
 
+t.test("match history keeps status changes, not ticking counters", function()
+  local sim = new("retail", {}, widgets)
+  sim.widgetData[23] = { shownState = 1, text = "Reinforcements: 600" }
+  sim:join(91, 30, "Alterac Valley")
+  sim:advance(1.1)
+  local function notes()
+    local found = {}
+    for _, event in ipairs(sim.ns.MatchHistory.current.events) do
+      if event.text:find("cart", 1, true) or event.text:find("Reinforcements", 1, true) then found[#found + 1] = event.text end
+    end
+    return found
+  end
+  for i = 1, 300 do
+    sim.widgetData[23].text = "Reinforcements: " .. (600 - i)
+    sim:advance(1)
+  end
+  equal(#notes(), 0, "a counting widget adds nothing")
+  sim.widgetData[22].text = "Lava cart: Horde"
+  sim:advance(1)
+  equal(#notes(), 1, "a change of side is noted")
+  equal(notes()[1], "Lava cart: Horde", "as the widget says it")
+end)
+
 t.finish("Battleground mechanics: " .. t.tests .. " tests")

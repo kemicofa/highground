@@ -27,9 +27,12 @@ local function Add(key, text, tag, value, maximum, owner)
   value, maximum = U.value(value), U.value(maximum)
   local frac = type(value) == "number" and type(maximum) == "number" and maximum > 0 and value / maximum or nil
   if frac then detail = detail .. ns.Locale:Format("battlegrounds.mechanics.value_maximum.26405d", { value = string.format("%g", value), maximum = string.format("%g", maximum) }) end
+  -- Time left, reinforcements and cart progress tick every few seconds:
+  -- only a change beyond the numbers goes into the match history.
+  local shape = text:gsub("%d+", "#")
   local previous = M.states[key]
-  if previous and previous ~= text and ns.MatchHistory then ns.MatchHistory.Note(text) end
-  M.states[key] = text
+  if previous and previous ~= shape and ns.MatchHistory then ns.MatchHistory.Note(text) end
+  M.states[key] = shape
   local row = rowPool:Add()
   row.text, row.detail = text, detail
   row.time, row.frac = frac and string.format("%d%%", frac * 100 + 0.5) or "", frac

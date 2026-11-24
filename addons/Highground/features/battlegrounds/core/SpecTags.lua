@@ -78,7 +78,7 @@ function Core.ApplySpecTag(e)
 end
 
 local function Send(text)
-  local chan = Core.active and not Core.testMode and Core.db and Core.ShareOn() and Comms.GroupChannel()
+  local chan = ns.IsActive() and Core.db and Core.ShareOn() and Comms.GroupChannel()
   if not chan then return nil end
   if Comms.Blocked() then return false end
   return Comms.Send(Core.SPEC_TAG_PREFIX, text, chan) and true or false
@@ -89,7 +89,7 @@ local function Retry()
   waiting = true
   C_Timer.After(Core.SPEC_TAG_RETRY, function()
     waiting = false
-    if not Core.active then wipe(pending); requesting = false; return end
+    if not ns.IsActive() then wipe(pending); requesting = false; return end
     if requesting then Core.RequestSpecTags() end
     if next(pending) then Core.ShareSpecTags() end
   end)
@@ -136,7 +136,7 @@ end
 Core.SPEC_TAG_RESEND = 10
 local resendAt, resendDue = -math.huge, false
 function Core.ResendSpecTags()
-  if not Core.active or Core.testMode then return end
+  if not ns.IsActive() then return end
   local wait = resendAt + Core.SPEC_TAG_RESEND - GetTime()
   if wait > 0 then
     if not resendDue and C_Timer and C_Timer.After then
@@ -204,7 +204,7 @@ function Core.ClearEarlySpecTags()
 end
 
 function Core.ReceiveSpecTags(text, sender)
-  if not Core.active or Core.testMode or not Core.On("intelShare") then return end
+  if not ns.IsActive() or not Core.On("intelShare") then return end
   local short = type(sender) == "string" and sender:match("^[^-]+")
   if not short or Core.IsMe(sender) then return end
   if text == "R" then return Core.ResendSpecTags() end
@@ -236,7 +236,7 @@ local members = 0
 ns.Util.Events({
   GROUP_ROSTER_UPDATE = function()
     local n = GetNumGroupMembers and GetNumGroupMembers() or 0
-    if n > members and Core.active then Core.ResendSpecTags() end
+    if n > members and ns.IsActive() then Core.ResendSpecTags() end
     members = n
   end,
 }, "spectags", "battlegrounds")

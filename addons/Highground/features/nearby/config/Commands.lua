@@ -24,6 +24,7 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Link("nearby marks on", "marks.commands.switch", "nearby", "marks.commands.switch_label", { aliases = { "nearby marks off" } }),
   C.Link("nearby marks world on", "marks.commands.world", "nearby", "marks.commands.world_label", { aliases = { "nearby marks world off" } }),
   C.Link("nearby calls on", "calls.commands.switch", "nearby", "calls.commands.switch_label", { aliases = { "nearby calls off" } }),
+  C.Link("nearby fights on", "fights.commands.switch", "nearby", "fights.commands.switch_label", { aliases = { "nearby fights off" } }),
   C.Link("nearby test", "nearby.commands.start_or_stop_the_nearby_enemy_sample.f6cd99", "nearby-previews", "nearby.commands.nearby_preview_controls.405cb3"),
   C.Action("nearby clear", "nearby.commands.clear_current_nearby_sightings.0272a7", "nearby.commands.clear_nearby_sightings.383754", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.clear_current_nearby_sightings.0f891d") }, { confirm = "nearby.commands.clear_current_nearby_sightings.0f891d" })),
   C.Action("nearby forget", "nearby.commands.forget_saved_enemy_encounter_history.dca8f5", "nearby.commands.forget_enemy_history.d2bf57", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.forget_all_saved_enemy_encounter_history.49c687") }, { confirm = "nearby.commands.forget_all_saved_enemy_encounter_history.49c687" })),

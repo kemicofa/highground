@@ -183,6 +183,7 @@ ui/Hero.lua
 ui/Render.lua
 ui/Actions.lua
 features/battlegrounds/core/Lifecycle.lua
+features/battlegrounds/core/World.lua
 features/battlegrounds/core/Features.lua
 core/Preview.lua
 options/State.lua

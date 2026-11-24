@@ -53,7 +53,12 @@ function Core.Tick()
   if not Core.active then
     return
   end
-  if not Core.testMode then
+  if not Core.testMode and Core.context == "world" then
+    -- Open-world fights (core/World.lua): Nearby's roster, no objectives.
+    Core.Guard("roster", Core.RefreshWorldRoster)
+    Core.Guard("scan", Core.ScanUnits)
+    Core.Guard("allies", Core.ScanAllyTargets)
+  elseif not Core.testMode then
     if Core.DetectMap() then
       Core.ObjectiveStart()
     end
@@ -91,7 +96,8 @@ function Core.SetActive(on)
   Core.active = on
   if on then
     Core.UpdateMe()
-    if not Core.testMode then
+    local bg = not Core.testMode and Core.context ~= "world"
+    if bg then
       Core.ObjectiveStart()
     end
     if InCombatLockdown() then
@@ -100,7 +106,7 @@ function Core.SetActive(on)
       ShowPanel(Core.guidedTest or Core.PriorityOn())
     end
     ticker = C_Timer.NewTicker(0.25, Core.Tick)
-    if not Core.testMode then
+    if bg then
       scoreTicker = C_Timer.NewTicker(5, Core.RequestScores)
       Core.RequestScores()
       if Core.RequestSpecTags then Core.RequestSpecTags() end
@@ -179,7 +185,8 @@ function Core.CheckZone()
     return
   end
   local on = Core.InRatedBG()
-  if not on then
+  local world = not on and Core.WorldFight and Core.WorldFight()
+  if not on and not world then
     wipe(Core.enemies)
     wipe(Core.order)
     wipe(Core.displayOrder)
@@ -191,5 +198,8 @@ function Core.CheckZone()
     Core.obj.mode, Core.obj.assaultStart = nil, nil
     ns.flagRespawnAt = nil
   end
-  Core.SetActive(on)
+  -- Leaving a world fight clears its board before a new one starts.
+  if Core.context == "world" and not world then wipe(Core.enemies); wipe(Core.order); wipe(Core.displayOrder) end
+  Core.context = on and "bg" or world and "world" or nil
+  Core.SetActive(on or world or false)
 end

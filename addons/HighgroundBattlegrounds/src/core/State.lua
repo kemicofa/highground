@@ -116,7 +116,7 @@ Core.DEFAULTS = {
 
 -- Window positions are saved per character (HighgroundCharDB); these keys
 -- used to live in the account-wide HighgroundDB.
-Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "flagsPoint", "arenaPoint", "nearbyPoint", "quickCallsPoint" }
+Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "forecastPoint", "flagsPoint", "arenaPoint", "nearbyPoint", "quickCallsPoint" }
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 

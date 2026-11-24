@@ -168,6 +168,7 @@ src/timers/Prediction.lua
 src/timers/Overview.lua
 src/timers/Mechanics.lua
 src/timers/Objectives.lua
+src/timers/Forecast.lua
 src/timers/Layer.lua
 src/timers/Driver.lua
 src/ui/QuickCallMessages.lua

@@ -247,6 +247,7 @@ features/battlegrounds/timers/Prediction.lua
 features/battlegrounds/timers/Overview.lua
 features/battlegrounds/timers/Mechanics.lua
 features/battlegrounds/timers/Objectives.lua
+features/battlegrounds/timers/Forecast.lua
 features/battlegrounds/timers/Layer.lua
 features/battlegrounds/timers/Driver.lua
 features/battlegrounds/ui/QuickCallMessages.lua

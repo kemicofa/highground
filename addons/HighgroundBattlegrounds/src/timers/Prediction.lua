@@ -2,14 +2,12 @@ local _, ns = ...
 local Timers = ns.Timers
 
 ---------------------------------------------------------------------------
--- Bases window: captures in progress + who wins, and when.
--- Like Capping's bars and score predictor, plus:
+-- Scores and predictions for the win forecast (timers/Forecast.lua).
+-- Like Capping's score predictor, plus:
 --   * the max score is read from the scoreboard (not assumed 1600), as
 --     "Bases: 3  Resources: 1210/1600" text or a modern double score bar
 --   * points per second for each base count are measured live (and saved
 --     per battleground), seeded with Arathi Basin's known table
---   * "IF" = the result if every capture in progress lands
---   * "NEED" = how many bases the losing side must hold to turn it
 ---------------------------------------------------------------------------
 
 do

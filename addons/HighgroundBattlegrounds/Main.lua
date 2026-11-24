@@ -67,7 +67,7 @@ ns.Standalone.Start({
     hint = ns.Locale:Get("battlegrounds.main.join_a_battleground_and_these_panels_appear.bba551"),
     basic = { "allBGs", "timers", "flags", "intel", "quickCalls", "quickCallsDestinations", "quickCallsRoutes" },
     keys = { "allBGs", "bg10", "bg15", "bg40", "timers", "quickCalls", "quickCallsDestinations", "quickCallsRoutes",
-      "objectives", "objectiveOverview", "capAlert", "capPlates", "dieAlert",
+      "objectives", "objectiveOverview", "forecast", "capAlert", "capPlates", "dieAlert",
       "dieHpPct", "dieResMax", "dieResMin", "flags", "hideCarrierFrames", "sapCall", "hideTracker",
       "intel", "intelShare", "sound" },
     buttons = {

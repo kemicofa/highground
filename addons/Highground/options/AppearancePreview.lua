@@ -67,8 +67,9 @@ end
 local function Objective(which)
   ns.BattlegroundsPreview.Start(true)
   local res, bases = ns.Timers.Windows()
-  local selected = which == "resurrection" and res or which == "objectives" and bases or ns.Flags.flagWin
-  for _, w in ipairs({ res, bases, ns.Flags.flagWin, ns.QuickCalls and ns.QuickCalls.win }) do
+  local forecast = ns.Timers.ForecastWindow()
+  local selected = which == "resurrection" and res or which == "objectives" and bases or which == "forecast" and forecast or ns.Flags.flagWin
+  for _, w in ipairs({ res, bases, forecast, ns.Flags.flagWin, ns.QuickCalls and ns.QuickCalls.win }) do
     if w ~= selected then ns.Timers.SecureHide(w) end
   end
   return selected
@@ -83,6 +84,7 @@ local scenes = {
     stop = function() if P.marker then P.marker:Hide() end end, refresh = Marker },
   { key = "resurrection", module = "battlegrounds", labelKey = "appearance.preview.scene.resurrection", start = function() return Objective("resurrection") end, stop = StopObjectives },
   { key = "objectives", module = "battlegrounds", labelKey = "appearance.preview.scene.objectives", start = function() return Objective("objectives") end, stop = StopObjectives },
+  { key = "forecast", module = "battlegrounds", labelKey = "appearance.preview.scene.forecast", start = function() return Objective("forecast") end, stop = StopObjectives },
   { key = "flags", module = "battlegrounds", labelKey = "appearance.preview.scene.flags", start = function() return Objective("flags") end, stop = StopObjectives },
   { key = "arena", module = "arena", labelKey = "appearance.preview.scene.arena",
     start = function() ns.ArenaPreview(); return ns.Arena.win end,

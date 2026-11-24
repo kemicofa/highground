@@ -2,7 +2,7 @@ local _, ns = ...
 local Timers, Flags, Kit, Theme, Core = ns.Timers, ns.Flags, ns.Kit, ns.Theme, ns.Core
 
 ---------------------------------------------------------------------------
--- /hgbg test: the resurrection, objective and flag carrier windows with
+-- /hgbg test: the resurrection, forecast, timers and flag carrier windows with
 -- sample rows (those switched on), to place them outside battlegrounds and
 -- out of combat. Click or type again to stop; a battleground starting ends
 -- it (timers/Driver.lua).
@@ -21,16 +21,19 @@ local function ResurrectionRows(me, them)
 end
 
 local function ObjectiveRows(me, them)
-  local name = { A = ns.Locale:Get("shared.copy.alliance.a21193"), H = ns.Locale:Get("shared.copy.horde.cf9229") }
   return {
-    Timers.Tag({ team = me, color = Timers.TeamColor(me), frac = 0.72, time = "3:10", text = name[me] .. "  1500-1180" }, "WIN"),
     Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
-    -- After CAP (the guide's capture target). No clock: the text uses its room.
-    Timers.Tag({ team = them, color = Timers.TeamColor(them), time = "", text = ns.Locale:Format("battlegrounds.objectives.value1_needs_k_word_value4.34ded4",
-      { value1 = name[them], k = "4", word = "base", value4 = "s" }) }, "NEED"),
     Timers.Tag({ color = Theme.Rgb("white"), text = ns.Locale:Get("battlegrounds.objectives.respawn.1b63d8"), left = 8, total = 11, icon = Timers.FLAG_ICON }, "FLAG"),
     Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 }, "CAPPING"),
-  }, Timers.Hex(Timers.TeamColor(me)) .. "1080|r  " .. Timers.Hex(Timers.TeamColor(them)) .. "940|r"
+  }
+end
+
+-- You lead; defending the Lumber Mill would win sooner.
+local function Forecast(me, them)
+  local m = { winner = me, left = 190, max = 1600, need = 4, needTeam = them, noun = "base", heldWinner = me, heldLeft = 160 }
+  m[me], m[them] = 1080, 940
+  m.frac = m[me] / m.max
+  return m
 end
 
 -- Sample carriers in the flag window (its rows are secure: out of combat).
@@ -72,13 +75,14 @@ function Preview.Start(guided)
   local res, obj = Timers.Windows()
   if guided or Core.On("timers") then
     Timers.ShowRows(res, ResurrectionRows(me, them))
+    if guided or Core.On("forecast") then Timers.ShowForecast(Forecast(me, them)) end
     if guided or Core.On("objectives") then
       -- The sample capture arrives after opening, so it flashes like a live one.
-      local rows, info = ObjectiveRows(me, them)
+      local rows = ObjectiveRows(me, them)
       local capping = table.remove(rows)
-      Timers.ShowRows(obj, rows, info)
+      Timers.ShowRows(obj, rows)
       rows[#rows + 1] = capping
-      Timers.ShowRows(obj, rows, info)
+      Timers.ShowRows(obj, rows)
     end
   end
   if guided or Core.On("flags") then ShowCarriers(me, them) end

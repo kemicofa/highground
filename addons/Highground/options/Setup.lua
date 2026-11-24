@@ -21,7 +21,7 @@ local markers = {
 }
 
 local roleDefaults = { killorder = true, sniper = false, healerMarks = false, burstMarks = false,
-  pressure = false, objectiveOverview = false, timers = true, objectives = true, flags = true,
+  pressure = false, objectiveOverview = false, timers = true, objectives = true, forecast = true, flags = true,
   dieAlert = false, sapCall = false, capAlert = true }
 
 local function RoleValue(preset, key, choices)

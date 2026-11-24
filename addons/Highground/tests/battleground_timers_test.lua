@@ -20,10 +20,14 @@ local function widgets(sim, env)
   }
 end
 
-local function rows(sim)
-  local out = {}
-  for _, row in ipairs(sim.ns.Timers.ObjectiveRows(sim.now)) do out[row.tag] = row end
-  return out
+-- The forecast panel's lines as drawn, or nil when nothing is predicted.
+local function forecast(sim)
+  local T = sim.ns.Timers
+  local m = T.Forecast(sim.now)
+  if not m then return nil end
+  T.ShowForecast(m)
+  local b = T.foreWin.block
+  return { team = m.winner, winner = b.winner:GetText(), time = b.time:GetText(), need = b.need:GetText(), held = b.held:GetText() }
 end
 
 local function pins(sim)
@@ -48,19 +52,66 @@ t.test("Arathi Basin names the winner and what the losing side needs; a dead hea
   sim:enemy("Foe")
   sim:join(93, 529, "Arathi Basin")
   sim.widgetText[1893], sim.widgetText[1894] = "Bases: 3  Resources: 900/1500", "Bases: 2  Resources: 1000/1500"
-  local out = rows(sim)
-  equal(out.WIN.text, "Alliance  1500-1400", "three bases outpace two")
-  equal(out.WIN.time, "6:00", "at the seeded Cata rates")
-  equal(out.NEED.text, "Horde needs 3 bases", "the trailing side's target")
+  local out = forecast(sim)
+  equal(out.winner, "Alliance wins", "three bases outpace two")
+  equal(out.time, "6:00", "at the seeded Cata rates")
+  equal(out.need, "Horde needs 3 bases", "the trailing side's target")
+  equal(out.held, "", "nothing contested: no If defended line")
   sim.widgetText[1893], sim.widgetText[1894] = "Bases: 2  Resources: 1000/1500", "Bases: 2  Resources: 1000/1500"
-  out = rows(sim)
-  equal(out.WIN, nil, "even scores and bases: no winner named")
-  equal(out.NEED, nil, "nothing to catch up")
+  equal(forecast(sim), nil, "even scores and bases: no winner named")
   sim.widgetText[1893], sim.widgetText[1894] = "Bases: 0  Resources: 0/1500", "Bases: 0  Resources: 0/1500"
-  equal(rows(sim).WIN, nil, "nobody scoring: no prediction")
+  equal(forecast(sim), nil, "nobody scoring: no prediction")
   sim.widgetText[1893], sim.widgetText[1894] = "Bases: 1  Resources: 1490/1500", "Bases: 4  Resources: 1000/1500"
-  out = rows(sim)
-  equal(out.WIN.text, "Alliance  1500-1040", "a near-full score still wins with fewer bases")
+  equal(forecast(sim).winner, "Alliance wins", "a near-full score still wins with fewer bases")
+end)
+
+t.test("the forecast panel adds If defended when it matters, docks in compact and has its own switch", function()
+  local sim = new("cata", {}, function(s, env) widgets(s, env); dofile("../../tools/wowsim/geometry.lua")(s) end)
+  sim:enemy("Foe")
+  sim:join(93, 529, "Arathi Basin")
+  local T, C, env = sim.ns.Timers, sim.ns.Core, sim.env
+  sim.widgetText[1893], sim.widgetText[1894] = "Bases: 3  Resources: 900/1500", "Bases: 2  Resources: 1000/1500"
+  sim:advance(0.5)
+  local w = T.foreWin
+  assert(w and w:IsShown(), "a predictable score shows the panel")
+  assert(w.info:GetText():find("900", 1, true) and w.info:GetText():find("1500", 1, true), "the live score is in the header")
+  local short = w:GetHeight()
+  local m = { winner = "A", left = 300, frac = 0.6, A = 900, H = 1000, max = 1500, need = 3, needTeam = "H", noun = "base",
+    heldWinner = "H", heldLeft = 400 }
+  T.ShowForecast(m)
+  equal(w.block.held:GetText(), "If defended: Horde wins", "a different winner is named")
+  equal(w.block.heldTime:GetText(), "6:40", "with its time")
+  assert(w:GetHeight() > short, "If defended adds a line")
+  m.heldWinner = "A"
+  T.ShowForecast(m)
+  equal(w.block.held:GetText(), "If defended", "the same winner is not repeated")
+  m.heldWinner, m.heldLeft = nil, nil
+  T.ShowForecast(m)
+  equal(w:GetHeight(), short, "and the line goes again")
+  -- Compact: smaller, docked into the battleground column.
+  sim:command("compact on")
+  sim:advance(1)
+  assert(w:GetHeight() < short, "compact forecast is shorter")
+  local below = w.points[#w.points][2]
+  assert(below ~= env.UIParent, "the forecast docks into the column")
+  sim:command("compact off")
+  sim:advance(1)
+  -- Its own switch; the timers list stays.
+  C.SetFeature("forecast", false)
+  sim:advance(0.5)
+  assert(not w:IsShown(), "switched off: hidden")
+  C.SetFeature("forecast", true)
+  sim:advance(0.5)
+  assert(w:IsShown(), "switched on again")
+end)
+
+t.test("flag battlegrounds never show the forecast", function()
+  local sim = new("cata", {}, widgets)
+  sim:enemy("Foe")
+  sim:join(1460, 489, "Warsong Gulch")
+  sim:advance(1)
+  equal(sim.ns.Timers.Forecast(sim.now), nil, "no prediction")
+  assert(not (sim.ns.Timers.foreWin and sim.ns.Timers.foreWin:IsShown()), "no panel")
 end)
 
 t.test("steady score ticks teach this map's rate for a base count", function()
@@ -79,7 +130,7 @@ t.test("steady score ticks teach this map's rate for a base count", function()
   t.close(learned[3], 2, "two points a second learned for three bases", 0.01)
   equal(learned[2], nil, "a count without score changes is not learned")
   sim.widgetText[1893], sim.widgetText[1894] = "Bases: 3  Resources: 1100/1500", "Bases: 2  Resources: 1000/1500"
-  equal(rows(sim).WIN.time, "3:20", "prediction uses the learned rate")
+  equal(forecast(sim).time, "3:20", "prediction uses the learned rate")
 end)
 
 t.test("maps without fixed score widgets read the first two at the top of the screen", function()
@@ -126,9 +177,9 @@ t.test("WoW Forever's double score bar predicts from the map's bases and learns 
   equal(sc.n.A .. "-" .. sc.n.H, "3-2", "base counts from the map")
   t.close(T.LearnedDB().rates[T.RulesKey()][3], 2, "two points a second learned for three bases", 0.01)
   sim.bars[1671] = { leftBarValue = 1100, rightBarValue = 1000, leftBarMax = 1500, rightBarMax = 1500 }
-  local out = rows(sim)
-  assert(out.WIN and out.WIN.team == "A", "the leader on bases is named")
-  equal(out.WIN.time, "3:20", "at the learned rate")
+  local out = forecast(sim)
+  assert(out and out.team == "A", "the leader on bases is named")
+  equal(out.time, "3:20", "at the learned rate")
   sim.bars[1671] = { leftBarValue = { secret = true }, rightBarValue = 1000, leftBarMax = 1500 }
   equal(T.Scores(sim.now), nil, "an unreadable bar is no score")
 end)
@@ -184,7 +235,7 @@ t.test("an unknown battleground is recorded and gets no objective or side rules"
   assert(not sim:entry("Foe").carrier, "flag chat ignored without flag rules")
   local g = T.GetGY("A", 0.3, 0.2, true)
   equal(T.GYName(g), "north-west", "compass name without sides or landmarks")
-  equal(rows(sim).WIN, nil, "no prediction")
+  equal(forecast(sim), nil, "no prediction")
 end)
 
 t.test("WoW Forever's Arathi Basin predicts at classic rates before any are learned", function()
@@ -205,9 +256,9 @@ t.test("WoW Forever's Arathi Basin predicts at classic rates before any are lear
   }
   sim:event("AREA_POIS_UPDATED")
   equal(sim.ns.Timers.LearnedDB().rates, nil, "nothing learned yet")
-  local out = rows(sim)
-  equal(out.WIN.text, "Horde  1500-2000", "three bases outpace two")
-  equal(out.WIN.time, "5:24", "at the classic rates")
+  local out = forecast(sim)
+  equal(out.winner, "Horde wins", "three bases outpace two")
+  equal(out.time, "5:24", "at the classic rates")
 end)
 
 t.test("graveyard pins follow ownership changes and name each clock's source", function()

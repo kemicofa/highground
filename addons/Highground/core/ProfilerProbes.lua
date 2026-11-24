@@ -357,10 +357,17 @@ local function RemoveHooks()
   end
 end
 
+-- Enemy loss of control read from the count (core/Units.lua, WoW Forever):
+-- when it starts and ends.
+local function LossOfControl(e)
+  P.Add("loc", string.format("%s on=%s", tostring(e.key), tostring(e.crowdControlled == true)))
+end
+
 function P.SetProbes(on)
   wipe(last); wipe(gyLast); wipe(seenPOI); wipe(seenVignette); wipe(widgetAt); wipe(nextRows)
   nextSummary, inside = 0, false
   RemoveHooks()
+  ns.LossOfControlChanged = on and LossOfControl or nil
   if on then
     InstallHooks()
     ticker.Start()

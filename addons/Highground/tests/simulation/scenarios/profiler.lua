@@ -174,3 +174,26 @@ test("damaged battleground recordings are repaired on load", function()
   equal(type(db.bgProfiles[1].counts), "table", "counts repaired")
   sim:assertHealthy()
 end)
+
+test("WoW Forever: refused auras fall back to the loss-of-control count; recordings note it", function()
+  local count = 0
+  local sim = new("forever", {}, function(sim)
+    sim.env.C_LossOfControl = { GetActiveLossOfControlDataCountByUnit = function() return count end }
+  end)
+  sim.env.C_UnitAuras.GetUnitAuras = function() error("Auras cannot be accessed when secret") end
+  sim:enemy("Stunned")
+  sim:command("bg profiler start")
+  sim:join(1460, 489, "Warsong Gulch")
+  count = 1
+  sim:advance(1)
+  local Core = sim.ns.Core
+  local row = Core.rows[1]
+  assert(row.entry.crowdControlled, "crowd controlled")
+  equal(row.pipText:GetText(), Core.PIP.control[1], "the row shows the generic control chip")
+  count = 0
+  sim:advance(1)
+  assert(not row.entry.crowdControlled, "control ended")
+  local s = sim.env.HighgroundDB.bgProfiles[1]
+  assert(find(s, " loc Stunned%-Realm on=true"), "start")
+  assert(find(s, " loc Stunned%-Realm on=false"), "end")
+end)

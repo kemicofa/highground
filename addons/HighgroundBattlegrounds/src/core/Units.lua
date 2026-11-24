@@ -51,6 +51,17 @@ local TARGET_OF = ns.UnitTokens.target
 -- Health as 0-100 on the Midnight client: secret, but drawable and printable.
 local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
 
+-- Loss of control on any unit token (WoW Forever: readable for enemies,
+-- nameplates and teammates' targets while their auras are refused). Only
+-- the count is plain; the kind, timer and spell are secret, and the plain
+-- priority/displayType don't tell kinds apart (live 2026-11-24: Gouge,
+-- Cheap Shot and Kidney Shot all 5/2). nil when unreadable.
+local function LossOfControl(unit)
+  local L = C_LossOfControl
+  local n = L and L.GetActiveLossOfControlDataCountByUnit and Util.read(L.GetActiveLossOfControlDataCountByUnit, unit)
+  if type(n) == "number" then return n > 0 end
+end
+
 -- Readings reused per enemy instead of new tables every tick. Fields are
 -- rewritten on each reading; e.cast / e.specManaObservation point at them
 -- only while current.
@@ -132,7 +143,15 @@ function Core.ScanUnits()
         e.def = ((nDef or 0) + (nExt or 0)) > 0
         -- The Retail category includes stuns as well as breakable CC. A
         -- category alone cannot justify a "do not break" score penalty.
-        e.crowdControlled = (nCC or 0) > 0
+        -- Auras refused (WoW Forever): the loss-of-control count says the
+        -- same, with the same unknown kind.
+        local was = e.crowdControlled
+        if nCC == nil then
+          e.crowdControlled = LossOfControl(unit) or false
+          if e.crowdControlled ~= was and ns.LossOfControlChanged then ns.LossOfControlChanged(e) end -- bg profiler
+        else
+          e.crowdControlled = nCC > 0
+        end
         e.cc, e.stun = false, false
         -- Defensive aura faded while we watched: they just spent it.
         if hadDef and not e.def and nDef ~= nil then

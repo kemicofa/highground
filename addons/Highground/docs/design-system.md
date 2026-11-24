@@ -221,7 +221,7 @@ Use `child = true` for a temporary editor or confirmation. It replaces its owner
 
 Every dialog uses `Kit.Header`. Register buttons or metadata in reading order with `window.header:SetActions({ primary, secondary })`; the component places them beside the title and reserves room for the close button. Title, actions and close share one vertical center, including after font, theme, size and visibility changes. Subtitles sit below the title when they fit within the header and move inline otherwise. Text stays within the available space. Crests remain centered on the whole header.
 
-A feature in `Kit.STAGES` passes `stage = Kit.STAGES[module]` to `Kit.Dialog` or `Kit.Header` (or calls `header:SetStage`): its stage badge follows the title text, and a long title shortens before the badge moves.
+A feature in `Kit.STAGES` passes `stage = Kit.STAGES[module]` to `Kit.Dialog` or `Kit.Header` (or calls `header:SetStage`; repeating the current stage does not reflow): its stage badge follows the title text, and a long title shortens before the badge moves.
 
 Use `window.header:SetActions()` to release actions before placing them elsewhere, such as a first-use action in the board body. The header owns anchors while actions are attached, but leaves their parents, size, visibility and click handlers with the caller. Do not assign per-screen title or header-action Y offsets. `Kit.Header(parent, options)` can also be placed on any other surface; dialogs expose its text as `window.title` and `window.sub` for compatibility.
 

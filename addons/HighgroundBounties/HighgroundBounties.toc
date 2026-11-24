@@ -1,5 +1,5 @@
 ## Interface: 120100, 120105, 16001
-## Title: Highground Bounties (standalone, alpha)
+## Title: Highground Bounties (standalone)
 ## Group: HighgroundBounties
 ## IconTexture: Interface\AddOns\HighgroundBounties\libs\media\HighgroundIcon.tga
 ## Notes: Standalone addon. Not needed with Highground; remove this separate download if you use Highground. Personal, guild, community and shared bounties: wanted posters, nameplate coins, claims and nearby enemies. Retail and WoW Forever.

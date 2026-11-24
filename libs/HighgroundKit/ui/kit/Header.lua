@@ -133,7 +133,8 @@ function Kit.Header(parent, opts)
   end
   -- stage: a release stage such as "alpha", or nil to hide the badge.
   function h:SetStage(stage)
-    if not self.stage and not stage then return end
+    stage = stage or nil
+    if (self.stage and self.stage.stage) == stage then return end
     if not self.stage then
       self.stage = Kit.StageBadge(self, stage)
       watch(self.stage)

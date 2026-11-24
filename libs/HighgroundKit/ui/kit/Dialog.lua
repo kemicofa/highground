@@ -55,7 +55,8 @@ end
 -- frameless (true: obey the Frameless setting), accent (colour token of the
 -- band, bar and border, "accent"; the border is borderAccent by default),
 -- borderAlpha, crest (brand image beside the title), headerPadding,
--- stage (a release stage badge after the title, Kit.StageBadge), noClose, onClose(self), child (temporarily replace the active tool),
+-- stage (a release stage badge after the title, Kit.StageBadge),
+-- noClose, onClose(self), child (temporarily replace the active tool),
 -- host (tools opened from it return to it when closed),
 -- onResume(self) (restore a host's page when returning from a child dialog).
 -- beforeEnter/beforeLeave use the shared router's synchronous guard contract.

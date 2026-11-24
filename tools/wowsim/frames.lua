@@ -127,6 +127,15 @@ return function(sim, env)
     fire(f, "OnTextChanged", false)
   end
   methods.GetText = function(f) return f.text or "" end
+  -- Like the game, formats secret values it is handed; tests see them as
+  -- "<secret>" in place of the formatted number.
+  methods.SetFormattedText = function(f, fmt, ...)
+    local args = { ... }
+    for i = 1, select("#", ...) do
+      if type(args[i]) == "table" and args[i].secret then return methods.SetText(f, (fmt:gsub("%%[%d%.]*[df]", "<secret>", 1):gsub("%%%%", "%%"))) end
+    end
+    methods.SetText(f, string.format(fmt, ...))
+  end
   methods.GetStringHeight = function(f)
     local lines = 0
     for line in ((f.text or "") .. "\n"):gmatch("(.-)\n") do lines = lines + math.max(1, math.ceil(#line / 80)) end

@@ -160,6 +160,7 @@ libs/ui/PanelControls.lua
 libs/ui/PanelMenu.lua
 features/battlegrounds/ui/Appearance.lua
 features/battlegrounds/ui/Compact.lua
+features/battlegrounds/ui/Dock.lua
 ui/Panel.lua
 features/battlegrounds/ui/Scale.lua
 ui/SniperColors.lua

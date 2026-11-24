@@ -149,7 +149,7 @@ function Core.Render()
       end
       r.specText = specText
 
-      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, e.testHp or e.hpPct),
+      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, Core.PlainHealth(e)),
         not e.dead and e.testHp or nil, e)
       Core.UpdateHealthText(r, e)
       Core.UpdateMana(r, e)
@@ -224,10 +224,11 @@ function Core.Render()
         r.marker:Hide()
       end
       Core.RenderTrinket(r, e)
-      Core.FitRowName(r)
       local allies = e.allyCount or 0
       r.allyText:SetText(allies > 0 and ("x" .. allies) or "")
       Paint(r.allyText, allies >= 3 and "pending" or "text")
+      r.hasAllies = allies > 0
+      Core.FitRowName(r)
       if e.onMe then
         r.eye:SetAlpha(1)
       elseif e.onMeRaw ~= nil and Core.issecret(e.onMeRaw) and r.eye.SetAlphaFromBoolean then

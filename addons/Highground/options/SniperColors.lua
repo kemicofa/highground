@@ -4,7 +4,8 @@ local active, hooked
 
 -- The shared Blizzard picker differs on older clients. Both paths apply live
 -- changes, while Cancel restores the exact saved value (including Defaults).
-function Options.PickSniperColor(layer, owner)
+-- color = { r, g, b }; apply(r, g, b) on each change; restore() on Cancel.
+function Options.PickColor(color, apply, restore, owner)
   local picker = ColorPickerFrame
   if not picker then return false end
   if active and picker:IsShown() then active.cancel() end
@@ -13,21 +14,17 @@ function Options.PickSniperColor(layer, owner)
     picker:HookScript("OnHide", function() active = nil end)
     hooked = picker
   end
-  local def = Core.SNIPER_COLOR_LAYERS[layer]
-  if not def then return false end
-  local previous, color = Core.db[def.key] or "", Core.SniperLayerColor(layer, false)
   local session = { owner = owner }
   active = session
   local opening = true
   local function Apply()
     if opening or active ~= session then return end
-    local r, g, b = picker:GetColorRGB()
-    Core.SetSniperLayerColor(layer, Core.SniperHex({ r, g, b }))
+    apply(picker:GetColorRGB())
   end
   function session.cancel()
     if active ~= session then return end
     active = nil
-    Core.SetSniperLayerColor(layer, previous)
+    restore()
   end
   if picker.SetupColorPickerAndShow then
     picker:SetupColorPickerAndShow({ r = color[1], g = color[2], b = color[3], hasOpacity = false,
@@ -41,6 +38,22 @@ function Options.PickSniperColor(layer, owner)
   end
   opening = false
   return true
+end
+
+-- Cancel the open picker when its button goes away.
+function Options.ClosePickerFor(owner)
+  if active and active.owner == owner and ColorPickerFrame and ColorPickerFrame:IsShown() then
+    active.cancel(); ColorPickerFrame:Hide()
+  end
+end
+
+function Options.PickSniperColor(layer, owner)
+  local def = Core.SNIPER_COLOR_LAYERS[layer]
+  if not def then return false end
+  local previous = Core.db[def.key] or ""
+  return Options.PickColor(Core.SniperLayerColor(layer, false),
+    function(r, g, b) Core.SetSniperLayerColor(layer, Core.SniperHex({ r, g, b })) end,
+    function() Core.SetSniperLayerColor(layer, previous) end, owner)
 end
 
 function Options.SniperColorControls(page, controlX)
@@ -59,11 +72,7 @@ function Options.SniperColorControls(page, controlX)
     reset:SetPoint("LEFT", button, "RIGHT", 10, 0)
     button:SetScript("OnClick", function() Options.PickSniperColor(layer, button) end)
     reset:SetScript("OnClick", function() Core.SetSniperLayerColor(layer, "") end)
-    button:HookScript("OnHide", function()
-      if active and active.owner == button and ColorPickerFrame and ColorPickerFrame:IsShown() then
-        active.cancel(); ColorPickerFrame:Hide()
-      end
-    end)
+    button:HookScript("OnHide", function() Options.ClosePickerFor(button) end)
     Kit.Tooltip(button, function() return { def.label, ns.Locale:Get("highground.snipercolors.choose_any_colour_custom_colours_also_remain.d324d5") } end)
     rows[layer] = { button = button, reset = reset, swatch = swatch }
     page.y = page.y - 26

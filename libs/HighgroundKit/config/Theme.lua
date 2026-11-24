@@ -167,6 +167,7 @@ ns.Themes = {
       disabled = 0.55, panelCog = 0.25, zebraEven = 0.02, zebraOdd = 0.035, row = 1, page = 1,
       healthFill = 0.08, healthStale = 0.06, healthUnseen = 0.04, classRow = 0.40, topTint = 0.025, bevelLight = 0.08, bevelShade = 0.35,
       ornament = 0.9, crest = 1, healthLine = 0.85, healthLineStale = 0.55, healthLineUnseen = 0.28,
+      healthBar = 0.9, healthBarStale = 0.55, healthBarUnseen = 0.28,
       glow = 0.32, elevation = 0.55, sheen = 0.08, headerLight = 0.09, edgeLight = 0.8,
       enter = 0.88, menuEnter = 0, pageEnter = 0.94, markEnter = 0.55, flash = 0.14 },
   }, { description = "shared.theme.obsidian_steel_luminous_gold_sculpted_borders_and.0cb03e" }),

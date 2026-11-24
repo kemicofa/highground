@@ -172,3 +172,46 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(#sim.frames, frames, "repainting allocates no widgets")
   end)
 end
+
+test("custom health bar colour: picker applies live, Cancel restores, Default resets; sizes follow the style", function()
+  local sim = new("retail", {})
+  local f = picker(sim, true)
+  sim:enemy("Blue", { classID = 8 })
+  sim:join()
+  local C, O = sim.ns.Core, sim.ns.Options
+  sim.ns.Hub.Open("appearance")
+  local page = O.appearance
+  equal(page.barCustom:IsEnabled(), false, "colour button waits for Custom colour")
+  C.SetStyleChoice("barColor", "custom"); O.RefreshPage(page)
+  equal(page.barCustom:IsEnabled(), true, "enabled for Custom colour")
+  page.barCustom:Click()
+  equal(C.StyleDB().barCustom, nil, "opening the picker saves nothing")
+  f:SetColorRGB(0.2, 0.4, 0.6)
+  equal(C.BarCustomColor().g, 0.4, "applies live")
+  equal(page.barCustom.text or page.barCustom:GetText(), "#336699", "button names the colour")
+  f.cancelFunc(f.previousValues); f:Hide()
+  equal(C.StyleDB().barCustom, nil, "Cancel restores the default")
+  page.barCustom:Click(); f:SetColorRGB(0.8, 0.2, 0.4); f:Hide()
+  equal(C.BarCustomColor().r, 0.8, "accepted choice stays")
+  local P = O.Profiles
+  local setup = P.SnapshotSetup()
+  equal(setup.style.barCustom[1], 0.8, "profiles keep the custom colour")
+  setup.style.barCustom = { 2, 0, 0 }
+  assert(not P.PrepareSetup(setup), "profiles reject an out-of-range colour")
+
+  sim.ns.Hub.Open("battlegrounds-appearance")
+  local bg = O.byKey["battlegrounds-appearance"]
+  if bg.build then bg.build(); bg.build = nil end
+  O.RefreshPage(bg)
+  local function Off(key)
+    for _, r in ipairs(bg.metricRows) do
+      if r.metric.key == key then return r.off end
+    end
+    error("no size row " .. key)
+  end
+  equal(Off("healthBar"), false, "Bar thickness active in Bar style")
+  equal(Off("health"), true, "Thin line height waits for the Thin line style")
+  C.SetStyleChoice("healthStyle", "line"); O.RefreshPage(bg)
+  equal(Off("healthBar"), true, "Bar thickness waits for the Bar style")
+  equal(Off("health"), false, "Thin line height active for Thin line")
+end)

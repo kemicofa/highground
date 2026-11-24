@@ -39,4 +39,14 @@ function Core.BuildCurve()
   Core.execCurve:SetType(Enum.LuaCurveType.Step)
   Core.execCurve:AddPoint(0, CreateColor(r, g, b, 1))
   Core.execCurve:AddPoint(Core.db.executePct, CreateColor(r, g, b, 0))
+  -- Green to red bar colour from secret health, the same bands as
+  -- Core.BarColor reads from plain health: red to 30%, amber to 60%.
+  Core.healthCurve = C_CurveUtil.CreateColorCurve()
+  Core.healthCurve:SetType(Enum.LuaCurveType.Step)
+  for _, band in ipairs({ { 0, "danger" }, { 0.3, "warning" }, { 0.6, "success" } }) do
+    Core.healthCurve:AddPoint(band[1], CreateColor(ns.Theme.Color(band[2])))
+  end
+end
+if ns.Theme and ns.Theme.OnChange then
+  ns.Theme.OnChange(function() if Core.db then Core.BuildCurve() end end)
 end

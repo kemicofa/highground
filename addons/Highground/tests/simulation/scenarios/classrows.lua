@@ -125,6 +125,11 @@ test(client .. " last seen health stays muted after the enemy leaves view, then 
   equal(row.hp.maximum, 100, "last reading drawn as 0-100")
   near(row.hp.value, 40, "last seen health stays")
   near(line:GetAlpha(), T.Alpha("healthLine") * T.Alpha("healthLineStale"), "last seen health is muted")
+  Core.SetStyleChoice("barColor", "health")
+  sim:advance(5) -- past the 4 s after which the live reading is dropped
+  near(row.hp.statusColor[1], T.Rgb("warning")[1], "Green to red keeps the last seen band")
+  near(row.hp.value, 40, "still the last seen health")
+  Core.SetStyleChoice("barColor", "class")
   sim:advance(Core.O("healthMemory"))
   near(row.hp.value / row.hp.maximum, 1, "unknown health after the memory window")
   near(line:GetAlpha(), T.Alpha("healthLine") * T.Alpha("healthLineUnseen"), "unknown health is faded")
@@ -150,6 +155,78 @@ test("forever last seen secret health goes back into the bar unread", function()
   sim.units[token] = nil
   sim:advance(1)
   equal(Core.rows[1].hp.value, secret100, "the secret reading is drawn, never read")
+end)
+
+test("forever bar shows the secret percentage, green to red from the curve, also once out of view", function()
+  local secret100 = { secret = true }
+  local tint = { GetRGB = function() return 0.9, 0.1, 0.1 end }
+  local sim = new("forever", {}, function(sim)
+    sim.env.CurveConstants = { ScaleTo100 = "scale100" }
+    sim.env.UnitHealthPercent = function(_, _, curve)
+      if curve == "scale100" then return secret100 end
+      if curve ~= nil and curve == sim.ns.Core.healthCurve then return tint end
+    end
+    sim.env.UnitHealth = function() return secret100 end
+    sim.env.UnitHealthMax = function() return secret100 end
+  end)
+  local _, token = sim:enemy("Blue", { classID = 8 })
+  sim:join()
+  local Core = sim.ns.Core
+  local row = Core.rows[1]
+  equal(row.hpText.text, "<secret>%", "the widget formats the secret percentage")
+  equal(row.hpText:IsShown(), true, "percentage shown on the Midnight client")
+  Core.healthCurve = Core.healthCurve or {}
+  Core.SetStyleChoice("barColor", "health")
+  sim:advance(1)
+  equal(row.hp.statusColor[1], 0.9, "bar takes the curve's colour")
+  sim.units[token] = nil
+  sim:advance(1)
+  equal(row.hp.statusColor[1], 0.9, "last seen health keeps its colour")
+  near(row.hp.statusColor[4], 0.55, "muted")
+  equal(row.hpText.text, "<secret>%", "last seen percentage")
+  Core.SetStyleChoice("barColor", "class")
+  sim:advance(Core.O("healthMemory"))
+  equal(row.hpText:IsShown(), false, "no percentage once health is unknown")
+end)
+
+test("custom bar colour, saved and reset with the shared styling; dead enemies show an empty bar", function()
+  local sim = new("cata", {})
+  sim:enemy("Blue", { classID = 8, health = 60 })
+  sim:join()
+  local Core, e = sim.ns.Core, sim:entry("Blue")
+  local row = Core.rows[1]
+  Core.SetStyleChoice("barColor", "custom")
+  Core.SetBarCustomColor(0.2, 0.4, 0.6)
+  sim:advance(1)
+  same(row.hp.statusColor, { 0.2, 0.4, 0.6, 0.9 }, "custom colour on the bar")
+  local saved = sim.env.HighgroundDB.style.barCustom
+  near(saved[1], 0.2, "saved"); near(saved[2], 0.4, "saved"); near(saved[3], 0.6, "saved")
+  Core.SetBarCustomColor(2, -1, 0.5)
+  saved = Core.StyleDB().barCustom
+  equal(saved[1] .. "," .. saved[2] .. "," .. saved[3], "1,0,0.5", "clamped to 0-1")
+  Core.ResetStyle("shared")
+  equal(Core.StyleDB().barCustom, nil, "reset with the shared styling")
+  e.dead = true
+  Core.Render()
+  equal(row.hp.value, 0, "dead: empty bar")
+  equal(row.hpText:IsShown(), false, "no percentage for the dead")
+end)
+
+test("bar style: the suggested-target card shows the bar on its track with the percentage", function()
+  local sim = new("cata", {})
+  sim.ns.Core.SetElement("hero", true)
+  sim:enemy("Blue", { classID = 8, health = 45 })
+  sim:join()
+  sim:advance(1)
+  local Core = sim.ns.Core
+  local h = Core.hero
+  assert(h.barMode and h.hp:IsShown(), "card bar in Bar style")
+  equal(h.hp:GetHeight(), Core.Metric("healthBar", false), "card bar follows the thickness")
+  equal(h.hpText.text, "45%", "card percentage")
+  assert(not h.sub.text:find("45"), "the summary leaves the percentage to the bar")
+  Core.SetStyleChoice("healthStyle", "fill")
+  sim:advance(0.5)
+  equal(h.hpText:IsShown(), false, "other styles keep the summary's health instead")
 end)
 
 for _, client in ipairs({ "cata", "retail" }) do

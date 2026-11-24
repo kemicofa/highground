@@ -91,6 +91,7 @@ test(client .. " compact battleground backgrounds brighten as one column", funct
   sim.ns.Kit.Dropdown.Hide()
   equal(flags.head:GetAlpha(), 0.65, "closing the menu fades the entire column")
   local row = C.rows[1]
+  C.SetStyleChoice("healthStyle", "fill") -- the Bar style's track is meant to show
   row.entry.dead = true; C.Render()
   assert(math.abs(row.classBg:GetAlpha() - 0.26) < 0.00001, "dead enemies retain their dimmed surface")
   sim.mouseOver = flags; P.RefreshGears()

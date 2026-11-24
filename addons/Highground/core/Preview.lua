@@ -55,7 +55,8 @@ local function SeedEnemies(guided)
     end
   end
   -- Health and mana across the range: n = 3 is under the execute threshold,
-  -- n = 2 a healer out of mana, n = 9 dead.
+  -- n = 2 a healer out of mana, n = 9 dead, n = 10 out of view with its last
+  -- seen health (muted until Keep last seen health runs out).
   local HP = { 0.92, 0.64, 0.28, 0.45, 1, 0.73, 0.55, 0.12, 0, 0.85 }
   local MANA = { 0.81, 0.04, 0.47, 0.66, 0.95, 0.3, 0.58, 0.22, 0, 0.74 }
   for n = 1, 10 do
@@ -76,7 +77,8 @@ local function SeedEnemies(guided)
         marker = (n == 1) and 8 or (n == 5) and 7 or nil,
         -- In view (clickable, live distance); health and mana are fixed.
         unit = (n == 1 or n == 3 or n == 4) and "player" or nil,
-        testHp = HP[n], hpPct = HP[n],
+        testHp = n ~= 10 and HP[n] or nil, hpPct = n ~= 10 and HP[n] or nil,
+        hpSeen = n == 10 and HP[n] * 100 or nil, lastSeen = n == 10 and GetTime() or nil,
       }
       if Core.TestUsesMana(si.class) then
         Core.enemies[key].manaPct, Core.enemies[key].manaAt = MANA[n], math.huge

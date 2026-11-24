@@ -177,6 +177,10 @@ function Core.ScanUnits()
       else
         e.hpSeen = e.hpPct and e.hpPct * 100
       end
+      -- Green to red on the Midnight client: the curve's colour, kept with
+      -- the reading and only handed to the bar.
+      e.hpTint = not e.dead and SCALE_100 and Core.healthCurve and Core.StyleChoice("barColor").key == "health"
+        and Util.call(UnitHealthPercent, unit, true, Core.healthCurve) or nil
       -- Mana (plain on Cata). Only while mana is their shown power: a
       -- shapeshifted druid reports 0 mana in cat/bear form.
       local ptype = Util.read(UnitPowerType, unit)
@@ -248,7 +252,7 @@ function Core.ScanUnits()
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
         e.crowdControlled = false
         e.dead = e.diedAt ~= nil and GetTime() - e.diedAt < 35
-        if e.dead then e.hpSeen = nil end
+        if e.dead then e.hpSeen, e.hpTint = nil, nil end
       end
     end
   end

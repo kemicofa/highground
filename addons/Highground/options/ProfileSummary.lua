@@ -106,6 +106,9 @@ local function Entries(snap)
       local value = s[key] or choices[1].key
       Add("Appearance", "style." .. key, styleLabels[key], value, Choice(choices, value))
     end
+    local custom = type(s.barCustom) == "table" and s.barCustom
+    local hex = custom and string.format("#%02X%02X%02X", custom[1] * 255 + 0.5, custom[2] * 255 + 0.5, custom[3] * 255 + 0.5)
+    Add("Appearance", "style.barCustom", ns.Locale:Get("shared.ui.custom_color.34cfc6"), hex or "", hex or ns.Locale:Get("highground.appearance.default.808d7d"))
     Add("Appearance", "style.fontScale", ns.Locale:Get("highground.appearance.text_size.3cc6e1"), s.fontScale or 1, O.Format((s.fontScale or 1) * 100) .. "%")
     Add("Appearance", "style.border", ns.Locale:Get("highground.appearance.border_size.544ebf"), Value(s.border, A.border.default))
     Add("Appearance", "style.frameless", ns.Locale:Get("highground.profilesummary.frameless_panels.a27f5f"), s.frameless == true)

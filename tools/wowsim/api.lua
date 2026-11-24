@@ -149,6 +149,21 @@ return function(sim, env)
     GetUnitAuras = function(token, filter) return read(token, "categories", EMPTY)[filter] or {} end,
   }
   env.C_NamePlate = { GetNamePlateForUnit = function(token) return sim.plates[token] end }
+  -- Game settings as strings; nil for a name this client lacks. Friendly
+  -- nameplates use each client's name. sim.cvarMax[name] caps a number as a
+  -- client limit would; nameplate settings are refused in combat.
+  sim.cvars = { nameplateMaxDistance = "45", nameplateShowAll = "0",
+    [sim.client == "cata" and "nameplateShowFriends" or "nameplateShowFriendlyPlayers"] = "0" }
+  sim.cvarMax = {}
+  env.C_CVar = {
+    GetCVar = function(name) return sim.cvars[name] end,
+    SetCVar = function(name, value)
+      if sim.cvars[name] == nil or sim.combat and name:find("^nameplate") then return false end
+      local n, max = tonumber(value), sim.cvarMax[name]
+      sim.cvars[name] = tostring(n and max and math.min(n, max) or value)
+      return true
+    end,
+  }
   -- Addon messages. sim.sent records accepted messages. sim.sendResult
   -- replaces the client's success result (Retail Enum 0, Classic true);
   -- any other value rejects the message, as throttling does. Retail also

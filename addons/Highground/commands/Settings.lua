@@ -181,6 +181,37 @@ function Commands.compact(arg, msg, say)
     or (applied and "highground.settings.compact_layout_off.c27b9b" or "highground.settings.compact_layout_off_applies_after_combat.1b684a")))
 end
 
+-- /hg nameplates [range YARDS | all on|off | friends on|off]: the game's
+-- nameplate settings that markers need (ns.Nameplates in ui/HealerMarks.lua).
+function Commands.nameplates(arg, msg, say)
+  local N = ns.Nameplates
+  local sub, value = arg:match("^(%S*)%s*(%S*)")
+  if sub == "range" then
+    local yards = tonumber(value)
+    if not yards then return say(Usage("nameplates range")) end
+    local kept, err = N.Set("range", yards)
+    if not kept then return say(err, "error") end
+    local R = N.RANGE
+    if yards < R.min or yards > R.max then
+      say(ns.Locale:Format("highground.addonpages.min_to_max_yards_the_game_may.2934d3", { min = R.min, max = R.max }))
+    elseif kept < math.floor(yards + 0.5) then
+      say(ns.Locale:Format("highground.settings.the_game_limits_nameplate_range_to_range.0a158f", { range = string.format("%d", kept) }))
+    end
+  elseif sub == "all" or sub == "friends" then
+    if value ~= "on" and value ~= "off" then return say(Usage("nameplates " .. sub)) end
+    local kept, err = N.Set(sub, value == "on")
+    if kept == nil then return say(err, "error") end
+  end
+  local function State(key)
+    local on = N.Get(key)
+    if on == nil then return "?" end
+    return ns.Locale:Get(on and "shared.copy.on.db3d40" or "shared.copy.off.ad5048")
+  end
+  local yards = N.Get("range")
+  say(ns.Locale:Format("highground.settings.nameplates_range_range_yards_always_show_all.36b388",
+    { range = yards and string.format("%d", yards) or "?", all = State("all"), friends = State("friends") }))
+end
+
 function Commands.opacity(arg, msg, say)
   if not tonumber(arg) then return say(Usage("opacity")) end
   ns.SetBgAlpha(tonumber(arg) / 100)

@@ -90,6 +90,83 @@ reputation.build = function()
   W.Listen(function() if reputation.frame:IsVisible() then reputation.RefreshBehavior() end end)
 end
 
+-- The game's nameplate settings that markers depend on (ns.Nameplates). The
+-- controls show the game's current values and lock in combat.
+function O.AddNameplateControls(page)
+  local N, S = ns.Nameplates, ns.Theme.Space
+  if not N then return end
+  local K = { title = "highground.addonpages.nameplates.24d6bb", hint = "highground.addonpages.healer_marks_and_target_markers_appear_only.66de4c",
+    range = "highground.addonpages.nameplate_range.7faba9", limits = "highground.addonpages.min_to_max_yards_the_game_may.2934d3",
+    combat = "highground.healermarks.leave_combat_to_change_nameplate_settings.8ac511" }
+  O.Section(page, ns.Locale:Get(K.title), ns.Locale:Get(K.hint), K.title, K.hint)
+  local R = N.RANGE
+  local label = ns.Theme.Text(page.child, "body", "text")
+  label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetPoint("TOPRIGHT", -200, page.y - 4)
+  label:SetJustifyH("LEFT"); label:SetWordWrap(false); ns.Localization.Bind(label, K.range)
+  local range = O.Stepper(page.child, 60)
+  range:SetPoint("TOPRIGHT", -24, page.y)
+  page.nameplateRange = range
+  page.y = page.y - 36
+  local note = ns.Theme.Text(page.child, "body", "textMuted")
+  note:SetPoint("TOPLEFT", 24, page.y); note:SetPoint("RIGHT", -24, 0); note:SetJustifyH("LEFT")
+  page.nameplateNote = note
+  page.y = page.y - 28
+  local function Refresh()
+    local combat = InCombatLockdown()
+    local yards = N.Get("range")
+    range.box:SetText(yards and string.format("%d", yards) or "")
+    range.minus:SetEnabled(not combat and yards ~= nil and yards > R.min)
+    range.plus:SetEnabled(not combat and yards ~= nil and yards < R.max)
+    range.box:EnableMouse(not combat and yards ~= nil)
+    ns.Localization.Bind(note, combat and K.combat or { key = K.limits, values = { min = R.min, max = R.max } })
+    for _, cb in ipairs(page.nameplateToggles) do
+      local on = N.Get(cb.nameplate)
+      cb:SetChecked(on == true, true)
+      cb:SetEnabled(not combat and on ~= nil)
+    end
+  end
+  local function Step(dir)
+    local yards = N.Get("range")
+    if yards then N.Set("range", yards + dir * (IsShiftKeyDown() and 5 or 1)) end
+    Refresh()
+  end
+  range.minus:SetScript("OnClick", function() Step(-1) end)
+  range.plus:SetScript("OnClick", function() Step(1) end)
+  range.box:SetScript("OnEnterPressed", function(self)
+    local yards = tonumber(self:GetText())
+    if yards then N.Set("range", yards) end
+    Refresh(); self:ClearFocus()
+  end)
+  range.box:SetScript("OnEscapePressed", function(self) Refresh(); self:ClearFocus() end)
+  range.box:HookScript("OnEditFocusLost", Refresh)
+  page.nameplateToggles = {}
+  for _, def in ipairs({
+    { "all", "highground.addonpages.always_show_nameplates.1bf017", "highground.addonpages.all_units_in_range_not_only_your.a5e1c3" },
+    { "friends", "highground.addonpages.friendly_player_nameplates.2232c9", "highground.addonpages.green_healer_marks_need_them.c6bb04" },
+  }) do
+    local key, text, desc = def[1], def[2], def[3]
+    local cb = O.Toggle(page.child, ns.Locale:Get(text), ns.Locale:Get(desc), function(_, on) N.Set(key, on); Refresh() end)
+    ns.Localization.Bind(cb.label, text); ns.Localization.Bind(cb.note, desc)
+    Kit.Tooltip(cb, function() return { ns.Locale:Get(text), ns.Locale:Get(desc) } end)
+    cb:ClearAllPoints()
+    cb:SetPoint("TOPLEFT", 24, page.y); cb:SetPoint("TOPRIGHT", -S("md"), page.y)
+    cb.nameplate = key
+    page.nameplateToggles[#page.nameplateToggles + 1] = cb
+    page.y = page.y - 36
+  end
+  page.child:SetHeight(-page.y + 12)
+  local refresh = page.RefreshBehavior
+  page.RefreshBehavior = function()
+    if refresh then refresh() end
+    Refresh()
+  end
+  -- Combat, Highground commands and the game's own options change these.
+  local function Visible() if page.frame:IsVisible() then Refresh() end end
+  N.OnChange = Visible
+  ns.Util.Events({ PLAYER_REGEN_ENABLED = Visible, PLAYER_REGEN_DISABLED = Visible, CVAR_UPDATE = Visible },
+    "nameplate settings", "battlegrounds")
+end
+
 function O.AddAlertControls(page, owner)
   local definitions = {}
   for _, def in ipairs(ns.Alerts.categories) do

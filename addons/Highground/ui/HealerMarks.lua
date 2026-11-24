@@ -117,3 +117,46 @@ end
 ns.Util.Events({ NAME_PLATE_UNIT_REMOVED = function(_, unit)
   for _, m in ipairs(Core.healerMarks) do if m.plateUnit == unit then HideMark(m) end end
 end }, "healer markers", "battlegrounds")
+
+-- Markers need a nameplate, so the game's nameplate settings decide where
+-- they can appear. The game saves these; Highground reads and writes them
+-- directly and keeps no copy. Changes wait for the end of combat, as in the
+-- game's own options.
+local Nameplates = { RANGE = { min = 20, max = 60 } }
+ns.Nameplates = Nameplates
+-- Friendly players: the Midnight client's name first (WoW Forever, Retail).
+local CVARS = { range = { "nameplateMaxDistance" }, all = { "nameplateShowAll" },
+  friends = { "nameplateShowFriendlyPlayers", "nameplateShowFriends" } }
+
+local function CVar(key)
+  for _, name in ipairs(CVARS[key] or EMPTY) do
+    local value = ns.Api.GetCVar(name)
+    if value ~= nil then return name, value end
+  end
+end
+
+-- Yards for "range", true or false for "all" and "friends"; nil when this
+-- client has no such setting.
+function Nameplates.Get(key)
+  local _, value = CVar(key)
+  if value == nil then return end
+  if key == "range" then return tonumber(value) end
+  return value == "1"
+end
+
+-- Writes one setting (range in yards, kept within RANGE) and returns the
+-- value the game kept, or nil and the reason to show.
+function Nameplates.Set(key, value)
+  local name = CVar(key)
+  if not name then return nil, ns.Locale:Get("highground.healermarks.this_game_client_has_no_such_nameplate.e6a98f") end
+  if InCombatLockdown() then return nil, ns.Locale:Get("highground.healermarks.leave_combat_to_change_nameplate_settings.8ac511") end
+  local R = Nameplates.RANGE
+  if key == "range" then
+    value = math.max(R.min, math.min(R.max, math.floor(value + 0.5)))
+  else
+    value = value and 1 or 0
+  end
+  ns.Api.SetCVar(name, tostring(value))
+  if Nameplates.OnChange then Nameplates.OnChange() end
+  return Nameplates.Get(key)
+end

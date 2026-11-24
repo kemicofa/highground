@@ -127,6 +127,11 @@ function Api.AddOnMetadata(addon, field) return Call(Api.Fn("C_AddOns", "GetAddO
 function Api.IsAddOnLoaded(addon) return Call(Api.Fn("C_AddOns", "IsAddOnLoaded"), addon) end
 function Api.LoadAddOn(addon) return Call(Api.Fn("C_AddOns", "LoadAddOn"), addon) end
 
+-- Game settings (C_CVar since 8.0). Values are strings; nil when this client
+-- has no such setting. SetCVar returns whether the client accepted it.
+function Api.GetCVar(name) return Call(Api.Fn("C_CVar", "GetCVar"), name) end
+function Api.SetCVar(name, value) return Call(Api.Fn("C_CVar", "SetCVar"), name, value) end
+
 -- Chat: C_ChatInfo.SendChatMessage replaces the deprecated global.
 -- Returns whether the client accepted the call.
 function Api.SendChatMessage(text, chatType, language, target)

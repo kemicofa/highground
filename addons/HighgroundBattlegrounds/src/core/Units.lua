@@ -66,19 +66,30 @@ local function ManaObservation(e, mana, level, at)
   return o
 end
 
+local function Claim(unit)
+  local key = Core.CanonUnit(unit)
+  if key and Core.enemies[key] and not Core.unitFor[key] then
+    Core.unitFor[key] = unit
+    return 1
+  end
+  return 0
+end
+
 function Core.ScanUnits()
   for _, e in pairs(Core.enemies) do ns.FilterCooldownState(e, Core.db) end
   wipe(Core.unitFor)
   local visible = 0
   for i = 1, #SCAN do
     local unit = SCAN[i]
-    if Util.read(UnitExists, unit) then
-      local key = Core.CanonUnit(unit)
-      if key and Core.enemies[key] and not Core.unitFor[key] then
-        Core.unitFor[key] = unit
-        visible = visible + 1
-      end
-    end
+    if Util.read(UnitExists, unit) then visible = visible + Claim(unit) end
+  end
+  -- Teammates' targets come last: an enemy only a teammate targets still
+  -- has live health while your client can see it. Messages can't share it
+  -- (secret on the Midnight client, chat lockdown in matches).
+  local group, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    local unit = TARGET_OF[group[i]]
+    if Util.read(UnitIsVisible, unit) then visible = visible + Claim(unit) end
   end
   Core.db.liveStats = Core.db.liveStats or {}
   Core.db.liveStats.maxVisible = math.max(Core.db.liveStats.maxVisible or 0, visible)

@@ -171,3 +171,21 @@ test("rogue sap call fires once when the enemy FC or a healer dies in WSG and Tw
   core.OnCombatLog()
   assert(#warnings == 2, "other classes, maps and the setting stay quiet")
 end)
+
+test("an enemy only a teammate targets gets that unit while visible", function()
+  for _, flavor in ipairs({ "cata", "retail" }) do
+    local s, ns, env, core, enemy = client(flavor)
+    s.visible = false -- not your target
+    ns.UnitTokens.Group = function() return ns.UnitTokens.raid, 2 end
+    local seen = { raid2target = true }
+    env.UnitIsVisible = function(unit) return seen[unit] == true end
+    core.ScanUnits()
+    assert(enemy.unit == "raid2target", flavor)
+    seen.raid2target = false -- beyond your client's view: no live unit
+    core.ScanUnits()
+    assert(enemy.unit == nil, flavor)
+    s.visible, seen.raid2target = true, true -- your own target wins
+    core.ScanUnits()
+    assert(enemy.unit == "target", flavor)
+  end
+end)

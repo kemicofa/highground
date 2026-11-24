@@ -338,6 +338,55 @@ test("card menus offer no macro writes in combat", function()
   sim:setCombat(false)
 end)
 
+test("card saves ask before replacing another text under the same name", function()
+  local sim = new("cata")
+  sim:command("macros")
+  local M, Kit = sim.ns.Macros, sim.ns.Kit
+  local Win = M.Window
+  local function card(name, existing, perCharacter)
+    for _, r in ipairs(Win.win.rows) do
+      local e = r:IsShown() and r.entry
+      if e and e.name == name and (e.existing or false) == existing and (e.perCharacter or false) == (perCharacter or false) then return r end
+    end
+    error("missing card " .. name)
+  end
+  local function choose(r, text)
+    Win.CardOptions(r)
+    for i, item in ipairs(Kit.Dropdown.Items()) do if item.text == text then return Kit.Dropdown.Accept(i) end end
+    error("missing item " .. text)
+  end
+  local mine = { name = "Focus Mouseover", body = "/say mine", perCharacter = false }
+  sim.macros[1] = mine
+  Win.SetTab("general")
+  choose(card("Focus Mouseover", false), "Save for all characters")
+  equal(mine.body, "/say mine", "the saved macro is not replaced yet")
+  local items = Kit.Dropdown.Items()
+  equal(items[1].text, "Replace saved macro", "the menu asks")
+  equal(items[1].hint, "All characters", "and names the tab")
+  equal(items[2].text, "Keep saved macro", "keeping it is offered")
+  Kit.Dropdown.Accept(2)
+  equal(mine.body, "/say mine", "kept")
+  choose(card("Focus Mouseover", false), "Save for all characters")
+  Kit.Dropdown.Accept(1)
+  local preset = M.Build(card("Focus Mouseover", false).entry)
+  equal(mine.body, preset, "replaced after the answer")
+  equal(M.Backups.All()[1].before.body, "/say mine", "macro history keeps the replaced text")
+  choose(card("Focus Mouseover", false), "Save for all characters")
+  assert(not Kit.Dropdown.IsShown(), "the same text saves without asking")
+
+  -- Copy to this character over another text there.
+  sim.macros[2] = { name = "Focus Mouseover", body = "/say other", perCharacter = true }
+  Win.SetTab("mine")
+  choose(card("Focus Mouseover", true, false), "Copy to this character")
+  equal(sim.macros[2].body, "/say other", "the character's macro waits for an answer")
+  equal(Kit.Dropdown.Items()[1].hint, "This character", "the character tab named")
+  Kit.Dropdown.Accept(1)
+  equal(sim.macros[2].body, preset, "copied after the answer")
+  choose(card("Focus Mouseover", true, true), "Copy to all characters")
+  assert(not Kit.Dropdown.IsShown(), "same text: nothing to ask")
+  equal(#sim.macros, 2, "no new macro")
+end)
+
 test("buffs to remove keep working under a translated catalog (deDE)", function()
   local sim = new("retail", nil, function(_, env) env.GetLocale = function() return "deDE" end end)
   local M, L = sim.ns.Macros, sim.ns.Locale

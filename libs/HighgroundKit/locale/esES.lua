@@ -2150,6 +2150,8 @@ assert(ns.Locale:Register("esES", {
   ["macros.card.hover_for_an_explanation.fe9aed"] = "Pasa el cursor para ver una explicación.",
   ["macros.card.edit_macro.a58957"] = "Editar macro",
   ["macros.card.save_after_combat.0b7824"] = "Guardar tras el combate",
+  ["macros.card.replace_saved_macro.a34a35"] = "Reemplazar la macro guardada",
+  ["macros.card.keep_saved_macro.bb7fbb"] = "Conservar la macro guardada",
   ["macros.classesa.interrupt_your_focus_or_target.a9a0c9"] = "Interrumpe a tu foco u objetivo",
   ["macros.classesa.interrupt_with_a_shield_on.c1c3db"] = "Interrumpe con un escudo equipado",
   ["macros.classesa.charge_and_start_attacking.b062b3"] = "Cargar y empezar a atacar",

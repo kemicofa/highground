@@ -4,6 +4,20 @@ local Macros = ns.Macros
 local Host, Win = Macros.Host, Macros.Window
 local Theme, Kit = Host.Theme, Host.Kit
 
+local function MenuWidth() return 300 * math.max(1, Host.FontScale()) end
+
+-- Saving over a macro of the same name with other text in that tab asks
+-- first, in the same menu; macro history keeps the replaced text.
+local function AskReplace(r, name, body, perCharacter, save)
+  local old = body and Macros.Find(name, perCharacter)
+  if not old or old.body == body then return save() end
+  Kit.Dropdown.Open(r.more, {
+    { text = Locale:Get("macros.card.replace_saved_macro.a34a35"), run = save,
+      hint = perCharacter and Locale:Get("highground.profileassignments.this_character.8dfadf") or Locale:Get("macros.buildeditor.all_characters.ffda5f") },
+    { text = Locale:Get("macros.card.keep_saved_macro.bb7fbb"), run = function() end },
+  }, function(item) item.run() end, { width = MenuWidth() })
+end
+
 -- A preset has one primary action. Target names are written out; editing,
 -- account-wide copies and sharing live in its secondary menu.
 -- Items that write a macro wait for the end of combat, like Use macro.
@@ -16,21 +30,25 @@ function Win.CardOptions(r)
   if e.existing then
     items = {
       { text = e.perCharacter and Locale:Get("macros.card.copy_to_all_characters.927ecc") or Locale:Get("macros.card.copy_to_this_character.409864"),
-        disabled = combat, hint = hint, run = function() Win.Save(e.name, e.body, not e.perCharacter) end },
+        disabled = combat, hint = hint, run = function()
+          AskReplace(r, e.name, e.body, not e.perCharacter, function() Win.Save(e.name, e.body, not e.perCharacter) end)
+        end },
       { text = Locale:Get("macros.card.export_macro.4bd010"), run = function() Macros.Share.ShowExport({ e }) end },
     }
   else
     items = {
       { text = Locale:Get("macros.card.customize_macro.b18417"), run = function() Win.CopyEdit(e) end },
-      { text = Locale:Get("macros.card.save_for_all_characters.7a6ce3"), disabled = combat, hint = hint, run = function() Win.Copy(e, false) end },
+      { text = Locale:Get("macros.card.save_for_all_characters.7a6ce3"), disabled = combat, hint = hint, run = function()
+        local o = Win.Resolve(e)
+        AskReplace(r, o.name, Macros.Build(o), false, function() Win.Copy(e, false) end)
+      end },
     }
     if Macros.Find(Win.Resolve(e).name, true) then
       items[#items + 1] = { text = Locale:Get("macros.card.replace_saved_macro_with_this_preset.006d5c"), disabled = combat, hint = hint,
         run = function() Win.Copy(e, true) end }
     end
   end
-  Kit.Dropdown.Open(r.more, items, function(item) item.run() end,
-    { width = 300 * math.max(1, Host.FontScale()) })
+  Kit.Dropdown.Open(r.more, items, function(item) item.run() end, { width = MenuWidth() })
 end
 
 function Win.NewCard(parent)

@@ -2150,6 +2150,8 @@ assert(ns.Locale:Register("koKR", {
   ["macros.card.hover_for_an_explanation.fe9aed"] = "마우스를 올리면 설명이 나옵니다.",
   ["macros.card.edit_macro.a58957"] = "매크로 편집",
   ["macros.card.save_after_combat.0b7824"] = "전투 후 저장",
+  ["macros.card.replace_saved_macro.a34a35"] = "저장된 매크로 교체",
+  ["macros.card.keep_saved_macro.bb7fbb"] = "저장된 매크로 유지",
   ["macros.classesa.interrupt_your_focus_or_target.a9a0c9"] = "주시 대상 또는 대상을 방해",
   ["macros.classesa.interrupt_with_a_shield_on.c1c3db"] = "방패가 켜진 상태로 방해",
   ["macros.classesa.charge_and_start_attacking.b062b3"] = "충전하고 공격을 시작",

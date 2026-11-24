@@ -27,7 +27,7 @@ end
 -- Any time: refresh each row's visuals from its bound enemy. Rank numbers
 -- follow priority independently of display order and combat bindings.
 -- One reused values table per row message.
-local CAP, ORB, FLAG = {}, {}, {}
+local CAP, ORB, FLAG, ONYOU = {}, {}, {}, {}
 local function Fill(t, a, x, b, y)
   t[a] = x
   if b then t[b] = y end
@@ -48,10 +48,12 @@ function Core.Render(relaid)
   local recommended, recommendedGo = Core.PickHeroTarget()
   local firstAlive = Core.killNow
   local leader
+  local onYou = 0 -- enemies in view targeting you
   for i, e in ipairs(Core.order) do
     rankOf[e] = i
     if not e.dead then
       leader = leader or e
+      if e.onMe then onYou = onYou + 1 end
       if Core.Eligible(e) and e.live > topLive then
         topLive = e.live
       end
@@ -353,13 +355,17 @@ function Core.Render(relaid)
     return
   end
   local blitz, total, status = Core.isBlitz == true, #Core.order, Core.rosterStatus
+  local danger = Core.Hex("danger")
   if header.error ~= false or header.blitz ~= blitz or header.bound ~= bound
-    or header.total ~= total or header.status ~= status then
-    header.error, header.blitz, header.bound, header.total, header.status =
-      false, blitz, bound, total, status
+    or header.total ~= total or header.status ~= status or header.onYou ~= onYou or header.danger ~= danger then
+    header.error, header.blitz, header.bound, header.total, header.status, header.onYou, header.danger =
+      false, blitz, bound, total, status, onYou, danger
     -- The map's kind (Flag+bases, Nodes) is evident in play; only Blitz is added.
     local count = bound < total and (bound .. "/" .. total) or tostring(total)
     if blitz then count = count .. ns.Locale:Get("highground.render.blitz.8994ea") end
+    if onYou > 0 then
+      count = count .. danger .. ns.Locale:Format("highground.render.count_on_you.c42b6e", Fill(ONYOU, "count", onYou)) .. "|r"
+    end
     Core.subtitle:SetText(hasRoster and count or (status or ns.Locale:Get("highground.render.waiting_for_enemies.2f88ce")))
   end
 end

@@ -73,21 +73,8 @@ end
 
 -- Group tokens can name a healer (group role, mark, inspect) when a
 -- nameplate token cannot. A class that can heal is never enough alone.
-local healers, healerUnits, team = {}, {}, {}
+-- Core.TeamHealers keeps them by player key and by group token.
 local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
-
--- Rebuilt each tick into reused sets: by player key and by group token.
-local function FriendlyHealers()
-  wipe(healers); wipe(healerUnits)
-  for _, unit in ipairs(Core.TeamUnits(team)) do
-    local key = Core.TeamKey(unit)
-    if Core.TeamHealer(unit, key) then
-      if key then healers[key] = true end
-      healerUnits[unit] = true
-    end
-  end
-  return healers
-end
 
 -- Blizzard's raid frames (groups kept together or not) and party frames.
 local FRAME_NAMES = {}
@@ -118,6 +105,7 @@ end
 local function UpdateFrameMarks(on)
   local used = 0
   if on then
+    local _, healerUnits = Core.TeamHealers()
     for _, name in ipairs(FRAME_NAMES) do
       local frame = _G[name]
       local unit = frame and frame.unit
@@ -140,7 +128,7 @@ function Core.UpdateHealerMarks()
     end
   end
   if on then
-    local healers = FriendlyHealers()
+    local healers = Core.TeamHealers()
     for _, unit in ipairs(NAMEPLATES) do
       if Read(UnitIsPlayer, unit) == true and Read(UnitIsFriend, "player", unit) == true
         and Read(UnitIsDeadOrGhost, unit) == false and Read(UnitIsConnected, unit) ~= false then

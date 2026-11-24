@@ -6,7 +6,7 @@ local Theme = ns.Theme
 -- continue updating in the note, enemy rows and nameplate scope.
 local summary, bits = {}, {}
 -- One reused values table per message: the card renders four times a second.
-local HP, ALLIES, ORB, FLAG, MANA, CAST, ONYOU, SPENT, PINNED = {}, {}, {}, {}, {}, {}, {}, {}, {}
+local HP, ALLIES, ORB, FLAG, MANA, CAST, ONYOU, ONHEALER, SPENT, PINNED = {}, {}, {}, {}, {}, {}, {}, {}, {}, {}
 local function Fill(t, a, x, b, y, c, z)
   t[a] = x
   if b then t[b] = y end
@@ -95,6 +95,9 @@ function Core.UpdateHero(e, isGo)
   end
   if e.onMe then
     bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_on_you_r.843eff", Fill(ONYOU, "value1", Core.Hex("danger")))
+  end
+  if e.onHealer then
+    bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_on_healer_name_r.691474", Fill(ONHEALER, "value1", Core.Hex("danger"), "name", Core.DisplayName(e.onHealer)))
   end
   if e.burnedAt and GetTime() - e.burnedAt < Core.O("spentWindow") then
     bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_protection_ended_value2_s_ago_r.89844e", Fill(SPENT, "value1", string.format("%s", Core.Hex("success")), "value2", string.format("%d", math.floor(GetTime() - e.burnedAt))))

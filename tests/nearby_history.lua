@@ -155,6 +155,105 @@ return function(addon)
     sim:assertHealthy()
   end)
 
+  t.test("16001: sightings before the ruleset is readable add to the saved enemy", function()
+    local sim = setup("retail", 16001)
+    local env, S, C, H = sim.env, sim.ns.Scope, sim.ns.Core, sim.ns.NearbyHistory
+    sim.regionalNames, C.myRealm = true, ""
+    env.GetNormalizedRealmName = function() return "" end
+    env.Enum.GameRule = { HardcoreRuleset = 1, RPRuleset = 2, PvPRuleset = 3 }
+    env.C_GameRules = { IsGameRuleActive = function(rule)
+      if not sim.rulesReadable then return nil end
+      return rule == 3
+    end }
+    sim.rulesReadable = true
+    local key = S.Character()
+    sim.rulesReadable = false
+    C.db.scoped = { character = { [key] = { enemyHistory = {
+      ["Bitter Plot"] = { times = 5, killedMe = 2, killedThem = 1, first = 100, last = 200, note = "camps", muted = true },
+      ["Rogue One-PvP"] = { times = 3, killedMe = 3, killedThem = 0, first = 50, last = 60 },
+    } } } }
+    target(sim, "Bitter Plot")
+    local early = H.All()
+    equal(early["Bitter Plot"].times, 1, "the early sighting waits outside the saved table")
+    early[C.Canon("Rogue One")] = { times = 1, killedMe = 1, killedThem = 0, first = 900, last = 900 }
+    equal(early["Rogue One-"].killedMe, 1, "and so does an early death, without a ruleset")
+    sim.rulesReadable = true
+    local all = H.All()
+    equal(all, C.db.scoped.character[key].enemyHistory, "the saved table is used once the ruleset is known")
+    local h = all["Bitter Plot"]
+    equal(h.times, 6, "encounters add up instead of restarting")
+    equal(h.killedMe, 2, "kills are kept")
+    equal(h.first, 100, "and the first meeting")
+    equal(h.note, "camps", "and the note")
+    equal(H.Muted("Bitter Plot"), true, "and the mute")
+    equal(all["Rogue One-PvP"].killedMe, 4, "a name written without the ruleset joins the same enemy")
+    equal(all["Rogue One-"], nil, "without a second identity")
+    all["Early-"] = { times = 2, killedMe = 0, killedThem = 0, last = 1 }
+    equal(H.Get("Early").times, 2, "an older early record still names our own ruleset")
+    equal(H.Get("Early-Hardcore"), nil, "but not another one")
+    sim:assertHealthy()
+  end)
+
+  t.test("damaged saved records cannot break sightings or the journal", function()
+    local sim = setup("retail", 120100)
+    local H, J = sim.ns.NearbyHistory, sim.ns.EnemyJournal
+    local all = H.All()
+    all["Victim-Realm"] = "damaged"
+    all["Broken-Realm"] = { times = "many", killedMe = {}, level = "60", zone = 7, last = "yesterday" }
+    all[42] = { times = 1, killedMe = 0, killedThem = 0 }
+    local key = target(sim, "Victim", "Realm")
+    equal(H.Get(key).times, 1, "a damaged record is replaced by a new encounter")
+    target(sim, "Broken", "Realm"); sim:advance(301)
+    target(sim, "Broken", "Realm")
+    local h = all["Broken-Realm"]
+    equal(h.times, 1, "broken counters restart")
+    equal(h.killedMe, 0, "including kills")
+    equal(h.level, 60, "details are read again from the unit")
+    local w = J.Open()
+    assert(w:IsShown(), "the journal opens")
+    local names = {}
+    for _, entry in ipairs(J.Entries()) do names[entry.key] = true end
+    assert(names["Broken-Realm"] and names["Victim-Realm"] and not names[42], "readable records are listed")
+    sim:assertHealthy()
+  end)
+
+  t.test("mute checks collect muted names once instead of walking the journal per alert", function()
+    local sim = setup("retail", 120100)
+    local H = sim.ns.NearbyHistory
+    local all, reads = H.All(), 0
+    local probe = { __index = function(_, field) if field == "muted" then reads = reads + 1 end end }
+    for i = 1, 300 do all["Enemy" .. i .. "-Realm"] = setmetatable({ times = 1, killedMe = 0, killedThem = 0, last = i }, probe) end
+    H.SetMuted(all["Enemy7-Realm"], true)
+    for _ = 1, 50 do
+      equal(H.Muted("Enemy7-Realm"), true, "a muted enemy")
+      equal(H.Muted("Enemy8-Realm"), false, "an unmuted enemy")
+    end
+    assert(reads <= 400, "one pass over the journal plus one look per question: " .. reads)
+    equal(H.Muted("Enemy7"), true, "our own realm can be left out")
+    H.SetMuted(all["Enemy7-Realm"], false)
+    equal(H.Muted("Enemy7-Realm"), false, "unmuting applies at once")
+    H.SetMuted(all["Enemy9-Realm"], true)
+    all["Enemy9-Realm"] = nil
+    equal(H.Muted("Enemy9-Realm"), false, "a removed enemy is no longer muted")
+    sim:assertHealthy()
+  end)
+
+  t.test("notes keep whole characters at the 500-byte limit", function()
+    local sim = setup("retail", 120100)
+    local H, J = sim.ns.NearbyHistory, sim.ns.EnemyJournal
+    local key = target(sim, "Victim", "Realm")
+    local w = J.Open()
+    w.search:SetText("Victim")
+    w.actions[1].scripts.OnClick(w.actions[1])
+    local editor = J.noteWindow
+    editor.box:SetText("x" .. string.rep("é", 300))
+    editor.actions.save.scripts.OnClick(editor.actions.save)
+    local note = H.Get(key).note
+    equal(#note, 499, "the cut falls before a split character")
+    assert(not note:find("[\192-\255]$"), "no half character at the end")
+    sim:assertHealthy()
+  end)
+
   t.test("Cata: only the player's killing blows on hostile players count, without double-counting honor", function()
     local sim = setup("cata", 40402)
     sim.units.player.guid = "Player-me"

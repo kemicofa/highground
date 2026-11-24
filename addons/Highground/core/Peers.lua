@@ -60,8 +60,21 @@ function P.Prune()
   end
 end
 
-local function Notice(version)
-  if not P.Newer(version, P.Version()) then return end
+-- Anyone in the realm channel can announce any version. A newer release
+-- counts when it is at most one major version ahead of ours and comes from
+-- a guild or group member, or once a second character in the channel has
+-- also reported a newer release.
+local function Plausible(version, key, context)
+  local major, mine = P.VersionParts(version), P.VersionParts(P.Version())
+  if not major or not mine or major > mine + 1 then return false end
+  if context ~= "CHANNEL" or P.confirmed then return true end
+  if P.claimant and P.claimant ~= key then P.confirmed = true; return true end
+  P.claimant = key
+  return false
+end
+
+local function Notice(version, key, context)
+  if not P.Newer(version, P.Version()) or not Plausible(version, key, context) then return end
   if not P.latest or P.Newer(version, P.latest) then P.latest = version end
   if P.notified or not P.NoticesEnabled() then return end
   local last, now = Core.db.peerVersionNotice, time()
@@ -84,7 +97,7 @@ function P.Observe(sender, version, context)
     P.peers[key], P.count = peer, P.count + 1
   end
   peer.seen, peer.version, peer.contexts[context] = now, version, now
-  Notice(version)
+  Notice(version, key, context)
 end
 
 -- The view and on-demand diagnostics share these counts. Context rows overlap;

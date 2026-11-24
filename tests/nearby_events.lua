@@ -104,7 +104,33 @@ return function(addon)
       equal(N.rows[1].sub.text, "Lv 60 · Stealth", "and is shown on the row")
       enemy.dead = true
       sim:event("UNIT_FLAGS", "nameplate1")
+      sim:advance(0.1)
       equal(N.count, 0, "player flag changes still update the live count")
+      restore()
+      sim:assertHealthy()
+    end)
+
+    test(build .. ": target, mouseover and nameplate bursts redraw at most five times a second", function()
+      local sim = setup(client, build, { nearbyRows = 5 })
+      local N = sim.ns.Nearby
+      for i = 1, 6 do plate(sim, i, "Enemy" .. i) end
+      sim:advance(1.5)
+      local updates, restore = spy(N, "Update")
+      for i = 1, 60 do
+        sim.units.target = sim.units["nameplate" .. (i % 6 + 1)]
+        sim:event("PLAYER_TARGET_CHANGED")
+        sim:event("UPDATE_MOUSEOVER_UNIT")
+        sim:event("UNIT_FLAGS", "nameplate" .. (i % 6 + 1))
+        if i % 10 == 0 then sim:event("NAME_PLATE_UNIT_REMOVED", "nameplate" .. (i / 10)) end
+      end
+      equal(updates.n, 1, "a burst within one frame redraws once at first")
+      sim:advance(0.1)
+      equal(updates.n, 2, "and once more when the window ends")
+      equal(N.count, 1, "with the latest state: only the target is still in sight")
+      plate(sim, 7, "Late")
+      assert(N.seen["Late-Realm"], "a new enemy is listed at once")
+      sim:advance(0.1)
+      equal(N.rows[1].attrs.macrotext1, "/targetexact Late-Realm", "and drawn within the window")
       restore()
       sim:assertHealthy()
     end)

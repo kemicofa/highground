@@ -195,10 +195,14 @@ end
 function J.Entries()
   local out = {}
   for name, h in pairs(H.All()) do
-    local class = h.class and U.ClassName(h.class) or ns.Locale:Get("shared.journal.unknown_class.b6275c")
-    out[#out + 1] = { key = name, record = h, title = ns.Core.DisplayName(name, true), class = h.class,
-      summary = class .. "  ·  " .. (h.zone or ns.Locale:Get("shared.journal.unknown_zone.36ecb6")) .. (h.muted and ns.Locale:Get("shared.journal.muted.edbf09") or ""),
-      detail = ns.Locale:Format("shared.journal.value1_class_value5_value7_first_met_value9.f9d26c", { value1 = ns.Core.DisplayName(name, true), class = class, value5 = (h.guild or ""), value7 = H.Summary(h), value9 = H.Ago(time() - (h.first or time())), value12 = (h.zone or "unknown"), value14 = (h.note or ns.Locale:Get("shared.journal.no_notes.f03eb1")) }) }
+    -- A record too damaged to read is left out rather than closing the journal.
+    h = type(name) == "string" and H.Record(h)
+    if h then
+      local class = h.class and U.ClassName(h.class) or ns.Locale:Get("shared.journal.unknown_class.b6275c")
+      out[#out + 1] = { key = name, record = h, title = ns.Core.DisplayName(name, true), class = h.class,
+        summary = class .. "  ·  " .. (h.zone or ns.Locale:Get("shared.journal.unknown_zone.36ecb6")) .. (h.muted and ns.Locale:Get("shared.journal.muted.edbf09") or ""),
+        detail = ns.Locale:Format("shared.journal.value1_class_value5_value7_first_met_value9.f9d26c", { value1 = ns.Core.DisplayName(name, true), class = class, value5 = (h.guild or ""), value7 = H.Summary(h), value9 = H.Ago(time() - (h.first or time())), value12 = (h.zone or "unknown"), value14 = (h.note or ns.Locale:Get("shared.journal.no_notes.f03eb1")) }) }
+    end
   end
   table.sort(out, function(a, b) return (a.record.last or 0) > (b.record.last or 0)
     or ((a.record.last or 0) == (b.record.last or 0) and a.key < b.key) end)
@@ -213,7 +217,7 @@ local function Note(entry, owner)
       buttons = { { key = "save", label = ns.Locale:Get("shared.journal.save_note.d69ca0"), onClick = function()
         local box = owner.noteWindow
         if box.entry and (owner ~= J or box.scope == ns.Scope.Character()) then
-          box.entry.record.note = box:GetText():gsub("|", ""):sub(1, 500)
+          box.entry.record.note = ns.Text.ClipBytes((box:GetText():gsub("|", "")), 500)
         end
         box:Hide(); owner.win:Refresh()
       end } } })
@@ -235,7 +239,7 @@ function J.Build(provider)
       actions = {
         { label = ns.Locale:Get("shared.journal.edit_note.9751b2"), tone = "accent", run = function(e) Note(e, owner) end },
         { label = ns.Locale:Get("shared.journal.mute_alerts.d2c70d"), text = function(e) return e and e.record.muted and ns.Locale:Get("shared.journal.unmute_alerts.3292ea") or ns.Locale:Get("shared.journal.mute_alerts.d2c70d") end,
-          run = function(e) e.record.muted = not e.record.muted; return true, ns.Locale:Get("shared.journal.sighting_and_stealth_alerts_updated.15b4f9") end },
+          run = function(e) H.SetMuted(e.record, not e.record.muted); return true, ns.Locale:Get("shared.journal.sighting_and_stealth_alerts_updated.15b4f9") end },
         { label = ns.Locale:Get("shared.journal.add_bounty.321741"), enabled = function() return ns.Bounty ~= nil end, run = function(e)
           if provider then return provider.bounty(e) end
           local b = ns.Bounty

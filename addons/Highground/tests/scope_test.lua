@@ -70,6 +70,23 @@ t.test("early entries join the newest end of newest-first lists", function()
   t.equal(backups[1].at, 300, "trimming a full list keeps the early entries")
 end)
 
+t.test("tables with their own merge keep saved values and still adopt early ones", function()
+  local s = Fixture()
+  local key = "cata:3:realm:Home:Horde:Player-6"
+  local db = { scoped = { character = { [key] = { counts = { seen = 5 } } } } }
+  s.ns.Core.db = db
+  s.S.MERGE.counts = function(saved, early)
+    for name, n in pairs(early) do saved[name] = (saved[name] or 0) + n end
+  end
+  s.S.Saved("counts", "character").seen = 1
+  s.S.Saved("fresh", "character").seen = 2
+  s.S.MERGE.fresh = s.S.MERGE.counts
+  s.guid, s.ns.Core.myRealm = "Player-6", "Home"
+  t.equal(s.S.Saved("counts", "character").seen, 6, "counts add up instead of restarting")
+  t.equal(s.S.Saved("fresh", "character").seen, 2, "a table not saved yet goes through the same merge")
+  s.S.MERGE.counts, s.S.MERGE.fresh = nil, nil
+end)
+
 t.test("writes before the saved table exists reach the default saved table", function()
   local s = Fixture()
   s.guid, s.ns.Core.myRealm = "Player-2", "Home"

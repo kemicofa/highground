@@ -80,6 +80,26 @@ for _, variant in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 
     t.equal(O.Get(nil), nil, "absent selection stays absent")
     s:assertHealthy()
   end)
+
+  t.test(variant[2] .. " repeated presence checks read each community roster once", function()
+    local s = new("Highground", variant[1], variant[2])
+    s:advance(30)
+    local O, P, e = s.ns.Organizations, s.ns.Presence, s.env
+    local reads, info = 0, e.C_Club and e.C_Club.GetMemberInfo
+    if info then e.C_Club.GetMemberInfo = function(...) reads = reads + 1; return info(...) end end
+    for _ = 1, 20 do t.equal(P.Online("Stranger-Realm"), false, "a stranger is not online") end
+    if info then
+      assert(reads > 0 and reads <= 10, "one community roster read for twenty checks: " .. reads)
+      local before = reads
+      s:advance(31); P.Online("Stranger-Realm")
+      assert(reads > before, "the answer is kept for a limited time")
+      s.native[42].members["Stranger-Realm"] = { name = "Stranger-Realm", role = 4, memberId = 99, presence = 1 }
+      s:event("CLUB_MEMBER_ADDED", 42, 99)
+      t.equal(O.IsMember("club:42", "Stranger-Realm"), true, "a member who joins is found after the roster event")
+      t.equal(O.IsMember("club:42", "Moderator-Realm"), true, "listed members are still found")
+    end
+    s:assertHealthy()
+  end)
 end
 t.finish("Idle callback allocations: " .. t.tests .. " scenarios")
 end

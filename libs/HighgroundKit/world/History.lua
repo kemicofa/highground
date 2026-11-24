@@ -26,9 +26,31 @@ function History.All()
   return ns.Scope.Saved("enemyHistory", "character")
 end
 
+-- A saved record, or nil when it is damaged beyond use. Hand edits and
+-- old versions can leave wrong types; broken counters restart at zero and
+-- broken details are dropped, so one record cannot break every sighting.
+local COUNTS, NUMBERS, TEXTS = { "times", "killedMe", "killedThem" }, { "first", "last", "level" },
+  { "class", "guild", "zone", "note" }
+function History.Record(h)
+  if type(h) ~= "table" then return nil end
+  for _, field in ipairs(COUNTS) do if type(h[field]) ~= "number" then h[field] = 0 end end
+  for _, field in ipairs(NUMBERS) do if h[field] ~= nil and type(h[field]) ~= "number" then h[field] = nil end end
+  for _, field in ipairs(TEXTS) do if h[field] ~= nil and type(h[field]) ~= "string" then h[field] = nil end end
+  return h
+end
+local Record = History.Record
+
+-- The stored record for a name: as written, canonical, without our own
+-- realm, or for our own realm as "Name-" from before it could be read.
 local function Find(all, name)
+  local h = Record(all[name])
+  if h then return h end
   local canon = Core.Canon(name)
-  return all[name] or canon and (all[canon] or all[Core.DisplayName(canon)])
+  if not canon then return end
+  h = Record(all[canon]) or Record(all[Core.DisplayName(canon)])
+  if h then return h end
+  local short = canon:match("^[^-]+")
+  if Core.Canon(short) == canon then return Record(all[short .. "-"]) end
 end
 
 function History.Get(name)
@@ -36,17 +58,35 @@ function History.Get(name)
 end
 
 -- Muting remains effective even when recording new encounters is disabled.
--- Only the few muted entries need their names compared.
-function History.Muted(name)
-  local key
-  for who, entry in pairs(History.All()) do
+-- Alerts ask for every new sighting: look up the name's own record, then
+-- other spellings among the muted names, which are collected once per saved
+-- table and again after a change, never per question.
+local muted, mutedIn = {}, nil
+local function Collect(all)
+  wipe(muted)
+  mutedIn = all
+  for who, entry in pairs(all) do
     if type(entry) == "table" and entry.muted then
-      if who == name then return true end
-      key = key or Core.Canon(name)
-      if key and Core.Canon(who) == key then return true end
+      muted[who] = who
+      local key = Core.Canon(who)
+      if key then muted[key] = who end
     end
   end
-  return false
+end
+
+function History.Muted(name)
+  local all = History.All()
+  local h = type(name) == "string" and Find(all, name)
+  if h and h.muted then return true end
+  if all ~= mutedIn then Collect(all) end
+  local who = muted[name] or type(name) == "string" and muted[Core.Canon(name) or name]
+  h = who and all[who]
+  return type(h) == "table" and h.muted and true or false
+end
+
+function History.SetMuted(h, value)
+  h.muted = value or nil
+  mutedIn = nil
 end
 
 -- Someone with a past: met more than once, or a kill either way.
@@ -107,6 +147,28 @@ function History.Summary(h)
     text = ns.Locale:Format("shared.history.text_killed_you_h_killedme_you_killed.3b4377", { text = text, h_killedMe = h.killedMe, h_killedThem = h.killedThem })
   end
   return text
+end
+
+-- Sightings before the realm or ruleset could be read wait in a temporary
+-- table (core/Scope.lua). Join each to its saved enemy: encounters and kills
+-- add up, the first meeting and notes stay, and "Name-" takes the suffix
+-- that is now known.
+ns.Scope.MERGE.enemyHistory = function(saved, early)
+  for name, e in pairs(early) do
+    e = type(name) == "string" and Record(e)
+    if e then
+      local h = Find(saved, name)
+      if not h then
+        saved[name:find("%-$") and Core.Canon(name) or name] = e
+      elseif h ~= e then
+        h.times, h.killedMe, h.killedThem = h.times + e.times, h.killedMe + e.killedMe, h.killedThem + e.killedThem
+        h.first = h.first and e.first and math.min(h.first, e.first) or h.first or e.first
+        h.last = h.last and e.last and math.max(h.last, e.last) or h.last or e.last
+        h.class, h.level, h.guild, h.zone = e.class or h.class, e.level or h.level, e.guild or h.guild, e.zone or h.zone
+        h.note, h.muted = h.note or e.note, h.muted or e.muted
+      end
+    end
+  end
 end
 
 -- From Nearby.Note. fresh: a new encounter (new, or forgotten and back).
@@ -188,6 +250,7 @@ end
 
 function History.Clear()
   wipe(History.All())
+  mutedIn = nil
   if ns.EnemyJournal then
     ns.Scope.Close(ns.EnemyJournal.noteWindow)
     local w = ns.EnemyJournal.win

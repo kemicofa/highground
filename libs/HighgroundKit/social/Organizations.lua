@@ -95,6 +95,16 @@ function O.Get(id)
 end
 
 local requested, memberIDs = {}, {}
+-- Presence asks every community about a recipient on each retry. A name
+-- the whole roster did not list stays absent until that community's next
+-- roster event, for at most ABSENT seconds, instead of reading and sorting
+-- the roster again. absent[id] = { at = first answer, names = { [name] = true } }
+local absent, ABSENT = {}, 30
+local function Absent(id, who)
+  local list = absent[id]
+  if list and GetTime() - list.at >= ABSENT then absent[id], list = nil, nil end
+  return list ~= nil and list.names[who] == true
+end
 function O.RequestRoster(id, interval)
   if ns.STANDBY or GetTime() - (requested[id] or -math.huge) < (interval or 5) then return end
   local kind, clubId = Resolve(id)
@@ -270,7 +280,13 @@ function O.Member(id, who, memo)
     local member = Member(U.read(C_Club.GetMemberInfo, clubId, memberId))
     return member and member.name == who and member or nil
   end
-  for _, member in ipairs(O.Members(id)) do if member.name == who then return member end end
+  if Absent(id, who) then return end
+  local members, state = O.Members(id)
+  for _, member in ipairs(members) do if member.name == who then return member end end
+  if state == "ready" then
+    absent[id] = absent[id] or { at = GetTime(), names = {} }
+    absent[id].names[who] = true
+  end
 end
 
 function O.IsMember(id, who) return O.Member(id, who) ~= nil end
@@ -310,7 +326,8 @@ local function Changed(event, ...)
   if event == "PLAYER_GUILD_UPDATE" and unit and unit ~= "player" then return end
   if not O.IsGuildEvent(event) and event ~= "CLUB_MEMBER_PRESENCE_UPDATED" and event ~= "CLUB_MEMBER_ROLE_UPDATED"
     and event ~= "CLUB_SELF_MEMBER_ROLE_UPDATED" then
-    if type(unit) == "number" then memberIDs["club:" .. unit] = nil else wipe(memberIDs) end
+    if type(unit) == "number" then memberIDs["club:" .. unit], absent["club:" .. unit] = nil, nil
+    else wipe(memberIDs); wipe(absent) end
   end
   if event == "GUILD_ROSTER_UPDATE" then G.ReadRoster()
   elseif event == "PLAYER_GUILD_UPDATE" or event == "PLAYER_ENTERING_WORLD" then G.Clear(); G.RequestRoster() end

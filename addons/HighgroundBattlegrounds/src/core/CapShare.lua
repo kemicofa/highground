@@ -60,7 +60,9 @@ function Core.ShareCaptureEnd()
   if Send("1:E") == false then Retry() else announced = nil end
 end
 
+-- In a battleground only; a preview keeps its sample rows.
 function Core.ReceiveCapture(text, sender)
+  if not Core.active or Core.testMode then return end
   local short = type(sender) == "string" and sender:match("^[^-]+")
   if not short or Core.IsMe(sender) then return end
   local kind, rest = text:match("^1:(%u)(.*)$")
@@ -71,6 +73,7 @@ function Core.ReceiveCapture(text, sender)
     left, total = tonumber(left), tonumber(total)
     if not (left and total) or total <= 0 or left > total or total > Core.CAP_SHARE_MAX * 10 then return end
     local now = GetTime()
+    node = ns.Util.Clean(node) -- shown in the CAPPING row: no escape codes
     Core.logCaps[short] = { start = now - (total - left) / 10, finish = now + left / 10,
       node = node ~= "" and node or nil, shared = true }
   end
@@ -91,4 +94,6 @@ Core.capShareFrame = ns.Util.Events({
   UNIT_SPELLCAST_SUCCEEDED = { unit = "player", fn = OnCast },
 }, "capshare", "battlegrounds")
 
-Comms.Listen(Core.CAP_PREFIX, function(text, _, sender) Core.ReceiveCapture(text, sender) end, "capshare", "battlegrounds")
+Comms.Listen(Core.CAP_PREFIX, function(text, channel, sender)
+  if Comms.FromGroup(channel) then Core.ReceiveCapture(text, sender) end
+end, "capshare", "battlegrounds")

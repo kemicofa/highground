@@ -18,6 +18,20 @@ do
 end
 
 do
+  local s, ns = client()
+  s.mapID, s.area, s.positions = 206, "Twin Peaks", {}
+  s.bg = assert(ns.ResolveBattleground(206, 726, "cata", "standard"))
+  s.tick()
+  local message = "3:206:" .. key .. ",2000,7500,80,0,area,|cffff0000Twin Peaks|r"
+  s.receive(message, "WHISPER")
+  check(ns.Test.intel[key] == nil, "a whispered sighting is ignored")
+  s.receive(message)
+  local sight = ns.Test.intel[key]
+  check(sight and sight.by == "Ally", "the group's sighting counts")
+  check(not sight.area:find("|", 1, true), "escape codes stripped from the shared area name")
+end
+
+do
   local s, _, e = client({ unit = "target" })
   s.group, e.yards = true, 5
   s.tick()

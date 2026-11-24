@@ -34,6 +34,13 @@ function Comms.GroupChannel()
   end
 end
 
+-- True for a message on a channel only the group can send on. Whispers,
+-- guild and custom channels reach anyone, so team data ignores them.
+local GROUP_CHANNELS = { INSTANCE_CHAT = true, RAID = true, PARTY = true }
+function Comms.FromGroup(channel)
+  return GROUP_CHANNELS[Util.value(channel)] == true
+end
+
 -- True when the client can send addon messages.
 function Comms.CanSend()
   return C_ChatInfo ~= nil and C_ChatInfo.SendAddonMessage ~= nil

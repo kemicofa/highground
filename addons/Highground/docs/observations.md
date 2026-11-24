@@ -69,6 +69,8 @@ flowchart LR
 
 **Share observations** controls sending only. Received data still feeds the timers; the map display follows **Enemy map positions**, and capture bars follow their own switches.
 
+Only messages on the group channel (instance, raid or party) are read: a whisper or guild message, which players outside the match can send, is ignored. Received base and area names lose any formatting codes before they are shown.
+
 When the game refuses a message (throttling or chat lockdown), nothing is lost or counted as sent. Sightings and resurrection waves stay queued and go out with the next send, encoded from their current state; a full wave queue drops its oldest entry. A refused capture start is retried every second while the capture lasts, and a refused end until teammates' bars would run out. The intel and timer status lines report the refused count as "refused by the game".
 
 Intel sharing uses message version 3 to preserve position quality. Version 2 reports retain area/death information, but their unqualified coordinates are ignored because older versions could broadcast graveyard proxies. Teammates should update to exchange the new position data.

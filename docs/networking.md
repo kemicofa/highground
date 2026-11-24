@@ -171,7 +171,7 @@ end, "my feature network")
 | `Clean()` | Expire abandoned receive buffers and sender rate windows. Also runs on receive. |
 | `Clear()` | Empty pending sends, partial receives and rate windows. |
 
-The route's `channel` is one of `WHISPER`, `GUILD`, `PARTY`, `RAID`, `INSTANCE_CHAT`, or `CHANNEL`. Whispers require `target`, normalized to `Name-Realm`. A custom `CHANNEL` accepts a name or local numeric ID; prefer its name so channel renumbering is resolved at send time. Joining channels and choosing a group distribution are feature responsibilities; `ns.Comms.GroupChannel()` can choose the current group distribution.
+The route's `channel` is one of `WHISPER`, `GUILD`, `PARTY`, `RAID`, `INSTANCE_CHAT`, or `CHANNEL`. Whispers require `target`, normalized to `Name-Realm`. A custom `CHANNEL` accepts a name or local numeric ID; prefer its name so channel renumbering is resolved at send time. Joining channels and choosing a group distribution are feature responsibilities; `ns.Comms.GroupChannel()` can choose the current group distribution. `ns.Comms.FromGroup(channel)` is true only for `PARTY`, `RAID` and `INSTANCE_CHAT`, which only group members can send on; the battleground listeners (captures, spec tags, timers, map intel) ignore everything else, such as whispers from outside the match.
 
 On WoW Forever, `Comms.Send` passes only the full character name (including surname) to the native whisper API: its internal realm/ruleset suffix is not a valid whisper address and causes “No player named … is currently playing” messages. Queues, payloads, permission checks and protocol callbacks keep the canonical identity. Retail and Classic retain their cross-realm whisper addresses.
 

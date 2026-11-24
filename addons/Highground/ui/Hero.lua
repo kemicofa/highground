@@ -27,9 +27,11 @@ function Core.UpdateHero(e, isGo)
   Core.hero.glow:SetColor(isGo and "attackEdge" or "accent")
   Core.hero.glow:SetActive(show, isGo)
   Core.hero.rim:SetColor(show and (isGo and "attackEdge" or "borderAccent") or "border")
+  -- Stop the sweep once when the card empties, not on every empty render.
+  local swept = Core.hero.effectKey ~= nil
   if e and (Core.hero.effectKey ~= e.key or (isGo and not Core.hero.isGo)) then Core.hero.sweep:Play() end
   Core.hero.effectKey = e and e.key
-  if not show then Core.hero.sweep:Stop() end
+  if not show and swept then Core.hero.sweep:Stop() end
   -- Compact: one line (name, summary, distance); the click note takes the
   -- summary's place.
   local full = not Core.compact
@@ -85,8 +87,8 @@ function Core.UpdateHero(e, isGo)
   if e.cast then
     bits[#bits + 1] = ns.Locale:Format("highground.hero.value1_value2_value3_r.a04848", Fill(CAST, "value1", string.format("%s", Core.Hex("warning")), "value2", string.format("%s", ns.Text.Upper(e.cast.name)), "value3", string.format("%s", e.cast.kickable and ns.Locale:Get("highground.hero.interrupt.cf2920") or "")))
   end
-  local where = ns.MapWhere and ns.MapWhere(e.key)
-  if where and not e.unit then
+  local where = not e.unit and ns.MapWhere and ns.MapWhere(e.key)
+  if where then
     bits[#bits + 1] = Core.Hex("info") .. ns.Text.Upper(where) .. "|r"
   end
   local down = Core.DownSummary(e, 3)

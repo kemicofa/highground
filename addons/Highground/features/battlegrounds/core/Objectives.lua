@@ -265,7 +265,7 @@ function Core.ScanCarrierTokens()
     local unit = ns.UnitTokens.arena[i]
     local ok, exists = pcall(UnitExists, unit)
     if ok and Core.plain(exists) and exists then
-      local key = Core.CanonUnit(unit)
+      local key = Core.TickKey(unit)
       local e = key and Core.enemies[key]
       if e then
         if Core.obj.mode ~= "orb" and not e.carrier then

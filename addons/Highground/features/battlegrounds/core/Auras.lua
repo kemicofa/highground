@@ -143,7 +143,7 @@ function Core.ScanPlates()
   for i = 1, #PLATES do
     local unit = PLATES[i]
     if Util.read(UnitExists, unit) then
-      local key = Core.CanonUnit(unit)
+      local key = Core.TickKey(unit)
       local e = key and Core.enemies[key]
       if e and not e.plateUnit then
         e.plateUnit = unit
@@ -166,7 +166,7 @@ function Core.ScanAllyTargets()
   for i = 1, n do
     local owner = units[i]
     if Util.read(UnitIsUnit, owner, "player") ~= true then
-      local key = Core.CanonUnit(TARGET_OF[owner])
+      local key = Core.TickKey(TARGET_OF[owner])
       local e = key and Core.enemies[key]
       if e then
         e.allyCount = e.allyCount + 1

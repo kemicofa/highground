@@ -14,13 +14,15 @@ local function Protected(w)
   return w == Core.frame or w.secure
 end
 
+-- One list, refilled on each call: timer windows dock on every refresh.
+local shown = {}
 local function DockFrames()
-  local list = {}
+  wipe(shown)
   for _, name in ipairs(Core.DOCK) do
     local w = _G[name]
-    if w and w:IsShown() then list[#list + 1] = w end
+    if w and w:IsShown() then shown[#shown + 1] = w end
   end
-  return list
+  return shown
 end
 
 -- The frame that moves the column: the first shown one.

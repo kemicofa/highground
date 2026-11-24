@@ -82,8 +82,25 @@ local function ManaObservation(e, mana, level, at)
   return o
 end
 
+-- Player keys of unit tokens during one tick. ScanUnits resolves every
+-- visible token; plates, teammates' targets, carriers and markers then ask
+-- for the same ones. Only inside the tick's frame: after it, an event can
+-- point a token at someone else.
+local tickKeys, tickAt = {}, nil
+function Core.OpenTickKeys() wipe(tickKeys); tickAt = GetTime() end
+function Core.CloseTickKeys() tickAt = nil end
+function Core.TickKey(unit)
+  if tickAt == nil or tickAt ~= GetTime() then return Core.CanonUnit(unit) end
+  local key = tickKeys[unit]
+  if key == nil then
+    key = Core.CanonUnit(unit) or false
+    tickKeys[unit] = key
+  end
+  return key or nil
+end
+
 local function Claim(unit)
-  local key = Core.CanonUnit(unit)
+  local key = Core.TickKey(unit)
   if key and Core.enemies[key] and not Core.unitFor[key] then
     Core.unitFor[key] = unit
     return 1
@@ -111,7 +128,7 @@ function Core.ScanUnits()
   Core.db.liveStats.maxVisible = math.max(Core.db.liveStats.maxVisible or 0, visible)
 
   -- Whom enemies target, by player key: you, and teammates who heal.
-  local myKey = Core.CanonUnit("player")
+  local myKey = Core.TickKey("player")
   local healers = Core.TeamHealers and Core.TeamHealers() or NONE
   for key, e in pairs(Core.enemies) do
     local unit = Core.unitFor[key]
@@ -249,7 +266,7 @@ function Core.ScanUnits()
       -- plain() / type() / issecret() may touch it before it's known plain.
       local onMe = Util.call(UnitIsUnit, TARGET_OF[unit], "player")
       local targetKey
-      if not Core.plain(onMe) or next(healers) then targetKey = Core.CanonUnit(TARGET_OF[unit]) end
+      if not Core.plain(onMe) or next(healers) then targetKey = Core.TickKey(TARGET_OF[unit]) end
       e.onMeRaw = onMe
       if Core.plain(onMe) then
         e.onMe = onMe == true

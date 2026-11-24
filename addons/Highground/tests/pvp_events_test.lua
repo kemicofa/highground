@@ -166,4 +166,35 @@ t.test("a busy battleground combat log stays within its allocation budget", func
   sim:assertHealthy()
 end)
 
+t.test("bounty kill tracking passes over non-lethal hits without allocating", function()
+  local sim = setup("cata", 40402)
+  sim:join()
+  sim:advance(2)
+  local Bounty = sim.ns.Bounty
+  assert(Bounty.Enabled(), "bounty tracking is on, so every hit reaches the kill check")
+  local events = {}
+  for i = 1, 10 do
+    local base = { sim.now, nil, false, "Player-1", "Me-Realm", 0x511, 0, "Player-2-" .. i, "Enemy" .. i .. "-Realm", 0x548, 0 }
+    if i % 2 == 0 then
+      base[2] = "SPELL_DAMAGE"
+      for _, v in ipairs({ 133, "Fireball", 4, 1000, -1 }) do base[#base + 1] = v end
+    else
+      base[2] = "SWING_DAMAGE"
+      for _, v in ipairs({ 1000, -1 }) do base[#base + 1] = v end
+    end
+    events[i] = base
+  end
+  collectgarbage("collect"); collectgarbage("stop")
+  local before = collectgarbage("count")
+  for i = 1, 2000 do
+    sim.combatEvent = events[(i % 10) + 1]
+    Bounty.OnCombatLog()
+  end
+  local allocated = collectgarbage("count") - before
+  collectgarbage("restart")
+  -- A cause table per hit, before the overkill check, cost ~150 KiB here.
+  assert(allocated < 4, "2,000 non-lethal hits: " .. allocated .. " KiB")
+  sim:assertHealthy()
+end)
+
 t.finish("PvP events: " .. t.tests .. " tests")

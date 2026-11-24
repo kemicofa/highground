@@ -1,5 +1,6 @@
 local _, ns = ...
 local Timers = ns.Timers
+local NONE = {}
 
 ---------------------------------------------------------------------------
 -- Scores and predictions for the win forecast (timers/Forecast.lua).
@@ -145,6 +146,16 @@ do
     return db.rates[key], scoring.seedRates
   end
 
+  -- The known count nearest n in t (learned, then seed rates) and its rate.
+  local function Nearest(t, n, bestK, bestR)
+    for k, v in pairs(t or NONE) do
+      if k > 0 and v > 0 and (not bestK or math.abs(k - n) < math.abs(bestK - n)) then
+        bestK, bestR = k, v
+      end
+    end
+    return bestK, bestR
+  end
+
   local function Rate(n)
     if n == 0 then
       return 0
@@ -155,14 +166,8 @@ do
       return r
     end
     -- unknown count: scale the nearest known one
-    local bestK, bestR
-    for _, t in ipairs({ learned or {}, seed or {} }) do
-      for k, v in pairs(t) do
-        if k > 0 and v > 0 and (not bestK or math.abs(k - n) < math.abs(bestK - n)) then
-          bestK, bestR = k, v
-        end
-      end
-    end
+    local bestK, bestR = Nearest(learned, n)
+    bestK, bestR = Nearest(seed, n, bestK, bestR)
     return bestR and bestR * n / bestK or nil
   end
 

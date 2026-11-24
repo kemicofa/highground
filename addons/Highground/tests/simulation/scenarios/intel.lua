@@ -238,3 +238,35 @@ test("enemy death removes map pin and reappearance supplies resurrection evidenc
   equal(sim.ns.GetKillNow().key, "Fallen-Realm", "alive target returns")
   assert(sim.ns.Timers.stats.votes > 0, "map reappearance reaches resurrection estimator")
 end)
+
+test("map pins update in place: a hovered enemy keeps its pin and its tooltip follows", function()
+  local sim = new("cata")
+  local _, scoutToken = sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })
+  local otherUnit = sim:enemy("Other", { position = { x = 0.6, y = 0.4 } })
+  sim:join(); sim:advance(2)
+  local canvas, tip = sim.env.WorldMapFrame, sim.env.GameTooltip
+  local function pinOf(key)
+    for _, pin in ipairs(canvas.pins) do if pin.item.sortKey == key then return pin end end
+  end
+  local scout, other = assert(pinOf("Scout-Realm")), assert(pinOf("Other-Realm"))
+  sim.units[scoutToken] = nil
+  sim:advance(6)
+  scout.scripts.OnEnter(scout)
+  assert(tip:IsShown() and tip.owner == scout, "hovering shows the enemy's tooltip")
+  local before = table.concat(tip.lines, " ")
+  local hides = 0
+  scout:HookScript("OnHide", function() hides = hides + 1 end)
+  sim:advance(5)
+  equal(pinOf("Scout-Realm"), scout, "the same pin")
+  equal(pinOf("Other-Realm"), other, "each enemy keeps its own")
+  equal(hides, 0, "never hidden while hovered")
+  assert(tip:IsShown() and tip.owner == scout, "the tooltip stays")
+  local after = table.concat(tip.lines, " ")
+  assert(after ~= before and after:find("ago", 1, true), "and follows the sighting's age: " .. after)
+  otherUnit.dead = true
+  sim:combatLog("UNIT_DIED", "Me", "Other")
+  sim:advance(1.5)
+  equal(pinOf("Other-Realm"), nil, "a dead enemy's pin is released")
+  equal(pinOf("Scout-Realm"), scout, "the other keeps its pin")
+  sim:assertHealthy()
+end)

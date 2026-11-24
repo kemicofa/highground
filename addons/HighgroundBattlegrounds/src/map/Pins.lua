@@ -153,7 +153,10 @@ function ZonePinMixin:OnMouseLeave()
   GameTooltip_Hide()
 end
 
--- Data provider: rebuilds its pins twice a second while the map is open.
+-- Data provider: refreshes its pins twice a second while the map is open.
+-- Pins are updated in place, not released and acquired again: a hovered
+-- pin stays shown and its tooltip follows. An enemy keeps its own pin
+-- (sortKey); other pins of the same template are reused in order.
 local providers = {}
 
 local HighgroundDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
@@ -161,15 +164,22 @@ local HighgroundDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
 function HighgroundDataProviderMixin:RemoveAllData()
   self:GetMap():RemoveAllPinsByTemplate(ZONE_TEMPLATE)
   self:GetMap():RemoveAllPinsByTemplate(TEMPLATE)
-  self.pins = self.pins or {}
-  wipe(self.pins)
+  self.pins, self.shown = self.pins or {}, self.shown or {}
+  wipe(self.pins); wipe(self.shown)
+end
+
+-- Reused between refreshes: this refresh's items, last refresh's pins (in
+-- order and by enemy key), the pins taken and each template's next pin.
+local items, previous, previousKeys, used, claimed, cursor = {}, {}, {}, {}, {}, {}
+local function Usable(pin, template)
+  return pin and pin.hgTemplate == template and not used[pin] and pin:IsShown()
 end
 
 function HighgroundDataProviderMixin:RefreshAllData()
-  self:RemoveAllData()
   local map = self:GetMap()
   local mapID = map and map:GetMapID()
   if not mapID then
+    self:RemoveAllData()
     return
   end
   -- Pins keep a near-constant screen size as the canvas zooms. Supply the
@@ -179,22 +189,52 @@ function HighgroundDataProviderMixin:RefreshAllData()
     / (map.GetGlobalPinScale and map:GetGlobalPinScale() or 1)
   local width = canvas and canvas:GetWidth() * scale
   local height = canvas and canvas:GetHeight() * scale
-  local n = 0
+  wipe(items)
   for _, fn in ipairs(self.preview and { self.preview } or layers) do
-    local ok, items = Util.Guard("map layer", fn, mapID, width, height)
-    if ok and type(items) == "table" then
-      for _, item in ipairs(items) do
-        if item.x and item.y then
-          local pin = map:AcquirePin(item.radius and ZONE_TEMPLATE or TEMPLATE, item)
-          if item.sortKey then self.pins[item.sortKey] = pin end
-          n = n + 1
-        end
+    local ok, list = Util.Guard("map layer", fn, mapID, width, height)
+    if ok and type(list) == "table" then
+      for _, item in ipairs(list) do
+        if item.x and item.y then items[#items + 1] = item end
       end
     elseif not ok then
-      stats.lastError = tostring(items):match("^[^\n]*")
+      stats.lastError = tostring(list):match("^[^\n]*")
     end
   end
-  stats.draws, stats.pins = stats.draws + 1, n
+  self.pins, self.shown = self.pins or {}, self.shown or {}
+  wipe(previous); wipe(previousKeys); wipe(used); wipe(claimed)
+  for i, pin in ipairs(self.shown) do previous[i] = pin end
+  for key, pin in pairs(self.pins) do previousKeys[key] = pin end
+  wipe(self.pins); wipe(self.shown)
+  -- Enemies first take back their own pin.
+  for i, item in ipairs(items) do
+    local pin = item.sortKey and previousKeys[item.sortKey]
+    if Usable(pin, item.radius and ZONE_TEMPLATE or TEMPLATE) then used[pin], claimed[i] = true, pin end
+  end
+  cursor[TEMPLATE], cursor[ZONE_TEMPLATE] = 1, 1
+  for i, item in ipairs(items) do
+    local template = item.radius and ZONE_TEMPLATE or TEMPLATE
+    local pin = claimed[i]
+    while not pin and cursor[template] <= #previous do
+      local candidate = previous[cursor[template]]
+      cursor[template] = cursor[template] + 1
+      if Usable(candidate, template) then pin = candidate; used[pin] = true end
+    end
+    if pin then
+      pin:OnAcquired(item)
+    else
+      pin = map:AcquirePin(template, item)
+      pin.hgTemplate, used[pin] = template, true
+    end
+    self.shown[#self.shown + 1] = pin
+    if item.sortKey then self.pins[item.sortKey] = pin end
+  end
+  for _, pin in ipairs(previous) do
+    if not used[pin] and pin:IsShown() then map:RemovePin(pin) end
+  end
+  -- A hovered pin's tooltip and highlight follow its new item.
+  local owner = GameTooltip:IsShown() and GameTooltip:GetOwner()
+  if owner and used[owner] then owner:OnMouseEnter() end
+  stats.draws, stats.pins = stats.draws + 1, #items
 end
 
 function HighgroundDataProviderMixin:OnMapChanged()

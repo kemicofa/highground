@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("koKR", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "보호 기간이 만료된 후 GO 알림",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "방어 보너스 페이드 오버",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "건강 임계값 실행",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "적이 시야에서 사라진 뒤 마지막으로 본 생명력을 흐리게 유지",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "대상 권장 사항",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "적을 공격하도록 제안합니다. 그들을 대상으로 이름을 클릭 한 다음 평소처럼 능력을 사용합니다.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "친구 치료자 위에 녹색 십자가, 알려진 적 치료자 위에 빨간 십자가가 표시됩니다. 보이는 명판이 필요하며, 친화적인 역할이 알려져야 합니다.",

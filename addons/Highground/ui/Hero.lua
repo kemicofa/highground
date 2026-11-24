@@ -107,7 +107,7 @@ function Core.UpdateHero(e, isGo)
   for s, t in ipairs(Core.hero.meter) do
     Theme.Paint(t, s > lit and "overlaySelected" or isGo and "kill" or "accent")
   end
-  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, e.testHp or e.hpPct), e.testHp)
+  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, e.testHp or e.hpPct), e.testHp, e)
 
   if isGo then
     ns.Localization.Bind(Core.hero.label, "highground.hero.attack_protection_ended.fbaaee")

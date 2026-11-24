@@ -48,6 +48,8 @@ local SCAN = { "target", "focus", "mouseover", "softenemy" }
 for i = 1, 4 do SCAN[#SCAN + 1] = ns.UnitTokens.arena[i] end
 for i = 1, 40 do SCAN[#SCAN + 1] = ns.UnitTokens.nameplate[i] end
 local TARGET_OF = ns.UnitTokens.target
+-- Health as 0-100 on the Midnight client: secret, but drawable and printable.
+local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
 
 -- Readings reused per enemy instead of new tables every tick. Fields are
 -- rewritten on each reading; e.cast / e.specManaObservation point at them
@@ -166,6 +168,15 @@ function Core.ScanUnits()
       end
       -- Current health: plain on Cata (scores + exec), secret on retail.
       e.hpPct = Util.HealthFraction(unit)
+      -- 0-100 for the board, kept after the unit is gone (e.lastSeen): plain
+      -- on Cata, secret on the Midnight client and only ever drawn.
+      if e.dead then
+        e.hpSeen = nil
+      elseif SCALE_100 then
+        e.hpSeen = Util.call(UnitHealthPercent, unit, true, SCALE_100)
+      else
+        e.hpSeen = e.hpPct and e.hpPct * 100
+      end
       -- Mana (plain on Cata). Only while mana is their shown power: a
       -- shapeshifted druid reports 0 mana in cat/bear form.
       local ptype = Util.read(UnitPowerType, unit)
@@ -237,6 +248,7 @@ function Core.ScanUnits()
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
         e.crowdControlled = false
         e.dead = e.diedAt ~= nil and GetTime() - e.diedAt < 35
+        if e.dead then e.hpSeen = nil end
       end
     end
   end

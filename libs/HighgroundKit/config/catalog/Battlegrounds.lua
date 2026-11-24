@@ -28,6 +28,7 @@ ns.OptionsAdd({
     ns.Localization.Define({ key = "spentWindow", def = 60, min = 1, max = 120, unit = "seconds", desc = ns.Locale:Get("shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"), caps = "enemyAuras" }, { desc = "shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b" }),
     ns.Localization.Define({ key = "executePct", def = 0.35, min = 0.05, max = 0.90, step = 0.05, unit = "fraction (0.35 = 35%)",
       desc = ns.Locale:Get("shared.battlegrounds.execute_health_threshold.47de21") }, { desc = "shared.battlegrounds.execute_health_threshold.47de21" }),
+    ns.Localization.Define({ key = "healthMemory", def = 15, min = 0, max = 60, unit = "seconds", desc = ns.Locale:Get("shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58") }, { desc = "shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58" }),
   },
   features = {
     {

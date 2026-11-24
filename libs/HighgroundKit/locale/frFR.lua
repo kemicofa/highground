@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("frFR", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "Alerte GO après expiration de la protection",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "Le bonus « défensif utilisé » s'estompe en",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Seuil de vie d'exécution",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Garder, atténuée, la dernière vie vue d'un ennemi après qu'il sort du champ de vision",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Recommandations de cibles",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Suggère des ennemis à attaquer. Cliquez sur un nom pour le cibler, puis utilisez vos techniques comme d'habitude.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Croix verte au-dessus des soigneurs alliés et croix rouge au-dessus des soigneurs ennemis connus. Nécessite des plaques de nom visibles ; les rôles des alliés doivent être connus.",

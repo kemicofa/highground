@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "Alerta GO após a proteção expirar",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "O bônus por defensivo gasto diminui ao longo de",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Limiar de vida para execução",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Manter, esmaecida, a última vida vista de um inimigo depois que ele sai de vista",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Recomendações de alvo",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Sugere inimigos para atacar. Clique em um nome para alvejá-lo e depois use suas habilidades normalmente.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Cruz verde acima de curadores aliados e cruz vermelha acima de curadores inimigos conhecidos. Requer placas de nome visíveis; as funções dos aliados precisam ser conhecidas.",

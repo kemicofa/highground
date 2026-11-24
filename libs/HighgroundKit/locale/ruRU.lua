@@ -3829,6 +3829,7 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "Оповещение GO после окончания защиты",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "Бонус за потраченную защиту угасает за",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Порог здоровья для добивания",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Сохранять приглушённым последнее увиденное здоровье врага после того, как он пропал из вида",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Рекомендации целей",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Предлагать противников для атаки. Нажмите на имя, чтобы выбрать цель, затем используйте способности как обычно.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Зеленый крест над союзными лекарями и красный крест над известными вражескими лекарями. Нужны видимые индикаторы здоровья; роли союзников должны быть известны.",

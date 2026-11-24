@@ -109,6 +109,49 @@ test(client .. " Highground health lines and target marks stay independent of cl
 end)
 end
 
+for _, client in ipairs({ "cata", "retail", "forever" }) do
+test(client .. " last seen health stays muted after the enemy leaves view, then fades to unknown", function()
+  local sim = new(client, {})
+  local _, token = sim:enemy("Blue", { classID = 8, health = 40 })
+  sim:join()
+  local Core, T, e = sim.ns.Core, sim.ns.Theme, sim:entry("Blue")
+  local row = Core.rows[1]
+  local line = row.classBg.healthLine
+  equal(e.unit, token, "enemy in view")
+  near(row.hp.value / row.hp.maximum, 0.4, "live health")
+  sim.units[token] = nil -- nameplate gone, nobody targets it
+  sim:advance(1)
+  equal(e.unit, nil, "enemy out of view")
+  equal(row.hp.maximum, 100, "last reading drawn as 0-100")
+  near(row.hp.value, 40, "last seen health stays")
+  near(line:GetAlpha(), T.Alpha("healthLine") * T.Alpha("healthLineStale"), "last seen health is muted")
+  sim:advance(Core.O("healthMemory"))
+  near(row.hp.value / row.hp.maximum, 1, "unknown health after the memory window")
+  near(line:GetAlpha(), T.Alpha("healthLine") * T.Alpha("healthLineUnseen"), "unknown health is faded")
+  Core.db.healthMemory = 0
+  sim.units[token] = { name = "Blue", enemy = true, classID = 8, health = 70 }
+  sim:advance(1)
+  sim.units[token] = nil
+  sim:advance(1)
+  near(row.hp.value / row.hp.maximum, 1, "0 seconds shows unknown health at once")
+end)
+end
+
+test("forever last seen secret health goes back into the bar unread", function()
+  local secret, secret100 = { secret = true }, { secret = true }
+  local sim = new("forever", {}, function(sim)
+    sim.env.CurveConstants = { ScaleTo100 = "scale100" }
+    sim.env.UnitHealthPercent = function(_, _, curve) return curve == "scale100" and secret100 or secret end
+  end)
+  local _, token = sim:enemy("Blue", { classID = 8 })
+  sim:join()
+  local Core, e = sim.ns.Core, sim:entry("Blue")
+  equal(e.hpSeen, secret100, "0-100 secret reading kept")
+  sim.units[token] = nil
+  sim:advance(1)
+  equal(Core.rows[1].hp.value, secret100, "the secret reading is drawn, never read")
+end)
+
 for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " arena class rows retain target cues and remembered classes", function()
   local sim = new(client, {})

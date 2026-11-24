@@ -59,7 +59,25 @@ local function SetAbsolute(bar, hp, maxHp)
   bar:SetValue(hp)
 end
 
-function Core.UpdateHealth(r, unit, color, testPct)
+-- Last seen health (Target behavior: Keep last seen health): the reading
+-- from when the enemy was last in view, muted. Secret on the Midnight
+-- client, so it only goes into the bar.
+local function DrawSeen(r, e, color)
+  if not e or e.dead or type(e.hpSeen) == "nil" or GetTime() - (e.lastSeen or 0) >= Core.O("healthMemory") then
+    return false
+  end
+  if r.hpMode ~= "pct100" then
+    r.hp:SetMinMaxValues(0, 100)
+    r.hpMode = "pct100"
+  end
+  if not pcall(r.hp.SetValue, r.hp, e.hpSeen) then return false end
+  r.hp:SetStatusBarColor(color.r, color.g, color.b, r.fillMode and Theme.Alpha("healthStale") or 0.55)
+  ns.Hud.HealthKnown(r.hp, true, true)
+  r.exec:SetAlpha(0)
+  return true
+end
+
+function Core.UpdateHealth(r, unit, color, testPct, e)
   ns.Hud.HealthKnown(r.hp, not not (unit or testPct))
   if testPct then
     -- /hg bg test: a fixed, readable value.
@@ -73,6 +91,7 @@ function Core.UpdateHealth(r, unit, color, testPct)
     return
   end
   if not unit then
+    if DrawSeen(r, e, color) then return end
     -- Unknown health: full, faded bar.
     if r.hpMode ~= "pct" then
       r.hp:SetMinMaxValues(0, 1)

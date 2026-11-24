@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("itIT", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "Avviso GO dopo la scadenza della protezione",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "Il bonus per difensivo usato svanisce in",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Soglia di salute per l'esecuzione",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Mantieni attenuata l'ultima salute vista di un nemico dopo che esce dalla visuale",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Bersagli consigliati",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Suggerisce nemici da attaccare. Fai clic su un nome per selezionarlo come bersaglio, poi usa le tue abilità come al solito.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Croce verde sopra i guaritori alleati e croce rossa sopra i guaritori nemici noti. Richiede targhette visibili; i ruoli degli alleati devono essere noti.",

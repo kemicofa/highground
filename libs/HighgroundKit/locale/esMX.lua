@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("esMX", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "Aviso GO tras expirar la protección",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "La bonificación por defensivo usado se desvanece en",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Ejecutar umbral de salud",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Mantener atenuada la última salud vista de un enemigo cuando sale de la vista",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Recomendaciones sobre objetivos",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Sugiere enemigos a los que atacar. Haz clic en un nombre para seleccionarlo como objetivo y luego usa tus habilidades como siempre.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Cruz verde sobre los sanadores aliados y cruz roja sobre los sanadores enemigos conocidos. Requiere placas de nombre visibles; los roles aliados deben conocerse.",

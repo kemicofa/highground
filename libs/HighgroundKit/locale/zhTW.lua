@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("zhTW", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "保護過期後的 GO 警報",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "防禦花費獎勵消失",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "執行執行狀態閾值",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "敵人離開視野後，以淡色保留其最後看到的生命值",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "目標建議",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "建議敵人攻擊。點選一個名字來瞄準他們，然後像往常一樣使用你的能力。",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "友方治療者上方的綠色十字和已知敵方治療者上方的紅色十字。需要可見的名牌；必須知道友好角色。",

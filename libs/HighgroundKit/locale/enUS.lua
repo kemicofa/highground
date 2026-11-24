@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("enUS", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "GO alert after protection expires",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "Defensive-spent bonus fades over",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Execute health threshold",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Keep an enemy's last seen health, muted, after it leaves view",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Target recommendations",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Suggest enemies to attack. Click a name to target them, then use your abilities as usual.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Green cross above friendly healers and red cross above known enemy healers. Requires visible nameplates; friendly roles must be known.",

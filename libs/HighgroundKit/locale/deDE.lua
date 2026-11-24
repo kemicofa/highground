@@ -3823,6 +3823,7 @@ assert(ns.Locale:Register("deDE", {
   ["shared.battlegrounds.go_alert_after_protection_expires.22cff4"] = "GO-Alarm nach Ablauf des Schutzes",
   ["shared.battlegrounds.defensive_spent_bonus_fades_over.b6dd9b"] = "Bonus für verbrauchte Defensive klingt ab über",
   ["shared.battlegrounds.execute_health_threshold.47de21"] = "Execute-Gesundheitsschwelle",
+  ["shared.battlegrounds.keep_an_enemy_s_last_seen_health.63ad58"] = "Zuletzt gesehene Gesundheit eines Gegners gedämpft behalten, nachdem er aus dem Blick ist",
   ["shared.battlegrounds.target_recommendations.d82c60"] = "Zielempfehlungen",
   ["shared.battlegrounds.suggest_enemies_to_attack_click_a_name.9358f5"] = "Gegner zum Angreifen vorschlagen. Klicken Sie auf einen Namen, um ihn ins Ziel zu nehmen, und setzen Sie dann Ihre Fähigkeiten wie gewohnt ein.",
   ["shared.battlegrounds.green_cross_above_friendly_healers_and_red.9cdd9a"] = "Grünes Kreuz über freundlichen Heilern und rotes Kreuz über bekannten feindlichen Heilern. Erfordert sichtbare Namensschilder; freundliche Rollen müssen bekannt sein.",

@@ -150,7 +150,7 @@ function Core.Render()
       r.specText = specText
 
       Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, e.testHp or e.hpPct),
-        not e.dead and e.testHp or nil)
+        not e.dead and e.testHp or nil, e)
       Core.UpdateHealthText(r, e)
       Core.UpdateMana(r, e)
       if cap and cap.finish > cap.start then

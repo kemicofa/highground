@@ -70,7 +70,15 @@ function Nearby.Count()
   return count
 end
 
-local function Refresh() Guard("nearby", Nearby.Update) end
+-- Nameplates, target, focus and mouseover change many times a second in a
+-- fight. Sightings are noted at once; the panel redraws at most ten times
+-- a second. The poll redraws at once and replaces a waiting redraw. Hosts
+-- without ns.Throttle redraw on every event.
+local function Update() Nearby.Update() end
+local redraw = ns.Throttle and ns.Throttle.New(0.1, Update, "nearby")
+local function Refresh()
+  if redraw then redraw:Request() else Guard("nearby", Nearby.Update) end
+end
 local function Observe(unit)
   Guard("nearby", Nearby.NoteUnit, unit)
   Refresh()
@@ -82,7 +90,7 @@ local function Scan()
       if Read(UnitExists, unit) then Guard("nearby", Nearby.NoteUnit, unit) end
     end
   end
-  Refresh()
+  if redraw then redraw:Run() else Guard("nearby", Nearby.Update) end
 end
 -- Aura and flag updates also arrive for every creature and pet with a
 -- plate, many times a second. Only players can be counted or listed.

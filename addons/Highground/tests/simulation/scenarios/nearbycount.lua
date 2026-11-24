@@ -1,9 +1,14 @@
 local test, new, equal = ...
+-- Unit events redraw at most ten times a second (world/NearbyEvents.lua).
+local function event(s, ...)
+  s:event(...)
+  s:advance(0.1)
+end
 local function plate(s, i, name, extra)
   local unit = extra or {}
   unit.name, unit.enemy, unit.classID = name, true, 4
   s.units["nameplate" .. i] = unit
-  s:event("NAME_PLATE_UNIT_ADDED", "nameplate" .. i)
+  event(s, "NAME_PLATE_UNIT_ADDED", "nameplate" .. i)
   return unit
 end
 
@@ -27,7 +32,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "forever", 16
     s.units.mouseover, s.units.focus = one, one
     s:event("PLAYER_TARGET_CHANGED")
     s:event("UPDATE_MOUSEOVER_UNIT")
-    s:event("PLAYER_FOCUS_CHANGED")
+    event(s, "PLAYER_FOCUS_CHANGED")
     equal(w.title.text, "NEARBY: 1", "same-realm aliases count once")
     local two = plate(s, 41, "Two")
     equal(N.count, 2, "count includes plates above 40 and rows beyond the cap")
@@ -40,18 +45,18 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "forever", 16
     equal(N.count, 3, "pets, ghosts and invisible units excluded")
 
     two.dead = true
-    s:event("UNIT_FLAGS", "nameplate41")
+    event(s, "UNIT_FLAGS", "nameplate41")
     equal(N.count, 2, "death updates without waiting for the sighting to expire")
     two.dead = false
     s:advance(1)
     equal(N.count, 3, "poll detects resurrection without another plate event")
     two.enemy = false
-    s:event("UNIT_FACTION", "nameplate41")
+    event(s, "UNIT_FACTION", "nameplate41")
     equal(N.count, 2, "friendly players excluded")
-    s:event("NAME_PLATE_UNIT_REMOVED", "nameplate42")
+    event(s, "NAME_PLATE_UNIT_REMOVED", "nameplate42")
     equal(N.count, 1, "removal works before the old token disappears")
     s.units.nameplate42 = nil
-    s:event("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+    event(s, "NAME_PLATE_UNIT_REMOVED", "nameplate1")
     equal(N.count, 1, "other sources still see the same enemy")
     s.units.nameplate1, s.units.target, s.units.focus, s.units.mouseover = nil, nil, nil, nil
     s:advance(1)

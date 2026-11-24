@@ -43,6 +43,7 @@ local function client(flavor, points, disabledCooldowns)
       end,
       GetText = function(self) return self.text or "" end,
       GetStringWidth = function(self) return #(self.text or "") * 6 end,
+      GetUnboundedStringWidth = function(self) return #(self.text or "") * 6 end,
       GetStringHeight = function() return 14 end,
       IsShown = function(self) return self.shown end,
       SetScript = function(self, event, fn) self.scripts[event] = fn end,

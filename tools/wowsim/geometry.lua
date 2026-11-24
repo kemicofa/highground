@@ -137,7 +137,13 @@ return function(sim)
     local b = bounds(f)
     return (b[1] + b[3] / 2) / scale(f), (env.UIParent:GetHeight() - b[2] - b[4] / 2) / scale(f)
   end
-  methods.GetStringWidth, methods.GetUnboundedStringWidth = textWidth, textWidth
+  -- The client measures a single-line string as drawn: cut to its width.
+  methods.GetStringWidth = function(f)
+    local width = textWidth(f)
+    if f.wordWrap == false and not f.multiLine then width = math.min(width, f:GetWidth()) end
+    return width
+  end
+  methods.GetUnboundedStringWidth = textWidth
   methods.GetStringHeight = function(f) return textHeight(f, f:GetWidth()) end
   env.UIParent:SetSize(1280, 820)
 end

@@ -19,6 +19,13 @@ end
 
 local function SameText(text, value) return (text:GetText() or "") == tostring(value or "") end
 
+-- The full text width. GetStringWidth measures the drawn text, which a
+-- narrow first layout cuts to "...", and the title would stay cut.
+local function TextWidth(text)
+  local width = (text.GetUnboundedStringWidth or text.GetStringWidth)(text)
+  return width > 0 and math.ceil(width) + 1 or 0
+end
+
 -- Shared title row for dialogs and other surfaces. Callers supply actions
 -- in reading order; the header owns their anchors, not their size, parent,
 -- visibility or click handlers. Removing an action releases its anchors.
@@ -75,7 +82,7 @@ function Kit.Header(parent, opts)
     -- Refit the badge too: text size changes reach its label, not its frame.
     local badge = stage and stage:Layout() + S("md") or 0
     Kit.Place(self.title, "LEFT", self, "TOPLEFT", left, center)
-    local natural, titleWidth = self.title:GetStringWidth(), width
+    local natural, titleWidth = TextWidth(self.title), width
     -- The stage badge follows the title text; unmeasured text keeps the row.
     if stage then titleWidth = math.max(1, natural > 0 and math.min(width - badge, natural) or width - badge)
     elseif hasSub and not stacked then titleWidth = math.min(width, natural) end

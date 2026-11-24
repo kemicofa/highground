@@ -100,7 +100,17 @@ function C.NearbySteps()
     N.Track(w); C.BountySample.Fit(w)
     return true, ns.Locale:Get("highground.coachsamples.sample_bounty_opened_your_real_records_stay.d38165")
   end
+  -- World activity with sample zones (world/Activity.lua).
+  local activity = C.activitySample or { entries = function() return ns.WorldActivity.Samples() end }
+  C.activitySample = activity
+  local function Activity()
+    if data.win then ns.Kit.Windows.Close(data.win) end
+    local w = ns.WorldActivity.Build(activity)
+    w:Open(); N.Track(w); N.Fit(w)
+    return w
+  end
   local function History()
+    if activity.win and activity.win:IsShown() then ns.Kit.Windows.Close(activity.win) end
     local w = ns.EnemyJournal.Build(data)
     w:Open(); N.Track(w); N.Fit(w)
     return w
@@ -134,6 +144,9 @@ function C.NearbySteps()
     { id = "shared", title = ns.Locale:Get("guide.nearby.shared.title"), text = ns.Locale:Get("guide.nearby.shared.text"),
       enter = Panel, target = function() return Row("Ironhide") end, context = function() return Nearby.win end,
       feature = "nearbyShare", settingLabel = ns.Locale:Get("nearby.world.share_label") },
+    { id = "marks", title = ns.Locale:Get("guide.nearby.marks.title"), text = ns.Locale:Get("guide.nearby.marks.text"),
+      enter = Panel, target = function() return Nearby.win end, context = function() return Nearby.win end,
+      feature = "nearbyMarks", settingLabel = ns.Locale:Get("marks.label") },
     { id = "sound", sound = "nearby", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"),
       enter = Panel, target = function() return Nearby.win.sound end, context = function() return Nearby.win end,
       hint = ns.Locale:Get("highground.coachsamples.this_is_your_real_sound_preference.c14faf") },
@@ -145,6 +158,11 @@ function C.NearbySteps()
     { id = "note", title = ns.Locale:Get("highground.coachsamples.keep_a_private_reminder.8900be"), text = ns.Locale:Get("highground.coachsamples.edit_note_adds_your_own_reminder_mute.5f57ca"),
       enter = History, target = function() return data.win.actions[1] end, context = Context,
       hint = ns.Locale:Get("highground.coachsamples.these_are_sample_records_trying_the_actions.2935af") },
+    { id = "track", title = ns.Locale:Get("guide.nearby.track.title"), text = ns.Locale:Get("guide.nearby.track.text"),
+      enter = History, target = function() return data.win.actions[5] end, context = Context,
+      feature = "nearbyTrack", settingLabel = ns.Locale:Get("tracking.label") },
+    { id = "activity", title = ns.Locale:Get("guide.nearby.activity.title"), text = ns.Locale:Get("guide.nearby.activity.text"),
+      enter = Activity, target = function() return activity.win and activity.win.rows[1] end, context = function() return activity.win end },
     { id = "bounty", title = ns.Locale:Get("highground.coachsamples.add_a_bounty_from_this_enemy_record.f804f8"), text = ns.Locale:Get("highground.coachsamples.select_the_enemy_then_click_add_bounty.2f3947"),
       enter = History, target = function() return data.win.actions[3] end, context = Context,
       requireAction = true, advance = function() return N.bountyOwned and B.Form.previewWin:IsVisible() end, hint = ns.Locale:Get("highground.coachsamples.click_add_bounty.793100") },

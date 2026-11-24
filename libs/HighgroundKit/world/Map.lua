@@ -10,6 +10,7 @@ local WorldMap = ns.WorldMap
 -- where its observer stood; the circle around it is how far away the
 -- enemy could be. Enemies close together share one pin with a count.
 -- Pins fade with time since last seen and go when Nearby forgets them.
+-- Tracked enemies (world/Tracking.lua) get their own marked pin and name.
 -- Zone positions also show on the continent map. Open world only.
 ---------------------------------------------------------------------------
 local Line = ns.Theme.TipLine
@@ -17,7 +18,7 @@ local GRID = 0.025 -- map share of one cluster cell
 
 -- Where a zone's position falls on another map (a continent above it).
 local rects = {}
-local function Translate(from, to, x, y)
+function WorldMap.Translate(from, to, x, y)
   if from == to then return x, y end
   local key = from .. ":" .. to
   local r = rects[key]
@@ -35,7 +36,7 @@ end
 
 -- Yards across a map, when the client knows.
 local widths = {}
-local function Width(mapID)
+function WorldMap.Width(mapID)
   if widths[mapID] == nil then
     local ok, w = pcall(C_Map.GetMapWorldSize, mapID)
     widths[mapID] = ok and Util.plain(w) and type(w) == "number" and w > 0 and w or false
@@ -82,13 +83,23 @@ function WorldMap.Pins(mapID)
     return items
   end
   local fade, forget = Core.O("nearbyFade"), Core.O("nearbyForget")
+  local width = WorldMap.Width(mapID)
   local cells, order = {}, {}
   for _, e in pairs(list) do
     local age = now - e.last
     local x, y
     if Nearby.preview then x, y = e.sx, e.sy
-    elseif e.x and e.mapID and age <= forget then x, y = Translate(e.mapID, mapID, e.x, e.y) end
-    if x and x > 0 and x < 1 and y > 0 and y < 1 then
+    elseif e.x and e.mapID and age <= forget then x, y = WorldMap.Translate(e.mapID, mapID, e.x, e.y) end
+    local tracked = Nearby.preview and e.tracked or not Nearby.preview and ns.Tracking and ns.Tracking.Get(e.name)
+    if tracked and x and x > 0 and x < 1 and y > 0 and y < 1 then
+      local tooltip = Tooltip({ e }, now)
+      if width and e.r then
+        items[#items + 1] = { x = x, y = y, radius = e.r / width, ring = "danger", alpha = age > fade and 0.6 or 1, tooltip = tooltip }
+      end
+      items[#items + 1] = { sortKey = "tracked:" .. e.name, x = x, y = y, size = 30, mark = true,
+        icon = "classicon-" .. (e.class or "warrior"):lower(), ring = "danger", alpha = age > fade and 0.7 or 1,
+        label = Core.DisplayName(e.name), labelColor = "danger", tooltip = tooltip }
+    elseif x and x > 0 and x < 1 and y > 0 and y < 1 then
       local key = math.floor(x / GRID) .. ":" .. math.floor(y / GRID)
       local cell = cells[key]
       if not cell then
@@ -99,7 +110,6 @@ function WorldMap.Pins(mapID)
       cell.sx, cell.sy = cell.sx + x, cell.sy + y
     end
   end
-  local width = Width(mapID)
   for _, cell in ipairs(order) do
     local members = cell.members
     table.sort(members, function(a, b) return a.last > b.last end)

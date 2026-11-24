@@ -67,6 +67,7 @@ local function Profile(w)
   p.locationLabel = Text(p, "caption", "textMuted")
   p.zone = Text(p, "bodyLarge", "text")
   p.lastSeen = Text(p, "body", "textMuted")
+  p.report = Text(p, "body", "danger")
   p.firstSeen = Text(p, "note", "textMuted")
   p.notesRule = T.Fill(p, "ARTWORK", "border"); p.notesRule:SetHeight(1)
   p.notesLabel = Text(p, "caption", "accent")
@@ -89,8 +90,10 @@ local function RenderProfile(entry, w, width)
   local cc = U.ClassColor(h.class)
   if cc then Core.ClassPaint(p.strip, cc); T.PaintClass(p.name, cc)
   else T.Paint(p.strip, "border"); T.Paint(p.name, "text") end
-  y = y + Place(p.state, h.muted and ns.Locale:Get("shared.journal.alerts_muted.fef5de") or ns.Locale:Get("shared.journal.encounter_record.4b2427"), x, y, width - x - pad) + 6
-  T.Paint(p.state, h.muted and "warning" or "textMuted")
+  local state = h.muted and ns.Locale:Get("shared.journal.alerts_muted.fef5de") or ns.Locale:Get("shared.journal.encounter_record.4b2427")
+  if h.tracked then state = ns.Locale:Get("tracking.row") .. " · " .. state end
+  y = y + Place(p.state, state, x, y, width - x - pad) + 6
+  T.Paint(p.state, h.tracked and "danger" or h.muted and "warning" or "textMuted")
   y = y + Place(p.name, entry.title, x, y, width - x - pad) + 5
   y = y + Place(p.class, Class(h), x, y, width - x - pad)
   p.guild:SetShown(h.guild ~= nil and h.guild ~= "")
@@ -112,6 +115,13 @@ local function RenderProfile(entry, w, width)
   y = y + Place(p.locationLabel, ns.Locale:Get("shared.journal.last_encounter.ec3811"), pad, y, inner) + 7
   y = y + Place(p.zone, h.zone or ns.Locale:Get("shared.journal.location_not_recorded.5c185c"), pad, y, inner) + 5
   y = y + Place(p.lastSeen, ns.Locale:Format("shared.previewsamples.last_seen_value2.b31bec", { value2 = Ago(h.last) }), pad, y, inner) + 5
+  -- A tracked enemy's latest report, yours or someone else's (world/Tracking.lua).
+  local report = h.tracked and type(h.report) == "table" and ns.Tracking and h.report
+  p.report:SetShown(report and true or false)
+  if report then
+    y = y + Place(p.report, ns.Locale:Format("tracking.journal.report", { where = ns.Tracking.Where(report),
+      who = report.by and Core.DisplayName(report.by) or ns.Locale:Get("tracking.journal.you"), ago = Ago(report.at) }), pad, y, inner) + 5
+  end
   y = y + Place(p.firstSeen, ns.Locale:Format("shared.journal.first_met_value2.d34939", { value2 = Ago(h.first) }), pad, y, inner) + 18
   p.notesRule:SetPoint("TOPLEFT", pad, -y); p.notesRule:SetWidth(inner)
   y = y + 16
@@ -177,7 +187,8 @@ local function RenderRow(row, entry)
   Place(row.identity, entry.record.zone or ns.Locale:Get("shared.journal.location_not_recorded.5c185c"), x, 25 * scale, row:GetWidth() - x - 12)
   row.summary:ClearAllPoints(); row.summary:SetPoint("TOPLEFT", x, -40 * scale)
   row.summary:SetWidth(row:GetWidth() - x - 12); row.summary:SetWordWrap(false)
-  row.summary:SetText(Ago(entry.record.last) .. (entry.record.muted and ns.Locale:Get("shared.journal.muted.b6a778") or ""))
+  row.summary:SetText(Ago(entry.record.last) .. (entry.record.muted and ns.Locale:Get("shared.journal.muted.b6a778") or "")
+    .. (entry.record.tracked and (" · " .. ns.Locale:Get("tracking.row")) or ""))
   if ns.Bounty then ns.Bounty.MarkRow(row, entry.key) end
 end
 
@@ -200,7 +211,8 @@ function J.Entries()
     if h then
       local class = h.class and U.ClassName(h.class) or ns.Locale:Get("shared.journal.unknown_class.b6275c")
       out[#out + 1] = { key = name, record = h, title = ns.Core.DisplayName(name, true), class = h.class,
-        summary = class .. "  ·  " .. (h.zone or ns.Locale:Get("shared.journal.unknown_zone.36ecb6")) .. (h.muted and ns.Locale:Get("shared.journal.muted.edbf09") or ""),
+        summary = class .. "  ·  " .. (h.zone or ns.Locale:Get("shared.journal.unknown_zone.36ecb6")) .. (h.muted and ns.Locale:Get("shared.journal.muted.edbf09") or "")
+          .. (h.tracked and ("  ·  " .. ns.Locale:Get("tracking.row")) or ""),
         detail = ns.Locale:Format("shared.journal.value1_class_value5_value7_first_met_value9.f9d26c", { value1 = ns.Core.DisplayName(name, true), class = class, value5 = (h.guild or ""), value7 = H.Summary(h), value9 = H.Ago(time() - (h.first or time())), value12 = (h.zone or "unknown"), value14 = (h.note or ns.Locale:Get("shared.journal.no_notes.f03eb1")) }) }
     end
   end
@@ -249,10 +261,24 @@ function J.Build(provider)
         { label = ns.Locale:Get("shared.matchwindow.delete_entry.ccaf75"), run = function(e)
           local records = provider and provider.records or H.All()
           local record, scope = records[e.key], ns.Scope.Character(); records[e.key] = nil
+          if not provider and ns.Tracking then ns.Tracking.Changed() end
           return true, ns.Locale:Get("shared.journal.entry_removed_you_can_undo_this_below.fe9d52"), function()
             if (provider or scope == ns.Scope.Character()) and not records[e.key] then records[e.key] = record end
+            if not provider and ns.Tracking then ns.Tracking.Changed() end
           end
         end },
+        -- Samples toggle only the sample record; real ones go through Tracking.
+        { label = ns.Locale:Get("tracking.action.track"), enabled = function() return provider ~= nil or ns.Tracking ~= nil end,
+          text = function(e) return e and e.record.tracked and ns.Locale:Get("tracking.action.untrack") or ns.Locale:Get("tracking.action.track") end,
+          run = function(e)
+            local on, name = not e.record.tracked, Core.DisplayName(e.key)
+            if provider then e.record.tracked = on or nil
+            else
+              local ok, why = ns.Tracking.Set(e.key, on)
+              if not ok then return false, why end
+            end
+            return true, ns.Locale:Format(on and "tracking.action.on" or "tracking.action.off", { name = name })
+          end },
       },
     })
     T.OnChange(function() if owner.win:IsShown() then owner.win:Refresh() end end)

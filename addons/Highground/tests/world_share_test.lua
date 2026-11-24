@@ -237,9 +237,13 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     equal(sim.ns.Core.On("nearbyShareGuild"), false)
     sim:command("nearby map off")
     equal(sim.ns.Core.On("nearbyMap"), false)
+    local before = #sim.messages
     sim:command("nearby")
-    local line = sim.messages[#sim.messages]
-    assert(type(line) == "string" and line:find("Shared sightings", 1, true), "status line")
+    local line
+    for i = before + 1, #sim.messages do
+      if sim.messages[i]:find("Shared sightings", 1, true) then line = sim.messages[i] end
+    end
+    assert(line, "status line")
     sim:command("nearby share guild on"); sim:command("nearby map on")
     assert(sim.ns.Core.On("nearbyShareGuild") and sim.ns.Core.On("nearbyMap"))
     sim:assertHealthy()

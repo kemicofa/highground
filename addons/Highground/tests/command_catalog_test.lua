@@ -125,6 +125,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       reputation = function() return s.ns.Reputation.UI.window end,
       bountyboard = function() return s.ns.Bounty.Board.win end,
       journal = function() return s.ns.EnemyJournal.win end,
+      activity = function() return s.ns.WorldActivity.win end,
       history = function() return s.ns.MatchHistory.win end,
       healers = function() return s.ns.TeamHealers.win end,
     }

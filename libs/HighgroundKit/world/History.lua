@@ -139,6 +139,9 @@ local function Entry(name)
   return h
 end
 
+-- The saved record for a name, created when new (tracking, world/Tracking.lua).
+History.Ensure = Entry
+
 -- "seen 3 times before, last 2d ago; killed you 2, you killed 1"
 function History.Summary(h)
   local text = ns.Locale:Plural("shared.history.seen_count_times_before.15855d", h.times)
@@ -188,6 +191,7 @@ function History.Seen(e, fresh)
 end
 
 local function RecordKill(name, counter)
+  if name and ns.WorldFeed then ns.WorldFeed.Local(name, counter) end -- the kill feed (world/Feed.lua)
   if not (name and History.Enabled()) then return end
   local h = Entry(name)
   h[counter] = h[counter] + 1

@@ -166,47 +166,6 @@ function Commands.rows(arg, msg, say)
   say(ns.Locale:Format("highground.settings.enemies_shown_core_db_rows_value3.efd93e", { Core_db_rows = Core.db.rows, value3 = (InCombatLockdown() and ns.Locale:Get("highground.settings.updates_after_combat.f25c8c") or "") }))
 end
 
--- Enemy-panel styling uses the same setters as its Appearance controls.
-function Commands.enemy(arg, msg, say)
-  if not ns.Modules.Require("battlegrounds") then return end
-  local key, value = arg:match("^(%S*)%s*(.-)$")
-  if key == "" then return ns.Hub.Open("battlegrounds-appearance") end
-  local ok, known = false, true
-  if key == "preset" then ok = Core.SetEnemyPreset(value)
-  elseif key == "style" then ok = Core.SetStyleChoice("healthStyle", value)
-  elseif key == "color" then ok = Core.SetStyleChoice("enemyColor", value)
-  elseif key == "texture" then ok = Core.SetStyleChoice("enemyBar", value)
-  elseif key == "custom" then
-    local hex = value:gsub("^#", "")
-    if value == "default" then Core.SetBarCustomColor(nil, nil, nil, true); ok = true
-    elseif #hex == 6 and hex:match("^%x+$") then
-      Core.SetBarCustomColor(tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255,
-        tonumber(hex:sub(5, 6), 16) / 255, true); ok = true
-    end
-  elseif key == "height" then ok = Core.SetMetric("healthBar", value, Core.IsCompact())
-  elseif key == "line" then ok = Core.SetMetric("health", value, Core.IsCompact())
-  elseif key == "row" then ok = Core.SetMetric("row", value, Core.IsCompact())
-  elseif key == "width" then ok = Core.SetMetric("width", value, Core.IsCompact())
-  elseif key == "background" then ok = Core.SetEnemyNumber("enemyBackground", tonumber(value) and tonumber(value) / 100)
-  elseif key == "opacity" then ok = Core.SetEnemyNumber("enemyOpacity", tonumber(value) and tonumber(value) / 100)
-  elseif key == "names" then ok = Core.SetEnemyNumber("enemyNames", tonumber(value) and tonumber(value) / 100)
-  elseif key == "hero" then
-    if value == "on" or value == "off" then Core.SetElement("hero", value == "on"); ok = true end
-  else known = false end
-  -- Geometry setters return false during combat after accepting the saved
-  -- value. Validate arguments independently from the deferred-layout result.
-  if not ok and InCombatLockdown() then
-    if key == "height" or key == "line" or key == "row" or key == "width" then
-      local n = tonumber(value); ok = n and n == n and math.abs(n) ~= math.huge
-    elseif key == "style" then
-      for _, choice in ipairs(Core.THEME.appearance.healthStyles) do if choice.key == value then ok = true end end
-    end
-  end
-  if not ok then return say(known and Usage("enemy " .. key) or Usage("enemy"), "error") end
-  if ns.Options then ns.Options.RefreshAllRows() end
-  say(ns.Locale:Get(InCombatLockdown() and "enemy.appearance.deferred" or "enemy.appearance.saved"))
-end
-
 function Commands.scale(arg, msg, say)
   if not tonumber(arg) then return say(Usage("scale")) end
   local applied = ns.SetUIScale(tonumber(arg))
@@ -270,17 +229,65 @@ end
 Commands.options = Commands.config
 
 -- /hg nearby [on | off | map on|off | share on|off | share guild on|off |
+-- tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
+-- mark TYPE|clear | marks on|off | marks world on|off | calls on|off | feed on|off |
 -- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
--- map pins and shared sightings (world/Map.lua, world/Share.lua) and its
--- saved history (world/History.lua).
+-- map pins and shared sightings (world/Map.lua, world/Share.lua), tracked
+-- enemies (world/Tracking.lua), map marks and calls (world/Marks.lua,
+-- world/Calls.lua) and its saved history (world/History.lua).
 local NEARBY_SWITCHES = {
   ["on"] = "nearby", ["off"] = "nearby",
   ["map on"] = "nearbyMap", ["map off"] = "nearbyMap",
   ["share on"] = "nearbyShare", ["share off"] = "nearbyShare",
   ["share guild on"] = "nearbyShareGuild", ["share guild off"] = "nearbyShareGuild",
+  ["tracking on"] = "nearbyTrack", ["tracking off"] = "nearbyTrack",
+  ["marks on"] = "nearbyMarks", ["marks off"] = "nearbyMarks",
+  ["calls on"] = "nearbyCalls", ["calls off"] = "nearbyCalls",
+  ["feed on"] = "nearbyFeed", ["feed off"] = "nearbyFeed",
 }
+
+-- /hg nearby mark enemies|ganker|help: at your position; mark clear: yours.
+local function Mark(kind, say)
+  local Marks = ns.WorldMarks
+  if not Marks then return say(ns.Locale:Get("tracking.unavailable")) end
+  if kind == "clear" then return say(ns.Locale:Format("marks.cleared", { count = Marks.Clear() })) end
+  local m, why = Marks.Here(kind)
+  say(m and ns.Locale:Format("marks.placed", { mark = Marks.Label(kind) }) or why)
+end
+local function Track(verb, typed, say)
+  local T = ns.Tracking
+  if not T then return say(ns.Locale:Get("tracking.unavailable")) end
+  local name = typed and typed:lower() == "target" and Core.FullUnitName("target") or T.Resolve(typed)
+  if not name then return say(ns.Locale:Get("tracking.usage")) end
+  local ok, why = T.Set(name, verb == "track")
+  say(ok and ns.Locale:Format(verb == "track" and "tracking.action.on" or "tracking.action.off",
+    { name = Core.DisplayName(name) }) or why)
+end
+
+local function Tracked(say)
+  local T = ns.Tracking
+  if not T then return say(ns.Locale:Get("tracking.unavailable")) end
+  say(T.Status())
+  for _, item in ipairs(T.List()) do
+    local r = item.record.report
+    say("  " .. Core.DisplayName(item.key) .. (type(r) == "table" and (" — " .. T.Where(r) .. " · "
+      .. ns.Util.Ago(math.max(0, time() - (r.at or time())))) or ""))
+  end
+end
+
 function Commands.nearby(arg, msg, say)
-  if NEARBY_SWITCHES[arg] then
+  local verb = arg:match("^(%S+)")
+  if verb == "track" or verb == "untrack" then
+    return Track(verb, msg:match("^%S+%s+%S+%s+(.-)%s*$"), say)
+  elseif arg == "tracked" then
+    return Tracked(say)
+  elseif arg == "watch on" or arg == "watch off" then
+    Core.SetTuning("option", "nearbyTrackWorld", arg == "watch on")
+  elseif arg == "marks world on" or arg == "marks world off" then
+    Core.SetTuning("option", "nearbyMarksWorld", arg == "marks world on")
+  elseif verb == "mark" then
+    return Mark(arg:match("^mark%s+(%S+)") or "", say)
+  elseif NEARBY_SWITCHES[arg] then
     Core.SetFeature(NEARBY_SWITCHES[arg], arg:match("on$") ~= nil)
   elseif arg == "test" and ns.NearbyPreview then
     local on = ns.NearbyPreview()
@@ -300,6 +307,8 @@ function Commands.nearby(arg, msg, say)
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
   say(ns.Locale:Format("highground.settings.nearby_enemies_value2_n_remembered_hg_nearby.874130", { value2 = (Core.On("nearby") and "on" or "OFF"), n = n }))
   if ns.WorldShare then say(ns.WorldShare.Status()) end
+  if ns.Tracking then say(ns.Tracking.Status()) end
+  if ns.WorldMarks then say(ns.WorldMarks.Status()) end
 end
 
 -- /hg theme [NAME]: list the themes, or switch to one (saved).
@@ -369,6 +378,11 @@ function Commands.alerts(arg, msg, say)
 end
 function Commands.history() ns.MatchHistory.Open() end
 function Commands.journal() ns.EnemyJournal.Open() end
+-- /hg activity: zones with recent enemies, marks and kills (world/Activity.lua).
+function Commands.activity(_, _, say)
+  if not ns.WorldActivity then return say(ns.Locale:Get("tracking.unavailable")) end
+  ns.WorldActivity.Open()
+end
 function Commands.users(arg)
   if arg == "why" then return ns.Hub.CopyUsersDiagnostics() end
   ns.Hub.Show("users")

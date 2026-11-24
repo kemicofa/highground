@@ -146,9 +146,21 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby map on` · `/hg nearby map off` | Show or hide Nearby's enemy sightings on the world map. | World map sightings switch → `nearby` |
 | `/hg nearby share on` · `/hg nearby share off` | Share nearby enemies with your party or raid and list theirs. | Group sharing switch → `nearby` |
 | `/hg nearby share guild on` · `/hg nearby share guild off` | Also share nearby enemies with your guild and list theirs. | Guild sharing switch → `nearby` |
+| `/hg nearby tracking on` · `/hg nearby tracking off` | Turn tracked enemy alerts on or off. | Tracked enemy alerts switch → `nearby` |
+| `/hg nearby track NAME` | Track an enemy by name, or your target: you're alerted with where they are when they're seen. | Track an enemy |
+| `/hg nearby untrack NAME` | Stop tracking an enemy by name, or your target. | Stop tracking an enemy |
+| `/hg nearby tracked` | List tracked enemies and where they were last reported. | Open tracked enemies (separate window) |
+| `/hg nearby watch on` · `/hg nearby watch off` | Watch for tracked enemies with every Highground user of your faction on this realm. | Watch with everyone switch → `nearby` |
+| `/hg nearby mark enemies\|ganker\|help` | Mark enemies, a ganker or a call for help at your position, for your group and guild. | Mark the map |
+| `/hg nearby mark clear` | Remove your map marks for everyone. | Clear my marks |
+| `/hg nearby marks on` · `/hg nearby marks off` | Show and share map marks, or turn them off. | Map marks switch → `nearby` |
+| `/hg nearby marks world on` · `/hg nearby marks world off` | Share map marks with every Highground user of your faction on this realm. | Marks with everyone switch → `nearby` |
+| `/hg nearby calls on` · `/hg nearby calls off` | Turn World PvP calls on or off: known gankers, enemy raids and others' map marks. | World PvP calls switch → `nearby` |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |
+| `/hg nearby feed on` · `/hg nearby feed off` | Share kills and deaths with your group and guild, or stop. | Kill feed switch → `nearby` |
+| `/hg activity` | Open World activity: zones with recent enemies, marks and kills. | Open world activity (separate window) |
 | `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal (separate window) |
 
 ## Bounties

@@ -171,7 +171,7 @@ local function Collect(now, out)
   for name, e in pairs(Nearby.seen) do
     if now - e.last > forget then
       Nearby.seen[name] = nil
-    elseif not (e.by and e.mapID ~= zone) then
+    elseif not (e.by and e.mapID ~= zone) or ns.Tracking and ns.Tracking.Get(name) then
       n = n + 1
       out[n] = e
     end
@@ -300,9 +300,12 @@ local function Fill(r, e, now, fade, zone)
     LEVEL.e_level = e.level
     sub = ns.Locale:Format("shared.nearby.lv_e_level.4f13d0", LEVEL)
   end
-  local detail = e.hidden and e.hidden.spell or e.by and Nearby.SeenBy(e)
-    or e.zone and e.zone ~= "" and e.zone ~= zone and e.zone or nil
+  -- A tracked enemy someone else saw: where, before who.
+  local tracked = e.tracked or ns.Tracking and not Nearby.preview and ns.Tracking.Get(e.name)
+  local away = e.zone and e.zone ~= "" and e.zone ~= zone and e.zone or nil
+  local detail = e.hidden and e.hidden.spell or tracked and e.by and away or e.by and Nearby.SeenBy(e) or away
   if detail then sub = sub and (sub .. " · " .. detail) or detail end
+  if tracked then sub = ns.Locale:Get("tracking.row") .. (sub and (" · " .. sub) or "") end
   r.sub:SetText(sub or "")
   r.right:SetText(ago < 2 and ns.Locale:Get("shared.nearby.now.e3b820") or Util.Ago(math.floor(ago)))
   r:SetAlpha(ago > fade and 0.45 or 1)

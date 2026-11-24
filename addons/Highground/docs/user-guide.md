@@ -183,7 +183,7 @@ Detailed sizes, row elements and shared styling are shown directly on their **Ap
 
 **Shared preferences → General → All HUD panels** controls master scale (50–200%, default 80%). It multiplies each panel’s own scale. Size and layout changes made in combat apply when it ends; background opacity and transparency apply immediately.
 
-**Compact layout** in **Battlegrounds → Settings** makes enemy rows and the suggested-target card one line and docks carrier, resurrection, win forecast and Timers panels below the enemy panel. Drag any docked panel to move the column. Arena and Nearby keep their own positions and compact preferences.
+**Compact layout** in **Battlegrounds → Settings** makes enemy rows and the suggested-target card one line and docks carrier, resurrection, win forecast and Timers panels below the enemy panel. Drag any docked panel to move the column. Arena and Nearby keep their own positions and compact preferences. **Hide quest tracker** (advanced, same page) hides Blizzard's quest tracker and Questie's during battlegrounds and brings them back afterwards. In combat they only fade until combat ends.
 
 ## Battleground panels
 

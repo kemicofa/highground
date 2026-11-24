@@ -4993,4 +4993,6 @@ assert(ns.Locale:Register("zhCN", {
   ["highground.teamhealers.no_teammates_who_can_heal_join_a.642ada"] = "没有能治疗的队友。请加入队伍或战场。",
   ["highground.teamhealers.sample_teammates_marks_made_here_are_not.b2932a"] = "示例队友：在此做出的标记不会保存。",
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "将鼠标悬停在队友上并按下你的“标记队伍治疗者”按键，或输入 /hg healer。",
+  ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "很少处于猎豹或熊形态",
+  ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "经常处于猎豹或熊形态",
 }))

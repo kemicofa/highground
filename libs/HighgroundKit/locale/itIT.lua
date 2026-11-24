@@ -4993,4 +4993,6 @@ assert(ns.Locale:Register("itIT", {
   ["highground.teamhealers.no_teammates_who_can_heal_join_a.642ada"] = "Nessun compagno di squadra può curare. Unisciti a un gruppo o a un campo di battaglia.",
   ["highground.teamhealers.sample_teammates_marks_made_here_are_not.b2932a"] = "Compagni di squadra di esempio: i segni fatti qui non vengono salvati.",
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Passa il mouse su un compagno di squadra e premi il tuo tasto Segna guaritore della squadra, oppure digita /hg healer.",
+  ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "poco tempo in forma felina o d'orso",
+  ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "molto tempo in forma felina o d'orso",
 }))

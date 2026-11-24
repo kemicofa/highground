@@ -18,6 +18,10 @@ At level 85, the configured mana heuristic treats pools below 40,000 as small an
 
 Pools from 40,000 through 50,000 decide nothing, and this role heuristic does not compare other levels. These are configured estimates, not guaranteed spec identifiers.
 
+## Druid forms (WoW Forever)
+
+WoW Forever hides enemy specs, buffs and casts in a match, but a druid's power type stays readable: mana in caster or Moonkin form, rage in bear form, energy in cat form. After a druid has been in view for about ten seconds of the match, mostly mana (75% or more of the time) estimates **~Restoration**, and mostly rage or energy (half the time or more) estimates **~Feral**. The estimate holds until the share crosses 60% the other way, so a short shift doesn't flip it. Druids below level 20 have no cat form and are never estimated Restoration. Balance druids cast on mana too and are estimated Restoration; tag them by hand. Every other source outranks this estimate: the scoreboard, a hand tag and earlier matches' history. It is not saved for later matches.
+
 Maximum mana compared with earlier matches is a weaker clue because gear changes mana pools and several specs can have similar pools. Highground learns from fresh observations paired with readable scoreboard specs, including recent observations confirmed after the match. Mana estimates require at least three samples for every spec in the class at the observed level, and a pool matching only one spec's observed range with a 10% tolerance. Missing examples, overlapping ranges, unknown levels and readings while shapeshifted remain inconclusive. Old samples without client and level context are not reused.
 
 Readable scoreboard specs take priority, then talent-tree casts, then buff estimates, then previous-match history, then mana estimates. Estimates appear with `~` in rows and target cards; the row tooltip explains their source. Buff estimates can remain after the buff expires. Estimates never train the mana model, and the model stores at most 30 samples per class/spec, with at most one sample per enemy/spec in a match.

@@ -4993,4 +4993,6 @@ assert(ns.Locale:Register("koKR", {
   ["highground.teamhealers.no_teammates_who_can_heal_join_a.642ada"] = "치유할 수 있는 팀원이 없습니다. 파티나 전장에 참여하세요.",
   ["highground.teamhealers.sample_teammates_marks_made_here_are_not.b2932a"] = "예시 팀원: 여기서 한 표시는 저장되지 않습니다.",
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "팀원 위에 마우스를 올리고 팀 치유자 표시 키를 누르거나, /hg healer를 입력하세요.",
+  ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "표범 또는 곰 변신 상태로 보낸 짧은 시간",
+  ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "표범 또는 곰 변신 상태로 보낸 긴 시간",
 }))

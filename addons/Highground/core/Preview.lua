@@ -81,6 +81,11 @@ local function SeedEnemies(guided)
         testHp = n ~= 10 and HP[n] or nil, hpPct = n ~= 10 and HP[n] or nil,
         hpSeen = n == 10 and HP[n] * 100 or nil, lastSeen = n == 10 and GetTime() or nil,
       }
+      -- WoW Forever's sample druid shows a spec estimated from its forms.
+      if si.class == "DRUID" and ns.Caps.classicSpecs and not ns.Caps.enemyAuras then
+        Core.enemies[key].specSrc = "form"
+        Core.enemies[key].specReason = ns.Locale:Get("battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a")
+      end
       if Core.TestUsesMana(si.class) then
         Core.enemies[key].manaPct, Core.enemies[key].manaAt = MANA[n], math.huge
       end

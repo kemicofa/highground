@@ -4993,4 +4993,6 @@ assert(ns.Locale:Register("zhTW", {
   ["highground.teamhealers.no_teammates_who_can_heal_join_a.642ada"] = "沒有能治療的隊友。請加入隊伍或戰場。",
   ["highground.teamhealers.sample_teammates_marks_made_here_are_not.b2932a"] = "範例隊友：在此做出的標記不會儲存。",
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "將滑鼠游標移到隊友上並按下你的「標記隊伍治療者」按鍵，或輸入 /hg healer。",
+  ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "很少處於獵豹或熊形態",
+  ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "經常處於獵豹或熊形態",
 }))

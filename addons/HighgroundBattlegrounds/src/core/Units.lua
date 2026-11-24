@@ -50,6 +50,8 @@ for i = 1, 40 do SCAN[#SCAN + 1] = ns.UnitTokens.nameplate[i] end
 local TARGET_OF = ns.UnitTokens.target
 -- Health as 0-100 on the Midnight client: secret, but drawable and printable.
 local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
+-- Druid power types guess a spec where nothing else can (core/Specs.lua).
+local FORMS = ns.Caps.classicSpecs and not ns.Caps.enemyAuras
 
 -- Loss of control on any unit token (WoW Forever: readable for enemies,
 -- nameplates and teammates' targets while their auras are refused). Only
@@ -211,6 +213,7 @@ function Core.ScanUnits()
         end
         Core.EstimateSpec(e, specAuras)
       end
+      if FORMS then Core.EstimateDruidForm(e, ptype, Util.read(UnitLevel, unit)) end
       if ptype == 0 then
         local mp = Util.read(UnitPower, unit, 0)
         if mp ~= nil and mana ~= nil and mana > 0 then

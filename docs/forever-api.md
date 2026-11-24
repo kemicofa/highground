@@ -73,6 +73,7 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 | Loss-of-control count readable | Generic **CC** chip on WoW Forever (#322) |
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
 | Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
+| Enemy power type readable | Druid form estimates: ~Restoration or ~Feral on WoW Forever (druid forms PR) |
 
 ## Leads to try
 
@@ -96,10 +97,10 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 /run print(UnitAffectingCombat("target"),issecretvalue(UnitAffectingCombat("target")))
 ```
 
-**Druid forms.** `UnitPowerType` is readable: mana for caster or healer form, energy for cat, rage for bear. A spec clue where specs are estimated. Check on a druid in each form.
+**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Target a druid in Moonkin form, then in caster form, and compare the model file IDs:
 
 ```
-/run print(UnitPowerType("target"))
+/run local m=CreateFrame("PlayerModel",nil,UIParent)m:SetSize(9,9)m:SetPoint("CENTER")m:SetUnit("target")C_Timer.After(1,function()local f=m:GetModelFileID()print(UnitCreatureType("target"),f,issecretvalue(f))m:Hide()end)
 ```
 
 **Arena crowd-control duration.** `C_PvP.GetArenaCrowdControlDuration(unit)` returned a duration object for an enemy in a battleground. It may be the PvP trinket cooldown in a form a cooldown widget can draw without Highground reading it. List its methods first:

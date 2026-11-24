@@ -161,6 +161,46 @@ function Core.SpecFromLog(srcName, spellName)
   if id then e.specID, e.specSrc, e.specReason = id, "cast", reason end
 end
 
+---------------------------------------------------------------------------
+-- Druid forms (WoW Forever). Enemy buffs, casts and specs are hidden there,
+-- but not a druid's power type: mana in caster or Moonkin form, rage in
+-- bear, energy in cat. Mostly on mana over a match suggests Restoration (a
+-- healer stays out of form); mostly rage or energy suggests Feral. Balance
+-- casts on mana too and reads as Restoration until tagged by hand. The
+-- weakest evidence: the scoreboard, casts, buffs, history and tags win.
+---------------------------------------------------------------------------
+Core.FORM_MIN_SAMPLES = 40 -- scans seeing the druid (10 s at the 0.25 s tick)
+Core.FORM_HEALER, Core.FORM_HEALER_KEEP = 0.75, 0.6 -- mana share to guess, then keep, Restoration
+Core.FORM_FERAL, Core.FORM_FERAL_KEEP = 0.5, 0.6 -- mana share at most to guess, then keep, Feral
+local FORM_MANA = { [0] = true, [1] = false, [3] = false } -- power types: mana, rage, energy
+local FORM_HEALER, FORM_FERAL = 3, 2 -- classic tree order: Balance, Feral Combat, Restoration
+local FORM_REASON = {
+  [FORM_HEALER] = "battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5",
+  [FORM_FERAL] = "battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a",
+}
+
+function Core.EstimateDruidForm(e, ptype, level)
+  if e.class ~= "DRUID" or FORM_MANA[ptype] == nil then return end
+  e.formSeen = (e.formSeen or 0) + 1
+  if FORM_MANA[ptype] then e.formMana = (e.formMana or 0) + 1 end
+  local src = e.specSrc
+  if (src ~= nil and src ~= "form") or e.formSeen < Core.FORM_MIN_SAMPLES then return end
+  local share, current = (e.formMana or 0) / e.formSeen, src == "form" and e.formTree
+  local tree
+  if share >= Core.FORM_HEALER or current == FORM_HEALER and share >= Core.FORM_HEALER_KEEP then
+    -- Cat form comes at level 20: younger druids are all on mana.
+    if not (type(level) == "number" and level < 20) then tree = FORM_HEALER end
+  elseif share <= Core.FORM_FERAL or current == FORM_FERAL and share <= Core.FORM_FERAL_KEEP then
+    tree = FORM_FERAL
+  end
+  local id = tree and Core.classSpecs.DRUID and Core.classSpecs.DRUID[tree]
+  if id then
+    e.specID, e.specSrc, e.specReason, e.formTree = id, "form", ns.Locale:Get(FORM_REASON[tree]), tree
+  elseif src == "form" then
+    e.specID, e.specSrc, e.specReason, e.formTree = nil, nil, nil, nil
+  end
+end
+
 function Core.EstimateSpec(e, auras)
   if not ns.SpecInferenceConfig then return end
   if e.specSrc == "live" then

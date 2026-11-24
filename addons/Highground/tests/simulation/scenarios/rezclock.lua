@@ -68,13 +68,13 @@ test("WoW Forever teammates seen back off the wave keep the timed clock; the sam
   assert(math.abs(mine.wave - (wave + 2 * cycle + 4)) <= 0.25, "the same delay a cycle later: the clock moved")
   wave = mine.wave
   teammateBack(sim, wave + cycle - 3)
-  equal(mine.wave, wave, "early, as after a player's spell: set aside")
+  equal(mine.wave, wave, "early, as at a corpse: set aside")
   teammateBack(sim, wave + 2 * cycle - 3)
   assert(math.abs(mine.wave - (wave + 2 * cycle - 3)) <= 0.25, "early by as much a cycle later: the clock moved")
   sim:assertHealthy()
 end)
 
-test("WoW Forever: brought back by a player before the countdown ends times no wave", function()
+test("WoW Forever: back at your corpse before the countdown ends times no wave", function()
   local sim, T = foreverTeam()
   local mine = T.SingleGY(T.MyTeam())
   reviveAt(sim, sim.now + 10, 0.9)
@@ -89,6 +89,26 @@ test("WoW Forever: brought back by a player before the countdown ends times no w
   sim.units.player.ghost = false
   sim:advance(1)
   assert(math.abs(T.NextWave(mine, sim.now) - (ends + T.ReviveLag())) <= 0.3, "the countdown's wave stands")
+  equal(#(T.LearnedDB().reviveLag or {}), lags, "no revive lag learned from it")
+  sim:assertHealthy()
+end)
+
+test("WoW Forever: a corpse run that outlasts the countdown times no wave", function()
+  local sim, T = foreverTeam()
+  local mine = T.SingleGY(T.MyTeam())
+  reviveAt(sim, sim.now + 10, 0.9)
+  local wave, lags, cycle = mine.wave, #(T.LearnedDB().reviveLag or {}), T.WaveCycle()
+  local ends = wave + cycle
+  -- Released 9 s before the wave, out of the spirit healer's range 2 s later.
+  sim.env.GetAreaSpiritHealerTime = function()
+    return sim.units.player.ghost and sim.now < ends - 7 and math.max(0, math.floor(ends - sim.now)) or 0
+  end
+  sim:advance(ends - 9 - sim.now)
+  sim.units.player.ghost = true
+  sim:advance(19)
+  sim.units.player.ghost = false
+  sim:advance(1)
+  assert(math.abs(T.NextWave(mine, sim.now) - (ends + T.ReviveLag() + cycle)) <= 0.3, "the countdown's clock stands")
   equal(#(T.LearnedDB().reviveLag or {}), lags, "no revive lag learned from it")
   sim:assertHealthy()
 end)
@@ -165,8 +185,9 @@ test("shared waves read tenths from version 3 and whole seconds from version 2",
 end)
 
 -- Darkspear Islands, 2026-11-24: dead at Shipwreck Cove, the release
--- position vanished while a teammate's spell brought the player back. The
--- countdown moved to the Horde start and the revival timed it 5 s early.
+-- position vanished while the player walked to their corpse and came back
+-- there. The countdown moved to the Horde start and the revival timed it
+-- 5 s early.
 test("WoW Forever Darkspear: a vanished release position keeps this death's graveyard", function()
   local sim = new("retail", nil, function(s) forever(s); s.rated, s.blitz = false, false end)
   sim:enemy("Enemy With Surname")

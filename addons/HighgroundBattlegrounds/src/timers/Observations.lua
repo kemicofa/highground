@@ -5,9 +5,10 @@ local Timers = ns.Timers
 -- Resurrections
 ---------------------------------------------------------------------------
 -- A teammate's revival can reach this client seconds after the wave (far
--- from you, say), or come from a player's spell at any time. Against a timed
--- wave, one more than 1.5 s off is set aside unless another, one to three
--- cycles earlier, was off by as much: then the clock moved.
+-- from you, say), or come at any time at their corpse or by a player's
+-- spell. Against a timed wave, one more than 1.5 s off is set aside unless
+-- another, one to three cycles earlier, was off by as much: then the clock
+-- moved.
 function Timers.LateReport(g, t)
   local cycle = Timers.WaveCycle()
   local wave, est = cycle and Timers.NextWave(g, t - cycle / 2)
@@ -60,22 +61,24 @@ function Timers.ScanTeam()
         local start = own and Timers.StartGY(Timers.MyTeam())
         local g = own and Timers.releaseGY
           or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
-        -- Back while the countdown still ran: a player's spell, not a wave.
-        -- A countdown that just restarted (a full period left) had its wave.
-        local left = own and Timers.healerLeft and Timers.healerLeft - (t - Timers.healerAt)
-        local spell = left and left > Timers.CLOCK_TOLERANCE and Timers.healerLeft < (Timers.WavePeriod() or 30) - 2
+        -- Back off the countdown's waves: at your corpse or by a player's
+        -- spell, not a wave. Waves follow the last countdown read every
+        -- cycle; a countdown that just restarted had its wave.
+        local cycle = Timers.WaveCycle()
+        local off = own and Timers.healerLeft and cycle and t - (Timers.healerAt + Timers.healerLeft)
+        local offWave = off and (off + Timers.CLOCK_TOLERANCE) % cycle > Timers.CLOCK_TOLERANCE + Timers.MAX_REVIVE_LAG
         if own then
           Timers.releaseGY = nil
           -- How long after the countdown's end you came back.
-          if Timers.healerEnd and t - Timers.healerAt < 5 and not spell then Timers.NoteReviveLag(t - Timers.healerEnd) end
+          if Timers.healerEnd and t - Timers.healerAt < 5 and not offWave then Timers.NoteReviveLag(t - Timers.healerEnd) end
           Timers.healerEnd, Timers.healerAt, Timers.healerG, Timers.healerLeft = nil, nil, nil, nil
         end
-        if not spell then Timers.SetWave(g, t, "exact", not own) end
+        if not offWave then Timers.SetWave(g, t, "exact", not own) end
         if g and g.x then
           Timers.Learn(g)
         end
         -- Your own revival is the most precise wave: share it at once.
-        if own and not spell then ns.ShareWave(g, true) end
+        if own and not offWave then ns.ShareWave(g, true) end
       end
     end
   end

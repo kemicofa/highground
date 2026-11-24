@@ -58,8 +58,9 @@ function History.Get(name)
 end
 
 -- Muting remains effective even when recording new encounters is disabled.
--- Alerts ask for every new sighting: the muted names are collected once per
--- saved table and again after a change, never per question.
+-- Alerts ask for every new sighting: look up the name's own record, then
+-- other spellings among the muted names, which are collected once per saved
+-- table and again after a change, never per question.
 local muted, mutedIn = {}, nil
 local function Collect(all)
   wipe(muted)
@@ -75,9 +76,11 @@ end
 
 function History.Muted(name)
   local all = History.All()
+  local h = type(name) == "string" and Find(all, name)
+  if h and h.muted then return true end
   if all ~= mutedIn then Collect(all) end
   local who = muted[name] or type(name) == "string" and muted[Core.Canon(name) or name]
-  local h = who and all[who]
+  h = who and all[who]
   return type(h) == "table" and h.muted and true or false
 end
 

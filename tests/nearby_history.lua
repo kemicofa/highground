@@ -228,7 +228,7 @@ return function(addon)
       equal(H.Muted("Enemy7-Realm"), true, "a muted enemy")
       equal(H.Muted("Enemy8-Realm"), false, "an unmuted enemy")
     end
-    assert(reads <= 300, "one pass over the journal for 100 questions: " .. reads)
+    assert(reads <= 400, "one pass over the journal plus one look per question: " .. reads)
     equal(H.Muted("Enemy7"), true, "our own realm can be left out")
     H.SetMuted(all["Enemy7-Realm"], false)
     equal(H.Muted("Enemy7-Realm"), false, "unmuting applies at once")

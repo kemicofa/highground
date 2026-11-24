@@ -323,8 +323,7 @@ function HighgroundDataProviderMixin:OnMapChanged()
   self:RefreshAllData()
 end
 
--- Once per map frame. Nearby's world map layer (world/Map.lua) attaches
--- too, so its pins show with the battlegrounds module off.
+-- Once per map frame; Nearby's world layer (world/Map.lua) attaches too.
 local function Attach(mapFrame)
   if not (mapFrame and mapFrame.AddDataProvider) or providers[mapFrame] then
     return

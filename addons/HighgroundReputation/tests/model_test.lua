@@ -53,6 +53,37 @@ test("members propose, native moderators decide, account reports deduplicate", f
   equal(W.MergeReport(c, fake, fake.by), false, "nonmember report rejected")
 end)
 
+test("one character has one vote per player and a bounded share; reviewed reports expire", function()
+  local s = F.new("Owner")
+  local W, c = F.W(s), F.community(s)
+  local function Report(account, name, by)
+    return { id = W.NewID(), account = account, by = by or "Member-Realm", target = F.target(s, name),
+      categories = { toxic = true }, note = "", revision = 1, at = W.Now() }
+  end
+  local first = Report("account1", "Enemy-Realm")
+  assert(W.MergeReport(c, first, "Member-Realm"))
+  local ok, why = W.MergeReport(c, Report("account2", "Enemy-Realm"), "Member-Realm")
+  equal(ok, false, "an invented account ID adds no second vote")
+  equal(why, "duplicate", "same reporter")
+  for i = 2, W.REPORTS_PER_MEMBER do
+    assert(W.MergeReport(c, Report("account1", "Enemy" .. string.char(96 + math.floor(i / 26), 97 + i % 26) .. "-Realm"), "Member-Realm"))
+  end
+  ok, why = W.MergeReport(c, Report("account3", "Last-Realm"), "Member-Realm")
+  equal(why, "full", "one member cannot fill the store")
+  local other = Report("account4", "Last-Realm", "Moderator-Realm")
+  assert(W.MergeReport(c, other, "Moderator-Realm"), "other members still report")
+  assert(W.Decide(c, F.target(s, "Enemy-Realm"), "ban", { toxic = true }, ""))
+  s.now = s.now + (W.REPORT_DAYS - 1) * 86400
+  W.nextSync = 0; s:advance(0.2)
+  assert(c.reports[first.id], "a reviewed report is kept for REPORT_DAYS")
+  s.now = s.now + 2 * 86400
+  W.nextSync = 0; s:advance(0.2)
+  equal(c.reports[first.id], nil, "then the reviewed report is dropped")
+  assert(c.reports[other.id], "unreviewed reports stay")
+  equal(W.Count(c.reports), W.REPORTS_PER_MEMBER, "only reviewed reports expire")
+  s:assertHealthy()
+end)
+
 test("fresh installs only discover native moderators until enablement is confirmed", function()
   for _, args in ipairs({ {}, { build = 16001 }, { client = "cata" } }) do
     local s = F.new(args.build == 16001 and "Owner Bright" or "Owner", args)

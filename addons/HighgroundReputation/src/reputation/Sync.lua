@@ -174,7 +174,7 @@ function W.Tick()
   end
   if now >= (W.nextSync or 0) then
     W.nextSync = now + 90 + math.random() * 15
-    for _, c in ipairs(W.List()) do W.RequestSync(c); W.SendReports(c) end
+    for _, c in ipairs(W.List()) do W.PruneReports(c); W.RequestSync(c); W.SendReports(c) end
     for name, peer in pairs(W.peers) do if now - peer.at > 600 then W.peers[name] = nil end end
     for key, request in pairs(W.requests) do if now - request.at > 600 then W.requests[key] = nil end end
     for name, rate in pairs(W.reportRates) do if now - rate.at > 3600 then W.reportRates[name] = nil end end

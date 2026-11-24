@@ -1,5 +1,6 @@
 local _, ns = ...
 local W = { VERSION = 1, PREFIX = "HighgroundRep", MAX_OPS = 4000, MAX_REPORTS = 2000, MAX_MEMBERS = 1000,
+  REPORTS_PER_MEMBER = 50, REPORT_DAYS = 180,
   communities = {}, peers = {}, listeners = {}, ready = false }
 ns.Reputation = W
 W.caseCache = setmetatable({}, { __mode = "k" })

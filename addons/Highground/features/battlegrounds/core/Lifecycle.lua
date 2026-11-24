@@ -53,6 +53,8 @@ function Core.Tick()
   if not Core.active then
     return
   end
+  Core.tickAt = GetTime()
+  Core.OpenTickKeys()
   if not Core.testMode and Core.context == "world" then
     -- Open-world fights (core/World.lua): Nearby's roster, no objectives.
     Core.Guard("roster", Core.RefreshWorldRoster)
@@ -81,6 +83,14 @@ function Core.Tick()
   if Core.lastError and Core.subtitle then
     Core.subtitle:SetText(ErrorText())
   end
+  Core.CloseTickKeys()
+end
+
+-- The 0.25 s ticker skips a pass that a target change has just run.
+local TICK_GAP = 0.1
+function Core.TimedTick()
+  if GetTime() - (Core.tickAt or -math.huge) < TICK_GAP then return end
+  Core.Tick()
 end
 
 -- Kill-order displays on and off (main panel, scope); none without them.
@@ -105,7 +115,7 @@ function Core.SetActive(on)
     else
       ShowPanel(Core.guidedTest or Core.PriorityOn())
     end
-    ticker = C_Timer.NewTicker(0.25, Core.Tick)
+    ticker = C_Timer.NewTicker(0.25, Core.TimedTick)
     if bg then
       scoreTicker = C_Timer.NewTicker(5, Core.RequestScores)
       Core.RequestScores()

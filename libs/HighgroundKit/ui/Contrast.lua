@@ -6,6 +6,21 @@ local Theme = ns.Theme
 -- Cache per palette and repaint even windows that are currently idle.
 local cache = {}
 local rowCache = {}
+-- The same answers per colour table: rows ask for their class colours on
+-- every refresh, and an RGB key formats three numbers. A record keeps the
+-- RGB it was made for, so a colour edited in place is looked up again.
+local inkByColor = setmetatable({}, { __mode = "k" })
+local rowByColor = setmetatable({}, { __mode = "k" })
+local function Known(byColor, c, r, g, b)
+  local hit = byColor[c]
+  if hit and hit[1] == r and hit[2] == g and hit[3] == b then return hit[4] end
+end
+local function Keep(byColor, c, r, g, b, result)
+  local hit = byColor[c] or {}
+  hit[1], hit[2], hit[3], hit[4] = r, g, b, result
+  byColor[c] = hit
+  return result
+end
 local classTexts = setmetatable({}, { __mode = "k" })
 
 local function Luminance(c)
@@ -35,8 +50,10 @@ function Theme.EnemyRowColor(c)
   local base = Theme.Rgb("surface")
   if not c or Theme.Alpha("classRow") == 0 then return base end
   local r, g, b = c.r or c[1], c.g or c[2], c.b or c[3]
+  local known = Known(rowByColor, c, r, g, b)
+  if known then return known end
   local key = r .. ":" .. g .. ":" .. b
-  if rowCache[key] then return rowCache[key] end
+  if rowCache[key] then return Keep(rowByColor, c, r, g, b, rowCache[key]) end
   local original, result = { r, g, b }, base
   for step = 20, 0, -1 do
     result = Mix(original, base, Theme.Alpha("classRow") * step / 20)
@@ -55,13 +72,15 @@ function Theme.EnemyRowColor(c)
     if readable then break end
   end
   rowCache[key] = result
-  return result
+  return Keep(rowByColor, c, r, g, b, result)
 end
 
 function Theme.ClassColor(c)
   local r, g, b = c.r or c[1], c.g or c[2], c.b or c[3]
+  local known = Known(inkByColor, c, r, g, b)
+  if known then return known end
   local key = r .. ":" .. g .. ":" .. b
-  if cache[key] then return cache[key] end
+  if cache[key] then return Keep(inkByColor, c, r, g, b, cache[key]) end
   local original, backgrounds = { r, g, b }, {}
   for _, name in ipairs({ "bg", "surface", "surfaceRaised" }) do
     for _, fill in ipairs({ "black", "white" }) do
@@ -84,7 +103,7 @@ function Theme.ClassColor(c)
     if Readable(result, backgrounds) then break end
   end
   cache[key] = result
-  return result
+  return Keep(inkByColor, c, r, g, b, result)
 end
 
 function Theme.PaintClass(fs, color)
@@ -96,6 +115,8 @@ end
 Theme.OnChange(function()
   wipe(cache)
   wipe(rowCache)
+  wipe(inkByColor)
+  wipe(rowByColor)
   for fs in pairs(classTexts) do
     if fs.wbClass then Theme.PaintClass(fs, fs.wbClass)
     else classTexts[fs] = nil end

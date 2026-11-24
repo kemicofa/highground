@@ -68,11 +68,12 @@ end
 
 -- Keyed by the full name: teammates from two realms can share a short name.
 local function Remember(unit, me)
+  -- Most teammates aren't casting: read the cast before the name.
+  local name, start, finish, spell = ReadCast(unit)
+  if not name then return end
   local full = Core.FullUnitName(unit)
   local short = full and full:match("^[^-]+")
-  local name, start, finish, spell
-  if short then name, start, finish, spell = ReadCast(unit) end
-  if not name then return end
+  if not short then return end
   NoteCast(short, spell, name, start, finish)
   if me then Note(Core.ownCast, spell, name, start, finish) end
   if finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name) then

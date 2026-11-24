@@ -39,8 +39,8 @@ function Theme.Rgb(name)
   return Lookup("color", name)
 end
 
+local function byte(v) return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5) end
 local function HexOf(c)
-  local function byte(v) return math.floor(math.max(0, math.min(1, v)) * 255 + 0.5) end
   return string.format("|cff%02x%02x%02x", byte(c[1]), byte(c[2]), byte(c[3]))
 end
 

@@ -70,11 +70,23 @@ end
 
 -- The base an area name (your subzone) belongs to: "Gold Mine" for the
 -- Mine, "Farm" for the Farm.
+-- Base and area names repeat on every refresh (each base against each
+-- sighting): their lower-case forms are kept, at most 512.
+local lowered, loweredCount = {}, 0
+local function Lower(text)
+  local low = lowered[text]
+  if not low then
+    if loweredCount >= 512 then wipe(lowered); loweredCount = 0 end
+    low = text:lower()
+    lowered[text], loweredCount = low, loweredCount + 1
+  end
+  return low
+end
 function Timers.NodeForArea(area)
-  if type(area) ~= "string" or area == "" then return nil end
-  local key = area:lower()
+  if type(area) ~= "string" or area == "" or ns.Util.secret(area) then return nil end
+  local key = Lower(area)
   for name in pairs(Timers.nodes) do
-    local n = name:lower()
+    local n = Lower(name)
     if n == key or key:find(n, 1, true) or n:find(key, 1, true) then return name end
   end
 end
@@ -86,11 +98,7 @@ local function AnnouncedAssault(n, now)
 end
 
 local function Median(list)
-  local sorted = { unpack(list) }
-  table.sort(sorted)
-  local mid = math.floor((#sorted + 1) / 2)
-  local median = #sorted % 2 == 1 and sorted[mid] or (sorted[mid] + sorted[mid + 1]) / 2
-  return math.floor(median * 2 + 0.5) / 2
+  return math.floor(Timers.Median(list) * 2 + 0.5) / 2
 end
 
 -- Capture duration: the median of this map and mode's observed captures

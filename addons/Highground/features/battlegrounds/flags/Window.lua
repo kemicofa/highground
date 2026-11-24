@@ -166,14 +166,9 @@ function Flags.UpdateFlags(now)
       r.healthTextBg:SetShown(not Timers.Compact())
       r.name:SetText(short)
       local stacks = ns.FlagStacks and ns.FlagStacks()
-      local parts = {}
-      if stacks and objective == "flag" then
-        parts[#parts + 1] = "x" .. stacks
-      end
-      if c.since then
-        parts[#parts + 1] = Timers.Clock(now - c.since)
-      end
-      r.right:SetText(table.concat(parts, "  "))
+      local stackText = stacks and objective == "flag" and "x" .. stacks or nil
+      local held = c.since and Timers.Clock(now - c.since) or nil
+      r.right:SetText(stackText and held and stackText .. "  " .. held or stackText or held or "")
       Theme.Paint(r.right, "textMuted")
     else
       Hud.PaintEnemy(r.classBg)

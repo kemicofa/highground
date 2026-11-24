@@ -60,6 +60,10 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 
 With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` returns true and `UnitName` returns the name of the player the enemy targets, your own or a teammate's, neither secret. `UnitIsUnit("targettarget", "player")` is secret (true when the enemy targets you, false otherwise). To tell who an enemy targets, compare names with yours and your group's. Read live in Arathi Basin, build 71037, 2026-11-24.
 
+### Interaction distance
+
+`CheckInteractDistance(unit, i)` is readable for an enemy player, in and out of combat. Indexes 1 and 4 give the 28-yard band: true near the enemy, false farther away. Indexes 2, 3 and 5 stayed false at every distance tried, melee range included, so the 10- and 11-yard bands give nothing for enemies. Read live in Arathi Basin, build 71037, 2026-11-24.
+
 ## Teammate reads
 
 - `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
@@ -82,12 +86,6 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 ## Leads to try
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.
-
-**Interaction distance.** `CheckInteractDistance(unit, 1-5)` gives fixed distance bands (about 10, 11 and 28 yards). Readable bands would refine range when spells don't cover them.
-
-```
-/run for i=1,5 do local v=CheckInteractDistance("target",i) print(i,v,issecretvalue(v)) end
-```
 
 **In combat.** `UnitAffectingCombat` read `false` right after the gates opened. Check that it stays readable while the enemy fights; "not in combat" could mark someone arriving or drinking.
 

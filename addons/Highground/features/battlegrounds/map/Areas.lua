@@ -57,14 +57,28 @@ local function ZoneMatch(name, key)
   name = name:lower()
   return name == key or name:find(key, 1, true) ~= nil or key:find(name, 1, true) ~= nil
 end
-function Intel.IsZoneKey(mapID, key)
-  local bg = ns.GetBG()
+local function ZoneKey(mapID, key, bg)
   if ZoneMatch(bg and (bg.gameName or bg.name), key) or ZoneMatch(GetZoneText and GetZoneText(), key)
     or ZoneMatch(GetRealZoneText and GetRealZoneText(), key) or ZoneMatch((Util.call(GetInstanceInfo)), key) then
     return true
   end
   local info = mapID and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
   return ZoneMatch(info and info.name, key) or key == ""
+end
+-- Sightings and timers ask about the same few names several times a
+-- second. Answers are kept per map and battleground, once both are known.
+local zoneKeys, zoneMap, zoneBG, zoneCount = {}, nil, nil, 0
+function Intel.IsZoneKey(mapID, key)
+  local bg = ns.GetBG()
+  if mapID ~= zoneMap or bg ~= zoneBG or zoneCount >= 256 then
+    wipe(zoneKeys)
+    zoneMap, zoneBG, zoneCount = mapID, bg, 0
+  end
+  local cached = mapID and bg and type(key) == "string" and not Util.secret(key)
+  if cached and zoneKeys[key] ~= nil then return zoneKeys[key] end
+  local answer = ZoneKey(mapID, key, bg)
+  if cached then zoneKeys[key], zoneCount = answer, zoneCount + 1 end
+  return answer
 end
 -- IsZoneKey for an area name in any case (nil is not a zone name).
 function Intel.IsZoneName(mapID, area)
@@ -235,7 +249,9 @@ function Intel.Guess(mapID, unit, name, now)
   if Util.read(UnitIsDeadOrGhost, unit) then
     Intel.lastAnchor[name or ""] = nil -- a resurrection breaks the trail
   elseif how == "area" and area and not Intel.IsZoneName(mapID, area) then
-    Intel.lastAnchor[name or ""] = { x = x, y = y, area = area, t = now }
+    local last = Intel.lastAnchor[name or ""] or {}
+    last.x, last.y, last.area, last.t = x, y, area, now
+    Intel.lastAnchor[name or ""] = last
   elseif not x and name then
     local last = Intel.lastAnchor[name]
     local age = last and now - last.t

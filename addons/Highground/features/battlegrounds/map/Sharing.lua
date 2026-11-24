@@ -15,8 +15,34 @@ local Clean = ns.Util.Clean
 
 Intel.MAX_DEATH_AGE = 600 -- tenths of a second
 
+-- One message's tokens and keys, and the keys of refused messages: buffers
+-- reused by every send (every SEND_EVERY seconds).
+local parts, keys, kept = {}, {}, {}
+local head, len, chan, refused
+local function Flush()
+  if #parts > 0 then
+    if not refused and Comms.Send(Intel.PREFIX, head .. table.concat(parts, ";"), chan) then
+      Intel.stats.sent = Intel.stats.sent + 1
+    else
+      Intel.stats.unsent = Intel.stats.unsent + 1
+      refused = true
+      for _, key in ipairs(keys) do kept[key] = true end
+    end
+  end
+  wipe(parts); wipe(keys)
+  len = #head
+end
+local function Add(tok, key)
+  if len + #tok + 1 > 250 then
+    Flush()
+  end
+  parts[#parts + 1] = tok
+  keys[#keys + 1] = key
+  len = len + #tok + 1
+end
+
 function Intel.Send()
-  local chan = Comms.GroupChannel()
+  chan = Comms.GroupChannel()
   local mapID = Intel.MapID()
   if not (chan and mapID and Intel.DB() ~= nil and ns.Core.ShareOn()) then
     wipe(Intel.mine)
@@ -29,45 +55,26 @@ function Intel.Send()
     return
   end
   local now = GetTime()
-  local head = "3:" .. mapID .. ":"
-  local parts, keys, len, kept = {}, {}, #head, nil
-  local function flush()
-    if #parts > 0 then
-      if not kept and Comms.Send(Intel.PREFIX, head .. table.concat(parts, ";"), chan) then
-        Intel.stats.sent = Intel.stats.sent + 1
-      else
-        Intel.stats.unsent = Intel.stats.unsent + 1
-        kept = kept or {}
-        for _, key in ipairs(keys) do kept[key] = true end
-      end
-    end
-    parts, keys, len = {}, {}, #head
-  end
-  local function add(tok, key)
-    if len + #tok + 1 > 250 then
-      flush()
-    end
-    parts[#parts + 1] = tok
-    keys[#keys + 1] = key
-    len = len + #tok + 1
-  end
+  head = "3:" .. mapID .. ":"
+  len, refused = #head, false
+  wipe(parts); wipe(keys); wipe(kept)
   local area = Intel.MyArea()
   if area then
-    add("@," .. Clean(area))
+    Add("@," .. Clean(area))
   end
   for key in pairs(Intel.mine) do
     local it = Intel.intel[key]
     if it and it.dead then
       local tenths = math.floor(math.max(0, now - it.t) * 10 + 0.5)
-      add(tenths <= Intel.MAX_DEATH_AGE and string.format("%s,D;%s,A,%d", key, key, tenths) or key .. ",D", key)
+      Add(tenths <= Intel.MAX_DEATH_AGE and string.format("%s,D;%s,A,%d", key, key, tenths) or key .. ",D", key)
     elseif it and it.by == Intel.myName then
-      add(string.format("%s,%d,%d,%d,%d,%s,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
+      Add(string.format("%s,%d,%d,%d,%d,%s,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
         math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Clean(it.area)), key)
     end
   end
-  flush()
+  Flush()
   wipe(Intel.mine)
-  for key in pairs(kept or {}) do Intel.mine[key] = true end
+  for key in pairs(kept) do Intel.mine[key] = true end
 end
 
 local deaths = {} -- [key] = when: one message's deaths, with their ages

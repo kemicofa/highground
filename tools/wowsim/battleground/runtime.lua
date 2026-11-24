@@ -96,7 +96,14 @@ local function battlegroundAPI(sim, env)
     IsMatchComplete = function() return sim.matchComplete end,
     GetActiveMatchState = function() return sim.inBG and 3 or 0 end,
   }
-  if sim.client == "retail" then env.C_PvP.GetScoreInfo = function(i) return sim.scores[i] end end
+  if sim.client == "retail" then
+    env.C_PvP.GetScoreInfo = function(i) return sim.scores[i] end
+    env.C_PvP.GetScoreInfoByPlayerGuid = function(guid)
+      for _, row in ipairs(sim.scores) do
+        if row.guid ~= nil and row.guid == guid then return row end
+      end
+    end
+  end
   env.GetAreaSpiritHealerTime = function() return sim.healerTime end
   env.GetNumBattlefieldFlagPositions = function() return #sim.flagPositions end
   env.GetBattlefieldFlagPosition = function(i) return unpack(sim.flagPositions[i]) end

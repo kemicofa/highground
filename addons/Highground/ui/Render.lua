@@ -64,8 +64,8 @@ function Core.Render(relaid)
   -- A hidden panel (target recommendations off, or no match) skips its
   -- rows, card and header; the scope below still follows the order.
   local panel = Core.frame:IsShown()
-  local targetKey = panel and UnitExists("target") and Core.CanonUnit("target") or nil
-  local focusKey = panel and UnitExists("focus") and Core.CanonUnit("focus") or nil
+  local targetKey = panel and UnitExists("target") and Core.TickKey("target") or nil
+  local focusKey = panel and UnitExists("focus") and Core.TickKey("focus") or nil
   local now = GetTime()
   for i = 1, panel and Core.MAX_ROWS or 0 do
     local r = Core.rows[i]
@@ -76,6 +76,7 @@ function Core.Render(relaid)
       e = nil
     end
     if e then
+      r.blank = nil
       local rank = rankOf[e]
       local isTop = e == firstAlive
       local classColor = ns.Util.ClassColor(e.class)
@@ -109,12 +110,17 @@ function Core.Render(relaid)
 
       Core.ClassPaint(r.strip, color)
       local si = e.specID and Core.specInfo[e.specID]
-      if si and si.icon then
-        r.icon:SetTexture(si.icon)
-        r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
-      elseif not ns.Kit.ClassIcon(r.icon, e.class) then
-        r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
-        r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+      -- Drawn again only when the spec icon or class changes.
+      local iconKey = si and si.icon or e.class or false
+      if r.iconKey ~= iconKey then
+        r.iconKey = iconKey
+        if si and si.icon then
+          r.icon:SetTexture(si.icon)
+          r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        elseif not ns.Kit.ClassIcon(r.icon, e.class) then
+          r.icon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+          r.icon:SetTexCoord(0.1, 0.9, 0.1, 0.9)
+        end
       end
       local showIcon = Core.ShowsElement("icon")
       r.icon:SetShown(showIcon)
@@ -302,7 +308,8 @@ function Core.Render(relaid)
       r.sel:Hide()
       r.arrow:Hide()
     end
-    if not e then
+    if not e and not r.blank then
+      r.blank = true
       r.focusEdge:Hide()
       r.marks:SetText("")
     end

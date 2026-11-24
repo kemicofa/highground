@@ -67,6 +67,17 @@ end
 -- sample each; the median of this match's samples replaces the configured
 -- downtime when it differs by more than timing noise. Early samples count
 -- as 0 rather than being dropped, so noise around a zero downtime stays 0.
+-- Median of a number list, sorted in a reused buffer: timer refreshes
+-- ask for learned medians several times a second.
+local sorted = {}
+function Timers.Median(list)
+  local n = #list
+  for i = 1, n do sorted[i] = list[i] end
+  for i = #sorted, n + 1, -1 do sorted[i] = nil end
+  table.sort(sorted)
+  return n % 2 == 1 and sorted[(n + 1) / 2] or (sorted[n / 2] + sorted[n / 2 + 1]) / 2
+end
+
 Timers.downtimes = {}
 Timers.MAX_DOWNTIME = 4
 Timers.DOWNTIME_NOISE = 0.5
@@ -76,11 +87,7 @@ function Timers.NoteDowntime(sample)
   local list = Timers.downtimes
   list[#list + 1] = math.max(0, sample)
   if #list < 2 then return end
-  local sorted = {}
-  for i, v in ipairs(list) do sorted[i] = v end
-  table.sort(sorted)
-  local n = #sorted
-  local median = n % 2 == 1 and sorted[(n + 1) / 2] or (sorted[n / 2] + sorted[n / 2 + 1]) / 2
+  local median = Timers.Median(list)
   local res = Timers.Rules().resurrection
   local configured = res and res.downtime or 0
   local override = math.abs(median - configured) >= Timers.DOWNTIME_NOISE and math.floor(median * 10 + 0.5) / 10 or nil
@@ -117,12 +124,7 @@ end
 function Timers.ReviveLag()
   local list = ReviveSamples()
   local n = list and #list or 0
-  if n >= 3 then
-    local sorted = {}
-    for i, v in ipairs(list) do sorted[i] = v end
-    table.sort(sorted)
-    return n % 2 == 1 and sorted[(n + 1) / 2] or (sorted[n / 2] + sorted[n / 2 + 1]) / 2
-  end
+  if n >= 3 then return Timers.Median(list) end
   local res = Timers.Rules().resurrection
   return res and res.reviveLag or 0
 end

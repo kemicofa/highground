@@ -107,11 +107,26 @@ local POINT_KEYS = setmetatable({}, { __index = function(t, id)
   t[id] = "kit" .. id
   return t[id]
 end })
+-- Whether any of e's cooldowns is still down. Most enemies have none:
+-- scoring and the hero card then skip filtering the whole kit.
+local function AnyDown(e)
+  if not e.cds or Core.db.cooldowns == false then return false end
+  local now = GetTime()
+  for _, readyAt in pairs(e.cds) do
+    if type(readyAt) == "number" and readyAt > now then return true end
+  end
+  return false
+end
+
 local bonusKit, bonusNames, bonusText = {}, {}, {}
 -- Points for an enemy's cooldowns that are down, and a readable summary.
 -- explain == false skips the summary: scoring runs several times a second
 -- and only explanations read it. Callers without the flag still get it.
 function Core.CooldownBonus(e, explain)
+  if not AnyDown(e) then
+    bonusText.value2 = nil
+    return math.min(0, Core.P("kitCap")), nil
+  end
   local pts, names = 0, bonusNames
   wipe(names)
   for _, entry in ipairs(Core.KitFor(e, bonusKit)) do
@@ -145,7 +160,9 @@ end
 local SUMMARY_KINDS = { trinket = 1, immune = 2, external = 3, def = 4 }
 local summaryKit, summaryList, summaryIcons = {}, {}, {}
 local function SummaryOrder(a, b) return SUMMARY_KINDS[a[3]] < SUMMARY_KINDS[b[3]] end
+local downText = {}
 function Core.DownSummary(e, max)
+  if not AnyDown(e) then return nil end
   local list, out = summaryList, summaryIcons
   wipe(list); wipe(out)
   for _, entry in ipairs(Core.KitFor(e, summaryKit)) do
@@ -156,7 +173,9 @@ function Core.DownSummary(e, max)
   end
   table.sort(list, SummaryOrder)
   for i = 1, math.min(#list, max or 4) do out[i] = Core.IconText(list[i]) end
-  return #out > 0 and (ns.Locale:Format("highground.diagnostics.down_value2.00c9a0", { value2 = table.concat(out, " ") })) or nil
+  if #out == 0 then return nil end
+  downText.value2 = table.concat(out, " ")
+  return ns.Locale:Format("highground.diagnostics.down_value2.00c9a0", downText)
 end
 
 function Core.IsHealer(e)

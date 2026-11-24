@@ -2150,6 +2150,8 @@ assert(ns.Locale:Register("zhTW", {
   ["macros.card.hover_for_an_explanation.fe9aed"] = "將滑鼠指向查看說明。",
   ["macros.card.edit_macro.a58957"] = "編輯巨集",
   ["macros.card.save_after_combat.0b7824"] = "戰鬥後儲存",
+  ["macros.card.replace_saved_macro.a34a35"] = "取代已儲存的巨集",
+  ["macros.card.keep_saved_macro.bb7fbb"] = "保留已儲存的巨集",
   ["macros.classesa.interrupt_your_focus_or_target.a9a0c9"] = "打斷你的專注目標或目標",
   ["macros.classesa.interrupt_with_a_shield_on.c1c3db"] = "帶有盾牌的中斷",
   ["macros.classesa.charge_and_start_attacking.b062b3"] = "衝鋒並開始攻擊",

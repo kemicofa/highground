@@ -48,6 +48,63 @@ test(client .. " arena rows target and focus opponents with fixed secure binding
 end)
 end
 
+test("a new Solo Shuffle round forgets the last round's opponents", function()
+  local specs, requested = {}, {}
+  local sim = new("retail", nil, function(s)
+    s.env.GetNumArenaOpponentSpecs = function() return #specs end
+    s.env.GetArenaOpponentSpec = function(i) return specs[i] or 0, 0 end
+    s.env.GetSpecializationInfoByID = function(id)
+      local spec = ({ [259] = { "Assassination", "ROGUE" }, [62] = { "Arcane", "MAGE" }, [256] = { "Discipline", "PRIEST" },
+        [250] = { "Blood", "DEATHKNIGHT" } })[id]
+      return id, spec[1], "", "Interface\\Icons\\Spec" .. id, "DAMAGER", spec[2]
+    end
+    s.env.C_PvP.RequestCrowdControlSpell = function(unit) requested[#requested + 1] = unit end
+    local class = s.env.UnitClass
+    s.env.UnitClass = function(unit) if s.units[unit] then return class(unit) end end -- none for absent units
+  end)
+  specs = { 259, 62, 256 }
+  sim:joinArena()
+  sim:event("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
+  opponent(sim, 1, "Sneak", 4); opponent(sim, 2, "Frosty", 8); opponent(sim, 3, "Healer", 5)
+  sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
+  sim:advance(0.5)
+  local row1, A = sim.env.HighgroundArenaRow1, sim.ns.Arena
+  equal(row1.name.text, "Sneak", "round one: named")
+  equal(A.seen[1].spec, "Assassination", "round one: spec")
+  equal(#requested, 3, "trinkets requested once per opponent")
+  -- Round two: same instance, no loading screen; arena1 is someone else.
+  sim.units.arena1, sim.units.arena2, sim.units.arena3 = nil, nil, nil
+  specs = { 250, 62, 256 }
+  sim:event("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
+  sim:advance(0.5)
+  equal(row1.name.text, "Enemy 1", "the last round's name is gone")
+  equal(A.seen[1].class, "DEATHKNIGHT", "the new opponent's class from the preparation")
+  equal(A.seen[1].spec, "Blood", "and its spec, not rejected for the old class")
+  equal(row1.icon.texture, "Interface\\Icons\\Spec250", "spec icon shown")
+  opponent(sim, 1, "Grim", 6)
+  sim:event("ARENA_OPPONENT_UPDATE", "arena1", "seen")
+  equal(requested[4], "arena1", "the new opponent's trinket is requested")
+  equal(row1.name.text, "Grim", "and named")
+end)
+
+test("arena rows exist before combat for every opponent of the bracket", function()
+  local sim = new("cata") -- no opponent specs before the gates
+  sim.members = 3
+  sim:joinArena()
+  opponent(sim, 1, "Healer", 5)
+  sim:advance(0.5)
+  local row3 = sim.env.HighgroundArenaRow3
+  assert(row3:IsVisible() and not sim.env.HighgroundArenaRow4:IsVisible(), "a row per member of your team's size")
+  equal(sim.env.HighgroundArenaFrame.info.text, "3v3", "bracket shown")
+  sim:setCombat(true)
+  local rogue = opponent(sim, 3, "Sneak", 4) -- out of stealth in combat
+  sim:advance(0.5)
+  equal(row3.name.text, "Sneak", "the revealed opponent has a row")
+  sim:click(row3, "LeftButton")
+  assert(sim.units.target == rogue, "and a click target")
+  sim:setCombat(false)
+end)
+
 test("arena panel stays hidden in battlegrounds and when switched off", function()
   local sim = new("cata")
   sim:join()

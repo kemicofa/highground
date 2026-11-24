@@ -1,7 +1,8 @@
 local test, new, equal = ...
 
 -- Macros window labels and rules read from shared config: variant button
--- labels, target tooltips, game labels, arena games and catalog rules.
+-- labels, target tooltips, game labels, arena games and catalog rules; card
+-- saves and import previews that meet a macro of the same name.
 local function entry(sim, class, name)
   for _, e in ipairs(sim.ns.Macros.catalog) do
     if e.class == class and e.name == name and (e.mode or "pvp") == "pvp" then return e end
@@ -112,4 +113,67 @@ test("hub subtitle names the game", function()
     sim:command("")
     assert(sim.env.HighgroundHub.sub.text:find(label, 1, true), game .. ": " .. tostring(sim.env.HighgroundHub.sub.text))
   end
+end)
+
+test("card saves ask before replacing another text under the same name", function()
+  local sim = new("cata")
+  sim:command("macros")
+  local M, Kit = sim.ns.Macros, sim.ns.Kit
+  local Win = M.Window
+  local function card(name, existing, perCharacter)
+    for _, r in ipairs(Win.win.rows) do
+      local e = r:IsShown() and r.entry
+      if e and e.name == name and (e.existing or false) == existing and (e.perCharacter or false) == (perCharacter or false) then return r end
+    end
+    error("missing card " .. name)
+  end
+  local function choose(r, text)
+    Win.CardOptions(r)
+    for i, item in ipairs(Kit.Dropdown.Items()) do if item.text == text then return Kit.Dropdown.Accept(i) end end
+    error("missing item " .. text)
+  end
+  local mine = { name = "Focus Mouseover", body = "/say mine", perCharacter = false }
+  sim.macros[1] = mine
+  Win.SetTab("general")
+  choose(card("Focus Mouseover", false), "Save for all characters")
+  equal(mine.body, "/say mine", "the saved macro is not replaced yet")
+  local items = Kit.Dropdown.Items()
+  equal(items[1].text, "Replace saved macro", "the menu asks")
+  equal(items[1].hint, "All characters", "and names the tab")
+  equal(items[2].text, "Keep saved macro", "keeping it is offered")
+  Kit.Dropdown.Accept(2)
+  equal(mine.body, "/say mine", "kept")
+  choose(card("Focus Mouseover", false), "Save for all characters")
+  Kit.Dropdown.Accept(1)
+  local preset = M.Build(card("Focus Mouseover", false).entry)
+  equal(mine.body, preset, "replaced after the answer")
+  equal(M.Backups.All()[1].before.body, "/say mine", "macro history keeps the replaced text")
+  choose(card("Focus Mouseover", false), "Save for all characters")
+  assert(not Kit.Dropdown.IsShown(), "the same text saves without asking")
+
+  -- Copy to this character over another text there.
+  sim.macros[2] = { name = "Focus Mouseover", body = "/say other", perCharacter = true }
+  Win.SetTab("mine")
+  choose(card("Focus Mouseover", true, false), "Copy to this character")
+  equal(sim.macros[2].body, "/say other", "the character's macro waits for an answer")
+  equal(Kit.Dropdown.Items()[1].hint, "This character", "the character tab named")
+  Kit.Dropdown.Accept(1)
+  equal(sim.macros[2].body, preset, "copied after the answer")
+  choose(card("Focus Mouseover", true, true), "Copy to all characters")
+  assert(not Kit.Dropdown.IsShown(), "same text: nothing to ask")
+  equal(#sim.macros, 2, "no new macro")
+end)
+
+test("the import preview names a replace only in the tab it lists", function()
+  local sim = new("retail")
+  local S = sim.ns.Macros.Share
+  sim.macros[1] = { name = "Kick F", body = "/say general", perCharacter = false }
+  sim:command("macros import")
+  local w = sim.env.HighgroundMacroShare
+  w.box:SetText(S.Encode({ { name = "Kick F", body = "/cast Kick", perCharacter = true } }))
+  assert(w.preview.text:find("Kick F", 1, true), "preview lists the macro")
+  assert(not w.preview.text:find("replaces", 1, true), "the General macro is not replaced: " .. w.preview.text)
+  sim.macros[2] = { name = "Kick F", body = "/say mine", perCharacter = true }
+  S.Preview()
+  assert(w.preview.text:find("replaces your character macro", 1, true), "the character macro is: " .. w.preview.text)
 end)

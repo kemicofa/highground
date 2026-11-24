@@ -2150,6 +2150,8 @@ assert(ns.Locale:Register("deDE", {
   ["macros.card.hover_for_an_explanation.fe9aed"] = "Für eine Erklärung mit der Maus darüberfahren.",
   ["macros.card.edit_macro.a58957"] = "Makro bearbeiten",
   ["macros.card.save_after_combat.0b7824"] = "Nach dem Kampf speichern",
+  ["macros.card.replace_saved_macro.a34a35"] = "Gespeichertes Makro ersetzen",
+  ["macros.card.keep_saved_macro.bb7fbb"] = "Gespeichertes Makro behalten",
   ["macros.classesa.interrupt_your_focus_or_target.a9a0c9"] = "Fokus oder Ziel unterbrechen",
   ["macros.classesa.interrupt_with_a_shield_on.c1c3db"] = "Mit einem Schild unterbrechen",
   ["macros.classesa.charge_and_start_attacking.b062b3"] = "Sturmangriff und Angriff beginnen",

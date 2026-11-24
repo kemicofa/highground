@@ -2150,6 +2150,8 @@ assert(ns.Locale:Register("enUS", {
   ["macros.card.hover_for_an_explanation.fe9aed"] = "Hover for an explanation.",
   ["macros.card.edit_macro.a58957"] = "Edit macro",
   ["macros.card.save_after_combat.0b7824"] = "Save after combat",
+  ["macros.card.replace_saved_macro.a34a35"] = "Replace saved macro",
+  ["macros.card.keep_saved_macro.bb7fbb"] = "Keep saved macro",
   ["macros.classesa.interrupt_your_focus_or_target.a9a0c9"] = "Interrupt your focus or target",
   ["macros.classesa.interrupt_with_a_shield_on.c1c3db"] = "Interrupt with a shield on",
   ["macros.classesa.charge_and_start_attacking.b062b3"] = "Charge and start attacking",

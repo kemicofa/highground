@@ -18,14 +18,6 @@ function Macros.Limits()
     MAX_ACCOUNT_MACROS or 120, MAX_CHARACTER_MACROS or (Host.Client() ~= "retail" and 18 or 30)
 end
 
--- "general", "character" or nil: where a macro with this name already is.
-function Macros.Where(name)
-  local index = Plain(Call(GetMacroIndexByName, name)) or 0
-  if index <= 0 then return nil end
-  local _, _, maxGeneral = Macros.Limits()
-  return index > maxGeneral and "character" or "general", index
-end
-
 -- fn(index, name, body, icon, perCharacter) for each existing macro, read
 -- live without building tables; stops early when fn returns true.
 -- perCharacter nil walks both tabs, else only that one.

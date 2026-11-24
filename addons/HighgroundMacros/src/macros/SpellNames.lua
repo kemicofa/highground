@@ -2,7 +2,9 @@ local _, ns = ...
 local M = ns.Macros
 -- Stable spell identifiers let the client supply its own localized names.
 -- Distinct historical names intentionally share identifiers where Blizzard
--- renamed the spell. Values may be per game when the ability was replaced.
+-- renamed the spell. Values may be per game when the ability was replaced
+-- or the game numbers it differently (528 is Dispel Magic only on Retail,
+-- Cure Disease elsewhere); a game without a value keeps the English name.
 M.SpellIDs = {
   ["Pummel"] = 6552, ["Shield Bash"] = 72, ["Charge"] = 100, ["Intercept"] = 20252,
   ["Storm Bolt"] = 107570, ["Intimidating Shout"] = 5246, ["Disarm"] = 676,
@@ -35,13 +37,13 @@ M.SpellIDs = {
   ["Dragon's Breath"] = 31661, ["Ring of Frost"] = { retail = 113724, cata = 82676 }, ["Deep Freeze"] = 44572,
   ["Ice Block"] = 45438, ["Blink"] = 1953, ["Invisibility"] = 66, ["Alter Time"] = 342245,
   ["Presence of Mind"] = 12043, ["Slow"] = 31589, ["Freeze"] = 33395, ["Focus Magic"] = 54646,
-  ["Dispel Magic"] = 528, ["Mass Dispel"] = 32375, ["Shackle Undead"] = 9484,
+  ["Dispel Magic"] = { retail = 528, cata = 527, forever = 527 }, ["Mass Dispel"] = 32375, ["Shackle Undead"] = 9484,
   ["Shackle Horror"] = 9484, ["Psychic Scream"] = 8122, ["Psychic Horror"] = 64044,
   ["Silence"] = 15487, ["Mind Control"] = 605, ["Mana Burn"] = 8129,
   ["Shadow Word: Death"] = 32379, ["Power Word: Shield"] = 17, ["Prayer of Mending"] = 33076,
   ["Pain Suppression"] = 33206, ["Guardian Spirit"] = 47788, ["Leap of Faith"] = 73325,
-  ["Power Infusion"] = 10060, ["Fear Ward"] = 6346, ["Fade"] = 586, ["Purify"] = 527,
-  ["Holy Word: Chastise"] = 88625, ["Cure Disease"] = 528, ["Flash Heal"] = 2061,
+  ["Power Infusion"] = 10060, ["Fear Ward"] = 6346, ["Fade"] = 586, ["Purify"] = { retail = 527, forever = 1152 },
+  ["Holy Word: Chastise"] = 88625, ["Cure Disease"] = { cata = 528, forever = 528 }, ["Flash Heal"] = 2061,
   ["Greater Heal"] = 2060, ["Renew"] = 139, ["Shadow Word: Pain"] = 589,
   ["Wind Shear"] = 57994, ["Earth Shock"] = 8042, ["Purge"] = 370, ["Hex"] = 51514,
   ["Cleanse Spirit"] = 51886, ["Purify Spirit"] = 77130, ["Cure Poison"] = 526,
@@ -102,4 +104,7 @@ M.SpellIDs = {
   ["Shadowmeld"] = 58984, ["Burning Rush"] = 111400, ["Netherwalk"] = 196555, ["Hover"] = 358267,
 }
 -- Spells another class casts under the same English name.
-M.CLASS_SPELL_IDS = { DRUID = { ["Nature's Swiftness"] = 17116, ["Cure Poison"] = 8946 } }
+M.CLASS_SPELL_IDS = {
+  DRUID = { ["Nature's Swiftness"] = 17116, ["Cure Poison"] = 8946, ["Remove Curse"] = 2782 },
+  SHAMAN = { ["Cure Disease"] = 2870 },
+}

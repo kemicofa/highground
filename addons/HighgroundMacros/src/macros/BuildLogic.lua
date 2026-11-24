@@ -319,7 +319,7 @@ function Panel.LoadPreset(entry, o)
   Panel.loading = true
   Panel.generated = nil
   p.code:SetPlainText("")
-  local spell = not o.lines and Macros.SpellFor(o.spell)
+  local spell = not o.lines and Macros.SpellFor(o.spell, nil, o.class)
   if not spell then
     p.name:SetText(o.name or "")
     Panel.generated = ""

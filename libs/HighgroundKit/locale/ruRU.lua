@@ -2156,6 +2156,8 @@ assert(ns.Locale:Register("ruRU", {
   ["macros.card.hover_for_an_explanation.fe9aed"] = "Наведите курсор для пояснения.",
   ["macros.card.edit_macro.a58957"] = "Изменить макрос",
   ["macros.card.save_after_combat.0b7824"] = "Сохранить после боя",
+  ["macros.card.replace_saved_macro.a34a35"] = "Заменить сохранённый макрос",
+  ["macros.card.keep_saved_macro.bb7fbb"] = "Оставить сохранённый макрос",
   ["macros.classesa.interrupt_your_focus_or_target.a9a0c9"] = "Прервать заклинание фокуса или цели",
   ["macros.classesa.interrupt_with_a_shield_on.c1c3db"] = "Прерывание, когда надет щит",
   ["macros.classesa.charge_and_start_attacking.b062b3"] = "Рывок и начать атаку",

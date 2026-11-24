@@ -168,12 +168,14 @@ features/battlegrounds/ui/Scale.lua
 ui/SniperColors.lua
 ui/Sniper.lua
 features/battlegrounds/ui/CapPlates.lua
+core/HealerTags.lua
 ui/HealerMarks.lua
 ui/BurstMarks.lua
 core/Calling.lua
 ui/Tooltip.lua
 ui/Rows.lua
 ui/SpecPicker.lua
+ui/TeamHealers.lua
 ui/Health.lua
 ui/Layout.lua
 core/Targeting.lua

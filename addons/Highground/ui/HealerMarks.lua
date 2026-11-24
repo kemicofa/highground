@@ -6,8 +6,11 @@ local Theme, Read = ns.Theme, ns.Util.read
 -- ABOVE their nameplates (the sniper scope sits below its plate). Like the
 -- scope, each marker is our own UIParent child only anchored to the plate:
 -- nameplate addons are untouched and markers ignore the mouse. They clear
--- the capture bar (ui/CapPlates.lua) when both show.
+-- the capture bar (ui/CapPlates.lua) when both show. Friendly healers also
+-- get a small cross on Blizzard's raid and party frames, laid over them the
+-- same way. Which teammates heal: core/HealerTags.lua.
 Core.healerMarks = {} -- pool
+Core.frameHealerMarks = {} -- pool for raid and party frames
 local SIZE, ARM, OUT = 34, 11, 2 -- cross size, arm thickness, outline width
 local OUTLINE_ALPHA = 0.9
 local LIFT, LIFT_CAPPING = 6, 24
@@ -68,26 +71,63 @@ local function ShowMark(index, key, unit, color, lift)
   return true
 end
 
--- Group tokens can provide a readable role when a nameplate token cannot.
--- Unknown roles never imply healer merely because the class can heal.
-local healers = {}
-local RAID, PARTY = ns.Util.UnitTokens("raid", 40), ns.Util.UnitTokens("party", 4)
+-- Group tokens can name a healer (group role, mark, inspect) when a
+-- nameplate token cannot. A class that can heal is never enough alone.
+local healers, healerUnits, team = {}, {}, {}
 local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
-local function AddHealer(unit)
-  if Read(UnitGroupRolesAssigned, unit) == "HEALER" then
-    local key = Core.CanonUnit(unit)
-    if key then healers[key] = true end
+
+-- Rebuilt each tick into reused sets: by player key and by group token.
+local function FriendlyHealers()
+  wipe(healers); wipe(healerUnits)
+  for _, unit in ipairs(Core.TeamUnits(team)) do
+    local key = Core.TeamKey(unit)
+    if Core.TeamHealer(unit, key) then
+      if key then healers[key] = true end
+      healerUnits[unit] = true
+    end
   end
+  return healers
 end
 
--- Rebuilt each tick into one reused set.
-local function FriendlyHealers()
-  wipe(healers)
-  AddHealer("player")
-  local raid, n = Read(IsInRaid) == true, Read(GetNumGroupMembers) or 0
-  local tokens = raid and RAID or PARTY
-  for i = 1, math.min(#tokens, raid and n or math.max(0, n - 1)) do AddHealer(tokens[i]) end
-  return healers
+-- Blizzard's raid frames (groups kept together or not) and party frames.
+local FRAME_NAMES = {}
+for i = 1, 40 do FRAME_NAMES[#FRAME_NAMES + 1] = "CompactRaidFrame" .. i end
+for g = 1, 8 do
+  for m = 1, 5 do FRAME_NAMES[#FRAME_NAMES + 1] = "CompactRaidGroup" .. g .. "Member" .. m end
+end
+for i = 1, 5 do FRAME_NAMES[#FRAME_NAMES + 1] = "CompactPartyFrameMember" .. i end
+local FRAME_SCALE = 0.45
+
+local function ShowFrameMark(index, frame)
+  local m = Core.frameHealerMarks[index]
+  if not m then
+    m = Core.MakeHealerMark()
+    m:SetScale(FRAME_SCALE)
+    for _, part in ipairs(m.parts) do Theme.Paint(part, "healer") end
+    Core.frameHealerMarks[index] = m
+  end
+  if m.anchor ~= frame then
+    m:ClearAllPoints()
+    if not pcall(m.SetPoint, m, "RIGHT", frame, "RIGHT", -4 / FRAME_SCALE, 0) then return false end
+    m.anchor = frame
+  end
+  m:Show()
+  return true
+end
+
+local function UpdateFrameMarks(on)
+  local used = 0
+  if on then
+    for _, name in ipairs(FRAME_NAMES) do
+      local frame = _G[name]
+      local unit = frame and frame.unit
+      if unit and healerUnits[unit] and frame:IsVisible() and ShowFrameMark(used + 1, frame) then used = used + 1 end
+    end
+  end
+  for i = used + 1, #Core.frameHealerMarks do
+    local m = Core.frameHealerMarks[i]
+    m.anchor = nil; m:Hide(); m:ClearAllPoints()
+  end
 end
 
 function Core.UpdateHealerMarks()
@@ -112,6 +152,7 @@ function Core.UpdateHealerMarks()
     end
   end
   for i = used + 1, #Core.healerMarks do HideMark(Core.healerMarks[i]) end
+  UpdateFrameMarks(on)
 end
 
 ns.Util.Events({ NAME_PLATE_UNIT_REMOVED = function(_, unit)

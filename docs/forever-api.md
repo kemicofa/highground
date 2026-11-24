@@ -56,6 +56,11 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 
 Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old global `GetBattlefieldFlagPosition` no longer exists, while `GetNumBattlefieldFlagPositions` does. In Warsong Gulch, with both flags carried, the count read 2: your team's carrier had a readable position (`0.50, 0.14`), the enemy carrier had `nil` even when targeted 30 yards away. Textures are file IDs: 137200 is the Alliance flag, 137218 the Horde flag.
 
+## Teammate reads
+
+- `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
+- An inspect works on a teammate in a match: after `NotifyInspect(unit)`, `C_Traits.GetConfigInfo(-1)` (the inspect config) names the trait tree and `C_Traits.GetGroupCurrencyInfo(-1, groupIDs)` gives the points per talent tree, as for your own config. Trees without points are left out. Read live on an Enhancement shaman in Warsong Gulch's start room (`Enhancement 23`). Inspecting enemies is untested.
+
 ## Used in Highground
 
 | Finding | Change |
@@ -66,6 +71,7 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 | Enemy auras refused | Aura-based scoring settings hidden on WoW Forever (#319) |
 | Loss-of-control count readable | Generic **CC** chip on WoW Forever (#322) |
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
+| Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
 
 ## Leads to try
 
@@ -75,6 +81,14 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 
 ```
 /run local a=UnitIsUnit("targettarget","player") local n=UnitName("targettarget") print("ToT",n,issecretvalue(n),"me",a,issecretvalue(a))
+```
+
+**Enemy talents by inspect.** Teammates can be inspected in a match (see Teammate reads). If an enemy can, their spec would no longer need hand tagging. Target an enemy within about 28 yards and run the lines in order, a second apart; the first clears the previous inspect so an old answer can't pass. Expect `name true true`, then `3`, then tree names with points.
+
+```
+/run ClearInspectPlayer() print(UnitName("target"),CanInspect("target"),UnitIsEnemy("player","target")) NotifyInspect("target")
+/run local t=C_Traits H={}N={}for i,x in ipairs(t.GetGroupDisplayInfoByTreeID(t.GetConfigInfo(-1).treeIDs[1]))do H[i]=x.groupID N[x.groupID]=x.displayName end print(#H)
+/run for _,x in ipairs(C_Traits.GetGroupCurrencyInfo(-1,H))do local c=x.currencyInfos[1]print(N[x.traitNodeGroupID],c and c.spent)end
 ```
 
 **Interaction distance.** `CheckInteractDistance(unit, 1-5)` gives fixed distance bands (about 10, 11 and 28 yards). Readable bands would refine range when spells don't cover them.

@@ -217,6 +217,45 @@ test("successful fragments reset transient failures while unreachable peers leav
   equal(#W.outbox, 0, "failures spanning ten seconds release the queue")
 end)
 
+test("a full decision history prunes superseded decisions and sync never asks for them again", function()
+  local owner, member, c, native = pair()
+  local W, M = F.W(owner), F.W(member)
+  native[42].members["Moderator-Realm"].presence = 3 -- decisions are not queued for an absent moderator
+  W.MAX_OPS, M.MAX_OPS = 24, 24
+  local function Name(i) return "Enemy" .. string.char(96 + i) .. "-Realm" end
+  local target = F.target(owner, "Repeat-Realm")
+  for i = 1, 6 do
+    assert(W.Decide(c, target, "ban", { toxic = true }, "Ban " .. i))
+    assert(W.Decide(c, target, "revoke", {}, "Revoke " .. i))
+  end
+  assert(W.Decide(c, target, "ban", { cheating = true }, "Final"))
+  for i = 1, 5 do
+    assert(W.Decide(c, F.target(owner, Name(i)), "dismiss", {}, "Dismissed"))
+    assert(W.Decide(c, F.target(owner, Name(i)), "ban", { toxic = true }, ""))
+  end
+  assert(W.Decide(c, F.target(owner, Name(6)), "revoke", {}, "Never listed"))
+  equal(W.Count(c.operations), W.MAX_OPS, "the history is full")
+  local function States(w, community)
+    local states = {}
+    for _, row in ipairs(w.Rows(community, "history")) do states[row.key] = row.state .. ":" .. (row.active and row.active.id or "") end
+    return states
+  end
+  local before = States(W, c)
+  assert(W.Decide(c, F.target(owner, Name(7)), "ban", { toxic = true }, ""), "a full history still takes decisions")
+  equal(W.Count(c.operations), 9, "superseded bans, revocations and dismissals are pruned")
+  for key, state in pairs(before) do equal(States(W, c)[key], state, key .. " keeps its state") end
+  equal(W.FindCase(c, target).active.note, "Final", "the current ban stays")
+  assert(W.Decide(c, target, "revoke", {}, "Later revocation") and not W.Match(target), "the kept revocations still apply")
+  local mc = F.join(owner, member, c)
+  equal(M.Count(mc.operations), W.Count(c.operations), "a new member gets the kept decisions")
+  for key, state in pairs(States(W, c)) do equal(States(M, mc)[key], state, key .. " agrees after sync") end
+  M.RequestPeer(mc, "Owner-Realm", true)
+  F.pump({ owner, member }, 20)
+  local job = assert(W.served[c.id .. ":Member-Realm"] or W.jobs[c.id .. ":Member-Realm"])
+  equal(#job.records, 0, "the next sync asks for no pruned decision")
+  owner:assertHealthy(); member:assertHealthy()
+end)
+
 test("acknowledgements go only to organization members and stay within the send budget", function()
   local owner, _, c = pair()
   local W = F.W(owner)

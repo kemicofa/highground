@@ -81,6 +81,10 @@ function W.LoadScope()
       c.operations = type(c.operations) == "table" and c.operations or {}
       c.reports = type(c.reports) == "table" and c.reports or {}
       c.sequences = type(c.sequences) == "table" and c.sequences or {}
+      c.floors = type(c.floors) == "table" and c.floors or {}
+      for author, n in pairs(c.floors) do
+        if not W.String(author, 200) or not W.Int(n, 1, 1000000000) then c.floors[author] = nil end
+      end
       -- A completed legacy snapshot (or local moderator activation) already
       -- established enablement. A member's old opt-in alone did not.
       c.activated = c.activated == true or c.synced == true

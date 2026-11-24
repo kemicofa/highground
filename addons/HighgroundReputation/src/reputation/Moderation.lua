@@ -32,7 +32,7 @@ function W.MergeOperation(c, op, sender, attested)
   local old = c.operations[op.id]
   if old then return ns.Codec.Pack(old) == ns.Codec.Pack(op) end
   if W.ClockAhead(op) then return false, "clock" end
-  if W.Count(c.operations) >= W.MAX_OPS then return false end
+  if W.Count(c.operations) >= W.MAX_OPS and W.PruneOperations(c) == 0 then return false end
   c.operations[op.id] = W.Copy(op)
   c.clock = math.max(c.clock or 0, op.clock)
   W.caseCache[c] = nil
@@ -41,6 +41,66 @@ end
 
 local function Later(a, b)
   return not b or a.clock > b.clock or a.clock == b.clock and a.id > b.id
+end
+
+local function Clears(op)
+  local list = {}
+  for author, sequence in pairs(op.clears) do list[#list + 1] = author .. "=" .. sequence end
+  table.sort(list)
+  return table.concat(list, ",")
+end
+
+-- At the cap, decisions that can no longer change a case become history.
+-- Per player identity (name and GUID) these stay: the latest decision, each
+-- author's latest revocation and the latest ban for each set of cleared
+-- revocations that no newer revocation has retired. Another decision goes
+-- once kept ones hold its reviews. Only sequences every author has without
+-- gaps are pruned, and floors keep counting them so sync never asks again.
+function W.PruneOperations(c)
+  local heads, groups, removed = W.Heads(c), {}, 0
+  for _, op in pairs(c.operations) do
+    local key = op.target.key .. "|" .. op.target.guid
+    groups[key] = groups[key] or {}
+    table.insert(groups[key], op)
+  end
+  for _, ops in pairs(groups) do
+    local latest, revokes, bans, keep, reviewed = nil, {}, {}, {}, {}
+    for _, op in ipairs(ops) do
+      if Later(op, latest) then latest = op end
+      if op.kind == "revoke" and (not revokes[op.by] or op.sequence > revokes[op.by].sequence) then revokes[op.by] = op end
+    end
+    for _, op in ipairs(ops) do
+      if op.kind == "ban" then
+        local retired = false
+        for author, revoke in pairs(revokes) do
+          if revoke.sequence > (op.clears[author] or 0) then retired = true; break end
+        end
+        local set = Clears(op)
+        if not retired and Later(op, bans[set]) then bans[set] = op end
+      end
+    end
+    keep[latest] = true
+    for _, op in pairs(revokes) do keep[op] = true end
+    for _, op in pairs(bans) do keep[op] = true end
+    for op in pairs(keep) do
+      for account, revision in pairs(op.reviewed) do reviewed[account] = math.max(reviewed[account] or 0, revision) end
+    end
+    for _, op in ipairs(ops) do
+      if not keep[op] and op.sequence <= (heads[op.by] or 0) then
+        local covered = true
+        for account, revision in pairs(op.reviewed) do
+          if (reviewed[account] or 0) < revision then covered = false; break end
+        end
+        if covered then c.operations[op.id], removed = nil, removed + 1 end
+      end
+    end
+  end
+  if removed > 0 then
+    c.floors = c.floors or {}
+    for author, n in pairs(heads) do c.floors[author] = math.max(c.floors[author] or 0, n) end
+    W.caseCache[c] = nil
+  end
+  return removed
 end
 
 -- Immutable decisions are merged as a set. A ban applies only if it
@@ -168,7 +228,7 @@ function W.Decide(c, target, kind, categories, note)
   local row, me, sequence = W.FindCase(c, target), W.Me(), 0
   for _, op in pairs(c.operations) do if op.by == me then sequence = math.max(sequence, op.sequence) end end
   c.sequences = c.sequences or {}
-  sequence = math.max(sequence, c.sequences[me] or 0) + 1
+  sequence = math.max(sequence, c.sequences[me] or 0, c.floors and c.floors[me] or 0) + 1
   local op = { id = me .. ":" .. sequence, by = me, sequence = sequence, clock = (c.clock or 0) + 1,
     at = W.Now(), target = W.Copy(target), kind = kind, categories = categories or {},
     note = note, clears = row and W.Copy(row.revokes) or {}, reviewed = {} }

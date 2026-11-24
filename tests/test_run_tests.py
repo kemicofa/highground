@@ -93,6 +93,15 @@ sys.exit(7 if name == "b" else 0)
         many = "\n".join(f"FAIL t: {i}" for i in range(12))
         self.assertEqual(run_tests.failure_lines(many), [f"FAIL t: {i}" for i in range(10)] + ["... 2 more"])
 
+    def test_invalid_utf8_output_is_shown_instead_of_stopping_the_runner(self):
+        bad = "import sys; sys.stdout.buffer.write(b'FAIL t: caf\\xe9\\n'); sys.exit(1)"
+        suites = [run_tests.Suite("bad", self.root, (sys.executable, "-c", bad)),
+                  run_tests.Suite("fine", self.root, (sys.executable, "-c", "print('ok')"))]
+        self.assertEqual(run_tests.run_suites(suites, 1), 1)
+        self.assertIn("FAIL t: caf\ufffd\n", self.stdout.getvalue())
+        self.assertIn("== PASS fine", self.stdout.getvalue())
+        self.assertIn("FAILED: bad\n    FAIL t: caf\ufffd", self.stderr.getvalue())
+
     def test_timeout_stops_a_hung_suite_and_continues(self):
         hung = run_tests.Suite("hung", self.root, (sys.executable, "-c", "import time; print('started', flush=True); time.sleep(30)"))
         quick = run_tests.Suite("quick", self.root, (sys.executable, "-c", "print('done')"))

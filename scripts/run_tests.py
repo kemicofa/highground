@@ -75,7 +75,8 @@ def run_suites(suites: list[Suite], jobs: int, timeout: float | None = None,
                 suite = next(pending, None)
                 if suite is None:
                     break
-                output = tempfile.TemporaryFile(mode="w+", encoding="utf-8")
+                # A suite can print any bytes; invalid UTF-8 must not stop the runner.
+                output = tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace")
                 try:
                     process = subprocess.Popen(suite.command, cwd=suite.directory,
                                                stdout=output, stderr=subprocess.STDOUT)

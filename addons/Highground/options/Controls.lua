@@ -74,16 +74,18 @@ function Options.RefreshPage(page)
   if page.RefreshAppearance then page.RefreshAppearance() end
   if page.RefreshPreviews then page.RefreshPreviews() end
 end
--- -/box/+ behaviour shared by both row styles.
+-- -/box/+ behaviour shared by both row styles. -/+ stop at the setting's
+-- limits instead of sending a value it rejects.
 function Options.Wire(row, minus, plus, step)
-  minus:SetScript("OnClick", function()
-    Options.Set(row, Options.Get(row) - step * (IsShiftKeyDown() and 5 or 1))
+  local function Step(direction)
+    local def = Core.SettingDefs[row.kind == "kitspell" and "point" or row.kind][row.stat or row.key]
+    local v = Options.Get(row) + direction * step * (IsShiftKeyDown() and 5 or 1)
+    if def and def.min then v = math.max(def.min, math.min(def.max, v)) end
+    Options.Set(row, v)
     Options.RefreshPage(row.page)
-  end)
-  plus:SetScript("OnClick", function()
-    Options.Set(row, Options.Get(row) + step * (IsShiftKeyDown() and 5 or 1))
-    Options.RefreshPage(row.page)
-  end)
+  end
+  minus:SetScript("OnClick", function() Step(-1) end)
+  plus:SetScript("OnClick", function() Step(1) end)
   row.reset:SetScript("OnClick", function()
     if row.kind == "kitspell" then Options.Set(row, nil) else Options.Set(row, row.def) end
     Options.RefreshPage(row.page)

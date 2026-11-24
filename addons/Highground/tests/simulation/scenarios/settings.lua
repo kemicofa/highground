@@ -173,6 +173,29 @@ test("settings pages use kit controls: toggle, stepper and theme repaint", funct
   equal(Core.P("killPer"), 2, "shift-click steps by five")
   row.reset.scripts.OnClick(row.reset)
   equal(sim.env.HighgroundDB.points.killPer, nil, "x restores the default")
+  local said = #sim.messages
+  sim.shift = true
+  for _ = 1, 3 do row.stepper.minus.scripts.OnClick(row.stepper.minus) end
+  sim.shift = false
+  equal(Core.P("killPer"), 0, "- stops at the lowest value")
+  assert(Core.SetTuning("point", "killPer", 498))
+  sim.shift = true; row.stepper.plus.scripts.OnClick(row.stepper.plus); sim.shift = false
+  row.stepper.plus.scripts.OnClick(row.stepper.plus)
+  equal(Core.P("killPer"), 500, "+ stops at the highest value")
+  equal(#sim.messages, said, "steps at a limit print no error")
+
+  local nearby = Options.byKey["nearby-appearance"]
+  nearby.frame:Show()
+  local rows = nearby.nearbyRows
+  equal(Core.O("nearbyRows"), 5, "a fresh install lists five nearby enemies")
+  rows.reset.scripts.OnClick(rows.reset)
+  equal(Core.O("nearbyRows"), 10, "Default is the setting's default")
+  equal(rows.reset:IsEnabled(), false, "and then has nothing to reset")
+  sim.shift = true
+  for _ = 1, 3 do rows.stepper.plus.scripts.OnClick(rows.stepper.plus) end
+  sim.shift = false
+  equal(Core.O("nearbyRows"), 20, "+ stops at the most nearby enemies")
+  equal(#sim.messages, said, "steps at a limit print no error")
 
   local title = general.title
   local before = title.textColor[1]

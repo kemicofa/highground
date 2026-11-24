@@ -208,9 +208,10 @@ Check("highground.appearance.suggested_target_card.12115b", "highground.appearan
 Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.db.rows end,
   function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return Core.MAX_ROWS end)
 elseif owner == "nearby" then
-  Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.O("nearbyRows") end,
-    function(value) Options.Set({ kind = "option", key = "nearbyRows" }, value) end,
-    1, tostring, function() return 5 end)
+  local rows = Core.SettingDefs.option.nearbyRows -- -/+ stop at its limits; Default is its default
+  page.nearbyRows = Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.O("nearbyRows") end,
+    function(value) Options.Set({ kind = "option", key = "nearbyRows" }, math.max(rows.min, math.min(rows.max, value))) end,
+    1, tostring, function() return rows.def end)
 elseif owner == "bounties" then
   page.markers = Check("highground.appearance.bounty_markers.0e2414", "highground.appearance.coin_on_nameplates_and_highlights_on_enemy.38a9d9",
     function() return Core.On("bountyMarks") end, function(on) Core.SetFeature("bountyMarks", on) end)

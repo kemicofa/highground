@@ -92,6 +92,7 @@ Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy p
 | Flag positions moved to `C_PvP` | Map flag positions read through the current API and file IDs; your own carrying teaches your area's map spot |
 | Teammate roles are all DAMAGER; inspected talent points are readable | Team healers: inspected and hand-marked green healer crosses (#324) |
 | Enemy power type readable; a Moonkin's model file ID readable outside a match | Druid form estimates on WoW Forever: ~Restoration, ~Feral, ~Balance from a Moonkin model (#326) |
+| Enemies' target names readable | On you, on your healer and the header's ON YOU count on WoW Forever (#339) |
 
 ## Leads to try
 

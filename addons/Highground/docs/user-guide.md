@@ -68,9 +68,9 @@ Base capture, objective changes, resurrection and sap calls each have their own 
 
 Enemy rows keep their positions by default while priority ranks and recommendations update. The initial roster is alphabetical; new arrivals append without moving existing enemies. Death, resurrection, range and priority changes do not reorder the list. Enable **Battlegrounds → Target behavior → Reorder enemy rows by priority (out of combat)** to make rows follow priority instead. Secure click bindings always stay fixed during combat.
 
-The **suggested-target card** above the list is off by default. Enable **Battlegrounds → Appearance → Panels → Suggested target card** to show the recommended enemy's name, class, health and teammate pressure. Hiding the card keeps priority calculations, row highlights and recommendations active.
+The **suggested-target card** above the list is off by default. Enable **Battlegrounds → Appearance → Panels → Suggested target card** to show the recommended enemy's name, class, health and teammate pressure, and **on you** or **on healer NAME** when that enemy targets you or one of your team healers. Hiding the card keeps priority calculations, row highlights and recommendations active.
 
-New installations show every enemy; change **Battlegrounds → Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. Saved setups that kept the earlier five- or ten-row default were moved to all. A header such as **5/15** means five of fifteen are displayed. With stable ordering, a higher-priority enemy can be outside that limit; choose **All** to see the whole roster. Hover a row for the full spec and how it was found, a favorable or unfavorable matchup, location, cast, and cooldowns used with time remaining. Numerical scores are available in **Target behavior → Refresh comparison**.
+New installations show every enemy; change **Battlegrounds → Appearance → Enemies shown** or use the cogwheel to show five, ten or all enemies. Saved setups that kept the earlier five- or ten-row default were moved to all. A header such as **5/15** means five of fifteen are displayed; **· 3 ON YOU** follows while three enemies in view target you. With stable ordering, a higher-priority enemy can be outside that limit; choose **All** to see the whole roster. Hover a row for the full spec and how it was found, a favorable or unfavorable matchup, location, cast, and cooldowns used with time remaining. Numerical scores are available in **Target behavior → Refresh comparison**.
 
 ### Enemy row legend
 
@@ -98,7 +98,7 @@ Some elements depend on your client, current observations and Appearance switche
 | `DEAD` | Enemy is dead; the row is dimmed and stays in place. |
 | PvP trinket icon with a number | Cata trinket tracking: bright means ready or not observed used; grey plus a number means estimated seconds until ready. |
 | `x3` beside the spec | Three teammates currently targeting this enemy. Highlighted from three upward; different from `FLAG x3` stacks. |
-| Eye icon | This enemy is targeting you. |
+| Eye icon | This enemy is targeting you. On WoW Forever, Highground matches the name of the enemy's target, because the game hides whether it is you. The header adds **· 3 ON YOU** while enemies in view target you. |
 | Thin pale outline and arrow outside the row | Your currently selected target. This can differ from the recommended target. |
 | Red edge/glow | An attack opening after defensive protection ends. A separate red outline indicates health under the execute threshold; reduced motion makes animated cues steady. |
 | Gold outline and coin | An active bounty on this enemy, when bounty markers are enabled. |
@@ -144,6 +144,8 @@ Turn off **Target recommendations** in Battlegrounds settings (or `/hg priority 
 - On Cata, **Preserve breakable crowd control** (on by default).
 
 Known full immunities never win, whatever the points. Retail reads only clear aura categories and does not guess immunity or breakable CC.
+
+An enemy in view targeting one of your team healers (see **Team healers** above) gets **Targeting one of your healers** on **Live signals** (10 points), so the recommendation helps you peel.
 
 The other targeting pages set point values: **Target priority**, **Objectives**, **Live signals**, **Cooldowns**, **Spec ratings** and **Advanced multipliers**. Hover a value to see its range; multipliers show the effective value (points × your multiplier × battleground modifier, for example a flag bonus of 30 × 1 × 1.5 = 45 in capture-the-flag maps). On **Cooldowns**, **Show spell overrides** lists per-spell values: leave a field blank to use the general value, type a number to fix it, press **x** to clear it.
 

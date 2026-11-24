@@ -47,10 +47,20 @@ function W.StartSnapshot(c, target, request, heads, reportDigest)
   local key = c.id .. ":" .. target
   W.served[key] = nil
   if not W.jobs[key] and W.Count(W.jobs) >= 8 then return end
-  local hash = 5381
-  for _, record in ipairs(records) do hash = W.Hash(ns.Codec.Pack(record), hash) end
-  W.jobs[key] = { community = c.id, target = target, request = request, id = W.NewID(), records = records,
-    hash = hash, index = 0, queue = {}, targetRole = W.Role(c, target) }
+  local job = { community = c.id, target = target, request = request, id = W.NewID(), records = records,
+    index = 0, queue = {}, targetRole = W.Role(c, target), skipped = 0 }
+  -- A record no packet can carry would stall the transfer: leave it out
+  -- and count it. The rest of its packet is the same for every record.
+  local envelope = #ns.Codec.Pack({ community = c.id, transfer = job.id, request = request, kind = "record",
+    index = #records, record = false, version = W.VERSION, scope = W.Scope() })
+  local hash, kept = 5381, {}
+  for _, record in ipairs(records) do
+    local text = ns.Codec.Pack(record)
+    if envelope + #text > W.MAX_PACKET then job.skipped = job.skipped + 1
+    else kept[#kept + 1], hash = record, W.Hash(text, hash) end
+  end
+  job.records, job.hash = kept, hash
+  W.jobs[key] = job
 end
 
 -- Packet i of a transfer: 0 begins, 1..n are records, n + 1 ends.
@@ -73,10 +83,11 @@ function W.PumpSnapshots()
     local job = W.jobs[key]
     local c = W.Get(job.community)
     if not W.Joined(c) or not W.CanModerate(c) or not ns.Organizations.IsMember(c.id, job.target) or job.targetRole ~= W.Role(c, job.target) then W.jobs[key] = nil; return end
-    -- Requested resends first, then the next packet in order.
+    -- Requested resends first, then the next packet in order. The next tick
+    -- serves the next job even when this one cannot send now.
     local resend = job.queue[1]
+    W.jobCursor = index
     if W.Enqueue(Packet(job, resend or job.index), job.target) then
-      W.jobCursor = index
       if resend then table.remove(job.queue, 1) else job.index = job.index + 1 end
       if not job.queue[1] and job.index > #job.records + 1 then
         W.jobs[key], W.served[key], job.done = nil, job, GetTime()

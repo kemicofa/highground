@@ -33,6 +33,9 @@ local function Throttled(result)
     or result == Result("AddOnMessageLockdown", 11)
 end
 W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER = 120, 10, 4
+-- 256 parts of 128 bytes. A snapshot record leaves room for its packet.
+W.MAX_PACKET = 32768
+W.MAX_RECORD = W.MAX_PACKET - 2048
 
 local function Failed(item, result, now)
   if Throttled(result) then
@@ -66,7 +69,7 @@ function W.Enqueue(packet, target, priority, key)
   packet = W.Copy(packet)
   packet.version, packet.scope = W.VERSION, W.Scope()
   local ok, text = pcall(ns.Codec.Pack, packet)
-  if not ok or #text > 32768 then return false end
+  if not ok or #text > W.MAX_PACKET then return false end
   if key then
     for i, item in ipairs(W.outbox) do
       if item.key == key and item.target == target then
@@ -221,6 +224,8 @@ function W.ReceiveWire(text, channel, sender)
   end
   if count ~= item.count then return end
   item.at = now
+  -- A large snapshot record takes many chunks; they keep its session alive.
+  for _, session in pairs(W.inbound) do if session.sender == sender then session.at = now end end
   if item.parts[part] and item.parts[part] ~= chunk then W.incoming[key] = nil; return end
   if not item.parts[part] then item.parts[part], item.received = chunk, item.received + 1 end
   if item.received ~= count then return end

@@ -136,6 +136,28 @@ function W.FindCase(c, target)
   for _, candidate in pairs(cases) do if W.Same(candidate.target, target) then return candidate end end
 end
 
+-- A decision travels in one packet. One whose packed size exceeds limit
+-- reviews as many reports as fit W.MAX_RECORD; the rest stay pending for a
+-- later decision.
+function W.FitOperation(op, limit)
+  if W.Count(op.reviewed) <= 500 or #ns.Codec.Pack(op) <= limit then return op end
+  local accounts, all = {}, op.reviewed
+  for account in pairs(all) do accounts[#accounts + 1] = account end
+  table.sort(accounts)
+  local function Keep(n)
+    op.reviewed = {}
+    for i = 1, n do op.reviewed[accounts[i]] = all[accounts[i]] end
+  end
+  local low, high = 0, #accounts
+  while low < high do
+    local middle = math.ceil((low + high) / 2)
+    Keep(middle)
+    if #ns.Codec.Pack(op) <= W.MAX_RECORD then low = middle else high = middle - 1 end
+  end
+  Keep(low)
+  return op
+end
+
 function W.Decide(c, target, kind, categories, note)
   if not W.Joined(c) or not c.synced or not W.CanModerate(c) then return nil, ns.Locale:Get("reputation.moderation.only_a_community_moderator_or_guild_officer.51bea4") end
   if not W.ValidTarget(target) then return nil, ns.Locale:Get("highground.coachrecords.select_an_exact_player_identity.d6a825") end
@@ -151,6 +173,7 @@ function W.Decide(c, target, kind, categories, note)
     at = W.Now(), target = W.Copy(target), kind = kind, categories = categories or {},
     note = note, clears = row and W.Copy(row.revokes) or {}, reviewed = {} }
   if row then for account, r in pairs(row.reports) do op.reviewed[account] = r.revision end end
+  W.FitOperation(op, W.MAX_RECORD)
   if not W.MergeOperation(c, op, me) then return nil, ns.Locale:Get("reputation.moderation.could_not_store_this_decision_the_community.a4f782") end
   c.sequences[me], c.lastSync = sequence, W.Now()
   W.Changed(c)

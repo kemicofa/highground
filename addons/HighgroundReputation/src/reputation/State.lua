@@ -85,11 +85,12 @@ function W.LoadScope()
       -- established enablement. A member's old opt-in alone did not.
       c.activated = c.activated == true or c.synced == true
       -- An older version accepted any clock: drop impossible ones and take
-      -- the clock from what is left.
+      -- the clock from what is left. It also made decisions too large for
+      -- any packet; nobody else can hold those, so they are trimmed here.
       c.clock = 0
       for key, op in pairs(c.operations) do
         if not W.ValidOperation(c, op) or W.ClockAhead(op) then c.operations[key] = nil
-        else c.clock = math.max(c.clock, op.clock) end
+        else c.clock = math.max(c.clock, W.FitOperation(op, W.MAX_PACKET).clock) end
       end
       for key, report in pairs(c.reports) do if not W.ValidReport(report) then c.reports[key] = nil end end
     end

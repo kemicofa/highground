@@ -151,9 +151,13 @@ local SCRIPTS = {
     games = { retail = true, forever = true, classic = false, tbc = false } }, { desc = "macros.scripts.summon_a_random_favourite_mount.eedc86" }),
   Localization.Define({ name = "Leave Battle", desc = Locale:Get("macros.scripts.leave_the_battleground_or_arena_you_are.b41047"), lines = "/run LeaveBattlefield()" }, { desc = "macros.scripts.leave_the_battleground_or_arena_you_are.b41047" }),
   -- Template: put any cast after the /run line to hide its error sound and red
-  -- text; sound effects go back to the player's setting next frame.
+  -- text; sound effects go back to the player's setting next frame. HGSFX
+  -- holds that setting until then, so a second press before the restore
+  -- does not save "off" as the setting.
   Localization.Define({ name = "Quiet Trinket 1",
-    lines = "#showtooltip 13\n/run local v=GetCVar(\"Sound_EnableSFX\") SetCVar(\"Sound_EnableSFX\",0) C_Timer.After(0,function() UIErrorsFrame:Clear() SetCVar(\"Sound_EnableSFX\",v) end)\n/use 13" }, { desc = "macros.scripts.quiet_trinket_description" }),
+    lines = "#showtooltip 13\n/run local v=HGSFX or GetCVar(\"Sound_EnableSFX\") HGSFX=v SetCVar(\"Sound_EnableSFX\",0) "
+      .. "C_Timer.After(0,function() UIErrorsFrame:Clear() SetCVar(\"Sound_EnableSFX\",v) HGSFX=nil end)\n/use 13" },
+    { desc = "macros.scripts.quiet_trinket_description" }),
 }
 for _, entry in ipairs(SCRIPTS) do entry.script = true end
 Macros.Add(nil, SCRIPTS, "both")

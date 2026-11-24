@@ -18,8 +18,8 @@ test("script presets: exact bodies per game, hidden when switched off", function
     ["Turn In Quest"] = "/run if QuestFrameRewardPanel:IsShown() then local n=GetNumQuestChoices() "
       .. "if n<2 then GetQuestReward(n) end else CompleteQuest() end",
     ["Leave Battle"] = "/run LeaveBattlefield()",
-    ["Quiet Trinket 1"] = "#showtooltip 13\n/run local v=GetCVar(\"Sound_EnableSFX\") SetCVar(\"Sound_EnableSFX\",0) "
-      .. "C_Timer.After(0,function() UIErrorsFrame:Clear() SetCVar(\"Sound_EnableSFX\",v) end)\n/use 13",
+    ["Quiet Trinket 1"] = "#showtooltip 13\n/run local v=HGSFX or GetCVar(\"Sound_EnableSFX\") HGSFX=v SetCVar(\"Sound_EnableSFX\",0) "
+      .. "C_Timer.After(0,function() UIErrorsFrame:Clear() SetCVar(\"Sound_EnableSFX\",v) HGSFX=nil end)\n/use 13",
   }
   local guild = "/run if CanMerchantRepair() and CanGuildBankRepair() then RepairAllItems(1) end"
   local mount = "/run C_MountJournal.SummonByID(0)"
@@ -61,6 +61,35 @@ test("script presets: exact bodies per game, hidden when switched off", function
     equal(listed(), 0, game .. ": switched off hides them")
     assert(#Win.List() > 0, game .. ": other presets stay")
   end
+end)
+
+test("quiet trinket: presses before the restore keep the player's sound setting", function()
+  local M = new("retail").ns.Macros
+  local body
+  for _, e in ipairs(M.catalog) do if e.name == "Quiet Trinket 1" then body = M.Build(e) end end
+  local code = body:match("\n/run ([^\n]+)")
+  local function run(start)
+    local cvars, timers, cleared = { Sound_EnableSFX = start }, {}, 0
+    local env = {
+      GetCVar = function(k) return cvars[k] end,
+      SetCVar = function(k, v) cvars[k] = tostring(v) end,
+      C_Timer = { After = function(_, f) timers[#timers + 1] = f end },
+      UIErrorsFrame = { Clear = function() cleared = cleared + 1 end },
+    }
+    local press = assert(loadstring(code))
+    setfenv(press, env)
+    press(); press() -- two presses within one frame
+    equal(cvars.Sound_EnableSFX, "0", start .. ": muted while the presses run")
+    local due = timers; timers = {}
+    for _, f in ipairs(due) do f() end
+    equal(cvars.Sound_EnableSFX, start, start .. ": the setting comes back")
+    press() -- the next frame
+    for _, f in ipairs(timers) do f() end
+    equal(cvars.Sound_EnableSFX, start, start .. ": and again after a later press")
+    equal(env.HGSFX, nil, start .. ": nothing pending")
+    assert(cleared > 0, "error text cleared")
+  end
+  run("1"); run("0")
 end)
 
 -- Build tab script action (Macros.Scripts.ForForm through Macros.FromForm).

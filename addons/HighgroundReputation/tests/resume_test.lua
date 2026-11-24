@@ -48,6 +48,40 @@ test("a rate-limited first sync of many decisions completes", function()
   owner:assertHealthy(); member:assertHealthy()
 end)
 
+test("a decision reviewing a thousand reports fits one packet and the snapshot completes", function()
+  local owner, member, c, native = pair()
+  local W, M = F.W(owner), F.W(member)
+  native[42].members["Moderator-Realm"].presence = 3 -- only the snapshot uses the prefix
+  local target, all = F.target(owner), {}
+  for i = 1, 1000 do
+    local id, account = W.NewID(), string.format("%08x%08x%08x", 1700000000, i, i)
+    c.reports[id] = { id = id, account = account, by = (Name(i):gsub("^Enemy", "Reporter")), target = W.Copy(target),
+      categories = { toxic = true }, note = "", revision = 100, at = W.Now() }
+    all[account] = 100
+  end
+  W.Changed(c)
+  local op = assert(W.Decide(c, target, "ban", { toxic = true }, ""))
+  assert(#owner.ns.Codec.Pack(op) <= W.MAX_RECORD, "the decision fits one packet")
+  local reviewed = W.Count(op.reviewed)
+  assert(reviewed > 500 and reviewed < 1000, "it reviews as many reports as fit: " .. reviewed)
+  equal(W.FindCase(c, target).pending, 1000 - reviewed, "the rest stay pending")
+  -- An older version stored a decision reviewing every report: no packet can carry it.
+  local legacy = W.Copy(op)
+  legacy.sequence, legacy.clock, legacy.reviewed = op.sequence + 1, op.clock + 1, all
+  legacy.id = op.by .. ":" .. legacy.sequence
+  assert(#owner.ns.Codec.Pack(legacy) > W.MAX_PACKET)
+  c.operations[legacy.id] = legacy
+  -- At the game's rate the record's chunks take minutes; they keep the session alive.
+  Throttle(owner, 10, 1)
+  local mc = assert(M.Follow(c.id))
+  F.pump({ owner, member }, 400)
+  assert(mc.synced and mc.operations[op.id], "the snapshot skips the oversized record and completes")
+  local reloaded = F.new("Owner", { native = owner.native, database = W.Copy(W.db) })
+  local kept = F.W(reloaded).Get(c.id).operations[legacy.id]
+  assert(#reloaded.ns.Codec.Pack(kept) <= W.MAX_RECORD, "on load the oversized decision is trimmed to fit")
+  owner:assertHealthy(); member:assertHealthy()
+end)
+
 test("a snapshot packet lost by the transport is requested again", function()
   local owner, member, c = pair()
   local W, M = F.W(owner), F.W(member)
@@ -113,6 +147,23 @@ test("a stale report record keeps the newer local copy and applies the rest", fu
   equal(dc.reports[report.id].revision, 2, "the newer local revision is kept")
   equal(dc.reports[report.id].note, "Amended note", "with its note")
   assert(D.Match(F.target(moderator, Name(7))), "the rest of the snapshot applies")
+end)
+
+test("another copy of a held decision ID keeps the local one and the rest of the snapshot applies", function()
+  local owner, member, c = pair()
+  local W, M = F.W(owner), F.W(member)
+  local first = assert(W.Decide(c, F.target(owner, "First-Realm"), "ban", { toxic = true }, "First"))
+  local second = assert(W.Decide(c, F.target(owner, "Second-Realm"), "ban", { toxic = true }, "Second"))
+  local mc = F.join(owner, member, c)
+  -- The same character decided on another computer before syncing.
+  mc.operations[first.id] = nil
+  mc.operations[second.id].note = "Another computer"
+  local request = assert(M.RequestPeer(mc, "Owner-Realm", true))
+  F.pump({ owner, member }, 30)
+  equal(request.state, "complete", "the snapshot is not rejected")
+  assert(mc.operations[first.id], "the missing decision arrives")
+  equal(mc.operations[second.id].note, "Another computer", "the local copy is kept")
+  owner:assertHealthy(); member:assertHealthy()
 end)
 
 test("packets repeated after a completed sync are ignored", function()
@@ -290,6 +341,25 @@ test("other members' private reports leave with a confirmed departure", function
   equal(c.reports[foreign.id], nil, "a confirmed departure removes other members' reports")
   assert(c.reports[own.id], "the account's own report remains")
   owner:assertHealthy()
+end)
+
+test("a character removed while logged out takes other members' reports at the next login", function()
+  local owner, W, c, native, foreign, own = Departure()
+  W.ReconcileDepartures(owner.now)
+  native[42].members["Owner-Realm"] = nil
+  local saved = W.Copy(W.db)
+  local alt = F.new("Alt", { native = native, database = W.Copy(saved) })
+  F.pump({ alt }, 200)
+  assert(F.W(alt).communities[c.id].reports[foreign.id], "a character that never belonged does not count as leaving")
+  local later = F.new("Owner", { native = native, database = saved })
+  local L = F.W(later)
+  local lc = L.communities[c.id]
+  F.pump({ later }, 30)
+  assert(lc.reports[foreign.id], "the departure is confirmed a minute later")
+  F.pump({ later }, 150)
+  equal(lc.reports[foreign.id], nil, "other members' reports leave")
+  assert(lc.reports[own.id], "the account's own report remains")
+  later:assertHealthy()
 end)
 
 test("rejoining before confirmation keeps the reports", function()

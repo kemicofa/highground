@@ -19,11 +19,24 @@ function W.ValidOperation(c, op)
   return true
 end
 
+-- Each decision takes the highest known clock plus one, and any moderator
+-- can claim any clock. Accept at most one tick per second since 2020, so a
+-- huge clock cannot push every later decision past the 1e9 limit.
+local EPOCH = 1577836800
+function W.ClockAhead(op) return op.clock > math.min(1000000000, W.Now() - EPOCH) end
+
+-- Returns whether the operation is stored; "clock" when it claims a clock
+-- that is not possible yet, "conflict" when another copy holds its ID (the
+-- same character deciding on two computers before they synced).
 function W.MergeOperation(c, op, sender, attested)
   if not W.CanModerate(c, sender) or (not attested and sender ~= op.by) or not W.ValidOperation(c, op) then return false end
   local old = c.operations[op.id]
-  if old then return ns.Codec.Pack(old) == ns.Codec.Pack(op) end
-  if W.Count(c.operations) >= W.MAX_OPS then return false end
+  if old then
+    if ns.Codec.Pack(old) == ns.Codec.Pack(op) then return true end
+    return false, "conflict"
+  end
+  if W.ClockAhead(op) then return false, "clock" end
+  if W.Count(c.operations) >= W.MAX_OPS and W.PruneOperations(c) == 0 then return false end
   c.operations[op.id] = W.Copy(op)
   c.clock = math.max(c.clock or 0, op.clock)
   W.caseCache[c] = nil
@@ -32,6 +45,66 @@ end
 
 local function Later(a, b)
   return not b or a.clock > b.clock or a.clock == b.clock and a.id > b.id
+end
+
+local function Clears(op)
+  local list = {}
+  for author, sequence in pairs(op.clears) do list[#list + 1] = author .. "=" .. sequence end
+  table.sort(list)
+  return table.concat(list, ",")
+end
+
+-- At the cap, decisions that can no longer change a case become history.
+-- Per player identity (name and GUID) these stay: the latest decision, each
+-- author's latest revocation and the latest ban for each set of cleared
+-- revocations that no newer revocation has retired. Another decision goes
+-- once kept ones hold its reviews. Only sequences every author has without
+-- gaps are pruned, and floors keep counting them so sync never asks again.
+function W.PruneOperations(c)
+  local heads, groups, removed = W.Heads(c), {}, 0
+  for _, op in pairs(c.operations) do
+    local key = op.target.key .. "|" .. op.target.guid
+    groups[key] = groups[key] or {}
+    table.insert(groups[key], op)
+  end
+  for _, ops in pairs(groups) do
+    local latest, revokes, bans, keep, reviewed = nil, {}, {}, {}, {}
+    for _, op in ipairs(ops) do
+      if Later(op, latest) then latest = op end
+      if op.kind == "revoke" and (not revokes[op.by] or op.sequence > revokes[op.by].sequence) then revokes[op.by] = op end
+    end
+    for _, op in ipairs(ops) do
+      if op.kind == "ban" then
+        local retired = false
+        for author, revoke in pairs(revokes) do
+          if revoke.sequence > (op.clears[author] or 0) then retired = true; break end
+        end
+        local set = Clears(op)
+        if not retired and Later(op, bans[set]) then bans[set] = op end
+      end
+    end
+    keep[latest] = true
+    for _, op in pairs(revokes) do keep[op] = true end
+    for _, op in pairs(bans) do keep[op] = true end
+    for op in pairs(keep) do
+      for account, revision in pairs(op.reviewed) do reviewed[account] = math.max(reviewed[account] or 0, revision) end
+    end
+    for _, op in ipairs(ops) do
+      if not keep[op] and op.sequence <= (heads[op.by] or 0) then
+        local covered = true
+        for account, revision in pairs(op.reviewed) do
+          if (reviewed[account] or 0) < revision then covered = false; break end
+        end
+        if covered then c.operations[op.id], removed = nil, removed + 1 end
+      end
+    end
+  end
+  if removed > 0 then
+    c.floors = c.floors or {}
+    for author, n in pairs(heads) do c.floors[author] = math.max(c.floors[author] or 0, n) end
+    W.caseCache[c] = nil
+  end
+  return removed
 end
 
 -- Immutable decisions are merged as a set. A ban applies only if it
@@ -127,6 +200,28 @@ function W.FindCase(c, target)
   for _, candidate in pairs(cases) do if W.Same(candidate.target, target) then return candidate end end
 end
 
+-- A decision travels in one packet. One whose packed size exceeds limit
+-- reviews as many reports as fit W.MAX_RECORD; the rest stay pending for a
+-- later decision.
+function W.FitOperation(op, limit)
+  if W.Count(op.reviewed) <= 500 or #ns.Codec.Pack(op) <= limit then return op end
+  local accounts, all = {}, op.reviewed
+  for account in pairs(all) do accounts[#accounts + 1] = account end
+  table.sort(accounts)
+  local function Keep(n)
+    op.reviewed = {}
+    for i = 1, n do op.reviewed[accounts[i]] = all[accounts[i]] end
+  end
+  local low, high = 0, #accounts
+  while low < high do
+    local middle = math.ceil((low + high) / 2)
+    Keep(middle)
+    if #ns.Codec.Pack(op) <= W.MAX_RECORD then low = middle else high = middle - 1 end
+  end
+  Keep(low)
+  return op
+end
+
 function W.Decide(c, target, kind, categories, note)
   if not W.Joined(c) or not c.synced or not W.CanModerate(c) then return nil, ns.Locale:Get("reputation.moderation.only_a_community_moderator_or_guild_officer.51bea4") end
   if not W.ValidTarget(target) then return nil, ns.Locale:Get("highground.coachrecords.select_an_exact_player_identity.d6a825") end
@@ -137,11 +232,12 @@ function W.Decide(c, target, kind, categories, note)
   local row, me, sequence = W.FindCase(c, target), W.Me(), 0
   for _, op in pairs(c.operations) do if op.by == me then sequence = math.max(sequence, op.sequence) end end
   c.sequences = c.sequences or {}
-  sequence = math.max(sequence, c.sequences[me] or 0) + 1
+  sequence = math.max(sequence, c.sequences[me] or 0, c.floors and c.floors[me] or 0) + 1
   local op = { id = me .. ":" .. sequence, by = me, sequence = sequence, clock = (c.clock or 0) + 1,
     at = W.Now(), target = W.Copy(target), kind = kind, categories = categories or {},
     note = note, clears = row and W.Copy(row.revokes) or {}, reviewed = {} }
   if row then for account, r in pairs(row.reports) do op.reviewed[account] = r.revision end end
+  W.FitOperation(op, W.MAX_RECORD)
   if not W.MergeOperation(c, op, me) then return nil, ns.Locale:Get("reputation.moderation.could_not_store_this_decision_the_community.a4f782") end
   c.sequences[me], c.lastSync = sequence, W.Now()
   W.Changed(c)

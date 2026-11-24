@@ -28,10 +28,14 @@ function W.MergeReport(c, r, sender, attested)
     if r.revision <= old.revision then return r.revision == old.revision, "stale" end
   elseif W.Count(c.reports) >= W.MAX_REPORTS then return false, "full" end
   -- Changing characters or inventing another report ID never adds a second
-  -- vote for this account and target. This ID is not Blizzard-verified.
+  -- vote for this account and target. The account ID is not Blizzard-verified,
+  -- so one character also has one vote per target and a bounded share.
+  local mine = 0
   for id, other in pairs(c.reports) do
-    if id ~= r.id and other.account == r.account and W.Same(other.target, r.target) then return false, "duplicate" end
+    if id ~= r.id and (other.account == r.account or other.by == r.by) and W.Same(other.target, r.target) then return false, "duplicate" end
+    if other.by == r.by then mine = mine + 1 end
   end
+  if not old and mine >= W.REPORTS_PER_MEMBER then return false, "full" end
   c.reports[r.id] = W.ReportWire(r)
   W.caseCache[c] = nil
   return true
@@ -62,4 +66,19 @@ function W.ReportsFor(c, target)
   for _, r in pairs(c.reports) do if W.Same(r.target, target) then out[#out + 1] = r end end
   table.sort(out, function(a, b) return a.at == b.at and a.id < b.id or a.at > b.at end)
   return out
+end
+
+-- Reviewed reports become history after REPORT_DAYS and are dropped, so the
+-- store does not fill. Every client applies the same rule to the same
+-- decisions, so moderators' report digests agree again after a sync.
+function W.PruneReports(c)
+  local cutoff, removed = W.Now() - W.REPORT_DAYS * 86400, false
+  for _, row in pairs(W.Cases(c)) do
+    for account, r in pairs(row.reports) do
+      if r.at < cutoff and (row.reviewed[account] or 0) >= r.revision and c.reports[r.id] == r then
+        c.reports[r.id], removed = nil, true
+      end
+    end
+  end
+  if removed then W.Changed(c) end
 end

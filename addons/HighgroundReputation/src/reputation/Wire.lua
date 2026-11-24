@@ -9,10 +9,10 @@ function W.Hash(text, hash)
   return hash
 end
 
+-- The shared rule: WoW Forever reports outgoing messages restricted even
+-- when they send, so only chat lockdown pauses sharing there.
 function W.CanSend()
-  return C_ChatInfo and C_ChatInfo.SendAddonMessage
-    and not U.value(U.call(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted))
-    and not U.value(U.call(C_ChatInfo.InChatMessagingLockdown))
+  return ns.Comms.CanSend() and not ns.Comms.Blocked()
 end
 
 function W.SendRaw(text, channel, target)
@@ -32,12 +32,19 @@ local function Throttled(result)
   return result == Result("AddonMessageThrottle", 3) or result == Result("ChannelThrottle", 8)
     or result == Result("AddOnMessageLockdown", 11)
 end
-W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER = 120, 10, 4
+W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER, W.ACKS_PER_SENDER = 120, 10, 4, 30
+-- 256 parts of 128 bytes. A snapshot record leaves room for its packet.
+W.MAX_PACKET = 32768
+W.MAX_RECORD = W.MAX_PACKET - 2048
+
+local function Pause(now)
+  W.throttles = (W.throttles or 0) + 1
+  W.sendPause = now + math.min(8, 0.4 * 2 ^ (W.throttles - 1))
+end
 
 local function Failed(item, result, now)
   if Throttled(result) then
-    W.throttles = (W.throttles or 0) + 1
-    W.sendPause = now + math.min(8, 0.4 * 2 ^ (W.throttles - 1))
+    Pause(now)
     item.throttled = item.throttled or now
     return now - item.throttled >= W.THROTTLE_LIMIT
   end
@@ -66,7 +73,7 @@ function W.Enqueue(packet, target, priority, key)
   packet = W.Copy(packet)
   packet.version, packet.scope = W.VERSION, W.Scope()
   local ok, text = pcall(ns.Codec.Pack, packet)
-  if not ok or #text > 32768 then return false end
+  if not ok or #text > W.MAX_PACKET then return false end
   if key then
     for i, item in ipairs(W.outbox) do
       if item.key == key and item.target == target then
@@ -187,7 +194,7 @@ function W.ReceiveWire(text, channel, sender)
     if W.Count(W.rates) >= 128 then return end
     rate = { at = now, count = 0 }; W.rates[sender] = rate
   end
-  if now - rate.at >= 30 then rate.at, rate.count = now, 0 end
+  if now - rate.at >= 30 then rate.at, rate.count, rate.acks = now, 0, 0 end
   rate.count = rate.count + 1
   if rate.count > 360 then return end
   ns.Presence.Seen(sender, "reputation")
@@ -221,13 +228,24 @@ function W.ReceiveWire(text, channel, sender)
   end
   if count ~= item.count then return end
   item.at = now
+  -- A large snapshot record takes many chunks; they keep its session alive.
+  for _, session in pairs(W.inbound) do if session.sender == sender then session.at = now end end
   if item.parts[part] and item.parts[part] ~= chunk then W.incoming[key] = nil; return end
   if not item.parts[part] then item.parts[part], item.received = chunk, item.received + 1 end
   if item.received ~= count then return end
   W.incoming[key] = nil
   local packet = ns.Codec.Unpack(table.concat(item.parts))
   if type(packet) ~= "table" or packet.version ~= W.VERSION or packet.scope ~= W.Scope() then return end
-  W.SendRaw("1:A:" .. id, "WHISPER", sender)
+  -- Acknowledgements spend the outbox's budget: only for members of the
+  -- packet's organization, never while the game throttles the prefix, and
+  -- at most ACKS_PER_SENDER per 30 seconds. A missing one means a resend.
+  local O = ns.Organizations
+  if W.OrganizationID(packet.community) and O.IsMember(packet.community) and O.IsMember(packet.community, sender)
+    and not (W.sendPause and now < W.sendPause) and (rate.acks or 0) < W.ACKS_PER_SENDER then
+    rate.acks = (rate.acks or 0) + 1
+    local accepted, result = W.SendRaw("1:A:" .. id, "WHISPER", sender)
+    if not accepted and Throttled(result) then Pause(now) end
+  end
   W.Handle(packet, sender)
 end
 

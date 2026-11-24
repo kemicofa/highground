@@ -1,5 +1,6 @@
 local _, ns = ...
 local W = { VERSION = 1, PREFIX = "HighgroundRep", MAX_OPS = 4000, MAX_REPORTS = 2000, MAX_MEMBERS = 1000,
+  REPORTS_PER_MEMBER = 50, REPORT_DAYS = 180,
   communities = {}, peers = {}, listeners = {}, ready = false }
 ns.Reputation = W
 W.caseCache = setmetatable({}, { __mode = "k" })
@@ -80,11 +81,21 @@ function W.LoadScope()
       c.operations = type(c.operations) == "table" and c.operations or {}
       c.reports = type(c.reports) == "table" and c.reports or {}
       c.sequences = type(c.sequences) == "table" and c.sequences or {}
-      c.clock = W.Int(c.clock, 0, 1000000000) and c.clock or 0
+      c.floors = type(c.floors) == "table" and c.floors or {}
+      for author, n in pairs(c.floors) do
+        if not W.String(author, 200) or not W.Int(n, 1, 1000000000) then c.floors[author] = nil end
+      end
       -- A completed legacy snapshot (or local moderator activation) already
       -- established enablement. A member's old opt-in alone did not.
       c.activated = c.activated == true or c.synced == true
-      for key, op in pairs(c.operations) do if not W.ValidOperation(c, op) then c.operations[key] = nil end end
+      -- An older version accepted any clock: drop impossible ones and take
+      -- the clock from what is left. It also made decisions too large for
+      -- any packet; nobody else can hold those, so they are trimmed here.
+      c.clock = 0
+      for key, op in pairs(c.operations) do
+        if not W.ValidOperation(c, op) or W.ClockAhead(op) then c.operations[key] = nil
+        else c.clock = math.max(c.clock, W.FitOperation(op, W.MAX_PACKET).clock) end
+      end
       for key, report in pairs(c.reports) do if not W.ValidReport(report) then c.reports[key] = nil end end
     end
   end

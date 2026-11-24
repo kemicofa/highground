@@ -217,4 +217,133 @@ test("successful fragments reset transient failures while unreachable peers leav
   equal(#W.outbox, 0, "failures spanning ten seconds release the queue")
 end)
 
+test("a full decision history prunes superseded decisions and sync never asks for them again", function()
+  local owner, member, c, native = pair()
+  local W, M = F.W(owner), F.W(member)
+  native[42].members["Moderator-Realm"].presence = 3 -- decisions are not queued for an absent moderator
+  W.MAX_OPS, M.MAX_OPS = 24, 24
+  local function Name(i) return "Enemy" .. string.char(96 + i) .. "-Realm" end
+  local target = F.target(owner, "Repeat-Realm")
+  for i = 1, 6 do
+    assert(W.Decide(c, target, "ban", { toxic = true }, "Ban " .. i))
+    assert(W.Decide(c, target, "revoke", {}, "Revoke " .. i))
+  end
+  assert(W.Decide(c, target, "ban", { cheating = true }, "Final"))
+  for i = 1, 5 do
+    assert(W.Decide(c, F.target(owner, Name(i)), "dismiss", {}, "Dismissed"))
+    assert(W.Decide(c, F.target(owner, Name(i)), "ban", { toxic = true }, ""))
+  end
+  assert(W.Decide(c, F.target(owner, Name(6)), "revoke", {}, "Never listed"))
+  equal(W.Count(c.operations), W.MAX_OPS, "the history is full")
+  local function States(w, community)
+    local states = {}
+    for _, row in ipairs(w.Rows(community, "history")) do states[row.key] = row.state .. ":" .. (row.active and row.active.id or "") end
+    return states
+  end
+  local before = States(W, c)
+  assert(W.Decide(c, F.target(owner, Name(7)), "ban", { toxic = true }, ""), "a full history still takes decisions")
+  equal(W.Count(c.operations), 9, "superseded bans, revocations and dismissals are pruned")
+  for key, state in pairs(before) do equal(States(W, c)[key], state, key .. " keeps its state") end
+  equal(W.FindCase(c, target).active.note, "Final", "the current ban stays")
+  assert(W.Decide(c, target, "revoke", {}, "Later revocation") and not W.Match(target), "the kept revocations still apply")
+  local mc = F.join(owner, member, c)
+  equal(M.Count(mc.operations), W.Count(c.operations), "a new member gets the kept decisions")
+  for key, state in pairs(States(W, c)) do equal(States(M, mc)[key], state, key .. " agrees after sync") end
+  M.RequestPeer(mc, "Owner-Realm", true)
+  F.pump({ owner, member }, 20)
+  local job = assert(W.served[c.id .. ":Member-Realm"] or W.jobs[c.id .. ":Member-Realm"])
+  equal(#job.records, 0, "the next sync asks for no pruned decision")
+  owner:assertHealthy(); member:assertHealthy()
+end)
+
+test("acknowledgements go only to organization members and stay within the send budget", function()
+  local owner, _, c = pair()
+  local W = F.W(owner)
+  local function Deliver(sender, n)
+    local text = owner.ns.Codec.Pack({ kind = "report_received", community = c.id, id = "x" .. n, revision = 1,
+      version = W.VERSION, scope = W.Scope() })
+    local count = math.ceil(#text / 128)
+    for part = 1, count do
+      owner:event("CHAT_MSG_ADDON", W.PREFIX, table.concat({ "1:D", "m" .. n, part, count, text:sub((part - 1) * 128 + 1, part * 128) }, ":"),
+        "WHISPER", sender, "", 0, 1, "HighgroundReputation")
+    end
+  end
+  local function Acks()
+    local acks = 0
+    for _, packet in ipairs(owner.sent) do if packet.message:find("^1:A:") then acks = acks + 1 end end
+    return acks
+  end
+  Deliver("Stranger-Realm", 1)
+  equal(Acks(), 0, "no acknowledgement for a nonmember")
+  Deliver("Member-Realm", 2)
+  equal(Acks(), 1, "a member's packet is acknowledged")
+  for n = 3, 60 do Deliver("Member-Realm", n) end
+  equal(Acks(), W.ACKS_PER_SENDER, "acknowledgements per sender are capped")
+  owner.now = owner.now + 31
+  W.sendPause = owner.now + 5
+  Deliver("Member-Realm", 61)
+  equal(Acks(), W.ACKS_PER_SENDER, "none while the game throttles the prefix")
+  W.sendPause = nil
+  Deliver("Member-Realm", 62)
+  equal(Acks(), W.ACKS_PER_SENDER + 1, "the budget refills")
+  owner:assertHealthy()
+end)
+
+test("a native role event cancels only its own organization's transfers", function()
+  local native = F.native("Owner")
+  native[43] = { name = "Second community", members = {} }
+  for name, info in pairs(native[42].members) do
+    native[43].members[name] = { name = info.name, role = info.role, memberId = info.memberId, presence = info.presence }
+  end
+  local owner = F.new("Owner", { native = native })
+  local W = F.W(owner)
+  for _, id in ipairs({ "club:42", "club:43" }) do
+    assert(W.Enable(id))
+    W.requests[id .. ":Moderator-Realm"] = { id = "r." .. id, at = owner.now, state = "requested" }
+    W.jobs[id .. ":Member-Realm"] = { community = id, target = "Member-Realm", records = {}, queue = {}, index = 0 }
+    W.inbound[id] = { id = "t." .. id, sender = "Moderator-Realm", records = {}, received = 0, at = owner.now }
+  end
+  assert(W.Enqueue({ kind = "query", community = "club:42", request = "q42", heads = {} }, "Moderator-Realm", true, "query:club:42"))
+  assert(W.Enqueue({ kind = "query", community = "club:43", request = "q43", heads = {} }, "Moderator-Realm", true, "query:club:43"))
+  owner:event("CLUB_MEMBER_ROLE_UPDATED", 43, 3, 4)
+  assert(W.requests["club:42:Moderator-Realm"] and W.jobs["club:42:Member-Realm"] and W.inbound["club:42"], "the other organization keeps its transfers")
+  equal(W.requests["club:43:Moderator-Realm"], nil, "its own requests are cancelled")
+  equal(W.jobs["club:43:Member-Realm"], nil, "its own snapshots are cancelled")
+  equal(W.inbound["club:43"], nil, "its own receive session is cancelled")
+  local kept
+  for _, item in ipairs(W.outbox) do
+    equal(item.packet.community, "club:42", "only its own queued packets leave")
+    kept = kept or item.packet.request == "q42"
+  end
+  assert(kept, "the other organization's query stays queued")
+  owner:assertHealthy()
+end)
+
+test("an impossible decision clock is refused and later decisions stay valid", function()
+  local native = F.native("Owner")
+  local owner, moderator = F.new("Owner", { native = native }), F.new("Moderator", { native = native })
+  local W, R, c = F.W(owner), F.W(moderator), F.community(owner)
+  local rc = F.join(owner, moderator, c)
+  local op = assert(R.Decide(rc, F.target(moderator, "Victim-Realm"), "ban", { toxic = true }, ""))
+  local forged = R.Copy(op)
+  forged.sequence, forged.clock = op.sequence + 1, 1000000000
+  forged.id, forged.target = op.by .. ":" .. forged.sequence, F.target(moderator, "Other-Realm")
+  W.Handle({ kind = "operation", community = c.id, operation = forged }, "Moderator-Realm")
+  equal(c.operations[forged.id], nil, "a direct operation with a huge clock is refused")
+  -- An older version stored it and shares it in snapshots.
+  rc.operations[forged.id], rc.clock = forged, forged.clock
+  W.RequestPeer(c, "Moderator-Realm", true)
+  F.pump({ owner, moderator }, 30)
+  assert(c.operations[op.id], "the rest of the snapshot applies")
+  equal(c.operations[forged.id], nil, "the snapshot's impossible clock is skipped")
+  assert(W.Decide(c, F.target(owner, "Next-Realm"), "ban", { toxic = true }, ""), "later decisions still store")
+  local reloaded = F.new("Moderator", { native = native, database = R.Copy(R.db) })
+  local L = F.W(reloaded)
+  local lc = L.Get(c.id)
+  equal(lc.operations[forged.id], nil, "a saved impossible clock is dropped on load")
+  equal(lc.clock, op.clock, "the clock comes from the remaining decisions")
+  assert(L.Decide(lc, F.target(reloaded, "Later-Realm"), "ban", { toxic = true }, ""), "decisions work again after reload")
+  owner:assertHealthy(); moderator:assertHealthy()
+end)
+
 t.finish("Reputation native sync: " .. t.tests .. " scenarios")

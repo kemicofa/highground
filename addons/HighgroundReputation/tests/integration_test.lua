@@ -109,4 +109,39 @@ for _, addon in ipairs({ "Highground", "HighgroundReputation" }) do
   end)
 end
 
+test("preference controls after a load error change nothing and raise no error", function()
+  local saved = { version = 99, settings = { filter = true } }
+  local s = F.new("Owner", { addon = "Highground", runtime = bg, database = saved })
+  local W = F.W(s)
+  assert(W.loadError and not W.ready, "newer saved data is not loaded")
+  s.ns.Hub.Open("reputation-settings")
+  local controls = s.ns.Options.byKey["reputation-settings"].preferences
+  controls.toggles.filter.scripts.OnClick(controls.toggles.filter)
+  controls.replyText:SetText("Changed")
+  controls.replyText.scripts.OnTextChanged(controls.replyText)
+  equal(saved.settings.filter, true, "saved data is untouched")
+  s:assertHealthy()
+end)
+
+test("WoW Forever shares while the game reports outgoing messages restricted", function()
+  local native = F.native("Owner Bright")
+  native[42].members["Member-Realm"] = nil
+  native[42].members["Moderator-Realm"] = nil
+  native[42].members["Member Bright-Realm"] = { name = "Member Bright-Realm", memberId = 10, role = 4, presence = 1 }
+  local owner = F.new("Owner Bright", { build = 16001, native = native })
+  local member = F.new("Member Bright", { build = 16001, native = native })
+  owner.addonLocked, member.addonLocked = true, true
+  local W, M, c = F.W(owner), F.W(member), F.community(owner)
+  assert(W.Decide(c, F.target(owner, "Enemy Bright-Realm"), "ban", { toxic = true }, "Public reason"))
+  local mc = F.join(owner, member, c)
+  assert(M.Match(F.target(member, "Enemy Bright-Realm")), "snapshot arrives despite the advisory flag")
+  local r = assert(M.Submit(mc, F.target(member, "Other Bright-Realm"), { toxic = true }, "Advisory"))
+  F.pump({ owner, member }, 45)
+  assert(c.reports[r.id] and not M.db.pending[r.id], "report delivered and acknowledged")
+  equal(M.Availability(mc.id).code, "ready", "the advisory flag does not show sharing as paused")
+  member.chatLocked = true
+  equal(M.Availability(mc.id).code, "restricted", "chat lockdown still pauses sharing")
+  assert(M.Status(mc):find("paused by the game", 1, true))
+end)
+
 t.finish("Reputation integration: " .. t.tests .. " scenarios")

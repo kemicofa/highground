@@ -8,19 +8,28 @@ local W = ns.Reputation
 W.jobs, W.served, W.requests, W.inbound = {}, {}, {}, {}
 W.SERVE_FOR, W.RESEND_AFTER, W.RESEND_LIMIT, W.RESEND_BATCH = 120, 10, 3, 48
 
+-- Floors: per author, every sequence up to it is held or was pruned.
 function W.Heads(c)
-  local sequences, heads = {}, {}
+  local sequences, floors = {}, c.floors or {}
+  local heads = W.Copy(floors)
   for _, op in pairs(c.operations) do
     sequences[op.by] = sequences[op.by] or {}
     sequences[op.by][op.sequence] = true
   end
   for author, values in pairs(sequences) do
-    local n = 0
+    local n = floors[author] or 0
     while values[n + 1] do n = n + 1 end
     heads[author] = n -- a high sequence never hides earlier missing records
   end
   return heads
 end
+
+local function ValidFloors(floors)
+  if type(floors) ~= "table" or W.Count(floors) > 100 then return false end
+  for author, n in pairs(floors) do if not W.String(author, 200) or not W.Int(n, 1, 1000000000) then return false end end
+  return true
+end
+W.ValidFloors = ValidFloors
 
 function W.Digest(c)
   local reports = {}
@@ -47,16 +56,29 @@ function W.StartSnapshot(c, target, request, heads, reportDigest)
   local key = c.id .. ":" .. target
   W.served[key] = nil
   if not W.jobs[key] and W.Count(W.jobs) >= 8 then return end
-  local hash = 5381
-  for _, record in ipairs(records) do hash = W.Hash(ns.Codec.Pack(record), hash) end
-  W.jobs[key] = { community = c.id, target = target, request = request, id = W.NewID(), records = records,
-    hash = hash, index = 0, queue = {}, targetRole = W.Role(c, target) }
+  local job = { community = c.id, target = target, request = request, id = W.NewID(), records = records,
+    index = 0, queue = {}, targetRole = W.Role(c, target), skipped = 0 }
+  -- A record no packet can carry would stall the transfer: leave it out
+  -- and count it. The rest of its packet is the same for every record.
+  local envelope = #ns.Codec.Pack({ community = c.id, transfer = job.id, request = request, kind = "record",
+    index = #records, record = false, version = W.VERSION, scope = W.Scope() })
+  local hash, kept = 5381, {}
+  for _, record in ipairs(records) do
+    local text = ns.Codec.Pack(record)
+    if envelope + #text > W.MAX_PACKET then job.skipped = job.skipped + 1
+    else kept[#kept + 1], hash = record, W.Hash(text, hash) end
+  end
+  job.records, job.hash = kept, hash
+  -- The sender's floors spare the receiver asking for pruned sequences,
+  -- unless a record was left out.
+  if job.skipped == 0 and next(c.floors or {}) and ValidFloors(c.floors) then job.floors = W.Copy(c.floors) end
+  W.jobs[key] = job
 end
 
 -- Packet i of a transfer: 0 begins, 1..n are records, n + 1 ends.
 local function Packet(job, i)
   local packet = { community = job.community, transfer = job.id, request = job.request }
-  if i == 0 then packet.kind, packet.count = "begin", #job.records
+  if i == 0 then packet.kind, packet.count, packet.floors = "begin", #job.records, job.floors
   elseif i <= #job.records then packet.kind, packet.index, packet.record = "record", i, job.records[i]
   else packet.kind, packet.hash = "end", job.hash end
   return packet
@@ -73,10 +95,11 @@ function W.PumpSnapshots()
     local job = W.jobs[key]
     local c = W.Get(job.community)
     if not W.Joined(c) or not W.CanModerate(c) or not ns.Organizations.IsMember(c.id, job.target) or job.targetRole ~= W.Role(c, job.target) then W.jobs[key] = nil; return end
-    -- Requested resends first, then the next packet in order.
+    -- Requested resends first, then the next packet in order. The next tick
+    -- serves the next job even when this one cannot send now.
     local resend = job.queue[1]
+    W.jobCursor = index
     if W.Enqueue(Packet(job, resend or job.index), job.target) then
-      W.jobCursor = index
       if resend then table.remove(job.queue, 1) else job.index = job.index + 1 end
       if not job.queue[1] and job.index > #job.records + 1 then
         W.jobs[key], W.served[key], job.done = nil, job, GetTime()
@@ -126,12 +149,17 @@ local function Commit(c, incoming)
   if not W.CanModerate(c, incoming.sender) then return Fail(c, incoming) end
   local hash = 5381
   local candidate = { id = c.id, scope = c.scope, enabled = c.enabled, activated = true, operations = W.Copy(c.operations),
-    reports = W.Copy(c.reports), clock = c.clock }
+    reports = W.Copy(c.reports), clock = c.clock, floors = W.Copy(c.floors or {}) }
   for i = 1, incoming.count do
     local record = incoming.records[i]
     hash = W.Hash(ns.Codec.Pack(record), hash)
     local ok, reason = false, nil
-    if record.type == "op" then ok = W.MergeOperation(candidate, record.value, incoming.sender, true)
+    if record.type == "op" then
+      -- An impossible clock (an older version may have accepted it) or
+      -- another copy of a held ID skips that operation and keeps the local
+      -- one; the rest of the snapshot still applies.
+      ok, reason = W.MergeOperation(candidate, record.value, incoming.sender, true)
+      ok = ok or reason == "clock" or reason == "conflict"
     elseif record.type == "report" and ns.Organizations.CanModerate(c.id) then
       -- A valid report already held at a newer revision, a full store or a
       -- second report for the same account and player keeps the local copy;
@@ -142,7 +170,16 @@ local function Commit(c, incoming)
     if not ok then return Fail(c, incoming, ns.Locale:Get("reputation.snapshots.rejected_an_invalid_community_update.f4985a")) end
   end
   if hash ~= incoming.hash then return Fail(c, incoming) end
-  c.operations, c.reports, c.clock = candidate.operations, candidate.reports, candidate.clock
+  -- Adopt the sender's floors, never above an author's highest held sequence.
+  if incoming.floors then
+    local highest = {}
+    for _, op in pairs(candidate.operations) do highest[op.by] = math.max(highest[op.by] or 0, op.sequence) end
+    for author, n in pairs(incoming.floors) do
+      n = math.min(n, highest[author] or 0)
+      if n > (candidate.floors[author] or 0) then candidate.floors[author] = n end
+    end
+  end
+  c.operations, c.reports, c.clock, c.floors = candidate.operations, candidate.reports, candidate.clock, candidate.floors
   c.activated, c.synced, c.lastSync = true, true, W.Now()
   local request = W.requests[c.id .. ":" .. incoming.sender]
   if request and request.id == incoming.request then request.completed, request.state = true, "complete" end
@@ -174,6 +211,7 @@ function W.ReceiveSnapshot(c, packet, sender)
     for index in pairs(incoming.records) do if index > packet.count then return Fail(c, incoming) end end
     if not incoming.count then incoming.asks = 0 end
     incoming.count = packet.count
+    if ValidFloors(packet.floors) then incoming.floors = packet.floors end
   elseif packet.kind == "record" then
     if not W.Int(packet.index, 1, incoming.count or (W.MAX_OPS + W.MAX_REPORTS)) or type(packet.record) ~= "table" then return end
     local text = ns.Codec.Pack(packet.record)

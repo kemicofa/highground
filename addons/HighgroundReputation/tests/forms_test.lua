@@ -201,6 +201,38 @@ test("Forever numeric realm suffixes accept the screenshot's full name through b
   end
 end)
 
+test("WoW Forever without realm names uses the ruleset identity for typed and seen players", function()
+  for _, rule in ipairs({ "PvP", "RP-PvP" }) do
+    local s = F.new("Owner Bright", { build = 16001, ruleset = rule, configure = function(sim, e)
+      e.GetNormalizedRealmName = function() return "" end
+      sim.units.player.realm, sim.regionalNames = "", true
+      sim.native[42].members["Owner Bright-Realm"].name = "Owner Bright"
+    end })
+    local W, C, c = F.W(s), s.ns.Core, F.community(s)
+    equal(W.Me(), "Owner Bright-" .. rule, "own identity carries the ruleset suffix")
+    local target = assert(W.Target("Efa Arianwen"))
+    equal(target.name, C.Canon("Efa Arianwen"), "typed name resolves like Core.Canon")
+    W.Command("report Efa Arianwen")
+    local f = W.UI.report
+    assert(f:IsShown(), "/hgrep report accepts a name without a realm")
+    equal(f.name:GetText(), "Efa Arianwen", "no realm shown")
+    f.categories.toxic:SetChecked(true); f.note:SetText("Explanation")
+    F.click(s, f.submit)
+    assert(not f:IsShown(), "the form saves the name: " .. f.status:GetText())
+    equal(assert(W.FindCase(c, target)).active.target.name, target.name, "stored with the ruleset suffix")
+    s.units.target = { name = "Efa Arianwen", guid = "Player-9-Efa" }
+    local seen = assert(W.Unit("target"))
+    equal(seen.name, C.CanonUnit("target"), "a seen unit matches the typed identity")
+    assert(W.Match(seen), "the blacklist matches the player in view")
+    assert(W.ChatFilter(nil, "CHAT_MSG_SAY", unpack(F.chat("Efa Arianwen"))), "chat from the player is hidden")
+    s.env.C_GameRules = nil
+    local none, err = W.Target("Efa Arianwen")
+    equal(none, nil, "no identity while the ruleset is unreadable")
+    assert(not err:lower():find("realm", 1, true), "never asks for a realm: " .. err)
+    s:assertHealthy()
+  end
+end)
+
 test("moderation history names each decision instead of its internal kind", function()
   local s = F.new("Owner")
   local W, c = F.W(s), F.community(s)

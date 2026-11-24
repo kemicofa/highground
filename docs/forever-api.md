@@ -56,6 +56,10 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 
 Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old global `GetBattlefieldFlagPosition` no longer exists, while `GetNumBattlefieldFlagPositions` does. In Warsong Gulch, with both flags carried, the count read 2: your team's carrier had a readable position (`0.50, 0.14`), the enemy carrier had `nil` even when targeted 30 yards away. Textures are file IDs: 137200 is the Alliance flag, 137218 the Horde flag.
 
+### Enemy's target
+
+With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` returns true and `UnitName` returns the name of the player the enemy targets, your own or a teammate's, neither secret. `UnitIsUnit("targettarget", "player")` is secret (true when the enemy targets you, false otherwise). To tell who an enemy targets, compare names with yours and your group's. Read live in Arathi Basin, build 71037, 2026-11-24.
+
 ## Teammate reads
 
 - `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
@@ -78,12 +82,6 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 ## Leads to try
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.
-
-**Enemy's target.** If readable, Highground could alert "targeting you" or "on our healer" on WoW Forever.
-
-```
-/run local a=UnitIsUnit("targettarget","player") local n=UnitName("targettarget") print("ToT",n,issecretvalue(n),"me",a,issecretvalue(a))
-```
 
 **Interaction distance.** `CheckInteractDistance(unit, 1-5)` gives fixed distance bands (about 10, 11 and 28 yards). Readable bands would refine range when spells don't cover them.
 

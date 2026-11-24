@@ -267,18 +267,26 @@ t.test("chat names match coloured, short and Forever first names but never an am
   equal(Core.EnemyByChatName(nil), nil, "no name")
 end)
 
-t.test("objective text without a clock uses the clock's room", function()
+t.test("row text uses the room its clock leaves", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   local T = sim.ns.Timers
-  local _, w = T.Windows()
-  local text, c = "Alliance needs 3 bases", T.TeamColor("A")
-  T.ShowRows(w, { T.Tag({ text = text, time = "", color = c }, "NEED"), T.Tag({ text = text, time = "1:00", color = c }, "WIN") })
-  local wide, clocked = w.rows[1].place:GetWidth(), w.rows[2].place:GetWidth()
-  assert(wide > clocked + 60, "no clock, wider text: " .. wide .. " vs " .. clocked)
-  T.LayoutWindow(w)
-  equal(w.rows[1].place:GetWidth(), wide, "a relayout keeps the room")
-  T.ShowRows(w, { T.Tag({ text = text, time = "0:30", color = c }, "NEED") })
-  equal(w.rows[1].place:GetWidth(), clocked, "a clock takes it back")
+  local res = T.Windows()
+  local name, c = "Alliance Base Graveyard", T.TeamColor("A")
+  local function show(...)
+    local rows = {}
+    for i, time in ipairs({ ... }) do rows[i] = T.Tag({ text = name, time = time, color = c, team = "A" }, "OURS") end
+    T.ShowRows(res, rows)
+    return res.rows[1].place, res.rows[2] and res.rows[2].place
+  end
+  local short, none = show("25s", "")
+  assert(short:GetWidth() >= short:GetStringWidth(), "a Warsong Gulch graveyard fits beside 25s: " .. short:GetWidth())
+  local shortWidth = short:GetWidth()
+  assert(none:GetWidth() > shortWidth, "no clock: the whole row")
+  local long = show("~1:25")
+  assert(long:GetWidth() < shortWidth, "a longer clock takes more room")
+  T.LayoutWindow(res)
+  local again = show("25s")
+  equal(again:GetWidth(), shortWidth, "a relayout keeps the fit")
 end)
 
 t.finish("Battleground objectives: " .. t.tests .. " tests")

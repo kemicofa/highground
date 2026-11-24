@@ -261,7 +261,6 @@ function Timers.LayoutRow(w, r, i)
     r.tag:SetWidth(44)
     Timers.Font(r.time, "timerSmall")
     r.time:SetPoint("RIGHT", -5, 0)
-    r.time:SetWidth(50)
     Timers.Font(r.place, "detail")
     r.place:SetPoint("LEFT", r.tag, "RIGHT", 2, 0)
   else
@@ -272,13 +271,12 @@ function Timers.LayoutRow(w, r, i)
     r.tag:SetWidth(76)
     Timers.Font(r.time, "timer")
     r.time:SetPoint("RIGHT", -7, 1)
-    r.time:SetWidth(65)
     Timers.Font(r.place, "rowNameSmall")
     r.place:SetPoint("TOPLEFT", 33, -3)
   end
-  -- Text stops at the clock; a row without one (r.wide) uses its room.
-  if r.wide then r.place:SetPoint("RIGHT", compact and -5 or -7, compact and 0 or 1)
-  else r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0) end
+  -- The clock has no set width: it fits its text, and the place text
+  -- runs up to it (a row without a clock uses the whole row).
+  r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
 end
 
 function Timers.RowFrame(w, i)
@@ -372,9 +370,7 @@ function Timers.ShowRows(w, rows, info)
     end
     r.bar:SetValue(frac or 0)
     Timers.BarColor(r.bar, c, row.est and BAR_EST or BAR_LIVE)
-    local clock = row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--"
-    r.time:SetText(clock)
-    if (clock == "") ~= r.wide then r.wide = clock == ""; Timers.LayoutRow(w, r, i) end
+    r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--")
     local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
     r.edge:SetColor(urgent and "warning" or "border")
     r.glow:SetActive(urgent, urgent)

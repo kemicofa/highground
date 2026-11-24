@@ -292,6 +292,22 @@ test(client .. " reselecting a guide chapter preserves feature and hub history",
   sim:assertHealthy()
 end)
 
+test(client .. " closing the hub also clears the guide chapters from its history", function()
+  local sim = setup()
+  local Hub, guide = sim.ns.Hub, sim.ns.Onboarding
+  assert(Hub.Open("home")); assert(Hub.Open("addons"))
+  assert(guide.Go("macros")); assert(guide.Go("bounties"))
+  assert(Hub.win.back:IsEnabled())
+  Hub.win:Hide(); assert(Hub.Open("addons"))
+  equal(guide.Current().key, "bounties", "the guide reopens at its chapter")
+  history(guide.GetRouter(), "bounties", 1)
+  history(Hub.GetRouter(), "addons", 1)
+  assert(not Hub.win.back:IsEnabled(), "a new visit has no Back")
+  assert(guide.Go("macros")); click(Hub.win.back)
+  equal(guide.Current().key, "bounties", "Back stays within this visit")
+  sim:assertHealthy()
+end)
+
 test(client .. " addon settings participate in hub history and guards", function()
   local sim = setup()
   local Hub, bg = sim.ns.Hub, sim.ns.Options.featurePages.battlegrounds

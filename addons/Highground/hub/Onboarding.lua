@@ -249,7 +249,14 @@ function O.Open(embedded)
   if ns.Setup.placement then ns.Setup.EndPlacement(false) end
   local w = O.Build()
   Kit.AttachNavigation(w, O.GetRouter())
-  O.GetRouter():Navigate(state.current, { refresh = true })
+  -- Closing the Highground window ends its visit (hub/Hub.lua): its Addons
+  -- page starts again without the last visit's chapters in Back/Forward.
+  if O.inHub and O.visit ~= ns.Hub.visit then
+    O.visit = ns.Hub.visit
+    O.GetRouter():Reset(state.current)
+  else
+    O.GetRouter():Navigate(state.current, { refresh = true })
+  end
   w:Refresh()
   if not embedded then Kit.Windows.Show(w, function() ns.Hub.Release(w) end) end
   return w

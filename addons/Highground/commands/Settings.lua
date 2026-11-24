@@ -278,7 +278,9 @@ end
 
 function Commands.nearby(arg, msg, say)
   local verb = arg:match("^(%S+)")
-  if verb == "track" or verb == "untrack" then
+  if arg == "guide" then
+    return ns.Commands.guide("nearby")
+  elseif verb == "track" or verb == "untrack" then
     return Track(verb, msg:match("^%S+%s+%S+%s+(.-)%s*$"), say)
   elseif arg == "tracked" then
     return Tracked(say)

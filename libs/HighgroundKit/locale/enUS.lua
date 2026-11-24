@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("enUS", {
   ["nearby.commands.share_label"] = "Group sharing switch",
   ["nearby.commands.guild"] = "Also share nearby enemies with your guild and list theirs.",
   ["nearby.commands.guild_label"] = "Guild sharing switch",
+  ["nearby.commands.guide"] = "Start or resume the Nearby walkthrough: sightings, sharing, marks, tracking and the journal, with sample data.",
+  ["nearby.commands.guide_label"] = "Start Nearby guide",
   ["nearby.world.seen_by_world"] = "Reported by {name}",
   ["nearby.world.everyone_desc"] = "Share coarse sightings with every Highground user of your faction on this realm and see theirs from your zone: a map square about 5% wide, never where you stood. Everyone in the channel sees what you report.",
   ["nearby.world.status_everyone"] = "with everyone {everyone}",

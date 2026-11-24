@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("esES", {
   ["nearby.commands.share_label"] = "Interruptor de compartir con el grupo",
   ["nearby.commands.guild"] = "Comparte también los enemigos cercanos con tu hermandad y muestra los suyos.",
   ["nearby.commands.guild_label"] = "Interruptor de compartir con la hermandad",
+  ["nearby.commands.guide"] = "Inicia o reanuda la guía de Nearby: avistamientos, compartir, marcas, rastreo y el diario, con datos de ejemplo.",
+  ["nearby.commands.guide_label"] = "Iniciar guía de Nearby",
   ["nearby.world.seen_by_world"] = "Informado por {name}",
   ["nearby.world.everyone_desc"] = "Comparte avistamientos aproximados con todos los usuarios de Highground de tu facción en este reino y ve los suyos de tu zona: un cuadro del mapa de un 5 %, nunca donde estabas. Todos en el canal ven lo que informas.",
   ["nearby.world.status_everyone"] = "con todos {everyone}",

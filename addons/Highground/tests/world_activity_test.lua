@@ -138,4 +138,24 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
+for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
+  test(case[2] .. ": /hg nearby guide starts the Nearby walkthrough and every step opens", function()
+    local sim = setup(case[1], case[2])
+    sim:event("PLAYER_LOGIN"); sim:advance(1)
+    local C = sim.ns.Onboarding.Coach
+    sim:command("nearby guide")
+    assert(C.running, "the walkthrough runs")
+    equal(C.steps[1].id, "nearby")
+    local seen = {}
+    for i, step in ipairs(C.steps) do
+      C.Go(i); sim:advance(0.3)
+      equal(C.steps[C.index].id, step.id, "step " .. step.id .. " opens")
+      seen[step.id] = true
+    end
+    for _, id in ipairs({ "shared", "fights", "marks", "activity", "track" }) do assert(seen[id], "has the " .. id .. " step") end
+    sim.ns.Onboarding.Return()
+    sim:assertHealthy()
+  end)
+end
+
 t.finish("World activity: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

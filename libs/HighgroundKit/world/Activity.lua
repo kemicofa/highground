@@ -116,7 +116,7 @@ end
 function A.Build(provider)
   local owner = provider or A
   if owner.win then return owner.win end
-  owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "WorldActivity" .. (provider and "Sample" or ""), {
+  owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "WorldActivity" .. (provider and (provider.suffix or "Sample") or ""), {
     title = ns.Locale:Get("activity.title"), hint = ns.Locale:Get("activity.hint"),
     width = 760, height = 560, listRatio = 0.4, rowHeight = 52,
     data = provider and provider.entries or A.Entries, empty = ns.Locale:Get("activity.empty"),
@@ -150,7 +150,7 @@ end
 
 -- `/hg nearby test`: the sample zones in their own window. It closes when
 -- the Nearby preview stops, however it stops (command, placement, combat).
-local preview = { entries = function() return A.Samples() end }
+local preview = { suffix = "Preview", entries = function() return A.Samples() end }
 function A.Preview(on)
   if not on then
     if preview.win and preview.win:IsShown() then preview.win:Hide() end

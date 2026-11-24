@@ -4832,6 +4832,8 @@ assert(ns.Locale:Register("ruRU", {
   ["nearby.commands.share_label"] = "Переключатель обмена с группой",
   ["nearby.commands.guild"] = "Также делится ближайшими врагами с гильдией и показывает её врагов.",
   ["nearby.commands.guild_label"] = "Переключатель обмена с гильдией",
+  ["nearby.commands.guide"] = "Запускает или продолжает руководство Nearby: наблюдения, обмен, отметки, отслеживание и журнал на примерах.",
+  ["nearby.commands.guide_label"] = "Открыть руководство Nearby",
   ["nearby.world.seen_by_world"] = "Сообщил(а) {name}",
   ["nearby.world.everyone_desc"] = "Делиться примерными наблюдениями со всеми пользователями Highground вашей фракции в этом мире и видеть их наблюдения в вашей зоне: квадрат карты около 5%, но не ваше местоположение. Все в канале видят ваши сообщения.",
   ["nearby.world.status_everyone"] = "со всеми {everyone}",

@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("zhCN", {
   ["nearby.commands.share_label"] = "队伍分享开关",
   ["nearby.commands.guild"] = "也与公会分享附近敌人，并列出他们看到的敌人。",
   ["nearby.commands.guild_label"] = "公会分享开关",
+  ["nearby.commands.guide"] = "开始或继续 Nearby 指南：目击、分享、标记、追踪和日志，使用示例数据。",
+  ["nearby.commands.guide_label"] = "开始 Nearby 指南",
   ["nearby.world.seen_by_world"] = "{name} 报告",
   ["nearby.world.everyone_desc"] = "与本服务器你所在阵营的所有 Highground 用户分享大致目击，并查看他们在你所在区域的目击：只发送约占地图 5% 的方格，绝不发送你所在的位置。频道里的所有人都能看到你报告的内容。",
   ["nearby.world.status_everyone"] = "与所有人 {everyone}",

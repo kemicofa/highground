@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("deDE", {
   ["nearby.commands.share_label"] = "Schalter für Gruppenteilen",
   ["nearby.commands.guild"] = "Teilt Feinde in der Nähe auch mit deiner Gilde und listet deren auf.",
   ["nearby.commands.guild_label"] = "Schalter für Gildenteilen",
+  ["nearby.commands.guide"] = "Startet oder setzt die Nearby-Anleitung fort: Sichtungen, Teilen, Markierungen, Verfolgen und das Journal, mit Beispieldaten.",
+  ["nearby.commands.guide_label"] = "Nearby-Anleitung starten",
   ["nearby.world.seen_by_world"] = "Gemeldet von {name}",
   ["nearby.world.everyone_desc"] = "Grobe Sichtungen mit allen Highground-Nutzern deiner Fraktion auf diesem Realm teilen und ihre aus deiner Zone sehen: ein Kartenquadrat von etwa 5 %, nie wo du standest. Alle im Kanal sehen, was du meldest.",
   ["nearby.world.status_everyone"] = "mit allen {everyone}",

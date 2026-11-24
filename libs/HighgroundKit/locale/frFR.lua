@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("frFR", {
   ["nearby.commands.share_label"] = "Interrupteur du partage de groupe",
   ["nearby.commands.guild"] = "Partage aussi les ennemis à proximité avec votre guilde et liste les leurs.",
   ["nearby.commands.guild_label"] = "Interrupteur du partage de guilde",
+  ["nearby.commands.guide"] = "Lance ou reprend le guide de Nearby : repérages, partage, marques, suivi et journal, avec des données d'exemple.",
+  ["nearby.commands.guide_label"] = "Lancer le guide de Nearby",
   ["nearby.world.seen_by_world"] = "Signalé par {name}",
   ["nearby.world.everyone_desc"] = "Partager des repérages approximatifs avec tous les utilisateurs de Highground de votre faction sur ce royaume et voir les leurs dans votre zone : un carré de carte d'environ 5 %, jamais votre position. Tout le canal voit ce que vous signalez.",
   ["nearby.world.status_everyone"] = "avec tous {everyone}",

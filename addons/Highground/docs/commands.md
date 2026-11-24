@@ -158,6 +158,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby marks world on` · `/hg nearby marks world off` | Share map marks with every Highground user of your faction on this realm. | Marks with everyone switch → `nearby` |
 | `/hg nearby calls on` · `/hg nearby calls off` | Turn World PvP calls on or off: known gankers, enemy raids and others' map marks. | World PvP calls switch → `nearby` |
 | `/hg nearby fights on` · `/hg nearby fights off` | Run the kill order in open-world group fights, or stop. | World fights switch → `nearby` |
+| `/hg guide nearby` · `/hg nearby guide` · `/hg checklist nearby` | Start or resume the Nearby walkthrough: sightings, sharing, marks, tracking and the journal, with sample data. | Start Nearby guide |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |

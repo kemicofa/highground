@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("itIT", {
   ["nearby.commands.share_label"] = "Interruttore della condivisione con il gruppo",
   ["nearby.commands.guild"] = "Condivide i nemici vicini anche con la gilda ed elenca i loro.",
   ["nearby.commands.guild_label"] = "Interruttore della condivisione con la gilda",
+  ["nearby.commands.guide"] = "Avvia o riprende la guida di Nearby: avvistamenti, condivisione, segni, tracciamento e diario, con dati di esempio.",
+  ["nearby.commands.guide_label"] = "Avvia la guida di Nearby",
   ["nearby.world.seen_by_world"] = "Segnalato da {name}",
   ["nearby.world.everyone_desc"] = "Condividi avvistamenti approssimativi con tutti gli utenti di Highground della tua fazione in questo reame e vedi i loro nella tua zona: un quadrato della mappa di circa il 5%, mai dove ti trovavi. Tutti nel canale vedono ciò che segnali.",
   ["nearby.world.status_everyone"] = "con tutti {everyone}",

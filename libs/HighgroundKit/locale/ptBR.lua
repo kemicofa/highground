@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("ptBR", {
   ["nearby.commands.share_label"] = "Chave de compartilhamento com o grupo",
   ["nearby.commands.guild"] = "Compartilha também os inimigos próximos com sua guilda e lista os dela.",
   ["nearby.commands.guild_label"] = "Chave de compartilhamento com a guilda",
+  ["nearby.commands.guide"] = "Inicia ou retoma o guia do Nearby: avistamentos, compartilhamento, marcas, rastreamento e diário, com dados de exemplo.",
+  ["nearby.commands.guide_label"] = "Iniciar guia do Nearby",
   ["nearby.world.seen_by_world"] = "Informado por {name}",
   ["nearby.world.everyone_desc"] = "Compartilhe avistamentos aproximados com todos os usuários do Highground da sua facção neste reino e veja os deles na sua zona: um quadrado do mapa de cerca de 5%, nunca onde você estava. Todos no canal veem o que você informa.",
   ["nearby.world.status_everyone"] = "com todos {everyone}",

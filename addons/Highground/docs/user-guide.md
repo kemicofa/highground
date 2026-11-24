@@ -104,6 +104,8 @@ Some elements depend on your client, current observations and Appearance switche
 | Gold outline and coin | An active bounty on this enemy, when bounty markers are enabled. |
 | Dimmed row | Dead enemies are strongly dimmed; defensive protection, immunity or preserved crowd control also dims content. An enemy lost while its combat click is frozen is faded further. |
 
+In the normal layout, the health bar shares its lower line with range and priority. Those two columns reserve only enough room for their labels, keeping more width for health without making rows taller. Every row uses the same health-track width, including when its priority label is empty.
+
 The **status chip** shows one state at a time, in this precedence order:
 
 | Status | Meaning |

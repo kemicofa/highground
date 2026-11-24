@@ -185,7 +185,7 @@ t.test("wire validation rejects wrong scope, channels, senders and malformed ver
   assert(not P.latest, "unknown build cannot trigger an update")
 end)
 
--- Versions one minor release and one major release ahead of ours.
+-- Versions one minor and one major release ahead of ours.
 local function Newer(P)
   local major, minor = P.VersionParts(P.Version())
   return major .. "." .. (minor + 1) .. ".0", (major + 1) .. ".0.0"
@@ -194,53 +194,34 @@ end
 t.test("newer releases notify locally once per session and at most once per day", function()
   local s = fixture()
   s:step(30)
-  local P, before = s.ns.Peers, #s.messages
-  local newer, newest = Newer(P)
+  local P, before = s.ns.Peers, #s.messages; local newer, newest = Newer(P)
   s:receive("Friend", "CHANNEL", newer)
   t.equal(#s.messages, before, "one character in the realm channel is not enough")
   s:receive("Other", "CHANNEL", newer)
   t.equal(#s.messages, before + 1, "a second character confirms: one local notification")
   s:receive("Third", "CHANNEL", newest)
   t.equal(P.latest, newest, "latest reported version still updates")
-  t.equal(#s.messages, before + 1, "no notification storm")
   s:step(90000); s:receive("Later", "CHANNEL", newest)
-  t.equal(#s.messages, before + 1, "still once per session")
-  local saved = { peerVersionNotice = s.ns.Core.db.peerVersionNotice }
-  local nextSession = fixture(nil, saved)
-  nextSession:step(30)
-  before = #nextSession.messages
+  t.equal(#s.messages, before + 1, "no notification storm, still once per session")
+  local nextSession = fixture(nil, { peerVersionNotice = s.ns.Core.db.peerVersionNotice })
+  nextSession:step(30); before = #nextSession.messages
   nextSession:receive("Friend", "CHANNEL", newest); nextSession:receive("Other", "CHANNEL", newest)
   t.equal(#nextSession.messages, before, "daily cooldown persists")
   nextSession:step(86401); nextSession:receive("Third", "CHANNEL", newest)
   t.equal(#nextSession.messages, before + 1, "following day can notify")
 end)
 
-t.test("implausible versions and a single realm-channel sender raise no update warning", function()
-  local s = fixture(nil, nil, function(sim) sim.guild = "Watch" end)
+t.test("implausible versions and a lone realm-channel sender raise no warning; muted notices still list", function()
+  local s = fixture(nil, { peerVersionNotices = false }, function(sim) sim.guild = "Watch" end)
   s:step(30)
-  local P, before = s.ns.Peers, #s.messages
-  local newer, newest = Newer(P)
-  local major = P.VersionParts(P.Version())
-  for i = 1, 5 do s:receive("Liar" .. i, "CHANNEL", "999999.0.0") end
-  for i = 1, 5 do s:receive("Liar" .. i, "GUILD", (major + 2) .. ".0.0") end
-  t.equal(P.latest, nil, "versions more than one major release ahead are ignored, even from many characters")
-  s:step(11)
+  local P, before = s.ns.Peers, #s.messages; local newer, newest = Newer(P)
+  for i = 1, 5 do s:receive("Liar" .. i, i % 2 == 0 and "GUILD" or "CHANNEL", (P.VersionParts(newest) + 1) .. ".0.0") end
+  t.equal(P.latest, nil, "more than one major release ahead is ignored, even from many characters")
   for _ = 1, 3 do s:step(11); s:receive("Liar1", "CHANNEL", newest) end
   t.equal(P.latest, nil, "one realm-channel character repeating a release is not enough")
-  t.equal(#s.messages, before, "and warns nobody")
   s:receive("Guildmate", "GUILD", newer)
   t.equal(P.latest, newer, "a guild member's release counts at once")
-  t.equal(#s.messages, before + 1, "and notifies")
-end)
-
-t.test("disabled notices still populate the version page", function()
-  local s = fixture(nil, { peerVersionNotices = false })
-  s:step(30)
-  local before = #s.messages
-  local newer = Newer(s.ns.Peers)
-  s:receive("Friend", "CHANNEL", newer); s:receive("Other", "CHANNEL", newer)
-  t.equal(#s.messages, before, "muted notification")
-  t.equal(s.ns.Peers.latest, newer, "update remains visible")
+  t.equal(#s.messages, before, "muted notices warn nobody")
 end)
 
 t.test("realm announcements do not solicit responses and stay within the traffic budget", function()

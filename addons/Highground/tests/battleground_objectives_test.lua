@@ -79,7 +79,7 @@ t.test("WoW Forever Warsong Gulch counts down the flag respawn after a capture",
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Enemy With Surname captured the Alliance flag!")
   equal(sim.ns.flagRespawnAt - sim.now, 11, "Forever's configured respawn")
   local row = flagRow()
-  assert(row and row.text == "respawn" and row.total == 11, "objectives window row")
+  assert(row and row.text == "Respawn" and row.icon == sim.ns.Timers.FLAG_ICON and row.total == 11, "objectives window row with the flag icon")
   sim:advance(1)
   local shown = pins()
   equal(#shown, 2, "a pin at each flag room")

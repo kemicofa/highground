@@ -290,3 +290,16 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(scope.pulseAnimation.duration, 1.2, "new healthy target does not inherit previous urgency")
   end)
 end
+
+test("a target without a nameplate is not searched for among the nameplates", function()
+  local sim = new("cata", {})
+  local enemy, token = sim:enemy("Far")
+  local plate = sim.plates[token]
+  sim.units.target, sim.plates[token] = enemy, nil -- beyond nameplate range
+  local compared, UnitIsUnit = 0, sim.env.UnitIsUnit
+  sim.env.UnitIsUnit = function(...) compared = compared + 1; return UnitIsUnit(...) end
+  equal(sim.ns.Core.TargetPlateUnit(), nil, "no nameplate")
+  equal(compared, 0, "no nameplate token compared with the target")
+  sim.plates[token] = plate
+  equal(sim.ns.Core.TargetPlateUnit(), token, "back in range: found")
+end)

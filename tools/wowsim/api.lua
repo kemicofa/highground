@@ -148,7 +148,15 @@ return function(sim, env)
     -- Like the game, returns a new table the caller may keep or change.
     GetUnitAuras = function(token, filter) return read(token, "categories", EMPTY)[filter] or {} end,
   }
-  env.C_NamePlate = { GetNamePlateForUnit = function(token) return sim.plates[token] end }
+  -- As in the game, your target's token also finds its nameplate.
+  env.C_NamePlate = { GetNamePlateForUnit = function(token)
+    local plate = sim.plates[token]
+    if plate or token ~= "target" or sim.units.target == nil then return plate end
+    for i = 1, 40 do
+      local other = "nameplate" .. i
+      if sim.plates[other] and sim.units[other] == sim.units.target then return sim.plates[other] end
+    end
+  end }
   -- Game settings as strings; nil for a name this client lacks. Friendly
   -- nameplates use each client's name. sim.cvarMax[name] caps a number as a
   -- client limit would; nameplate settings are refused in combat.

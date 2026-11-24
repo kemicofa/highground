@@ -46,8 +46,7 @@ end
 
 local function Who(e)
   if not e.by then return ns.Locale:Get("nearby.world.seen_by_you") end
-  return ns.Locale:Format(e.via == "guild" and "nearby.world.seen_by_guild" or "nearby.world.seen_by",
-    { name = Core.DisplayName(e.by) })
+  return ns.Nearby.SeenBy(e)
 end
 
 local function Tooltip(members, now)
@@ -59,6 +58,8 @@ local function Tooltip(members, now)
       local c = Util.ClassColor(e.class)
       Line(tt, Core.DisplayName(e.name) .. (e.level and e.level > 0 and ("  " .. e.level) or ""), c or "white")
       if e.guild and e.guild ~= "" then Line(tt, e.guild, "textMuted") end
+      local bounty = ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(e.name)
+      if bounty then Line(tt, ns.Locale:Format("shared.journal.bounty_value2.b4abd7", { value2 = ns.Bounty.GoldText(bounty) }), "gold") end
       Line(tt, Who(e) .. " · " .. Util.Ago(math.floor(now - e.last)), "textMuted")
     end
     if #members == 1 and members[1].r then

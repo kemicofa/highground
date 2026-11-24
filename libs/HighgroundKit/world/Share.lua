@@ -19,11 +19,15 @@ local Share = ns.WorldShare
 -- Nearby's tracking state gates both directions (open world, feature on).
 ---------------------------------------------------------------------------
 Share.PREFIX = "HighgroundW"
-Share.GROUP_EVERY, Share.GUILD_EVERY = 3, 10 -- seconds between batches
+Share.GROUP_EVERY, Share.GUILD_EVERY, Share.WORLD_EVERY = 3, 10, 20 -- seconds between batches
 -- An enemy still in sight goes out again after this many seconds, or once
 -- you have moved (MOVED of the zone map). Hearing someone else send it
 -- counts as sent: a raid reports each enemy about once, not once per member.
-Share.REPEAT = { group = 15, guild = 30 }
+Share.REPEAT = { group = 15, guild = 30, world = 60 }
+-- Everyone (`nearbyShareWorld`, opt-in): the realm/faction users channel
+-- (core/Peers) gets a 20 x 20 map cell, never where you stood, and only
+-- sightings from the reader's own zone are kept.
+Share.CELLS = 20
 Share.MOVED = 0.01
 Share.FRESH = 10 -- only sightings this recent are sent
 Share.MAX_AGE = 120 -- older received sightings are ignored
@@ -94,10 +98,16 @@ end
 
 local function GuildOn() return Core.On("nearbyShareGuild") end
 
+-- The users channel's number while sharing with everyone, else nil.
+function Share.WorldChannel()
+  if not (Share.Active() and Core.O("nearbyShareWorld") and ns.Caps.addonChannel and ns.Peers) then return end
+  return ns.Peers.ChannelID()
+end
+
 -- Per audience: enemies waiting for the next batch, and when and where
 -- each was last sent (by you or someone else). [name] = { at, x, y }
-local queues = { group = {}, guild = {} }
-local shared = { group = {}, guild = {} }
+local queues = { group = {}, guild = {}, world = {} }
+local shared = { group = {}, guild = {}, world = {} }
 
 local function Due(audience, e, now)
   local last = shared[audience][e.name]
@@ -130,10 +140,18 @@ end
 ---------------------------------------------------------------------------
 -- Sending
 ---------------------------------------------------------------------------
-local function Token(e, now)
+-- coarse: the centre of the sighting's map cell, and that cell's reach.
+local function Token(e, now, coarse)
+  local x, y, r = e.x or 0, e.y or 0, e.r or 0
+  if coarse and e.x then
+    local n = Share.CELLS
+    x, y = (math.min(n - 1, math.floor(x * n)) + 0.5) / n, (math.min(n - 1, math.floor(y * n)) + 0.5) / n
+    local width = ns.WorldMap and ns.WorldMap.Width(e.mapID)
+    r = width and width / n * 0.71 or 0
+  end
   return string.format("%s,%s,%d,%d,%d,%d,%d,%s", Clean(Core.Canon(e.name) or e.name), Clean(e.class),
-    math.floor(tonumber(e.level) or 0), math.floor((e.x or 0) * 10000 + 0.5), math.floor((e.y or 0) * 10000 + 0.5),
-    math.floor(e.r or 0), math.max(0, math.floor(now - e.last)), Clean(e.guild))
+    math.floor(tonumber(e.level) or 0), math.floor(x * 10000 + 0.5), math.floor(y * 10000 + 0.5),
+    math.floor(r), math.max(0, math.floor(now - e.last)), Clean(e.guild))
 end
 
 local function Freshest(a, b) return a.last > b.last end
@@ -141,7 +159,7 @@ local function Freshest(a, b) return a.last > b.last end
 -- Up to MAX_PARTS messages, freshest sightings first. What does not fit
 -- stays queued for the next batch; stale and received entries are dropped.
 local byMap = {}
-local function Batch(audience, channel, now)
+local function Batch(audience, channel, now, target)
   wipe(byMap)
   local queue, seen = queues[audience], ns.Nearby.seen
   for name in pairs(queue) do
@@ -162,13 +180,13 @@ local function Batch(audience, channel, now)
     while i <= #list and parts < Share.MAX_PARTS do
       local tokens, len, entries = {}, #head, {}
       while i <= #list do
-        local token = Token(list[i], now)
+        local token = Token(list[i], now, audience == "world")
         if #tokens > 0 and len + #token + 1 > 250 then break end
         tokens[#tokens + 1], entries[#entries + 1] = token, list[i]
         len, i = len + #token + 1, i + 1
       end
       parts = parts + 1
-      if Comms.Send(Share.PREFIX, head .. table.concat(tokens, ";"), channel) then
+      if Comms.Send(Share.PREFIX, head .. table.concat(tokens, ";"), channel, target) then
         Share.stats.sent = Share.stats.sent + 1
         for _, e in ipairs(entries) do
           queue[e.name] = nil
@@ -200,6 +218,7 @@ end
 
 local groupT = (math.random and math.random() or 0) * Share.GROUP_EVERY
 local guildT = (math.random and math.random() or 0) * Share.GUILD_EVERY
+local worldT = (math.random and math.random() or 0) * Share.WORLD_EVERY
 function Share.Tick(elapsed)
   if not Share.Active() then
     for audience in pairs(queues) do wipe(queues[audience]); wipe(shared[audience]) end
@@ -207,7 +226,7 @@ function Share.Tick(elapsed)
   end
   -- Refused batches stay queued and go out once the game allows it.
   if Comms.Blocked() then return end
-  groupT, guildT = groupT + (elapsed or 1), guildT + (elapsed or 1)
+  groupT, guildT, worldT = groupT + (elapsed or 1), guildT + (elapsed or 1), worldT + (elapsed or 1)
   local now = GetTime()
   if groupT >= Share.GROUP_EVERY then
     groupT = 0
@@ -218,6 +237,11 @@ function Share.Tick(elapsed)
     guildT = 0
     if GuildOn() and Util.read(IsInGuild) then Batch("guild", "GUILD", now) else wipe(queues.guild) end
     Prune(now)
+  end
+  if worldT >= Share.WORLD_EVERY then
+    worldT = 0
+    local channel = Share.WorldChannel()
+    if channel then Batch("world", "CHANNEL", now, channel) else wipe(queues.world) end
   end
 end
 
@@ -264,10 +288,14 @@ function Share.Merge(canon, class, level, guild, map, x, y, r, at, by, via)
   return true
 end
 
-function Share.Listening(channel)
+function Share.Listening(channel, localID, channelName)
   if not Share.Active() then return nil end
   if channel == "GUILD" then return GuildOn() and "guild" or nil end
   if channel == "PARTY" or channel == "RAID" then return "group" end
+  local joined = channel == "CHANNEL" and Share.WorldChannel()
+  if joined and ns.Chat.MatchesChannel(ns.Peers.CHANNEL, joined, Util.value(localID), Util.value(channelName)) then
+    return "world"
+  end
 end
 
 function Share.Receive(text, channel, sender, ...)
@@ -282,13 +310,16 @@ function Share.Receive(text, channel, sender, ...)
     if ns.WorldFeed then ns.WorldFeed.Receive(text, channel, sender) end
     return
   end
-  local via = Share.Listening(channel)
+  local _, _, localID, channelName = ...
+  local via = Share.Listening(channel, localID, channelName)
   if not via then return end
   local from = Core.Canon(sender)
   if not from or from == Core.CanonUnit("player") then return end
   local ver, map, body = text:match("^(%d+):(%d+):(.*)$")
   if ver ~= "1" then return end
   map = tonumber(map)
+  -- Everyone's sightings from other zones would only fill the list.
+  if via == "world" and map ~= Share.Here() then return end
   Share.stats.recv = Share.stats.recv + 1
   local now, changed = GetTime(), false
   for token in body:gmatch("[^;]+") do
@@ -328,6 +359,7 @@ function Share.Status()
     guild = Core.On("nearbyShare") and GuildOn() and on or off,
     map = Core.On("nearbyMap") and on or off,
     sent = s.sent, recv = s.recv }) .. Comms.RefusedNote(s.unsent)
+    .. " · " .. ns.Locale:Format("nearby.world.status_everyone", { everyone = Share.WorldChannel() and on or off })
 end
 
 Util.Every(1, Share.Tick, "world share", "nearby")

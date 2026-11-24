@@ -1,5 +1,21 @@
 # Design system
 
+## Enemy list readability
+
+The enemy-list reference establishes the hierarchy: a distinct suggested-target
+card, readable names, substantial health tracks and clearly separated tactical
+badges. Adapt that hierarchy to the selected theme; purple is Dark's accent,
+not a fixed colour for every theme. Preserve the opt-in suggested-target card
+and existing saved appearance choices.
+
+Keep enemy health styling together under Battlegrounds appearance. Enemy-only
+colour and texture overrides must leave other panels' shared settings intact.
+Size controls must keep names, percentages, mana and badges clear at both normal
+and compact sizes. Contrast controls must preserve the distinction between live,
+last-seen, unknown and dead health; an unknown full track is not confirmed 100%.
+Review all shipped themes, long names, large fonts and combat-deferred layout
+changes using the actual enemy preview renderer.
+
 [Documentation](README.md) · [Development](development.md)
 
 HighgroundKit provides named **tokens** for colours, typography, spacing, control sizes and motion across the addon family. Runtime code reads colour tokens; client-provided class colours are handled separately. A theme changes those values and repaints registered regions.

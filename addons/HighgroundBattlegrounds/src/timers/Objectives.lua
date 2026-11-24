@@ -87,7 +87,7 @@ function Timers.ObjectiveRows(now)
         if r and r.winner == lose then
           local row = pool:Add()
           Timers.Tag(row, "NEED")
-          row.team, row.count, row.noun = lose, k, word -- the overview's plan
+          row.team = lose
           row.color, row.time = Timers.TeamColor(lose), ""
           local a = args.need
           a.value1, a.k, a.word, a.value4 = TEAM_NAME[lose], string.format("%d", k), word, k > 1 and "s" or ""

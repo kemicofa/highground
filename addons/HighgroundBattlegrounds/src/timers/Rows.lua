@@ -25,7 +25,7 @@ function Pool:New()
   end
   row.tag, row.color, row.text, row.detail, row.time = nil, nil, nil, nil, nil
   row.left, row.total, row.frac, row.est, row.die = nil, nil, nil, nil, nil
-  row.kind, row.team, row.count, row.noun, row.node, row.icon = nil, nil, nil, nil, nil, nil
+  row.kind, row.team, row.node, row.icon = nil, nil, nil, nil
   return row
 end
 function Pool:Add()
@@ -42,7 +42,7 @@ local TAG_KEYS = {
   NEUTRAL = "battlegrounds.overview.neutral.4edd34", CONTEST = "battlegrounds.overview.contest.22f1df",
   WIN = "battlegrounds.objectives.win.662fae", CAPPING = "battlegrounds.objectives.capping.d11df1",
   CAP = "battlegrounds.objectives.cap.e477f5", LOCK = "battlegrounds.objectives.lock.c37eb4",
-  RESET = "battlegrounds.objectives.reset.995f2d", PLAN = "battlegrounds.mechanics.plan.5a61e6",
+  RESET = "battlegrounds.objectives.reset.995f2d",
   STATUS = "battlegrounds.mechanics.status.716883", CONTROL = "battlegrounds.mechanics.control.50978f",
   HELD = "battlegrounds.objectives.held.5d1bcc", NEED = "battlegrounds.objectives.need.d9365d",
   FLAG = "highground.render.flag.aaabc0", SOON = "battlegrounds.rows.soon.540a68",

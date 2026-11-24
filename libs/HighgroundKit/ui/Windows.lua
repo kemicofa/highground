@@ -317,7 +317,7 @@ function Timers.RowFrame(w, i)
       CAP = ns.Locale:Get("shared.windows.capture_in_progress.2e15da"), LOCK = ns.Locale:Get("shared.windows.timed_node_ownership.aac8d0"), RESET = ns.Locale:Get("shared.windows.node_resetting.c67e3a"),
       WIN = ns.Locale:Get("shared.windows.projected_win_if_current_captures_complete.f1bd30"), HELD = ns.Locale:Get("shared.windows.projection_if_contested_bases_are_defended.bdf5c7"),
       NEED = ns.Locale:Get("shared.windows.bases_required_for_the_trailing_team_to.4074ab"), FLAG = ns.Locale:Get("shared.windows.flag_respawn_countdown.819f0d"),
-      PLAN = ns.Locale:Get("shared.windows.objective_plan_from_the_current_match_state.4ef7f6"), CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
+      CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
       STATUS = ns.Locale:Get("shared.windows.observed_game_status.0f8c50"), GATE = ns.Locale:Get("shared.windows.gate_status_from_the_game.f3b238"), CART = ns.Locale:Get("shared.windows.observed_cart_or_delivery_objective.11cdb7"),
       ROUND = ns.Locale:Get("shared.windows.round_information_from_the_game.49309c"), CONTROL = ns.Locale:Get("shared.windows.observed_control_progress.2ff37b"),
       EVENT = ns.Locale:Get("shared.windows.recent_battleground_announcement.aad5da"), OBJECTIVE = ns.Locale:Get("shared.windows.observed_map_objective.3c3cd9"),

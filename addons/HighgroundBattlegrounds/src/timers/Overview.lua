@@ -28,33 +28,11 @@ local function CapRow(rows, node)
     if row.kind == "CAP" and row.node == node then return row end
   end
 end
-local sightArgs, planArgs, holdArgs = {}, {}, {} -- Format arguments, refilled each refresh
+local sightArgs = {} -- Format arguments, refilled each refresh
 
 function T.AddOverview(rows, now, pool)
   if not ns.Core.On("objectiveOverview") then return end
   local mine = T.MyTeam()
-  local win, need
-  for _, row in ipairs(rows) do
-    -- kind/team, not the translated tag and team names.
-    if row.kind == "WIN" then win = row end
-    if row.kind == "NEED" and row.team == mine then need = row end
-  end
-  local plan
-  -- Only a losing team gets a plan: the WIN row already says a lead holds.
-  if win and win.team ~= mine then
-    local message
-    if need then
-      holdArgs.k, holdArgs.word, holdArgs.value4 = string.format("%d", need.count), need.noun, need.count > 1 and "s" or ""
-      message = ns.Locale:Format("battlegrounds.overview.hold_k_word_value4.62953b", holdArgs)
-    else
-      message = ns.Locale:Get("battlegrounds.overview.take_another_objective.d552f5")
-    end
-    plan = T.Tag(NewRow(pool), "PLAN")
-    plan.color, plan.text, plan.time = ns.Theme.Rgb("warning"), message, ""
-    planArgs.message = message
-    plan.detail = ns.Locale:Format("battlegrounds.overview.message_assumes_current_scoring_continues_and_captures.99b696", planArgs)
-  end
-  if plan then table.insert(rows, 1, plan) end
   wipe(nodes)
   for _, node in pairs(T.nodes) do if node.hasGraveyard then nodes[#nodes + 1] = node end end
   sortMine = mine

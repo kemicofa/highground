@@ -72,18 +72,7 @@ function Timers.Reset(mapID)
     return
   end
   local learned = db and db.gyLearned and mapID and db.gyLearned[mapID]
-  -- Earlier versions placed the unplaced fallback (TeamGY) on the first
-  -- landmark whose name holds the word "graveyard" and saved it there.
-  local fallback = {}
-  for _, word in ipairs(ns.Locale:Variants("battlegrounds.graveyards.graveyard.2b11fa")) do fallback[word:lower()] = true end
-  for i = #(learned or {}), 1, -1 do
-    local g = learned[i]
-    if g.x == 0.5 and g.y == 0.5 and not g.exact then
-      table.remove(learned, i) -- old "map centre" placeholder (v2.4.1), not a real spot
-    elseif not (g.exact or g.fromPlace) and type(g.label) == "string" and fallback[g.label:lower()] then
-      table.remove(learned, i)
-    end
-  end
+  Timers.DropPlaceholders(learned)
   for _, g in ipairs(learned or {}) do
     Timers.gys[#Timers.gys + 1] = { team = g.team, x = g.x, y = g.y, label = g.label, fromPlace = g.fromPlace, exact = g.exact, learned = true }
   end

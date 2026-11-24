@@ -45,7 +45,7 @@ function Core.UpdateHero(e, isGo)
   Core.hero.dist:SetShown(show)
   Core.hero.unitText:SetShown(show)
   Core.hero.hp:SetShown(show)
-  if not (show and Core.hero.barMode) then Core.hero.hpText:Hide() end
+  if not (show and Core.hero.barMode) then Core.hero.hpText:Hide(); Core.hero.hpTextBg:Hide() end
   for _, t in ipairs(Core.hero.meter) do
     t:SetShown(show and full)
   end
@@ -111,7 +111,7 @@ function Core.UpdateHero(e, isGo)
   for s, t in ipairs(Core.hero.meter) do
     Theme.Paint(t, s > lit and "overlaySelected" or isGo and "kill" or "accent")
   end
-  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, Core.PlainHealth(e)), e.testHp, e)
+  Core.UpdateHealth(Core.hero, e.unit, Core.BarColor(color, nil, Core.PlainHealth(e), true), e.testHp, e)
   if Core.hero.barMode then Core.UpdateHealthText(Core.hero, e) end
 
   if isGo then

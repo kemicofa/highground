@@ -32,6 +32,7 @@ ns.OptionsAdd({
       ns.Localization.Define({ key = "nearbyTrack", parent = "nearby", label = ns.Locale:Get("tracking.label"), desc = ns.Locale:Get("tracking.desc") }, { label = "tracking.label", desc = "tracking.desc" }),
       ns.Localization.Define({ key = "nearbyMarks", parent = "nearbyMap", label = ns.Locale:Get("marks.label"), desc = ns.Locale:Get("marks.desc") }, { label = "marks.label", desc = "marks.desc" }),
       ns.Localization.Define({ key = "nearbyCalls", parent = "nearby", label = ns.Locale:Get("calls.label"), desc = ns.Locale:Get("calls.desc") }, { label = "calls.label", desc = "calls.desc" }),
+      ns.Localization.Define({ key = "worldFights", parent = "nearby", label = ns.Locale:Get("fights.label"), desc = ns.Locale:Get("fights.desc") }, { label = "fights.label", desc = "fights.desc" }),
     },
   },
 })

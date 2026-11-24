@@ -32,8 +32,9 @@ end
 function ns.GetDB() return Core.db end
 function ns.GetPositions() return Core.pos end
 
--- In a live battleground Highground tracks (not the /hg bg test preview).
-function ns.IsActive() return Core.active and not Core.testMode end
+-- In a live battleground Highground tracks (not the /hg bg test preview,
+-- nor an open-world fight: core/World.lua).
+function ns.IsActive() return Core.active and not Core.testMode and Core.context ~= "world" end
 -- The /hg bg test preview is running.
 function ns.IsTestMode() return Core.testMode end
 

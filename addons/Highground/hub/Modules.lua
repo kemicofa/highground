@@ -5,7 +5,7 @@ local pages = {}
 local actions = {
   battlegrounds = { ns.Localization.Define({ "behavior" }, { [2] = "highground.modules.targeting.c4ac40" }), { "history", tool = true } },
   arena = { { "history", tool = true } },
-  nearby = { { "journal", tool = true } },
+  nearby = { { "journal", tool = true }, { "activity", tool = true } },
   bounties = { { "bountyboard", tool = true } },
   reputation = { { "reputation", tool = true } },
   macros = { { "macros", tool = true } },
@@ -156,7 +156,7 @@ end }, "addon controls")
 
 Hub.ModuleRoutes = {
   bountyboard = "bounties", bounty = "bounties", reputation = "reputation", macros = "macros",
-  nearby = "nearby", journal = "nearby", timers = "battlegrounds",
+  nearby = "nearby", journal = "nearby", activity = "nearby", timers = "battlegrounds",
   behavior = "battlegrounds", priority = "battlegrounds", objectives = "battlegrounds",
   live = "battlegrounds", cooldowns = "battlegrounds", tracking = "battlegrounds",
   burst = "battlegrounds", specs = "battlegrounds", multipliers = "battlegrounds",

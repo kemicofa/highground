@@ -191,6 +191,7 @@ function History.Seen(e, fresh)
 end
 
 local function RecordKill(name, counter)
+  if name and ns.WorldFeed then ns.WorldFeed.Local(name, counter) end -- the kill feed (world/Feed.lua)
   if not (name and History.Enabled()) then return end
   local h = Entry(name)
   h[counter] = h[counter] + 1

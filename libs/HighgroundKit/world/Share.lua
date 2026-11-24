@@ -278,6 +278,9 @@ function Share.Receive(text, channel, sender, ...)
   elseif text:find("^1M:") then
     if ns.WorldMarks then ns.WorldMarks.Receive(text, channel, sender, ...) end
     return
+  elseif text:find("^1K:") then
+    if ns.WorldFeed then ns.WorldFeed.Receive(text, channel, sender) end
+    return
   end
   local via = Share.Listening(channel)
   if not via then return end

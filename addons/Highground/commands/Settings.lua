@@ -230,7 +230,7 @@ Commands.options = Commands.config
 
 -- /hg nearby [on | off | map on|off | share on|off | share guild on|off |
 -- tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
--- mark TYPE|clear | marks on|off | marks world on|off | calls on|off |
+-- mark TYPE|clear | marks on|off | marks world on|off | calls on|off | feed on|off |
 -- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
 -- map pins and shared sightings (world/Map.lua, world/Share.lua), tracked
 -- enemies (world/Tracking.lua), map marks and calls (world/Marks.lua,
@@ -243,6 +243,7 @@ local NEARBY_SWITCHES = {
   ["tracking on"] = "nearbyTrack", ["tracking off"] = "nearbyTrack",
   ["marks on"] = "nearbyMarks", ["marks off"] = "nearbyMarks",
   ["calls on"] = "nearbyCalls", ["calls off"] = "nearbyCalls",
+  ["feed on"] = "nearbyFeed", ["feed off"] = "nearbyFeed",
 }
 
 -- /hg nearby mark enemies|ganker|help: at your position; mark clear: yours.
@@ -377,6 +378,11 @@ function Commands.alerts(arg, msg, say)
 end
 function Commands.history() ns.MatchHistory.Open() end
 function Commands.journal() ns.EnemyJournal.Open() end
+-- /hg activity: zones with recent enemies, marks and kills (world/Activity.lua).
+function Commands.activity(_, _, say)
+  if not ns.WorldActivity then return say(ns.Locale:Get("tracking.unavailable")) end
+  ns.WorldActivity.Open()
+end
 function Commands.users(arg)
   if arg == "why" then return ns.Hub.CopyUsersDiagnostics() end
   ns.Hub.Show("users")

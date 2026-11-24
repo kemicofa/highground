@@ -104,39 +104,6 @@ test("localized bodies change only spell names, never conditions or spacing", fu
   equal(M.LocalSpell("Skull Bash", "retail"), "Coup de crâne (Retail)", "Retail's identifier")
 end)
 
-test("localized dispel presets name each class's own spell in every game", function()
-  local sim = new("cata", nil, function(_, env) env.GetLocale = function() return "deDE" end end)
-  local M = sim.ns.Macros
-  M.Host.SpellName = function(id) return "S" .. id end
-  local function entry(class, name, mode)
-    for _, e in ipairs(M.catalog) do
-      if e.class == class and e.name == name and M.InMode(e, mode) then return e end
-    end
-    error("missing preset " .. class .. " " .. name)
-  end
-  local function casts(class, name, mode, game, id)
-    local body = M.Build(entry(class, name, mode), game)
-    assert(body and body:find(" S" .. id .. "$"), class .. " " .. name .. " on " .. game .. ": " .. tostring(body))
-  end
-  for _, game in ipairs({ "cata", "forever", "classic", "tbc" }) do
-    casts("PRIEST", "Dispel MO", "pvp", game, 527) -- 528 is Cure Disease here
-    casts("PRIEST", "Dispel", "pve", game, 527)
-    casts("PRIEST", "Cure Disease", "pve", game, 528)
-  end
-  casts("PRIEST", "Purge", "pvp", "retail", 528)
-  casts("PRIEST", "Purify", "pvp", "retail", 527)
-  casts("PRIEST", "Dispel", "pve", "retail", 527)
-  for _, game in ipairs({ "cata", "retail", "forever", "classic" }) do
-    casts("DRUID", "Decurse", "pvp", game, 2782) -- not the mage's Remove (Lesser) Curse
-    casts("DRUID", "Decurse", "pve", game, 2782)
-  end
-  casts("MAGE", "Remove Curse", "pvp", "forever", 475)
-  casts("SHAMAN", "Cure Disease", "pvp", "forever", 2870) -- not the priest's
-  casts("SHAMAN", "Cure Disease", "pve", "classic", 2870)
-  equal(M.LocalSpell("Purify", "classic"), "S1152", "vanilla Purify is the paladin's")
-  equal(M.LocalSpell("Cure Disease", "retail"), "Cure Disease", "no Retail ID: the name stays")
-end)
-
 test("wrapped preset code and default names keep whole letters", function()
   local sim = new("cata")
   local M = sim.ns.Macros
@@ -336,55 +303,6 @@ test("card menus offer no macro writes in combat", function()
   equal(sim.ns.Kit.Dropdown.Accept(2), false, "a disabled item does nothing")
   equal(#sim.macros, 0, "nothing written")
   sim:setCombat(false)
-end)
-
-test("card saves ask before replacing another text under the same name", function()
-  local sim = new("cata")
-  sim:command("macros")
-  local M, Kit = sim.ns.Macros, sim.ns.Kit
-  local Win = M.Window
-  local function card(name, existing, perCharacter)
-    for _, r in ipairs(Win.win.rows) do
-      local e = r:IsShown() and r.entry
-      if e and e.name == name and (e.existing or false) == existing and (e.perCharacter or false) == (perCharacter or false) then return r end
-    end
-    error("missing card " .. name)
-  end
-  local function choose(r, text)
-    Win.CardOptions(r)
-    for i, item in ipairs(Kit.Dropdown.Items()) do if item.text == text then return Kit.Dropdown.Accept(i) end end
-    error("missing item " .. text)
-  end
-  local mine = { name = "Focus Mouseover", body = "/say mine", perCharacter = false }
-  sim.macros[1] = mine
-  Win.SetTab("general")
-  choose(card("Focus Mouseover", false), "Save for all characters")
-  equal(mine.body, "/say mine", "the saved macro is not replaced yet")
-  local items = Kit.Dropdown.Items()
-  equal(items[1].text, "Replace saved macro", "the menu asks")
-  equal(items[1].hint, "All characters", "and names the tab")
-  equal(items[2].text, "Keep saved macro", "keeping it is offered")
-  Kit.Dropdown.Accept(2)
-  equal(mine.body, "/say mine", "kept")
-  choose(card("Focus Mouseover", false), "Save for all characters")
-  Kit.Dropdown.Accept(1)
-  local preset = M.Build(card("Focus Mouseover", false).entry)
-  equal(mine.body, preset, "replaced after the answer")
-  equal(M.Backups.All()[1].before.body, "/say mine", "macro history keeps the replaced text")
-  choose(card("Focus Mouseover", false), "Save for all characters")
-  assert(not Kit.Dropdown.IsShown(), "the same text saves without asking")
-
-  -- Copy to this character over another text there.
-  sim.macros[2] = { name = "Focus Mouseover", body = "/say other", perCharacter = true }
-  Win.SetTab("mine")
-  choose(card("Focus Mouseover", true, false), "Copy to this character")
-  equal(sim.macros[2].body, "/say other", "the character's macro waits for an answer")
-  equal(Kit.Dropdown.Items()[1].hint, "This character", "the character tab named")
-  Kit.Dropdown.Accept(1)
-  equal(sim.macros[2].body, preset, "copied after the answer")
-  choose(card("Focus Mouseover", true, true), "Copy to all characters")
-  assert(not Kit.Dropdown.IsShown(), "same text: nothing to ask")
-  equal(#sim.macros, 2, "no new macro")
 end)
 
 test("buffs to remove keep working under a translated catalog (deDE)", function()

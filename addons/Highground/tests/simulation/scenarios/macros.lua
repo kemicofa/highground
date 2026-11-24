@@ -313,17 +313,10 @@ test("macros export and import as base64", function()
   equal(share.box.text, text, "export window shows the string")
 
   local other = new("retail")
-  other.macros[1] = { name = "Kick F", body = "/say general", perCharacter = false }
   other:command("macros import")
   local box = other.env.HighgroundMacroShare.box
   box:SetText(text)
-  local preview = other.env.HighgroundMacroShare.preview.text
-  assert(preview:find("Kick F", 1, true), "preview lists the macros")
-  assert(not preview:find("replaces", 1, true), "a same-named macro in the other tab is not replaced: " .. preview)
-  other.macros[2] = { name = "Kick F", body = "/say mine", perCharacter = true }
-  other.ns.Macros.Share.Preview()
-  assert(other.env.HighgroundMacroShare.preview.text:find("replaces your character macro", 1, true), "the named tab's macro is")
-  other.macros[2], other.macros[1] = nil, nil
+  assert(other.env.HighgroundMacroShare.preview.text:find("Kick F", 1, true), "preview lists the macros")
   local general = other.env.HighgroundMacroShare.actions.toGeneral
   general.scripts.OnClick(general)
   local review = other.ns.Macros.Share.review

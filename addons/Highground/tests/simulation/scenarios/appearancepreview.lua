@@ -181,7 +181,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local samples = { capture = "alert-capture.ogg", objective = "alert-objective.ogg",
       resurrection = "alert-resurrection.ogg", sap = "alert-sap.ogg",
       go = "sounds\\go.ogg", lockon = "sounds\\lockon.ogg", nearby = "libs\\sounds\\nearby.ogg", bounty = "bounty.ogg",
-      tracked = 18871 }
+      tracked = 18871, worldcall = "alert-objective.ogg" }
     -- A file cue by name, a game sound by number.
     local function heard(expected, why)
       local last = s.sounds[#s.sounds]

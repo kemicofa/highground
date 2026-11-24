@@ -15,6 +15,10 @@ ns.OptionsAdd({
     ns.Localization.Define({ key = "nearbyStealth", page = "nearby", def = true, type = "boolean", desc = ns.Locale:Get("shared.nearby.tell_me_when_a_nearby_enemy_stealths.8861ca") }, { desc = "shared.nearby.tell_me_when_a_nearby_enemy_stealths.8861ca" }),
     ns.Localization.Define({ key = "nearbyHistory", page = "nearby", def = true, type = "boolean", desc = ns.Locale:Get("shared.nearby.remember_every_enemy_you_meet_with_kills.40ec3d") }, { desc = "shared.nearby.remember_every_enemy_you_meet_with_kills.40ec3d" }),
     -- Opt-in: it tells every Highground user in the channel whom you track.
+    ns.Localization.Define({ key = "nearbyGankerKills", page = "nearby", def = 3, min = 1, max = 20, integer = true, unit = "deaths", desc = ns.Locale:Get("calls.ganker_desc") }, { desc = "calls.ganker_desc" }),
+    ns.Localization.Define({ key = "nearbyRaidSize", page = "nearby", def = 8, min = 3, max = 40, integer = true, unit = "enemies", desc = ns.Locale:Get("calls.raid_desc") }, { desc = "calls.raid_desc" }),
+    -- Opt-in: marks you place reveal where you marked to the whole channel.
+    ns.Localization.Define({ key = "nearbyMarksWorld", page = "nearby", def = false, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("marks.world_desc") }, { desc = "marks.world_desc" }),
     ns.Localization.Define({ key = "nearbyTrackWorld", page = "nearby", def = false, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("tracking.world_desc") }, { desc = "tracking.world_desc" }),
   },
   features = {
@@ -25,6 +29,8 @@ ns.OptionsAdd({
       ns.Localization.Define({ key = "nearbyShare", parent = "nearby", label = ns.Locale:Get("nearby.world.share_label"), desc = ns.Locale:Get("nearby.world.share_desc") }, { label = "nearby.world.share_label", desc = "nearby.world.share_desc" }),
       ns.Localization.Define({ key = "nearbyShareGuild", parent = "nearbyShare", label = ns.Locale:Get("nearby.world.guild_label"), desc = ns.Locale:Get("nearby.world.guild_desc") }, { label = "nearby.world.guild_label", desc = "nearby.world.guild_desc" }),
       ns.Localization.Define({ key = "nearbyTrack", parent = "nearby", label = ns.Locale:Get("tracking.label"), desc = ns.Locale:Get("tracking.desc") }, { label = "tracking.label", desc = "tracking.desc" }),
+      ns.Localization.Define({ key = "nearbyMarks", parent = "nearbyMap", label = ns.Locale:Get("marks.label"), desc = ns.Locale:Get("marks.desc") }, { label = "marks.label", desc = "marks.desc" }),
+      ns.Localization.Define({ key = "nearbyCalls", parent = "nearby", label = ns.Locale:Get("calls.label"), desc = ns.Locale:Get("calls.desc") }, { label = "calls.label", desc = "calls.desc" }),
     },
   },
 })

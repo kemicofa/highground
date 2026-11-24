@@ -215,3 +215,65 @@ test("auras refused: the loss-of-control count marks crowd control, kind unknown
   core.ScanUnits()
   assert(not enemy.crowdControlled, "out of view: nothing")
 end)
+
+test("WoW Forever never asks for enemy auras; loss of control still marks CC", function()
+  local s, ns, env, core, enemy = client("retail")
+  ns.Caps.enemyAuras = false
+  local asked = 0
+  env.C_UnitAuras = { GetUnitAuras = function() asked = asked + 1; error("Auras cannot be accessed when secret") end }
+  env.C_LossOfControl = { GetActiveLossOfControlDataCountByUnit = function() return 1 end }
+  core.ScanUnits()
+  assert(asked == 0, "no aura call to fail")
+  assert(enemy.crowdControlled and not enemy.def and not enemy.burst, "loss of control still read")
+  ns.Caps.enemyAuras = true
+end)
+
+test("an enemy seen dying stays dead out of sight where no combat log reports it", function()
+  local s, _, env, core, enemy = client("retail")
+  local dead = false
+  env.UnitIsDeadOrGhost = function() return dead end
+  core.ScanUnits()
+  dead = true
+  core.ScanUnits()
+  assert(enemy.dead and enemy.diedAt == s.now, "death time noted")
+  s.visible, s.now = false, s.now + 10
+  core.ScanUnits()
+  assert(enemy.dead, "still dead out of sight")
+  s.now = s.now + 30
+  core.ScanUnits()
+  assert(not enemy.dead, "the rez wave has passed")
+  s.visible, dead = true, false
+  core.ScanUnits()
+  assert(not enemy.dead and enemy.diedAt == nil, "seen alive again")
+end)
+
+test("an enemy seen through a teammate's target can be targeting you", function()
+  local s, ns, env, core, enemy = client("retail")
+  s.visible = false
+  ns.UnitTokens.Group = function() return ns.UnitTokens.raid, 2 end
+  env.UnitIsVisible = function(unit) return unit == "raid2target" end
+  env.UnitIsUnit = function(a, b) return a == "raid2targettarget" and b == "player" end
+  core.ScanUnits()
+  assert(enemy.unit == "raid2target" and enemy.onMe, "flagged as targeting you")
+end)
+
+test("teammate targets count everyone but you, even a teammate with your name", function()
+  local _, ns, env, core, enemy = client("retail")
+  ns.UnitTokens.Group = function() return ns.UnitTokens.raid, 3 end
+  env.UnitName = function() return "Player" end -- raid1 is you, raid2 shares your name
+  env.UnitIsUnit = function(a, b) return a == "raid1" and b == "player" end
+  env.CanonUnit = function(unit) return unit:find("target$") and "Enemy" or nil end
+  core.ScanAllyTargets()
+  assert(enemy.allyCount == 2, "raid2 and raid3, not you: " .. enemy.allyCount)
+end)
+
+test("combat-log names are resolved once, not on every event", function()
+  local s, _, env, core = client("cata")
+  local canon, calls = env.Canon, 0
+  env.Canon = function(name) calls = calls + 1; return canon(name) end
+  s.event, s.spellID = "SPELL_AURA_REMOVED", 1
+  for _ = 1, 20 do core.OnCombatLog() end
+  s.event = "SPELL_CAST_SUCCESS"
+  for _ = 1, 20 do core.OnCombatLog() end
+  assert(calls <= 1, "one lookup for one name, got " .. calls)
+end)

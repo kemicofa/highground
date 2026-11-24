@@ -217,6 +217,39 @@ test("successful fragments reset transient failures while unreachable peers leav
   equal(#W.outbox, 0, "failures spanning ten seconds release the queue")
 end)
 
+test("acknowledgements go only to organization members and stay within the send budget", function()
+  local owner, _, c = pair()
+  local W = F.W(owner)
+  local function Deliver(sender, n)
+    local text = owner.ns.Codec.Pack({ kind = "report_received", community = c.id, id = "x" .. n, revision = 1,
+      version = W.VERSION, scope = W.Scope() })
+    local count = math.ceil(#text / 128)
+    for part = 1, count do
+      owner:event("CHAT_MSG_ADDON", W.PREFIX, table.concat({ "1:D", "m" .. n, part, count, text:sub((part - 1) * 128 + 1, part * 128) }, ":"),
+        "WHISPER", sender, "", 0, 1, "HighgroundReputation")
+    end
+  end
+  local function Acks()
+    local acks = 0
+    for _, packet in ipairs(owner.sent) do if packet.message:find("^1:A:") then acks = acks + 1 end end
+    return acks
+  end
+  Deliver("Stranger-Realm", 1)
+  equal(Acks(), 0, "no acknowledgement for a nonmember")
+  Deliver("Member-Realm", 2)
+  equal(Acks(), 1, "a member's packet is acknowledged")
+  for n = 3, 60 do Deliver("Member-Realm", n) end
+  equal(Acks(), W.ACKS_PER_SENDER, "acknowledgements per sender are capped")
+  owner.now = owner.now + 31
+  W.sendPause = owner.now + 5
+  Deliver("Member-Realm", 61)
+  equal(Acks(), W.ACKS_PER_SENDER, "none while the game throttles the prefix")
+  W.sendPause = nil
+  Deliver("Member-Realm", 62)
+  equal(Acks(), W.ACKS_PER_SENDER + 1, "the budget refills")
+  owner:assertHealthy()
+end)
+
 test("an impossible decision clock is refused and later decisions stay valid", function()
   local native = F.native("Owner")
   local owner, moderator = F.new("Owner", { native = native }), F.new("Moderator", { native = native })

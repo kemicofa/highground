@@ -32,15 +32,19 @@ local function Throttled(result)
   return result == Result("AddonMessageThrottle", 3) or result == Result("ChannelThrottle", 8)
     or result == Result("AddOnMessageLockdown", 11)
 end
-W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER = 120, 10, 4
+W.THROTTLE_LIMIT, W.FAILURE_SPAN, W.INCOMING_PER_SENDER, W.ACKS_PER_SENDER = 120, 10, 4, 30
 -- 256 parts of 128 bytes. A snapshot record leaves room for its packet.
 W.MAX_PACKET = 32768
 W.MAX_RECORD = W.MAX_PACKET - 2048
 
+local function Pause(now)
+  W.throttles = (W.throttles or 0) + 1
+  W.sendPause = now + math.min(8, 0.4 * 2 ^ (W.throttles - 1))
+end
+
 local function Failed(item, result, now)
   if Throttled(result) then
-    W.throttles = (W.throttles or 0) + 1
-    W.sendPause = now + math.min(8, 0.4 * 2 ^ (W.throttles - 1))
+    Pause(now)
     item.throttled = item.throttled or now
     return now - item.throttled >= W.THROTTLE_LIMIT
   end
@@ -190,7 +194,7 @@ function W.ReceiveWire(text, channel, sender)
     if W.Count(W.rates) >= 128 then return end
     rate = { at = now, count = 0 }; W.rates[sender] = rate
   end
-  if now - rate.at >= 30 then rate.at, rate.count = now, 0 end
+  if now - rate.at >= 30 then rate.at, rate.count, rate.acks = now, 0, 0 end
   rate.count = rate.count + 1
   if rate.count > 360 then return end
   ns.Presence.Seen(sender, "reputation")
@@ -232,7 +236,16 @@ function W.ReceiveWire(text, channel, sender)
   W.incoming[key] = nil
   local packet = ns.Codec.Unpack(table.concat(item.parts))
   if type(packet) ~= "table" or packet.version ~= W.VERSION or packet.scope ~= W.Scope() then return end
-  W.SendRaw("1:A:" .. id, "WHISPER", sender)
+  -- Acknowledgements spend the outbox's budget: only for members of the
+  -- packet's organization, never while the game throttles the prefix, and
+  -- at most ACKS_PER_SENDER per 30 seconds. A missing one means a resend.
+  local O = ns.Organizations
+  if W.OrganizationID(packet.community) and O.IsMember(packet.community) and O.IsMember(packet.community, sender)
+    and not (W.sendPause and now < W.sendPause) and (rate.acks or 0) < W.ACKS_PER_SENDER then
+    rate.acks = (rate.acks or 0) + 1
+    local accepted, result = W.SendRaw("1:A:" .. id, "WHISPER", sender)
+    if not accepted and Throttled(result) then Pause(now) end
+  end
   W.Handle(packet, sender)
 end
 

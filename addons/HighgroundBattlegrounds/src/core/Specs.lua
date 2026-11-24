@@ -161,6 +161,103 @@ function Core.SpecFromLog(srcName, spellName)
   if id then e.specID, e.specSrc, e.specReason = id, "cast", reason end
 end
 
+---------------------------------------------------------------------------
+-- Druid forms (WoW Forever). Enemy buffs, casts and specs are hidden there,
+-- but not a druid's power type: mana in caster or Moonkin form, rage in
+-- bear, energy in cat. Mostly on mana over a match suggests Restoration (a
+-- healer stays out of form); mostly rage or energy suggests Feral. Moonkin
+-- form, which only Balance has, shows in the druid's model where the game
+-- lets addons read it; otherwise Balance reads as Restoration until tagged.
+-- The weakest evidence: the scoreboard, casts, buffs, history and tags win.
+---------------------------------------------------------------------------
+Core.FORM_MIN_SAMPLES = 40 -- scans seeing the druid (10 s at the 0.25 s tick)
+Core.FORM_HEALER, Core.FORM_HEALER_KEEP = 0.75, 0.6 -- mana share to guess, then keep, Restoration
+Core.FORM_FERAL, Core.FORM_FERAL_KEEP = 0.5, 0.6 -- mana share at most to guess, then keep, Feral
+local FORM_MANA = { [0] = true, [1] = false, [3] = false } -- power types: mana, rage, energy
+local FORM_BALANCE, FORM_FERAL, FORM_HEALER = 1, 2, 3 -- classic tree order
+local FORM_REASON = {
+  [FORM_BALANCE] = "battlegrounds.specs.being_seen_in_moonkin_form.c2d018",
+  [FORM_HEALER] = "battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5",
+  [FORM_FERAL] = "battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a",
+}
+
+-- Moonkin model file IDs. Tauren and Night Elf druids are thought to share
+-- one; a later druid race may bring its own. Model IDs read from enemy
+-- druids are counted in HighgroundDB.liveStats.druidModels to find it.
+Core.MOONKIN_MODELS = { [7581785] = true } -- read from a Tauren outside a match, 2026-11-24
+Core.MODEL_EVERY = 5 -- seconds between model reads of one druid
+Core.MODEL_WAIT = 2 -- seconds before an unloaded model counts as unread
+Core.MODEL_TRIES = 5 -- unread models before giving up, unless one was read
+local model, reading, unread, modelRead -- one hidden model, one read at a time
+
+local function Model()
+  if model == nil then
+    model = false
+    local ok, m = pcall(CreateFrame, "PlayerModel", nil, UIParent)
+    if ok and m and type(m.SetUnit) == "function" and type(m.GetModelFileID) == "function" then
+      m:SetSize(1, 1); m:SetPoint("BOTTOMLEFT"); m:SetAlpha(0)
+      m:SetScript("OnModelLoaded", function() Core.ReadDruidModel() end)
+      model = m
+    end
+  end
+  return model or nil
+end
+
+-- The file ID of the model last asked for; nil while it loads or is secret.
+function Core.ReadDruidModel()
+  local r = reading
+  if not (r and model) then return end
+  local ok, id = pcall(model.GetModelFileID, model)
+  id = ok and ns.Util.value(id) or nil
+  if type(id) == "number" and id > 0 then
+    reading, modelRead, r.e.modelAt = nil, true, GetTime()
+    Core.Stat("druidModels", id)
+    if Core.MOONKIN_MODELS[id] then r.e.moonkin = true end
+  elseif GetTime() - r.at >= Core.MODEL_WAIT then
+    reading, unread, r.e.modelAt = nil, (unread or 0) + 1, GetTime()
+    Core.Stat("druidModels", "unread")
+  end
+end
+
+local function AskModel(e, unit)
+  if reading then
+    Core.ReadDruidModel()
+    if reading then return end
+  end
+  if e.moonkin or not modelRead and (unread or 0) >= Core.MODEL_TRIES then return end
+  if GetTime() - (e.modelAt or -Core.MODEL_EVERY) < Core.MODEL_EVERY or not Model() then return end
+  reading = { e = e, at = GetTime() }
+  if not pcall(model.SetUnit, model, unit) then reading = nil; unread = (unread or 0) + 1 end
+end
+
+function Core.EstimateDruidForm(e, ptype, level, unit)
+  if e.class ~= "DRUID" or FORM_MANA[ptype] == nil then return end
+  e.formSeen = (e.formSeen or 0) + 1
+  if FORM_MANA[ptype] then
+    e.formMana = (e.formMana or 0) + 1
+    if unit then AskModel(e, unit) end
+  end
+  local src = e.specSrc
+  if src ~= nil and src ~= "form" then return end
+  if not e.moonkin and e.formSeen < Core.FORM_MIN_SAMPLES then return end
+  local share, current = (e.formMana or 0) / e.formSeen, src == "form" and e.formTree
+  local tree
+  if e.moonkin then
+    tree = FORM_BALANCE -- Restoration and Feral have no Moonkin form
+  elseif share >= Core.FORM_HEALER or current == FORM_HEALER and share >= Core.FORM_HEALER_KEEP then
+    -- Cat form comes at level 20: younger druids are all on mana.
+    if not (type(level) == "number" and level < 20) then tree = FORM_HEALER end
+  elseif share <= Core.FORM_FERAL or current == FORM_FERAL and share <= Core.FORM_FERAL_KEEP then
+    tree = FORM_FERAL
+  end
+  local id = tree and Core.classSpecs.DRUID and Core.classSpecs.DRUID[tree]
+  if id then
+    e.specID, e.specSrc, e.specReason, e.formTree = id, "form", ns.Locale:Get(FORM_REASON[tree]), tree
+  elseif src == "form" then
+    e.specID, e.specSrc, e.specReason, e.formTree = nil, nil, nil, nil
+  end
+end
+
 function Core.EstimateSpec(e, auras)
   if not ns.SpecInferenceConfig then return end
   if e.specSrc == "live" then

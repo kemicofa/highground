@@ -70,6 +70,6 @@ function ns.SpecFromRole(class, mana, level, markers)
 end
 
 function ns.SpecLabel(enemy, label)
-  if enemy.specSrc == "aura" or enemy.specSrc == "mana" then return "~" .. label end
+  if enemy.specSrc == "aura" or enemy.specSrc == "mana" or enemy.specSrc == "form" then return "~" .. label end
   return label
 end

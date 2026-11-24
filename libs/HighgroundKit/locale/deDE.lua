@@ -4993,4 +4993,7 @@ assert(ns.Locale:Register("deDE", {
   ["highground.teamhealers.no_teammates_who_can_heal_join_a.642ada"] = "Keine Teamkollegen, die heilen können. Treten Sie einer Gruppe oder einem Schlachtfeld bei.",
   ["highground.teamhealers.sample_teammates_marks_made_here_are_not.b2932a"] = "Beispiel-Teamkollegen: Hier gesetzte Markierungen werden nicht gespeichert.",
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Bewegen Sie die Maus über einen Teamkollegen und drücken Sie Ihre Taste für „Team-Heiler markieren“, oder geben Sie /hg healer ein.",
+  ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "wenig Zeit in Katzen- oder Bärengestalt",
+  ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "viel Zeit in Katzen- oder Bärengestalt",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "Sichtung in Mondkingestalt",
 }))

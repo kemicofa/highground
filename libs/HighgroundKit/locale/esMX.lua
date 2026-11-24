@@ -4993,4 +4993,7 @@ assert(ns.Locale:Register("esMX", {
   ["highground.teamhealers.no_teammates_who_can_heal_join_a.642ada"] = "No hay compañeros que puedan sanar. Únete a un grupo o a un campo de batalla.",
   ["highground.teamhealers.sample_teammates_marks_made_here_are_not.b2932a"] = "Compañeros de ejemplo: las marcas hechas aquí no se guardan.",
   ["highground.teamhealers.hover_over_a_teammate_and_press_your.c97e8a"] = "Pasa el mouse sobre un compañero y presiona tu tecla de Marcar sanador del equipo, o escribe /hg healer.",
+  ["battlegrounds.specs.little_time_in_cat_or_bear_form.bc14c5"] = "poco tiempo en forma felina o de oso",
+  ["battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a"] = "mucho tiempo en forma felina o de oso",
+  ["battlegrounds.specs.being_seen_in_moonkin_form.c2d018"] = "haberlo visto en forma de lechúcico lunar",
 }))

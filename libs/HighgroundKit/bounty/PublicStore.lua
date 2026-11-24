@@ -106,8 +106,16 @@ function P.NewID()
   return P.db.id .. "." .. P.db.sequence
 end
 
-function P.Mine(p)
+-- Account IDs travel in clear: they keep alts to one offer per target,
+-- but a received offer can copy one. An offer is mine only when it was
+-- posted here: walletScope (never sent) marks those, and older ones need
+-- their posting character. Imported offline copies never are.
+function P.Account(p)
   return P.ready and P.db.aliases[p.contributor] == true
+end
+
+function P.Mine(p)
+  return P.Account(p) and not p.imported and (p.walletScope ~= nil or p.by == B.Me())
 end
 
 function P.CanManage(p)

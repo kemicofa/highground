@@ -70,6 +70,9 @@ function P.Merge(p, sender, channel, organization)
   local old = offers[p.id]
   local priorSightings = old
   if old and old.imported then old = nil end -- A real author message supersedes unverified offline data.
+  -- This account's offers are saved here before they are sent: an unknown
+  -- one with its ID is a copy, which must not count against its wallet.
+  if P.Account(p) and not old then return false end
   if old then
     if old.by ~= sender or old.contributor ~= p.contributor or old.name ~= p.name or old.createdAt ~= p.createdAt
       or old.guid ~= p.guid or old.audience == "community" and old.organization ~= p.organization or p.revision < old.revision or old.audience ~= p.audience

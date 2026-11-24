@@ -343,3 +343,52 @@ test("fight rings follow teammates, skip ghosts and can be turned off", function
   equal(rim.alpha.party1, 0, "Fight rings off: no ring")
   assert(enemyPins(sim.env.WorldMapFrame) > 0, "the area circle instead")
 end)
+
+test("a death you see is timed by the tick that saw it and shared with its age", function()
+  local sim = new("retail")
+  local enemy = sim:enemy("Fallen", { position = { x = 0.2, y = 0.3 } })
+  sim:join()
+  sim:advance(2) -- the tick and the once-a-second scan just ran together
+  enemy.dead = true
+  sim:advance(1.5)
+  local e = sim:entry("Fallen")
+  assert(e.diedAt, "the tick saw the death")
+  equal(sim.ns.Test.intel["Fallen-Realm"].t, e.diedAt, "the map records the tick's time, not the scan's")
+  equal(e.lastDeath, e.diedAt, "resurrection waves count from it")
+  sim:advance(2)
+  local message
+  for _, m in ipairs(sim.sent) do
+    if m.prefix == "HighgroundI" and m.message:find("Fallen-Realm,D", 1, true) then message = m.message end
+  end
+  assert(message, "the death is shared")
+  local tenths = tonumber(message:match("Fallen%-Realm,D;Fallen%-Realm,A,(%d+)"))
+  assert(tenths, "older versions still read Fallen-Realm,D; the age follows it: " .. message)
+  assert(tenths >= 1 and tenths <= 30, "age in tenths of a second: " .. tenths)
+end)
+
+test("a teammate's death report counts from the death, not its arrival", function()
+  local sim = new("retail")
+  local _, a = sim:enemy("Aged")
+  local _, b = sim:enemy("Plain")
+  local _, c = sim:enemy("Late")
+  local _, d = sim:enemy("Odd")
+  for _, token in ipairs({ a, b, c, d }) do sim.units[token] = nil end
+  sim:join()
+  sim:advance(2)
+  local head = "3:" .. sim.ns.Intel.MapID() .. ":"
+  local function say(body, sender)
+    sim:event("CHAT_MSG_ADDON", "HighgroundI", head .. body, "INSTANCE_CHAT", sender or "Friend-Realm")
+  end
+  local now = sim.env.GetTime()
+  say("Aged-Realm,D;Aged-Realm,A,25;Plain-Realm,D;Odd-Realm,A,10;Odd-Realm,D")
+  equal(sim:entry("Aged").lastDeath, now - 2.5, "a death 2.5 s old")
+  equal(sim:entry("Plain").lastDeath, now, "an older version's death: on arrival")
+  equal(sim:entry("Odd").lastDeath, now, "an age before its death is ignored")
+  say("Late-Realm,D", "Old-Realm")
+  say("Late-Realm,D;Late-Realm,A,30", "New-Realm")
+  equal(sim:entry("Late").lastDeath, now - 3, "an exact report after a late one moves the death earlier")
+  equal(sim.ns.Test.intel["Late-Realm"].t, now - 3, "and its map record")
+  say("Late-Realm,D;Late-Realm,A,9999", "Other-Realm")
+  equal(sim:entry("Late").lastDeath, now - 3, "an implausible age is ignored")
+  sim:assertHealthy()
+end)

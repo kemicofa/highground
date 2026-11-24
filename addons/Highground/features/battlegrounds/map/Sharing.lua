@@ -3,13 +3,17 @@ local Intel, Comms = ns.Intel, ns.Comms
 
 ---------------------------------------------------------------------------
 -- Intel sharing (prefix HighgroundI, group channel). Message v3:
---   3:mapID:@,myArea;key,x,y,r,age,how,area;key,D;...
+--   3:mapID:@,myArea;key,x,y,r,age,how,area;key,D;key,A,tenths;...
 -- x/y in 1/10000 of the map, 0 = unknown; age in seconds so clocks don't
 -- need to agree; how keeps the position's provenance, unknown included.
+-- A death (D) is followed by its age in tenths of a second (A) when under
+-- a minute. Older versions skip A and time the death on arrival.
 -- Legacy v2 could send a release graveyard as the observer's position:
 -- its area and death reports are accepted, its bare coordinates never.
 ---------------------------------------------------------------------------
 local Clean = ns.Util.Clean
+
+Intel.MAX_DEATH_AGE = 600 -- tenths of a second
 
 function Intel.Send()
   local chan = Comms.GroupChannel()
@@ -54,7 +58,8 @@ function Intel.Send()
   for key in pairs(Intel.mine) do
     local it = Intel.intel[key]
     if it and it.dead then
-      add(key .. ",D", key)
+      local tenths = math.floor(math.max(0, now - it.t) * 10 + 0.5)
+      add(tenths <= Intel.MAX_DEATH_AGE and string.format("%s,D;%s,A,%d", key, key, tenths) or key .. ",D", key)
     elseif it and it.by == Intel.myName then
       add(string.format("%s,%d,%d,%d,%d,%s,%s", key, (it.x or 0) * 10000, (it.y or 0) * 10000, it.r,
         math.max(0, now - it.t), it.how or (it.x and "nearby" or "unknown"), Clean(it.area)), key)
@@ -65,6 +70,7 @@ function Intel.Send()
   for key in pairs(kept or {}) do Intel.mine[key] = true end
 end
 
+local deaths = {} -- [key] = when: one message's deaths, with their ages
 function Intel.Receive(text, sender)
   local short = sender and sender:match("^[^-]+")
   if short == Intel.myName then
@@ -76,13 +82,18 @@ function Intel.Receive(text, sender)
   end
   local now = GetTime()
   Intel.stats.recv = Intel.stats.recv + 1
+  wipe(deaths)
   for tok in body:gmatch("[^;]+") do
     local key, rest = tok:match("^([^,]+),(.+)$")
     if key == "@" then
       Intel.allyArea[short] = { area = Clean(rest), t = now }
     elseif key and ns.enemies and ns.enemies[key] then
       if rest == "D" then
-        Intel.Died(key, now)
+        deaths[key] = now
+      elseif rest:sub(1, 2) == "A," then
+        -- The age of the death just before it in this message.
+        local tenths = tonumber(rest:match("^A,(%d+)$"))
+        if deaths[key] and tenths and tenths <= Intel.MAX_DEATH_AGE then deaths[key] = now - tenths / 10 end
       else
         local x, y, r, age, detail = rest:match("^(%d+),(%d+),(%d+),(%d+),?(.*)$")
         if x then
@@ -104,6 +115,7 @@ function Intel.Receive(text, sender)
       end
     end
   end
+  for key, t in pairs(deaths) do Intel.Died(key, t) end
 end
 
 -- Short text for tooltips / the hero card, or nil when unknown. The second

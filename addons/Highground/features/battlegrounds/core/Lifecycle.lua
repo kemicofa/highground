@@ -103,6 +103,7 @@ function Core.SetActive(on)
     if not Core.testMode then
       scoreTicker = C_Timer.NewTicker(5, Core.RequestScores)
       Core.RequestScores()
+      if Core.RequestSpecTags then Core.RequestSpecTags() end
     end
     Core.Tick()
   else

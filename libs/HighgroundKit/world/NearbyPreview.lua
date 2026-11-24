@@ -10,6 +10,8 @@ local PREVIEW = {
   ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1, sx = 0.46, sy = 0.42 }, { zone = "shared.preview.tarren_mill.f2b545" }),
   { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25, sx = 0.465, sy = 0.425 },
   { name = "Ironhide", class = "WARRIOR", level = 60, guild = "Night Watch", ago = 40, by = "Guildmate", via = "guild", sx = 0.62, sy = 0.3 },
+  { name = "Bloodfang", class = "ROGUE", level = 60, guild = "Night Watch", zone = "Arathi Highlands", ago = 70, by = "Guildmate", via = "guild",
+    tracked = true, r = 70, sx = 0.7, sy = 0.62 },
   ns.Localization.Define({ name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"), ago = 140, sx = 0.3, sy = 0.66 }, { zone = "shared.nearby.hillsbrad_fields.ead610" }),
 }
 

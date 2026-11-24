@@ -119,6 +119,7 @@ function Share.Local(e, unit)
   e.mapID, e.x, e.y = map, x, y
   e.r = x and Share.Reach(unit) or nil
   e.by, e.via = nil, nil
+  if ns.Tracking then ns.Tracking.Seen(e) end
   if not Share.Active() then return end
   local now = GetTime()
   for audience, queue in pairs(queues) do
@@ -269,7 +270,12 @@ function Share.Listening(channel)
   if channel == "PARTY" or channel == "RAID" then return "group" end
 end
 
-function Share.Receive(text, channel, sender)
+function Share.Receive(text, channel, sender, ...)
+  -- Tracking's watch requests and reports (world/Tracking.lua).
+  if text:find("^1[TR]:") then
+    if ns.Tracking then ns.Tracking.Receive(text, channel, sender, ...) end
+    return
+  end
   local via = Share.Listening(channel)
   if not via then return end
   local from = Core.Canon(sender)
@@ -298,6 +304,7 @@ function Share.Receive(text, channel, sender)
       if Share.Merge(name, class ~= "" and class or nil, level > 0 and level or nil, guild ~= "" and guild or nil,
         map, x, y, math.min(tonumber(r), 500), at, from, via) then
         changed = true
+        if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via }) end
       end
     end
   end

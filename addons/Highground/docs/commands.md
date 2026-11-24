@@ -132,6 +132,11 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby map on` · `/hg nearby map off` | Show or hide Nearby's enemy sightings on the world map. | World map sightings switch → `nearby` |
 | `/hg nearby share on` · `/hg nearby share off` | Share nearby enemies with your party or raid and list theirs. | Group sharing switch → `nearby` |
 | `/hg nearby share guild on` · `/hg nearby share guild off` | Also share nearby enemies with your guild and list theirs. | Guild sharing switch → `nearby` |
+| `/hg nearby tracking on` · `/hg nearby tracking off` | Turn tracked enemy alerts on or off. | Tracked enemy alerts switch → `nearby` |
+| `/hg nearby track NAME` | Track an enemy by name, or your target: you're alerted with where they are when they're seen. | Track an enemy |
+| `/hg nearby untrack NAME` | Stop tracking an enemy by name, or your target. | Stop tracking an enemy |
+| `/hg nearby tracked` | List tracked enemies and where they were last reported. | Open tracked enemies (separate window) |
+| `/hg nearby watch on` · `/hg nearby watch off` | Watch for tracked enemies with every Highground user of your faction on this realm. | Watch with everyone switch → `nearby` |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |

@@ -188,6 +188,24 @@ class WorktreeLinkTests(unittest.TestCase):
         self.installation.activate(self.feature)
         self.assertTrue(unrelated.is_dir() and not unrelated.is_symlink())
 
+    def test_hand_linked_developer_addon_is_untouched(self):
+        probe = self.repository / "tools/apiprobe/HighgroundApiProbe"
+        probe.mkdir(parents=True)
+        (probe / "HighgroundApiProbe.toc").write_text("## Title: Highground API Probe\n## X-Internal: true\nProbe.lua\n")
+        link = self.addons / "HighgroundApiProbe"
+        link.symlink_to(probe, target_is_directory=True)
+        self.installation.activate(self.feature)
+        self.assertEqual(link.resolve(), probe.resolve())
+        self.assertTrue((self.addons / "Highground").is_symlink())
+
+    def test_highground_named_addon_without_internal_flag_is_still_rejected(self):
+        stray = self.repository / "tools/apiprobe/HighgroundApiProbe"
+        stray.mkdir(parents=True)
+        (stray / "HighgroundApiProbe.toc").write_text("## Title: Highground API Probe\nProbe.lua\n")
+        (self.addons / "HighgroundApiProbe").symlink_to(stray, target_is_directory=True)
+        with self.assertRaisesRegex(wow_link.LinkError, "Duplicate or unknown"):
+            self.installation.activate(self.feature)
+
     def test_unregistered_directory_is_not_a_valid_source(self):
         with self.assertRaisesRegex(wow_link.LinkError, "Not a registered worktree"):
             self.installation.activate(self.folder)

@@ -133,6 +133,16 @@ def validate_source_links(root):
                     raise LinkError(f"Source link leaves the selected worktree: {path} -> {target}")
 
 
+def developer_addons(root):
+    """Developer-only addons under tools/ (``## X-Internal: true``), linked by hand and never managed."""
+    names = set()
+    for toc in (root / "tools").glob("*/*/*.toc"):
+        if toc.stem == toc.parent.name and re.search(r"^##\s*X-Internal:\s*true\s*$",
+                                                     toc.read_text(encoding="utf-8-sig", errors="replace"), re.I | re.M):
+            names.add(toc.parent.name)
+    return names
+
+
 def contains_highground(entry):
     if not entry.is_dir():
         return False
@@ -168,9 +178,13 @@ class Installation:
         names = set()
         managed = set()
         available = addon_names(self.repository)
+        developer = developer_addons(self.repository)
         if selected and selected.is_dir():
             available |= addon_names(selected)
+            developer |= developer_addons(selected)
         for entry in sorted(self.addons_dir.iterdir()):
+            if entry.name in developer and entry.name not in available:
+                continue  # e.g. tools/apiprobe, linked by hand (its README)
             if entry.name not in available:
                 if entry.name.lower().startswith("highground") or contains_highground(entry):
                     raise LinkError(f"Duplicate or unknown Highground addon: {entry}; move it outside AddOns")

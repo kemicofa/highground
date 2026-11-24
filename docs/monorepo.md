@@ -14,7 +14,7 @@ Highground is the only supported distribution. The former standalone hosts remai
 | `addons/HighgroundModule*/` | Six bundled native switches for Highground's embedded modules |
 | `addons/HighgroundBountyData/`, `addons/HighgroundReputationData/` | Required bundled owners of shared SavedVariables |
 | `scripts/` | Metadata, ZIP builds, release planning, publication, source-worktree selection and battleground recording reports |
-| `tests/`, `tools/` | Repository checks, test runner, WoW simulator, lint, previews and profilers |
+| `tests/`, `tools/` | Repository checks, test runner, WoW simulator, lint, previews, profilers and the developer-only [API probe](../tools/apiprobe/README.md) |
 | `.github/` | Host-test matrix, Highground package, required CI gate, publication and announcement |
 
 ## Source installation

@@ -176,9 +176,14 @@ p.listView = Kit.VirtualList(p.listScroll, { gap = 6, inset = 2, max = 24,
   end })
 p.profileRows = p.listView.rows
 
+local LayoutProfiles
 function p.LayoutProfiles()
   if p.layingOut then return end
   p.layingOut = true
+  ns.Util.Guard("profiles layout", LayoutProfiles)
+  p.layingOut = nil
+end
+function LayoutProfiles()
   local scale = math.max(1, Core.FontScale())
   local width = math.max(520, p:GetWidth()) - PAD * 2
   local inset = p.profileContext and p.profileContext.inset or 0
@@ -238,12 +243,19 @@ function p.LayoutProfiles()
   p.profileList:SetText(T("saved_profiles"))
   p.profileButtons.New:SetEnabled(not creating)
   p.listView:SetItems(p.profileChoices); p.profileScroll:Refresh(); p.defaultInfo.body:Refresh()
-  p.layingOut = nil
 end
 
+local RefreshProfiles
 function p.RefreshProfiles(force)
   if not Core.db or p.refreshing or not (force or p:IsVisible()) then return end
   p.refreshing = true
+  -- A failure here or in the layout is recorded (/hg err) and must not
+  -- stop later refreshes.
+  ns.Util.Guard("profiles page", RefreshProfiles)
+  p.refreshing = nil
+  if P.RefreshContext then P.RefreshContext() end
+end
+function RefreshProfiles()
   local baseline = P.EnsureDefault()
   local state = P.ActiveState and P.ActiveState() or {}
   p.activeState = state
@@ -303,8 +315,7 @@ function p.RefreshProfiles(force)
   p.profileButtons.Delete:SetLabels(T("delete"), T("confirm_delete"))
   if p.example then p.detailTitle:SetText(T("example")) end
   O.openHub:SetShown(not (ns.Hub and p:GetParent() == ns.Hub.content))
-  p.LayoutProfiles(); p.refreshing = nil
-  if P.RefreshContext then P.RefreshContext() end
+  p.LayoutProfiles()
 end
 function p.BeginReviewExample()
   p.SelectProfile(Core.db.activeProfile or "Default")

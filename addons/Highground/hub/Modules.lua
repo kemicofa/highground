@@ -96,9 +96,7 @@ function Hub.BuildModules(key)
     p.Refresh()
   end }), "highground.modules.reload_to_apply.1f4e74")
   p.reload:SetPoint("BOTTOMRIGHT", -20, 20)
-  function p.Refresh()
-    if p.refreshing then return end
-    p.refreshing = true
+  local function Refresh()
     p.hint:SetHeight(math.max(54, p.hint:GetStringHeight()))
     scroll:SetPoint("TOPLEFT", 0, -64 - p.hint:GetHeight() - 12)
     scroll:Refresh()
@@ -133,6 +131,12 @@ function Hub.BuildModules(key)
     p.reload:SetShown(pending); p.reload:SetEnabled(not combat)
     p.status:SetText(p.problem or (combat and ns.Locale:Get("highground.modules.change_addons_after_combat.77ccf7")
       or pending and ns.Locale:Get("highground.modules.reload_when_you_re_ready_to_apply.ae9dfa") or ns.Locale:Get("highground.modules.no_addon_changes_pending.184cb9")))
+  end
+  -- A failure is recorded (/hg err) and must not stop later refreshes.
+  function p.Refresh()
+    if p.refreshing then return end
+    p.refreshing = true
+    ns.Util.Guard("addon switches", Refresh)
     p.refreshing = nil
   end
   p:SetScript("OnShow", p.Refresh)

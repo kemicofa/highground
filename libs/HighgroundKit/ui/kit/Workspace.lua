@@ -58,9 +58,7 @@ function Kit.ScrollArea(parent, opts)
     self.gutterShown = on
     self.view:SetPoint("BOTTOMRIGHT", on and -self.gutterWidth or 0, 0)
   end
-  function area:Refresh()
-    if self.refreshing then return end
-    self.refreshing = true
+  local function Refresh(self)
     local h = Measure(self)
     -- Reserve scrollbar room only while content overflows. A wider body never
     -- makes wrapped content taller, so collapsing settles in one pass.
@@ -74,6 +72,13 @@ function Kit.ScrollArea(parent, opts)
     if not Near(self.thumb:GetHeight(), thumb) then self.thumb:SetHeight(thumb) end
     if self.bar:IsShown() ~= (self.range > 0) then self.bar:SetShown(self.range > 0) end
     self:Scroll(self.offset)
+  end
+  -- A failing onLayout or onScroll is recorded (/hg err) and must not leave
+  -- this area unable to measure again.
+  function area:Refresh()
+    if self.refreshing then return end
+    self.refreshing = true
+    ns.Util.Guard("scroll area", Refresh, self)
     self.refreshing = nil
   end
   function area:SetBody(body)

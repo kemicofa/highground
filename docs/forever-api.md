@@ -64,6 +64,10 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 
 `CheckInteractDistance(unit, i)` is readable for an enemy player, in and out of combat. Indexes 1 and 4 give the 28-yard band: true near the enemy, false farther away. Indexes 2, 3 and 5 turned true only in melee range, so they mark a melee band rather than 10 or 11 yards. Read live in Arathi Basin, build 71037, 2026-11-24.
 
+### In combat
+
+`UnitAffectingCombat(unit)` stays readable for an enemy player during a match: it read true for an enemy in a fight and false for one out of it, neither secret. "Not in combat" can mark an enemy arriving or drinking. Read live in Arathi Basin, build 71037, 2026-11-24.
+
 ## Teammate reads
 
 - `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
@@ -86,12 +90,6 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 ## Leads to try
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.
-
-**In combat.** `UnitAffectingCombat` read `false` right after the gates opened. Check that it stays readable while the enemy fights; "not in combat" could mark someone arriving or drinking.
-
-```
-/run print(UnitAffectingCombat("target"),issecretvalue(UnitAffectingCombat("target")))
-```
 
 **Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Outside a battleground a friendly Tauren druid in Moonkin form read `Humanoid 7581785 false`: the model file ID is plain there, and `UnitCreatureType` doesn't change with form (live, 2026-11-24). Highground uses it (#326) where readable; Tauren and Night Elf are thought to share this model, and a later druid race may bring its own (IDs seen are counted in `liveStats.druidModels`). Still to check: an enemy inside a match (identity reads are secret there) and that caster form reads a different ID. Target the druid and run:
 

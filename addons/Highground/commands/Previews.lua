@@ -148,9 +148,11 @@ local function OnZone()
   local kind = select(2, IsInInstance())
   if kind == "pvp" or kind == "arena" then
     StopForPlay()
+    local stopped = false
     for _, command in ipairs(STANDALONE) do
-      if P.Active(command) then SetPreview(command, false) end
+      if P.Active(command) then SetPreview(command, false); stopped = true end
     end
+    if stopped then ns.Options.RefreshPreviews() end
   end
 end
 ns.Util.Events({

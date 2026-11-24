@@ -12,11 +12,13 @@ local GAMES = {
   retail = {
     addonChannel = true,    -- addon messages can use a custom realm channel
     combatLog = false,       -- COMBAT_LOG_EVENT_UNFILTERED reaches addons
+    enemyAuras = true,       -- enemy auras are readable in a match (unverified on Retail)
     enemyStats = false,      -- enemy health and power are readable numbers
     classicSpecs = false,    -- specs are classic talent trees (IDs from the client)
     pings = true,            -- team pings can mark the kill target
     blitz = true,            -- solo rated battlegrounds exist
     allBattlegrounds = true, -- track every battleground by default, not only rated ones
+    orbs = true,             -- Temple of Kotmogu's orbs exist
     spellRanks = false,      -- spells have ranks (each rank its own spell ID)
   },
   -- Midnight client, classic content, no rated play.
@@ -32,31 +34,39 @@ local GAMES = {
     -- SecureActionButton can run. Re-enable snippets if the client fixes it.
     secureSnippets = type(loadstring_untainted) == "function",
     combatLog = false,
+    -- Reading enemy auras in a match errors: "Auras cannot be accessed when
+    -- secret while tainted" (live, 2026-11-24).
+    enemyAuras = false,
     enemyStats = false,
     classicSpecs = true,
     pings = true,
     blitz = false,
     allBattlegrounds = true,
+    orbs = false,
     spellRanks = true,
   },
   cata = {
     addonChannel = false,   -- discover on custom chat, send data by whisper
     combatLog = true,
+    enemyAuras = true,
     enemyStats = true,
     classicSpecs = true,
     pings = false,
     blitz = false,
     allBattlegrounds = true,
+    orbs = false,
     spellRanks = false, -- ranks were removed in 4.0
   },
   classic = {
     addonChannel = false,
     combatLog = true,
+    enemyAuras = true,
     enemyStats = true,
     classicSpecs = true,
     pings = false,
     blitz = false,
     allBattlegrounds = true,
+    orbs = false,
     spellRanks = true,
   },
 }

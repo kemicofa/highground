@@ -128,6 +128,56 @@ t.test("Retail sets the execute threshold that colours its execute marks", funct
   assert(row, "Target behavior offers the execute threshold on Retail")
 end)
 
+t.test("WoW Forever hides aura and orb scoring from its pages and commands", function()
+  local function forever(_, env) env.GetBuildInfo = function() return "1.60.1", "71037", "Nov 20 2026", 16001 end end
+  local function rows(sim, key)
+    sim.ns.Hub.Open(key)
+    local keys = {}
+    for _, r in ipairs(sim.ns.Options.byKey[key].rows or {}) do keys[r.key] = true end
+    return keys
+  end
+  local function choices(sim)
+    local keys = {}
+    for _, key in ipairs(sim.ns.CommandCatalog.byId["points-value"].fields[1].choices()) do keys[key] = true end
+    return keys
+  end
+  local hidden = {
+    live = { "spent", "burst", "defensiveUp" }, objectives = { "orbCarrier", "orbPerPct" },
+    behavior = { "goWindow", "spentWindow" }, multipliers = { "spent", "burst", "defensive" },
+  }
+  local kept = { live = "rangeFar", objectives = "flagCarrier", behavior = "switchMargin", multipliers = "range" }
+
+  local sim = new("retail", {}, forever)
+  equal(sim.ns.GAME, "forever", "Forever client")
+  for page, keys in pairs(hidden) do
+    local shown = rows(sim, page)
+    assert(shown[kept[page]], page .. " keeps " .. kept[page])
+    for _, key in ipairs(keys) do assert(not shown[key], page .. " hides " .. key) end
+  end
+  local db = sim.env.HighgroundDB
+  local out = run(sim, "points defensiveUp -5")
+  equal((db.points or {}).defensiveUp, nil, "hidden point refused")
+  assert(has(out, "Unknown scoring value"), "refused as unknown: " .. out)
+  out = run(sim, "weight burst 2")
+  equal((db.weights or {}).burst, nil, "hidden multiplier refused")
+  assert(has(out, "unknown weight"), "refused as unknown: " .. out)
+  out = run(sim, "weights")
+  assert(has(out, "range") and not has(out, "defensive x"), "weights lists only usable multipliers: " .. out)
+  local offered = choices(sim)
+  assert(offered.killPer and not offered.spent and not offered.orbCarrier, "Edit a scoring value offers usable keys")
+
+  sim = new("retail", {})
+  for page, keys in pairs(hidden) do
+    local shown = rows(sim, page)
+    for _, key in ipairs(keys) do assert(shown[key], "Retail " .. page .. " keeps " .. key) end
+  end
+  run(sim, "points defensiveUp -5")
+  equal(sim.env.HighgroundDB.points.defensiveUp, -5, "Retail still sets it")
+  assert(has(run(sim, "weights"), "defensive x"), "Retail lists the defensive multiplier")
+  offered = choices(sim)
+  assert(offered.spent and offered.orbCarrier and not offered.gearPer, "Retail offers its own keys only")
+end)
+
 t.test("layout commands wait for the end of combat and then apply", function()
   local sim = new("cata", {})
   local Core = sim.ns.Core

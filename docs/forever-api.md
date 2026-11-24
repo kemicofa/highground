@@ -91,16 +91,16 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.
 
-**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Outside a battleground a friendly Tauren druid in Moonkin form read `Humanoid 7581785 false`: the model file ID is plain there, and `UnitCreatureType` doesn't change with form (live, 2026-11-24). Highground uses it (#326) where readable; Tauren and Night Elf are thought to share this model, and a later druid race may bring its own (IDs seen are counted in `liveStats.druidModels`). Still to check: an enemy inside a match (identity reads are secret there) and that caster form reads a different ID. Target the druid and run:
+**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Outside a battleground a friendly Tauren druid in Moonkin form read `Humanoid 7581785 false`: the model file ID is plain there, and `UnitCreatureType` doesn't change with form (live, 2026-11-24). Highground uses it (#326) where readable; Tauren and Night Elf are thought to share this model, and a later druid race may bring its own (IDs seen are counted in `liveStats.druidModels`). Still to check: an enemy inside a match (identity reads are secret there) and that caster form reads a different ID. Needs a level bracket where druids have Moonkin Form; a level 33 match had none. Target the druid and run:
 
 ```
 /run local m=CreateFrame("PlayerModel",nil,UIParent)m:SetSize(9,9)m:SetPoint("CENTER")m:SetUnit("target")C_Timer.After(1,function()local f=m:GetModelFileID()print(UnitCreatureType("target"),f,issecretvalue(f))m:Hide()end)
 ```
 
-**Arena crowd-control duration.** `C_PvP.GetArenaCrowdControlDuration(unit)` returned a duration object for an enemy in a battleground. It may be the PvP trinket cooldown in a form a cooldown widget can draw without Highground reading it. List its methods first:
+**Arena crowd-control duration.** `C_PvP.GetArenaCrowdControlDuration(unit)` returns a `LuaDurationObject`, the PvP trinket cooldown that `C_PvP.RequestCrowdControlSpell(unit)` asks the server for; `GetArenaCrowdControlInfo(unit)` gives its spell, start and duration. Its metatable is hidden, so list methods from Blizzard's `LuaDurationObjectAPI` documentation (`IsZero`, `HasSecretValues`, `GetRemainingDuration`...). For enemy targets in Arathi Basin (levels 30-39, build 71037, 2026-11-24), every read after a request was `IsZero` true, `HasSecretValues` true, 0 remaining, and the info call returned nothing. Enemies at those levels rarely carry a PvP trinket, so this isn't conclusive. Still to check: an enemy right after a trinket or a trinket-like racial, in a higher bracket. If it fills, `Cooldown:SetCooldownFromDurationObject` could draw it without Highground reading it.
 
 ```
-/run local d=C_PvP.GetArenaCrowdControlDuration("target") print(d,type(d)) local m=d and getmetatable(d) if type(m)=="table" and type(m.__index)=="table" then for k in pairs(m.__index) do print(k) end end
+/run local u="target" C_PvP.RequestCrowdControlSpell(u) C_Timer.After(1,function()local d=C_PvP.GetArenaCrowdControlDuration(u) print("zero",d:IsZero(),"sec",d:HasSecretValues(),"rem",d:GetRemainingDuration(),"info",C_PvP.GetArenaCrowdControlInfo(u))end)
 ```
 
 **Tooltip lines.** `C_TooltipInfo.GetUnit(unit)` returned readable fields with secret GUIDs; the probe didn't open its `lines`. Some may hold text the direct reads hide.

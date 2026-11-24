@@ -87,7 +87,7 @@ function Timers.ObjectiveRows(now)
         if r and r.winner == lose then
           local row = pool:Add()
           Timers.Tag(row, "NEED")
-          row.team, row.count, row.noun = lose, k, word -- the overview's plan
+          row.team = lose
           row.color, row.time = Timers.TeamColor(lose), ""
           local a = args.need
           a.value1, a.k, a.word, a.value4 = TEAM_NAME[lose], string.format("%d", k), word, k > 1 and "s" or ""
@@ -159,8 +159,8 @@ function Timers.ObjectiveRows(now)
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
     local row = pool:Add()
     Timers.Tag(row, "FLAG")
-    row.color, row.left = ns.Theme.Rgb("white"), ns.flagRespawnAt - now
-    row.text = ns.Locale:Get("battlegrounds.objectives.respawn.5a0bd4")
+    row.color, row.left, row.icon = ns.Theme.Rgb("white"), ns.flagRespawnAt - now, Timers.FLAG_ICON
+    row.text = ns.Locale:Get("battlegrounds.objectives.respawn.1b63d8")
     row.total = Timers.FlagRespawnTime()
   end
   if Timers.AddOverview then Timers.AddOverview(out, now, pool) end

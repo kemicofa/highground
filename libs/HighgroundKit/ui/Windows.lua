@@ -276,14 +276,14 @@ function Timers.LayoutRow(w, r, i)
     Timers.Font(r.place, "rowNameSmall")
     r.place:SetPoint("TOPLEFT", 33, -3)
   end
-  r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
+  -- Text stops at the clock; a row without one (r.wide) uses its room.
+  if r.wide then r.place:SetPoint("RIGHT", compact and -5 or -7, compact and 0 or 1)
+  else r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0) end
 end
 
 function Timers.RowFrame(w, i)
   local r = w.rows[i]
-  if r then
-    return r
-  end
+  if r then return r end
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
   r.flash = Theme.Fill(r, "BORDER", "accent")
@@ -317,7 +317,7 @@ function Timers.RowFrame(w, i)
       CAP = ns.Locale:Get("shared.windows.capture_in_progress.2e15da"), LOCK = ns.Locale:Get("shared.windows.timed_node_ownership.aac8d0"), RESET = ns.Locale:Get("shared.windows.node_resetting.c67e3a"),
       WIN = ns.Locale:Get("shared.windows.projected_win_if_current_captures_complete.f1bd30"), HELD = ns.Locale:Get("shared.windows.projection_if_contested_bases_are_defended.bdf5c7"),
       NEED = ns.Locale:Get("shared.windows.bases_required_for_the_trailing_team_to.4074ab"), FLAG = ns.Locale:Get("shared.windows.flag_respawn_countdown.819f0d"),
-      PLAN = ns.Locale:Get("shared.windows.objective_plan_from_the_current_match_state.4ef7f6"), CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
+      CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
       STATUS = ns.Locale:Get("shared.windows.observed_game_status.0f8c50"), GATE = ns.Locale:Get("shared.windows.gate_status_from_the_game.f3b238"), CART = ns.Locale:Get("shared.windows.observed_cart_or_delivery_objective.11cdb7"),
       ROUND = ns.Locale:Get("shared.windows.round_information_from_the_game.49309c"), CONTROL = ns.Locale:Get("shared.windows.observed_control_progress.2ff37b"),
       EVENT = ns.Locale:Get("shared.windows.recent_battleground_announcement.aad5da"), OBJECTIVE = ns.Locale:Get("shared.windows.observed_map_objective.3c3cd9"),
@@ -351,7 +351,7 @@ local function Fresh(w, tag, opening)
 end
 
 -- row = { tag, color, text, left + total (bar fills as it runs out) |
---         frac (bar as given), time (text, else from left), est, die }
+--         frac (bar as given), time (text, else from left), est, die, icon }
 function Timers.ShowRows(w, rows, info)
   local opening = not w:IsShown()
   if not w.tagSeen then w.tagSeen, w.tagCounts = {}, {} end
@@ -364,7 +364,7 @@ function Timers.ShowRows(w, rows, info)
     end
     r.data = row
     -- The crest says whose row it is; OURS / THEIRS would repeat it.
-    local crest = Timers.FactionIcon(r.faction, row.team)
+    local crest = Timers.FactionIcon(r.faction, row.team, row.icon)
     r.tag:SetText(crest and CREST_TAGS[row.kind] and "" or row.tag)
     Theme.Paint(r.tag, c)
     local frac = row.frac
@@ -373,7 +373,9 @@ function Timers.ShowRows(w, rows, info)
     end
     r.bar:SetValue(frac or 0)
     Timers.BarColor(r.bar, c, row.est and BAR_EST or BAR_LIVE)
-    r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--")
+    local clock = row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--"
+    r.time:SetText(clock)
+    if (clock == "") ~= r.wide then r.wide = clock == ""; Timers.LayoutRow(w, r, i) end
     local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
     r.edge:SetColor(urgent and "warning" or "border")
     r.glow:SetActive(urgent, urgent)

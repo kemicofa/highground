@@ -144,7 +144,7 @@ t.test("timer windows rewrite their row models in place and follow structural ch
   local T = sim.ns.Timers
   local rows = T.ObjectiveRows(sim.now)
   local win, cap = rowWith(rows, "WIN"), rowWith(rows, "CAP", "Blacksmith")
-  assert(win and cap and rowWith(rows, "PLAN"), "prediction, capture and plan rows")
+  assert(win and cap, "prediction and capture rows")
   local resRows = T.Rows(sim.now)
   local first = resRows[1]
   local again = T.ObjectiveRows(sim.now + 1)
@@ -170,7 +170,7 @@ t.test("timer windows rewrite their row models in place and follow structural ch
   sim:assertHealthy()
 end)
 
-t.test("translated objective rows keep their plan and cached text follows a language change", function()
+t.test("translated objective rows know the winner and cached text follows a language change", function()
   local sim = setup("cata", 40402)
   arathi(sim)
   local T, C, L = sim.ns.Timers, sim.ns.Core, sim.ns.Locale
@@ -179,8 +179,7 @@ t.test("translated objective rows keep their plan and cached text follows a lang
   local win
   for _, row in ipairs(rows) do if row.kind == "WIN" then win = row end end
   assert(win and win.tag == L:Get("battlegrounds.objectives.win.662fae"), "the WIN row carries translated text")
-  t.equal(rows[1].text, L:Get("battlegrounds.overview.hold_bases_to_win.b95577"),
-    "the plan reads the row kind and team, not translated names")
+  t.equal(win.team, T.MyTeam(), "the winner is a team id, not a translated name")
   C.lastError = "test: shown"
   C.Tick()
   local german = C.subtitle.text
@@ -198,11 +197,11 @@ t.test("translated objective rows keep their plan and cached text follows a lang
   C.lastError = nil
 end)
 
-t.test("translated timer rows keep their tooltip meaning and a short plan", function()
+t.test("translated timer rows keep their tooltip meaning", function()
   local sim = setup("cata", 40402)
   arathi(sim)
   local T, L, Loc = sim.ns.Timers, sim.ns.Locale, sim.ns.Localization
-  -- The enemy leads, so the plan names the bases your team needs.
+  -- The enemy leads, so NEED names the bases your team needs.
   local scores = T.MyTeam() == "A" and { [1893] = "Bases: 1  Resources: 610/1600", [1894] = "Bases: 3  Resources: 1100/1600" }
     or { [1893] = "Bases: 3  Resources: 1100/1600", [1894] = "Bases: 1  Resources: 610/1600" }
   sim.env.C_UIWidgetManager = { GetIconAndTextWidgetVisualizationInfo = function(id)
@@ -215,11 +214,9 @@ t.test("translated timer rows keep their tooltip meaning and a short plan", func
   for _, locale in ipairs({ "enUS", "deDE" }) do
     assert(Loc.SetPreference(locale), locale)
     local rows = T.ObjectiveRows(sim.now)
-    local need, plan, win = find(rows, "NEED"), find(rows, "PLAN"), find(rows, "WIN")
-    assert(need and plan and win, locale .. ": need, plan and win rows")
-    t.equal(plan.text, L:Format("battlegrounds.overview.hold_k_word_value4.62953b",
-      { k = tostring(need.count), word = need.noun, value4 = need.count > 1 and "s" or "" }), locale .. ": short plan")
-    assert(not plan.text:find(need.text, 1, true), locale .. ": not the trailing team's sentence")
+    local need, win = find(rows, "NEED"), find(rows, "WIN")
+    assert(need and win and need.team == T.MyTeam(), locale .. ": your team's NEED and the WIN rows")
+    assert(not find(rows, "PLAN"), locale .. ": no plan row repeating NEED")
     t.equal(win.tag, L:Get("battlegrounds.objectives.win.662fae"), locale .. ": translated tag")
     -- The tooltip finds the meaning by the row's id, not its translated tag.
     local _, w = T.Windows()
@@ -232,19 +229,18 @@ t.test("translated timer rows keep their tooltip meaning and a short plan", func
     assert(lines:find(L:Get("shared.windows.projected_win_if_current_captures_complete.f1bd30"), 1, true),
       locale .. ": tooltip meaning: " .. lines)
   end
-  t.equal(T.ObjectiveRows(sim.now)[1].text:sub(1, 7), "Halten ", "the plan is German")
   t.equal(find(T.ObjectiveRows(sim.now), "NEED").tag, "NÖTIG", "the NEED tag is German")
   -- Every tag the timers set has a translation; the id stays the row's kind.
   for _, locale in ipairs({ "ruRU", "zhCN" }) do
     assert(Loc.SetPreference(locale), locale)
     for _, id in ipairs({ "YOU", "RES", "SOON", "OURS", "THEIRS", "NEUTRAL", "CONTEST", "WIN", "HELD", "NEED",
-      "CAPPING", "CAP", "LOCK", "RESET", "FLAG", "PLAN", "STATUS", "CONTROL", "OBJECTIVE", "ROUND", "EVENT", "CART" }) do
+      "CAPPING", "CAP", "LOCK", "RESET", "FLAG", "STATUS", "CONTROL", "OBJECTIVE", "ROUND", "EVENT", "CART" }) do
       local row = T.Tag({}, id)
       assert(row.kind == id and row.tag ~= id and not row.tag:find("%u%u"), locale .. ": " .. id .. " -> " .. row.tag)
     end
   end
   Loc.SetPreference("enUS")
-  t.equal(T.ObjectiveRows(sim.now)[1].text:sub(1, 5), "Hold ", "and English again")
+  t.equal(find(T.ObjectiveRows(sim.now), "NEED").tag, "NEED", "and English again")
   sim:assertHealthy()
 end)
 

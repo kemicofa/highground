@@ -15,8 +15,10 @@ end
 -- Team crests: the side a team plays in this match (cross-faction games
 -- included), not the character's faction.
 Timers.FACTION_ICON = { A = "Interface\\Icons\\PVPCurrency-Honor-Alliance", H = "Interface\\Icons\\PVPCurrency-Honor-Horde" }
-function Timers.FactionIcon(tex, team)
-  local path = Timers.FACTION_ICON[team]
+Timers.FLAG_ICON = "Interface\\Icons\\INV_BannerPVP_03" -- the neutral flag
+-- icon: a row's own picture, shown instead of the crest.
+function Timers.FactionIcon(tex, team, icon)
+  local path = icon or Timers.FACTION_ICON[team]
   if path then
     tex:SetTexture(path)
     tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)

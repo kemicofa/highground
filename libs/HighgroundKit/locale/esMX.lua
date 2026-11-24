@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("esMX", {
   ["nearby.commands.share_label"] = "Interruptor de compartir con el grupo",
   ["nearby.commands.guild"] = "Comparte también los enemigos cercanos con tu hermandad y muestra los suyos.",
   ["nearby.commands.guild_label"] = "Interruptor de compartir con la hermandad",
+  ["guide.nearby.shared.title"] = "Avistamientos de tu grupo y tu hermandad",
+  ["guide.nearby.shared.text"] = "Ironhide lo vio un miembro de la hermandad, no tú. Nearby comparte los enemigos que ves con tu grupo o banda y tu hermandad, y muestra los suyos de tu zona. El mapa del mundo los muestra todos, con un círculo de la distancia a la que podría estar cada uno.",
   ["profiles.review.previous"] = "Valor anterior",
   ["profiles.review.new"] = "Nuevo valor",
   ["profiles.review.empty"] = "No hay diferencias en los ajustes incluidos.",

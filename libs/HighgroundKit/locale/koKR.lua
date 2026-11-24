@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("koKR", {
   ["nearby.commands.share_label"] = "파티 공유 스위치",
   ["nearby.commands.guild"] = "가까운 적을 길드와도 공유하고 그들이 본 적을 표시합니다.",
   ["nearby.commands.guild_label"] = "길드 공유 스위치",
+  ["guide.nearby.shared.title"] = "파티와 길드의 목격 정보",
+  ["guide.nearby.shared.text"] = "Ironhide는 내가 아니라 길드원이 목격했습니다. Nearby는 내가 본 적을 파티나 공격대, 길드와 공유하고, 그들이 내 지역에서 본 적을 목록에 표시합니다. 세계 지도에는 모두 표시되며, 원은 각 적이 얼마나 떨어져 있을 수 있는지 보여줍니다.",
   ["profiles.review.previous"] = "이전 값",
   ["profiles.review.new"] = "새 값",
   ["profiles.review.empty"] = "포함된 설정에 차이가 없습니다.",

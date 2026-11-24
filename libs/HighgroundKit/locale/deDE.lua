@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("deDE", {
   ["nearby.commands.share_label"] = "Schalter für Gruppenteilen",
   ["nearby.commands.guild"] = "Teilt Feinde in der Nähe auch mit deiner Gilde und listet deren auf.",
   ["nearby.commands.guild_label"] = "Schalter für Gildenteilen",
+  ["guide.nearby.shared.title"] = "Sichtungen deiner Gruppe und Gilde",
+  ["guide.nearby.shared.text"] = "Ironhide wurde von einem Gildenmitglied gesehen, nicht von dir. Nearby teilt die Feinde, die du siehst, mit deiner Gruppe oder deinem Schlachtzug und deiner Gilde und listet deren Sichtungen aus deiner Zone auf. Die Weltkarte zeigt alle, mit einem Kreis für ihre mögliche Entfernung.",
   ["profiles.review.previous"] = "Vorheriger Wert",
   ["profiles.review.new"] = "Neuer Wert",
   ["profiles.review.empty"] = "Keine Unterschiede in den enthaltenen Einstellungen.",

@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("frFR", {
   ["nearby.commands.share_label"] = "Interrupteur du partage de groupe",
   ["nearby.commands.guild"] = "Partage aussi les ennemis à proximité avec votre guilde et liste les leurs.",
   ["nearby.commands.guild_label"] = "Interrupteur du partage de guilde",
+  ["guide.nearby.shared.title"] = "Repérages de votre groupe et de votre guilde",
+  ["guide.nearby.shared.text"] = "Ironhide a été vu par un membre de la guilde, pas par vous. Nearby partage les ennemis que vous voyez avec votre groupe ou raid et votre guilde, et liste les leurs dans votre zone. La carte du monde les montre tous, avec un cercle indiquant leur distance possible.",
   ["profiles.review.previous"] = "Valeur antérieure",
   ["profiles.review.new"] = "Nouvelle valeur",
   ["profiles.review.empty"] = "Aucune différence dans les paramètres inclus.",

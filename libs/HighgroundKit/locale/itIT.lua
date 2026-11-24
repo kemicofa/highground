@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("itIT", {
   ["nearby.commands.share_label"] = "Interruttore della condivisione con il gruppo",
   ["nearby.commands.guild"] = "Condivide i nemici vicini anche con la gilda ed elenca i loro.",
   ["nearby.commands.guild_label"] = "Interruttore della condivisione con la gilda",
+  ["guide.nearby.shared.title"] = "Avvistamenti del gruppo e della gilda",
+  ["guide.nearby.shared.text"] = "Ironhide è stato visto da un membro della gilda, non da te. Nearby condivide i nemici che vedi con il gruppo o l'incursione e la gilda, ed elenca i loro nella tua zona. La mappa del mondo li mostra tutti, con un cerchio per la distanza possibile di ognuno.",
   ["profiles.review.previous"] = "Valore precedente",
   ["profiles.review.new"] = "Nuovo valore",
   ["profiles.review.empty"] = "Nessuna differenza nelle impostazioni incluse.",

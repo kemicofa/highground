@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("zhTW", {
   ["nearby.commands.share_label"] = "隊伍分享開關",
   ["nearby.commands.guild"] = "也與公會分享附近敵人，並列出他們看到的敵人。",
   ["nearby.commands.guild_label"] = "公會分享開關",
+  ["guide.nearby.shared.title"] = "來自隊伍和公會的目擊",
+  ["guide.nearby.shared.text"] = "Ironhide 是公會成員看到的，不是你。Nearby 會把你看到的敵人分享給小隊或團隊以及公會，並列出他們在你所在區域看到的敵人。世界地圖會顯示所有目擊，圓圈表示每個敵人可能的距離。",
   ["profiles.review.previous"] = "以前價值",
   ["profiles.review.new"] = "新值",
   ["profiles.review.empty"] = "包含的設定中沒有差異。",

@@ -4806,6 +4806,8 @@ assert(ns.Locale:Register("enUS", {
   ["nearby.commands.share_label"] = "Group sharing switch",
   ["nearby.commands.guild"] = "Also share nearby enemies with your guild and list theirs.",
   ["nearby.commands.guild_label"] = "Guild sharing switch",
+  ["guide.nearby.shared.title"] = "Sightings from your group and guild",
+  ["guide.nearby.shared.text"] = "Ironhide was seen by a guild member, not by you. Nearby shares the enemies you see with your party or raid and your guild, and lists theirs from your zone. The world map shows them all, with a circle for how far away each could be.",
   ["profiles.review.previous"] = "Previous value",
   ["profiles.review.new"] = "New value",
   ["profiles.review.empty"] = "No differences in the included settings.",

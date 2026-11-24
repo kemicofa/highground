@@ -20,7 +20,11 @@ local Share = ns.WorldShare
 ---------------------------------------------------------------------------
 Share.PREFIX = "HighgroundW"
 Share.GROUP_EVERY, Share.GUILD_EVERY = 3, 10 -- seconds between batches
-Share.GUILD_REPEAT = 30 -- seconds before the guild hears of the same enemy again
+-- An enemy still in sight goes out again after this many seconds, or once
+-- you have moved (MOVED of the zone map). Hearing someone else send it
+-- counts as sent: a raid reports each enemy about once, not once per member.
+Share.REPEAT = { group = 15, guild = 30 }
+Share.MOVED = 0.01
 Share.FRESH = 10 -- only sightings this recent are sent
 Share.MAX_AGE = 120 -- older received sightings are ignored
 Share.MAX_REMOTE = 200 -- received enemies kept at most
@@ -90,8 +94,23 @@ end
 
 local function GuildOn() return Core.On("nearbyShareGuild") end
 
--- Enemies you noted since each audience's last batch.
-local dirty, guildDirty, guildSent = {}, {}, {}
+-- Per audience: enemies waiting for the next batch, and when and where
+-- each was last sent (by you or someone else). [name] = { at, x, y }
+local queues = { group = {}, guild = {} }
+local shared = { group = {}, guild = {} }
+
+local function Due(audience, e, now)
+  local last = shared[audience][e.name]
+  if not last or now - last.at >= Share.REPEAT[audience] then return true end
+  return e.x ~= nil and last.x ~= nil
+    and math.max(math.abs(e.x - last.x), math.abs(e.y - last.y)) > Share.MOVED
+end
+
+local function Sent(audience, name, x, y, now)
+  local last = shared[audience][name] or {}
+  shared[audience][name] = last
+  last.at, last.x, last.y = now, x, y
+end
 
 -- Nearby.Note: your own sighting. It carries your position and replaces a
 -- received one.
@@ -100,8 +119,10 @@ function Share.Local(e, unit)
   e.mapID, e.x, e.y = map, x, y
   e.r = x and Share.Reach(unit) or nil
   e.by, e.via = nil, nil
-  if Share.Active() then
-    dirty[e.name], guildDirty[e.name] = true, true
+  if not Share.Active() then return end
+  local now = GetTime()
+  for audience, queue in pairs(queues) do
+    if Due(audience, e, now) then queue[e.name] = true end
   end
 end
 
@@ -118,16 +139,15 @@ local function Freshest(a, b) return a.last > b.last end
 
 -- Up to MAX_PARTS messages, freshest sightings first. What does not fit
 -- stays queued for the next batch; stale and received entries are dropped.
--- repeat_: per-enemy send times; an enemy sent within GUILD_REPEAT waits.
 local byMap = {}
-local function Batch(queue, channel, now, repeat_)
+local function Batch(audience, channel, now)
   wipe(byMap)
-  local seen = ns.Nearby.seen
+  local queue, seen = queues[audience], ns.Nearby.seen
   for name in pairs(queue) do
     local e = seen[name]
     if not (e and not e.by and e.mapID and now - e.last <= Share.FRESH) then
       queue[name] = nil
-    elseif not (repeat_ and repeat_[name] and now - repeat_[name] < Share.GUILD_REPEAT) then
+    else
       local list = byMap[e.mapID] or {}
       byMap[e.mapID] = list
       list[#list + 1] = e
@@ -139,28 +159,32 @@ local function Batch(queue, channel, now, repeat_)
     local head = "1:" .. map .. ":"
     local i = 1
     while i <= #list and parts < Share.MAX_PARTS do
-      local tokens, len, names = {}, #head, {}
+      local tokens, len, entries = {}, #head, {}
       while i <= #list do
         local token = Token(list[i], now)
         if #tokens > 0 and len + #token + 1 > 250 then break end
-        tokens[#tokens + 1], names[#names + 1] = token, list[i].name
+        tokens[#tokens + 1], entries[#entries + 1] = token, list[i]
         len, i = len + #token + 1, i + 1
       end
       parts = parts + 1
       if Comms.Send(Share.PREFIX, head .. table.concat(tokens, ";"), channel) then
         Share.stats.sent = Share.stats.sent + 1
-        for _, name in ipairs(names) do
-          queue[name] = nil
-          if repeat_ then repeat_[name] = now end
+        for _, e in ipairs(entries) do
+          queue[e.name] = nil
+          Sent(audience, e.name, e.x, e.y, now)
         end
       else
         Share.stats.unsent = Share.stats.unsent + 1
       end
     end
   end
-  if repeat_ then
-    for name, at in pairs(repeat_) do
-      if now - at >= Share.GUILD_REPEAT then repeat_[name] = nil end
+end
+
+-- Records older than their repeat time decide nothing: drop them.
+local function Prune(now)
+  for audience, records in pairs(shared) do
+    for name, last in pairs(records) do
+      if now - last.at >= Share.REPEAT[audience] then records[name] = nil end
     end
   end
 end
@@ -169,7 +193,7 @@ local groupT = (math.random and math.random() or 0) * Share.GROUP_EVERY
 local guildT = (math.random and math.random() or 0) * Share.GUILD_EVERY
 function Share.Tick(elapsed)
   if not Share.Active() then
-    wipe(dirty); wipe(guildDirty); wipe(guildSent)
+    for audience in pairs(queues) do wipe(queues[audience]); wipe(shared[audience]) end
     return
   end
   -- Refused batches stay queued and go out once the game allows it.
@@ -179,11 +203,12 @@ function Share.Tick(elapsed)
   if groupT >= Share.GROUP_EVERY then
     groupT = 0
     local channel = Comms.GroupChannel()
-    if channel == "RAID" or channel == "PARTY" then Batch(dirty, channel, now) else wipe(dirty) end
+    if channel == "RAID" or channel == "PARTY" then Batch("group", channel, now) else wipe(queues.group) end
   end
   if guildT >= Share.GUILD_EVERY then
     guildT = 0
-    if GuildOn() and Util.read(IsInGuild) then Batch(guildDirty, "GUILD", now, guildSent) else wipe(guildDirty) end
+    if GuildOn() and Util.read(IsInGuild) then Batch("guild", "GUILD", now) else wipe(queues.guild) end
+    Prune(now)
   end
 end
 
@@ -246,7 +271,6 @@ function Share.Receive(text, channel, sender)
   map = tonumber(map)
   Share.stats.recv = Share.stats.recv + 1
   local now, changed = GetTime(), false
-  local queue, sent = via == "guild" and guildDirty or dirty, via == "guild" and guildSent or nil
   for token in body:gmatch("[^;]+") do
     local name, class, level, x, y, r, age, guild = token:match("^([^,]+),(%u*),(%d+),(%d+),(%d+),(%d+),(%d+),(.*)$")
     age = tonumber(age)
@@ -257,9 +281,9 @@ function Share.Receive(text, channel, sender)
       local key = LocalKey(name)
       -- Someone told this audience already: don't repeat it.
       local mine = ns.Nearby.seen[key]
-      if queue[key] and mine and not mine.by and mine.last <= at + 1 then
-        queue[key] = nil
-        if sent then sent[key] = now end
+      if mine and not mine.by and mine.last <= at + 1 then
+        queues[via][key] = nil
+        Sent(via, key, mine.x, mine.y, now)
       end
       level = tonumber(level)
       guild = Clean(guild)

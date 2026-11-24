@@ -106,7 +106,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "forever", 16
     s:advance(1.1)
     equal(N.count, 2, "a retained but unloaded target is excluded")
     s:command("nearby test")
-    equal(w.title.text, "NEARBY: 3", "preview uses sample count")
+    equal(w.title.text, "NEARBY: 4", "preview uses sample count")
     equal(N.count, 2, "preview does not change real tracking")
     s:command("nearby test")
     equal(w.title.text, "NEARBY: 2", "preview restores real count immediately")

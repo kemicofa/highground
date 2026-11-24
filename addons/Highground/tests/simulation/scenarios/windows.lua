@@ -64,14 +64,10 @@ end
 
 test("timer row tooltips explain their tag, follow the language and refresh cheaply", function()
   local sim = new("cata")
-  sim:command("bg test")
-  sim:advance(0.5)
-  local w, tip = sim.ns.Timers.windows, sim.env.GameTooltip
-  local row
-  for _, window in ipairs(w) do
-    for _, r in ipairs(window.rows or {}) do
-      if r:IsShown() and r.data and r.data.tag == "YOU" then row = r end
-    end
+  sim:command("bg test"); sim:advance(0.5)
+  local tip, row = sim.env.GameTooltip, nil
+  for _, window in ipairs(sim.ns.Timers.windows) do
+    for _, r in ipairs(window.rows or {}) do if r:IsShown() and r.data and r.data.tag == "YOU" then row = r end end
   end
   assert(row, "the preview shows your resurrection row")
   row.scripts.OnEnter(row)
@@ -83,7 +79,7 @@ test("timer row tooltips explain their tag, follow the language and refresh chea
     return get(self, key, ...)
   end
   for _ = 1, 5 do row.ShowTip(row) end
-  assert(lookups <= 5 * 3, "an open tooltip does not translate every tag again: " .. lookups)
+  assert(lookups <= 5 * 2, "an open tooltip does not translate every tag again: " .. lookups)
   L.Get = get
   sim.ns.Localization.SetPreference("deDE")
   row.ShowTip(row)

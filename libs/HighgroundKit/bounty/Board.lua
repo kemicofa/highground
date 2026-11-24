@@ -93,7 +93,7 @@ function Board.Build(provider)
   if provider then B.Board.preview, provider.board = Board, Board end
   if Board.win then return Board.win end
   local w = ns.Localization.BindWidget(Kit.Dialog(PREFIX .. "BountyFrame" .. (provider and (provider.name or "Preview") or ""), { title = ns.Locale:Get("shared.board.bounties.d82af6"), width = Board.W, height = 690,
-    header = 64, headerPadding = 22, savedKey = not provider and "bounty" or nil, point = { "CENTER", "CENTER", 0, 20 }, accent = "gold" }), { title = "shared.board.bounties.d82af6" })
+    header = 64, headerPadding = 22, savedKey = not provider and "bounty" or nil, point = { "CENTER", "CENTER", 0, 20 }, accent = "gold", stage = Kit.STAGES.bounties }), { title = "shared.board.bounties.d82af6" })
   Board.win, w.board = w, Board
   w.browser = CreateFrame("Frame", nil, w); w.browser:SetAllPoints(w)
   w.create = ns.Localization.Bind(Kit.Button(w.browser, ns.Locale:Get("shared.board.create_bounty.77492e"), 194, 30, { tone = "gold", onClick = Board.Create }), "shared.board.create_bounty.77492e")

@@ -221,6 +221,8 @@ Use `child = true` for a temporary editor or confirmation. It replaces its owner
 
 Every dialog uses `Kit.Header`. Register buttons or metadata in reading order with `window.header:SetActions({ primary, secondary })`; the component places them beside the title and reserves room for the close button. Title, actions and close share one vertical center, including after font, theme, size and visibility changes. Subtitles sit below the title when they fit within the header and move inline otherwise. Text stays within the available space. Crests remain centered on the whole header.
 
+A feature in `Kit.STAGES` passes `stage = Kit.STAGES[module]` to `Kit.Dialog` or `Kit.Header` (or calls `header:SetStage`; repeating the current stage does not reflow): its stage badge follows the title text, and a long title shortens before the badge moves.
+
 Use `window.header:SetActions()` to release actions before placing them elsewhere, such as a first-use action in the board body. The header owns anchors while actions are attached, but leaves their parents, size, visibility and click handlers with the caller. Do not assign per-screen title or header-action Y offsets. `Kit.Header(parent, options)` can also be placed on any other surface; dialogs expose its text as `window.title` and `window.sub` for compatibility.
 
 [libs/ui/Browser.lua](../../../libs/HighgroundKit/ui/Browser.lua) adds `Kit.Browser` for searchable journals and claim lists.
@@ -250,6 +252,7 @@ Use these before hand-rolling the same layout in a page. Labels and texts accept
 | `Kit.SectionCard(parent, { title, hint, strip, fill })` | A titled surface for one group of related content | `.body` holds children; `SetTitle`, `SetHint`, `Layout(width, bodyHeight)` |
 | `Kit.KeyValue(parent, { label, value, tone, role, labelWidth })` | A labelled fact: stats, summaries, review details | `Set(value, tone)`, `SetLabel(text)`, `Layout(width)`; long values wrap |
 | `Kit.Badge(parent, text, tone)` | Short status text (Pending, Paid, Muted) sized to its label | `Set(text, tone)`, `Layout()`; shares `Kit.Chip`'s opaque backing |
+| `Kit.StageBadge(parent, stage)` | A release stage after a feature's name: **Alpha** for the modules in `Kit.STAGES` (Bounties, Reputation) | `SetStage(stage)`; nil hides it. Hovering explains the stage; clicks and drags pass through |
 | `Kit.EmptyState(parent, { title, message, tone, action, onAction })` | Why a list is empty and how to get content | `Set(title, message, tone)`, `SetState(Kit.ResolveState(facts))` keeps the title and applies the state's message and tone |
 | `Kit.Toolbar(parent, { items, gap, height, minWidth, align, fitHeight })` | A row of actions sized to their labels; wraps when narrow | `Add(item)`, `SetItems(list)`, `Layout(width)`; hidden items leave no gap; `fitHeight` grows buttons whose labels wrap |
 | `Kit.Segmented(parent, { choices, value, onChange })` | One mode or filter inside a view. Use `Kit.TabGroup` for pages | `SetValue(key, silent)`, `GetValue()`, `SetEnabled(key, on)`, `Layout(width)`; selection has an underline |

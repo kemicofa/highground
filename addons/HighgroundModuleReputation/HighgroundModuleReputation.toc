@@ -1,5 +1,5 @@
 ## Interface: 120100, 120105, 16001, 40402
-## Title: Highground Reputation (module)
+## Title: Highground Reputation (module, alpha)
 ## IconTexture: Interface\AddOns\HighgroundModuleReputation\Icon.tga
 ## Group: Highground
 ## Notes: Enable or disable the bundled Reputation module. Changes apply after reload; saved settings are preserved.

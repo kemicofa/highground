@@ -4,6 +4,8 @@
 
 Player reports, community moderation, blacklist tooltips and optional chat filtering. Reputation is included in Highground.
 
+Reputation is in alpha, marked by an **Alpha** badge: it can still change and has more bugs. Please report problems on the [Highground Discord](https://discord.gg/xu3VsxRjca).
+
 Reputation uses your existing **WoW guild and character communities**. WoW owns their membership, invitations, names and roles. Retail and WoW Forever expose native communities; clients without that API offer guilds only.
 
 Install the complete Highground bundle and keep `HighgroundReputationData` enabled. It preserves existing shared reports and decisions when migrating from the deprecated standalone addon.

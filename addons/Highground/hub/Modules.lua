@@ -46,7 +46,7 @@ function Hub.BuildModules(key)
   if pages[id] then return pages[id] end
   local p = CreateFrame("Frame", nil, Hub.content)
   p:SetAllPoints(); p:Hide(); pages[id] = p
-  p.header = Kit.Header(p, { title = ns.Text.Upper(M.byKey[key].name), padding = 20 })
+  p.header = Kit.Header(p, { title = ns.Text.Upper(M.byKey[key].name), padding = 20, stage = Kit.STAGES[key] })
   p.header:SetPoint("TOPLEFT"); p.header:SetPoint("TOPRIGHT")
   p.guide = ns.Localization.Bind(Kit.Button(p, ns.Locale:Get("highground.home.how_addons_work.de4bbc"), 170, 28, { onClick = function() ns.Onboarding.Start("addons") end }), "highground.home.how_addons_work.de4bbc")
   p.header:SetActions({ p.guide })

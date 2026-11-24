@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.windows.remaining.5c9d2e"] = "Restante: ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "Contagem regressiva ainda não observada",
   ["shared.actionrow.open.cf9b77"] = "Abrir",
+  ["shared.stage.alpha"] = "Alfa",
+  ["shared.stage.alpha.hint"] = "Versão inicial: pode mudar, e bugs são mais prováveis. Conte-nos sobre problemas no Discord.",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Escape também fecha esta janela.",
   ["shared.fields.no_choices_available.f0f5e6"] = "Nenhuma escolha disponível",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}-{value2} OU {n}",

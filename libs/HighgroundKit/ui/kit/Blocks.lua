@@ -53,6 +53,36 @@ function Kit.Badge(parent, text, tone)
   return b
 end
 
+-- Features that are still taking shape, by module key. Their names carry a
+-- stage badge in the Highground window and their own windows.
+Kit.STAGES = { bounties = "alpha", reputation = "alpha" }
+local STAGE_COPY = { alpha = { label = "shared.stage.alpha", hint = "shared.stage.alpha.hint" } }
+
+-- The hover line explaining a stage, or nil for none.
+function Kit.StageHint(stage)
+  return STAGE_COPY[stage] and ns.Locale:Get(STAGE_COPY[stage].hint)
+end
+
+-- A Kit.Badge naming a release stage ("alpha"), hidden for nil. It shows
+-- the stage's hint on hover; clicks and drags reach the frame underneath.
+-- :SetStage(stage) switches it.
+function Kit.StageBadge(parent, stage)
+  local b = Kit.Badge(parent, "", "warning")
+  b:EnableMouse(true)
+  if b.SetMouseClickEnabled then b:SetMouseClickEnabled(false) end
+  function b:SetStage(name)
+    local copy = STAGE_COPY[name]
+    self.stage = copy and name or nil
+    self:Set(copy and { key = copy.label } or "")
+    if self:IsShown() ~= (copy ~= nil) then self:SetShown(copy ~= nil) end
+  end
+  Kit.Tooltip(b, function(self)
+    return self.stage and { ns.Locale:Get(STAGE_COPY[self.stage].label), Kit.StageHint(self.stage) }
+  end)
+  b:SetStage(stage)
+  return b
+end
+
 -- A label beside a wrapping value. opts: label, value, tone, role,
 -- labelWidth (a fraction of the width, or pixels; default 0.35).
 -- :Set(value, tone), :SetLabel(text), :Layout(width) -> height.

@@ -55,6 +55,7 @@ end
 -- frameless (true: obey the Frameless setting), accent (colour token of the
 -- band, bar and border, "accent"; the border is borderAccent by default),
 -- borderAlpha, crest (brand image beside the title), headerPadding,
+-- stage (a release stage badge after the title, Kit.StageBadge),
 -- noClose, onClose(self), child (temporarily replace the active tool),
 -- host (tools opened from it return to it when closed),
 -- onResume(self) (restore a host's page when returning from a child dialog).
@@ -108,7 +109,7 @@ function Kit.Dialog(name, opts)
     Kit.Tooltip(w.close, function() return { ns.Locale:Get("highground.profilereview.close.bbfa77"), ns.Locale:Get("shared.dialog.escape_also_closes_this_window.876235") } end)
   end
   w.header = Kit.Header(w, { title = opts.title, sub = opts.sub, titleRole = opts.titleRole,
-    height = header, padding = opts.headerPadding or (opts.crest and S("lg")), crest = opts.crest, close = w.close })
+    height = header, padding = opts.headerPadding or (opts.crest and S("lg")), crest = opts.crest, close = w.close, stage = opts.stage })
   w.header:SetAllPoints(w.head)
   w.title, w.sub, w.crest = w.header.title, w.header.sub, w.header.crest
   w.LayoutHeader = function() w.header:Layout() end

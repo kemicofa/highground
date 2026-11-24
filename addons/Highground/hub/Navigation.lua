@@ -132,7 +132,9 @@ local function Group(w, title, module)
     b.moduleLogo = b:CreateTexture(nil, "ARTWORK")
     b.moduleLogo:SetTexture("Interface\\AddOns\\" .. addonName .. "\\assets\\logos\\" .. title .. ".tga")
     b.moduleLogo:SetPoint("LEFT", 10, 0)
-    Kit.Tooltip(b, function() return { ns.Locale:Format("highground.navigation.title_sub_addon.051026", { title = b.label:GetText() }), ns.Locale:Get("highground.navigation.included_with_highground_expand_for_its_overview.1a5d5a") } end)
+    local stage = Kit.STAGES[module]
+    Kit.Tooltip(b, function() return { ns.Locale:Format("highground.navigation.title_sub_addon.051026", { title = b.label:GetText() }), ns.Locale:Get("highground.navigation.included_with_highground_expand_for_its_overview.1a5d5a"),
+      stage and { Kit.StageHint(stage), "warning", true } } end)
   end
   for i = 1, 2 do
     local stroke = Theme.Fill(b, "ARTWORK", "textMuted")

@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("zhTW", {
   ["shared.windows.remaining.5c9d2e"] = "剩餘： ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "倒計時尚未觀察到",
   ["shared.actionrow.open.cf9b77"] = "開啟",
+  ["shared.stage.alpha"] = "Alpha 版",
+  ["shared.stage.alpha.hint"] = "早期版本：可能會有變動，出錯的可能性較高。如有問題，請在 Discord 告訴我們。",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Esc 鍵也會關閉此視窗。",
   ["shared.fields.no_choices_available.f0f5e6"] = "沒有可用的選項",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}至{value2}或{n}",

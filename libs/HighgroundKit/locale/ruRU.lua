@@ -4138,6 +4138,8 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.windows.remaining.5c9d2e"] = "Осталось: ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "Обратный отсчет пока не замечен",
   ["shared.actionrow.open.cf9b77"] = "Открыть",
+  ["shared.stage.alpha"] = "Альфа",
+  ["shared.stage.alpha.hint"] = "Ранняя версия: возможны изменения и ошибки. Пожалуйста, сообщайте о проблемах в Discord.",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Клавиша Esc также закрывает это окно.",
   ["shared.fields.no_choices_available.f0f5e6"] = "Нет доступных вариантов",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}-{value2} или {n}",

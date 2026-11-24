@@ -42,14 +42,14 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Stealth alerts:** a sound and chat notice when a nearby enemy enters or leaves stealth.
 - **Enemy journal:** who killed you and who you killed, with notes and muting.
 
-### 💰 Bounties
+### 💰 Bounties (alpha)
 
 - **Wanted list:** put a bounty on any player, with or without a gold reward.
 - **Wanted alerts:** a poster and sound when your target shows up.
 - **Boards:** keep bounties private, or share them with your guild, a community or everyone.
 - **Suggestions:** spot players who keep killing you or your guild.
 
-### 🛡️ Reputation
+### 🛡️ Reputation (alpha)
 
 - **Player reports:** your guild or community flags problem players. See flags in tooltips and optionally filter their chat. Officers and moderators review reports.
 

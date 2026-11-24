@@ -24,7 +24,8 @@ local function SameText(text, value) return (text:GetText() or "") == tostring(v
 -- visibility or click handlers. Removing an action releases its anchors.
 -- Title, actions and close share one vertical center. A subtitle stacks
 -- below that row when it fits, or sits beside the title at larger sizes.
--- opts: title, sub, titleRole, padding, crest, height, close.
+-- A stage badge (Kit.StageBadge) follows the title text.
+-- opts: title, sub, titleRole, padding, crest, height, close, stage.
 function Kit.Header(parent, opts)
   opts = opts or {}
   local h = CreateFrame("Frame", nil, parent)
@@ -70,13 +71,21 @@ function Kit.Header(parent, opts)
       left = left + self.crest:GetWidth() + gap
     end
     local width = math.max(1, self:GetWidth() - left - right)
+    local stage = self.stage and self.stage:IsShown() and self.stage
+    -- Refit the badge too: text size changes reach its label, not its frame.
+    local badge = stage and stage:Layout() + S("md") or 0
     Kit.Place(self.title, "LEFT", self, "TOPLEFT", left, center)
-    SetWidth(self.title, hasSub and not stacked and math.min(width, self.title:GetStringWidth()) or width)
-    local subWidth = stacked and width or width - self.title:GetWidth() - gap
+    local natural, titleWidth = self.title:GetStringWidth(), width
+    -- The stage badge follows the title text; unmeasured text keeps the row.
+    if stage then titleWidth = math.max(1, natural > 0 and math.min(width - badge, natural) or width - badge)
+    elseif hasSub and not stacked then titleWidth = math.min(width, natural) end
+    SetWidth(self.title, titleWidth)
+    if stage then Kit.Place(stage, "LEFT", self.title, "RIGHT", S("md"), 0) end
+    local subWidth = stacked and width or width - self.title:GetWidth() - badge - gap
     if stacked then
       Kit.Place(self.sub, "TOPLEFT", self.title, "BOTTOMLEFT", 0, -subGap)
     else
-      Kit.Place(self.sub, "LEFT", self.title, "RIGHT", gap, 0)
+      Kit.Place(self.sub, "LEFT", stage or self.title, "RIGHT", gap, 0)
     end
     SetWidth(self.sub, math.max(1, subWidth))
     local showSub = hasSub and subWidth > 0
@@ -122,7 +131,22 @@ function Kit.Header(parent, opts)
     if SameText(self.sub, text) then return end
     self.sub:SetText(text or ""); self:Layout()
   end
+  -- stage: a release stage such as "alpha", or nil to hide the badge.
+  function h:SetStage(stage)
+    stage = stage or nil
+    if (self.stage and self.stage.stage) == stage then return end
+    if not self.stage then
+      self.stage = Kit.StageBadge(self, stage)
+      watch(self.stage)
+      -- Translated titles change width without a header event.
+      Kit.OnLocale(self, function(header) header:Layout() end)
+    else
+      self.stage:SetStage(stage)
+    end
+    self:Layout()
+  end
   if h.close then watch(h.close) end
+  if opts.stage then h:SetStage(opts.stage) end
   h:SetScript("OnShow", function() h:Layout() end)
   h:SetScript("OnSizeChanged", function() h:Layout() end)
   Core.OnFontScaleChange(function() h:Layout() end, true)

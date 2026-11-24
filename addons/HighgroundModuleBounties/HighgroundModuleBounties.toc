@@ -1,5 +1,5 @@
 ## Interface: 120100, 120105, 16001, 40402
-## Title: Highground Bounties (module)
+## Title: Highground Bounties (module, alpha)
 ## IconTexture: Interface\AddOns\HighgroundModuleBounties\Icon.tga
 ## Group: Highground
 ## Notes: Enable or disable the bundled Bounties module. Changes apply after reload; saved settings are preserved.

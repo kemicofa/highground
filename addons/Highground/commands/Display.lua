@@ -179,9 +179,13 @@ function Commands.cap(arg, msg, say)
     say(ns.Locale:Format("highground.display.l_t_value2_l_sub_value4.8ec54c", { l_t = string.format("%s", l.t), value2 = string.format("%s", tostring(l.who)), l_sub = string.format("%s", l.sub), value4 = string.format("%s", tostring(l.name or l.spell)) }))
   end
   if not UnitExists("target") then say(ns.Locale:Get("highground.display.for_a_live_check_target_the_player.186f0d")) return end
-  local okC, name, _, _, start, finish, _, _, _, spell = pcall(UnitCastingInfo, "target")
-  if not (okC and name) then okC, name, _, _, start, finish, _, _, spell = pcall(UnitChannelInfo, "target") end
-  say(ns.Locale:Format("highground.display.target_cast_value1_spell_value2_value3.06b4b3", { value1 = string.format("%s", tostring(name)), value2 = string.format("%s", tostring(spell)), value3 = string.format("%s", start and finish and string.format("%.1fs", (finish - start) / 1000) or ns.Locale:Get("highground.display.no_timing.b2b86d")) }))
+  -- Casts can be secret (WoW Forever): only readable values are shown or counted.
+  local U = ns.Util
+  local name, _, _, start, finish, _, _, _, spell = U.call(UnitCastingInfo, "target")
+  if type(name) == "nil" then name, _, _, start, finish, _, _, spell = U.call(UnitChannelInfo, "target") end
+  name, start, finish, spell = U.value(name), U.value(start), U.value(finish), U.value(spell)
+  local timed = type(start) == "number" and type(finish) == "number"
+  say(ns.Locale:Format("highground.display.target_cast_value1_spell_value2_value3.06b4b3", { value1 = string.format("%s", tostring(name)), value2 = string.format("%s", tostring(spell)), value3 = string.format("%s", timed and string.format("%.1fs", (finish - start) / 1000) or ns.Locale:Get("highground.display.no_timing.b2b86d")) }))
   say(ns.Locale:Format("highground.display.counts_as_a_capture_value2.397fc3", { value2 = tostring(name ~= nil and Core.IsCaptureCast(spell, name) or false) }))
   local e = Core.enemies[Core.CanonUnit("target") or ""]
   if not e then say(ns.Locale:Get("highground.display.not_in_the_enemy_roster_a_teammate.350840")) return end

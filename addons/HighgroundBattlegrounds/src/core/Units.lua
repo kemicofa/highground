@@ -116,7 +116,12 @@ function Core.ScanUnits()
       local specAuras
       local wasDead = e.dead
       e.dead = Util.read(UnitIsDeadOrGhost, unit) or false
-      if e.dead and not wasDead then Core.SapCall(e) end
+      if e.dead and not wasDead then
+        -- Seen dying: dead until seen alive or the rez wave, also where no
+        -- combat log reports deaths (Retail, WoW Forever).
+        e.diedAt = GetTime()
+        Core.SapCall(e)
+      end
       if ns.Defensives then
         -- Cata: classify auras by spellId (config/cata/Auras.lua lists).
         local hadDef = e.def and e.wasVisible
@@ -138,9 +143,16 @@ function Core.ScanUnits()
           end
         end
       else
-        local nDef, defList = Core.CountAuras(unit, "HELPFUL|BIG_DEFENSIVE")
-        local nExt, extList = Core.CountAuras(unit, "HELPFUL|EXTERNAL_DEFENSIVE")
-        local nCC = Core.CountAuras(unit, "HARMFUL|CROWD_CONTROL")
+        -- WoW Forever refuses enemy auras in a match: don't ask (each call
+        -- would error), the loss-of-control count below stands in for CC.
+        local nDef, defList, nExt, extList, nCC, nBurst, burstList
+        if ns.Caps.enemyAuras then
+          nDef, defList = Core.CountAuras(unit, "HELPFUL|BIG_DEFENSIVE")
+          nExt, extList = Core.CountAuras(unit, "HELPFUL|EXTERNAL_DEFENSIVE")
+          nCC = Core.CountAuras(unit, "HARMFUL|CROWD_CONTROL")
+          -- "Important" buffs minus defensives are mostly offensive cooldowns.
+          nBurst, burstList = Core.CountAuras(unit, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE")
+        end
         local hadDef = e.def and e.wasVisible
         e.def = ((nDef or 0) + (nExt or 0)) > 0
         -- The Retail category includes stuns as well as breakable CC. A
@@ -159,10 +171,12 @@ function Core.ScanUnits()
         if hadDef and not e.def and nDef ~= nil then
           e.burnedAt = GetTime()
         end
-        -- "Important" buffs minus defensives are mostly offensive cooldowns.
-        local nBurst, burstList = Core.CountAuras(unit, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE")
         e.burst = (nBurst or 0) > 0
-        e.burstIcon = e.burst and burstList and burstList[1] and burstList[1].icon or nil
+        -- Icons may be secret: never truth-tested, only handed on.
+        e.burstIcon = nil
+        if e.burst then
+          e.burstIcon = burstList and burstList[1] and burstList[1].icon
+        end
         e.defIcon = nil
         if e.def then
           local list = (nDef or 0) > 0 and defList or extList

@@ -14,6 +14,10 @@ for _, list in ipairs({ T.nameplate, T.arena, T.raid, T.party }) do
   for _, unit in ipairs(list) do T.target[unit] = unit .. "target" end
 end
 for _, unit in ipairs({ "player", "target", "focus", "mouseover", "softenemy" }) do T.target[unit] = unit .. "target" end
+-- And a teammate's target's own: "raid3target" -> "raid3targettarget".
+for _, list in ipairs({ T.raid, T.party }) do
+  for _, unit in ipairs(list) do T.target[T.target[unit]] = T.target[unit] .. "target" end
+end
 
 -- Your group's tokens and how many to read: raid1..N in a raid, otherwise
 -- party1..N-1 (you are not a party token).

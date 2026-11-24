@@ -31,14 +31,32 @@ end
 
 -- One reading per owner (an enemy entry), reused on every scan: all fields
 -- are reset here. activeCooldowns is a buffer the caller may swap out.
+-- Burst lists alternate between two, entries kept: the one owner.bursts
+-- holds stays intact while the other is filled.
 local FILTERS = { "HELPFUL", "HARMFUL" }
 local function Reading(owner)
   local r = owner and owner.auraReading or {}
   if owner then owner.auraReading = r end
   local active, markerSet = r.activeCooldowns or {}, r.markerSet or {}
+  local lists = r.burstLists or { {}, {} }
   wipe(r); wipe(active); wipe(markerSet)
-  r.activeCooldowns, r.markerSet = active, markerSet
+  r.activeCooldowns, r.markerSet, r.burstLists = active, markerSet, lists
+  r.burstList = owner and owner.bursts == lists[1] and lists[2] or lists[1]
+  r.burstCount = 0
   return r
+end
+
+-- The spec reason a buff gives, built once per spell and language.
+local reasons, reasonsLocale = {}, nil
+local function SpecReason(id, a, hint)
+  local locale = ns.Locale:GetLocale()
+  if locale ~= reasonsLocale then wipe(reasons); reasonsLocale = locale end
+  if not reasons[id] then
+    -- The client's name for the buff; the config's English name otherwise.
+    local name = Core.plain(a.name) and a.name or ns.Util.SpellName(id) or hint[2]
+    reasons[id] = ns.Locale:Format("battlegrounds.auras.value1_buff.ec59d9", { value1 = name })
+  end
+  return reasons[id]
 end
 
 -- Cata Classic: no aura categories, but every aura carries its spellId.
@@ -66,9 +84,12 @@ function Core.ReadAurasByList(unit, class, owner)
         if kit then r.activeCooldowns[kit[1]] = true end
         -- Big offensive buffs for the burst markers, with how they can be removed.
         if kit and kit.mark then
-          r.bursts = r.bursts or {}
-          r.bursts[#r.bursts + 1] = { kit = kit, spell = id, icon = a.icon,
-            dispel = Core.plain(a.dispelName) and a.dispelName or nil, steal = Core.plain(a.isStealable) and a.isStealable or nil }
+          local n = r.burstCount + 1
+          local b = r.burstList[n] or {}
+          r.burstList[n], r.burstCount, r.bursts = b, n, r.burstList
+          b.kit, b.spell, b.icon = kit, id, a.icon
+          b.dispel = Core.plain(a.dispelName) and a.dispelName or nil
+          b.steal = Core.plain(a.isStealable) and a.isStealable or nil
         end
         local hint = hints and hints[id]
         -- External/stealable buffs cannot identify their recipient's spec.
@@ -83,9 +104,7 @@ function Core.ReadAurasByList(unit, class, owner)
         end
         if hint and own and not a.isStealable then
           if r.specTree and r.specTree ~= hint[1] then r.specConflict = true end
-          -- The client's name for the buff; the config's English name otherwise.
-          local name = Core.plain(a.name) and a.name or ns.Util.SpellName(id) or hint[2]
-          r.specTree, r.specReason = hint[1], ns.Locale:Format("battlegrounds.auras.value1_buff.ec59d9", { value1 = name })
+          r.specTree, r.specReason = hint[1], SpecReason(id, a, hint)
         end
         -- Cloak against a warrior, Spell Reflect against a rogue: not a defensive.
         local weight = ns.Defensives[id] and ns.DefensiveWeight(id, Core.me.dmg) or 0
@@ -109,6 +128,8 @@ function Core.ReadAurasByList(unit, class, owner)
     end
   end
   if r.specConflict then r.specTree, r.specReason = nil, nil end
+  local list = r.burstList
+  for i = #list, r.burstCount + 1, -1 do list[i] = nil end
   Core.Stat("auras", "plain")
   return r
 end
@@ -139,13 +160,12 @@ function Core.ScanAllyTargets()
     e.allyCount = 0
   end
   -- Teammates only: your own target must not bump an enemy's score, or
-  -- simply targeting someone would pull the kill target onto them.
-  local myName = UnitName("player")
+  -- simply targeting someone would pull the kill target onto them. Raid
+  -- tokens include you; a teammate may share your name.
   local units, n = ns.UnitTokens.Group()
   for i = 1, n do
     local owner = units[i]
-    local ownerName = Util.read(UnitName, owner)
-    if ownerName == nil or ownerName ~= myName then
+    if Util.read(UnitIsUnit, owner, "player") ~= true then
       local key = Core.CanonUnit(TARGET_OF[owner])
       local e = key and Core.enemies[key]
       if e then

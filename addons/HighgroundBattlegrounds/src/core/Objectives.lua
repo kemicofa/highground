@@ -89,6 +89,17 @@ function Core.CarrierStacks(e)
   end
 end
 
+-- Whether you or a teammate has this first name (UnitName's first part on
+-- WoW Forever, where the second return is a surname).
+local function TeamFirstName(name)
+  if ns.Util.read(UnitName, "player") == name then return true end
+  local units, n = ns.UnitTokens.Group()
+  for i = 1, n do
+    if ns.Util.read(UnitName, units[i]) == name then return true end
+  end
+  return false
+end
+
 function Core.EnemyByChatName(name)
   if type(name) ~= "string" then
     return nil
@@ -108,11 +119,14 @@ function Core.EnemyByChatName(name)
         return nil -- ambiguous short name
       end
       found = e
-    elseif short and short:match("^(%S+)%s") == name then
+    elseif Core.FirstName(short) == name then
       first = first == nil and e or false -- false: ambiguous first name
     end
   end
-  return found or first or nil
+  if found then return found end
+  -- A first name you or a teammate also goes by could be either team's.
+  if first and TeamFirstName(name) then return nil end
+  return first or nil
 end
 
 function Core.ClearCarriers()

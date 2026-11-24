@@ -63,6 +63,12 @@ local function ReadRow(idx)
   if name then return name, Core.ClassToken(classToken) or Core.ClassToken(class), faction, talentSpec end
 end
 
+local function Unlist(list, e)
+  for i = #list, 1, -1 do
+    if list[i] == e then table.remove(list, i) end
+  end
+end
+
 function Core.RefreshRoster()
   if Core.testMode then
     return
@@ -226,9 +232,13 @@ function Core.RefreshRoster()
       if e.specSrc ~= "tag" and Core.ApplySpecTag then Core.ApplySpecTag(e) end
     end
   end
-  for key in pairs(Core.enemies) do
+  for key, e in pairs(Core.enemies) do
     if not seen[key] then
       Core.enemies[key] = nil
+      -- Out of both orders at once: a row bound to a departed enemy would
+      -- otherwise wait for the next Core.Recompute to be unbound.
+      Unlist(Core.order, e)
+      Unlist(Core.displayOrder, e)
     end
   end
 end

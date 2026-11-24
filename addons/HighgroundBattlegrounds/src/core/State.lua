@@ -22,12 +22,27 @@ function Core.UnitShort(unit)
   return full and full:match("^[^-]+")
 end
 
+-- A name's first part: "John" for WoW Forever's "John Smith", else nil.
+function Core.FirstName(short)
+  return type(short) == "string" and short:match("^(%S+)%s") or nil
+end
+
 -- Whether a chat, combat-log or sender name ("Name", "Name-Realm") is you:
--- the full name, or just the first name where a client sends only that.
+-- the full name, or just the first name where a client sends only that
+-- (WoW Forever battleground messages). A first name an enemy shares could
+-- be either of you, so it isn't claimed.
 function Core.IsMe(name)
   if type(name) ~= "string" or Core.issecret(name) then return false end
   local short = name:match("^[^-]+")
-  return short ~= nil and (short == Core.UnitShort("player") or short == ns.Util.read(UnitName, "player"))
+  if short == nil then return false end
+  local full = Core.UnitShort("player")
+  if short == full then return true end
+  if short ~= ns.Util.read(UnitName, "player") then return false end
+  if Core.FirstName(full) ~= short then return true end
+  for _, e in pairs(Core.enemies) do
+    if Core.FirstName(e.display) == short then return false end
+  end
+  return true
 end
 
 -- Some clients lack globals that Blizzard's own UI documents (some Cata

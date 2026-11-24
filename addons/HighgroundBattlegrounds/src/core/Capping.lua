@@ -15,7 +15,8 @@ local Core = ns.Core
 Core.CAP_NAMES = { opening = true, capturing = true, assaulting = true, claiming = true }
 Core.CAP_LEARN_WINDOW = 1.5 -- seconds between a cast ending and its announcement
 Core.CAP_MIN_SECS = 3 -- banner clicks take seconds; shorter casts that ended near an announcement are combat spells
-Core.recentCasts = {} -- [short name] = { spell, name, start, finish }
+Core.recentCasts = {} -- [short name] = { spell, name, start, finish }, for diagnosis
+Core.ownCast = {} -- your last cast { spell, name, start, finish }: the only one learned from
 
 function Core.IsCaptureCast(spell, name)
   local learned = Core.db and Core.db.capSpells
@@ -51,25 +52,32 @@ function Core.CaptureCastOf(unit)
   end
 end
 
-Core.allyCaps = {} -- [short name] = { start, finish, me } while a teammate (or you) caps
+Core.allyCaps = {} -- [full name] = { name = short name, start, finish, me } while a teammate (or you) caps
 Core.logCaps = {} -- [short name] = { start, finish, node } teammate captures from the combat log or their Highground
+
+local function Note(c, spell, name, start, finish)
+  c.spell, c.name, c.start, c.finish = spell, name, start, finish
+end
 
 -- The last cast seen from a short name, reusing its record.
 local function NoteCast(short, spell, name, start, finish)
-  local c = Core.recentCasts[short]
-  if c then
-    c.spell, c.name, c.start, c.finish = spell, name, start, finish
-  else
-    Core.recentCasts[short] = { spell = spell, name = name, start = start, finish = finish }
-  end
+  local c = Core.recentCasts[short] or {}
+  Core.recentCasts[short] = c
+  Note(c, spell, name, start, finish)
 end
 
-local function Remember(unit, short)
-  if not Core.plain(short) or type(short) ~= "string" then return end
-  local name, start, finish, spell = ReadCast(unit)
-  if name then NoteCast(short, spell, name, start, finish) end
-  local cap = name and finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name)
-  Core.allyCaps[short] = cap and { start = start, finish = finish, me = unit == "player" } or nil
+-- Keyed by the full name: teammates from two realms can share a short name.
+local function Remember(unit, me)
+  local full = Core.FullUnitName(unit)
+  local short = full and full:match("^[^-]+")
+  local name, start, finish, spell
+  if short then name, start, finish, spell = ReadCast(unit) end
+  if not name then return end
+  NoteCast(short, spell, name, start, finish)
+  if me then Note(Core.ownCast, spell, name, start, finish) end
+  if finish > start and GetTime() <= finish and Core.IsCaptureCast(spell, name) then
+    Core.allyCaps[Core.Canon(full)] = { name = short, start = start, finish = finish, me = me }
+  end
 end
 
 -- Teammates' captures in progress, soonest first: { name, start, finish, me, node }.
@@ -85,10 +93,10 @@ local function ByFinish(a, b) return a.finish < b.finish end
 function Core.AllyCaptures()
   local now = GetTime()
   wipe(captures); wipe(seenCaps)
-  for short, c in pairs(Core.allyCaps) do
+  for _, c in pairs(Core.allyCaps) do
     if now <= c.finish then
-      seenCaps[short] = true
-      Capture(short, c.start, c.finish, c.me, nil)
+      seenCaps[c.name] = true
+      Capture(c.name, c.start, c.finish, c.me, nil)
     end
   end
   for short, c in pairs(Core.logCaps) do
@@ -105,10 +113,11 @@ ns.AllyCaptures = Core.AllyCaptures
 -- capture spell, since you see them from anywhere.
 function Core.ScanGroupCasts()
   wipe(Core.allyCaps)
-  Remember("player", Core.UnitShort("player"))
+  Remember("player", true)
   local units, n = ns.UnitTokens.Group()
   for i = 1, n do
-    Remember(units[i], Core.UnitShort(units[i]))
+    -- Raid tokens include you, already read as the player.
+    if ns.Util.read(UnitIsUnit, units[i], "player") ~= true then Remember(units[i], false) end
   end
 end
 
@@ -134,11 +143,12 @@ end
 
 function Core.LearnCapture(who)
   if type(who) ~= "string" or not Core.db then return end
-  local c = Core.recentCasts[who:match("^[^-]+")]
-  RecordAssault(who, c)
+  RecordAssault(who, Core.recentCasts[who:match("^[^-]+")])
   if Core.CapProbeAssault then Core.CapProbeAssault(who) end
   if not Core.IsMe(who) then return end
-  if not (c and c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
+  -- Your own cast only: an enemy or teammate with your short name casts too.
+  local c = Core.ownCast
+  if not (c.spell and math.abs(GetTime() - c.finish) <= Core.CAP_LEARN_WINDOW) then return end
   Core.db.capSpells = Core.db.capSpells or {}
   local secs = c.finish - c.start
   if secs >= Core.CAP_MIN_SECS and secs < 30 then
@@ -235,7 +245,8 @@ function Core.ExpireCaptures()
     end
     if e.capCast and not e.capCast.alerted then
       e.capCast.alerted = true
-      if not e.capCast.est and Core.On("capAlert") then
+      -- An alert under Battleground timers: off with it, like its other parts.
+      if not e.capCast.est and Core.On("timers") and Core.On("capAlert") then
         if ns.Util.Notify then
           ns.Util.Notify("capture", e.key, ns.Locale:Format("battlegrounds.capping.value1_is_capturing_value3.17c2b6", { value1 = (e.display or e.key), value3 = (e.capCast.node and (" " .. e.capCast.node) or "") }), ns.Alerts.cues.capture)
         else PlaySound(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959, "Master") end

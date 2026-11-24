@@ -151,10 +151,9 @@ function Core.RecordSpecMana(e, id)
   e.sampledSpecs[tree] = true
 end
 
--- Combat log (Cata): an enemy casting a talent-tree ability. Only a
--- scoreboard spec outranks it.
-function Core.SpecFromLog(srcName, spellName)
-  local e = Core.enemies[Core.Canon(srcName) or ""]
+-- Combat log (Cata): enemy e (nil for anyone else) casting a talent-tree
+-- ability. Only a scoreboard spec outranks it.
+function Core.SpecFromLog(e, spellName)
   if not e or e.specSrc == "live" or not ns.SpecFromCast then return end
   local tree, reason = ns.SpecFromCast(e.class, spellName)
   local id = tree and Core.classSpecs[e.class] and Core.classSpecs[e.class][tree]

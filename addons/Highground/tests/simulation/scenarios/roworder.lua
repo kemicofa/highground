@@ -146,3 +146,91 @@ test("card visibility and the default theme survive reloads and saved setups", f
   equal(sim.ns.Theme.Current(), "highground", "saved setup restores its palette")
   sim:assertHealthy(); again:assertHealthy()
 end)
+
+for _, client in ipairs({ "cata", "retail", "forever" }) do
+test(client .. " an enemy leaving between ticks never loops the panel layout", function()
+  local sim = new(client)
+  local C = sim.ns.Core
+  sim:enemy("Alpha")
+  sim:enemy("Beta")
+  sim:join()
+  equal(rowNames(C), "Alpha-Realm,Beta-Realm", "both enemies listed")
+  -- Before the fix, each render laid out the departed row again, forever.
+  local layout, calls = C.Layout, 0
+  C.Layout = function(...)
+    calls = calls + 1
+    assert(calls < 10, "layout loop")
+    return layout(...)
+  end
+  table.remove(sim.scores) -- Beta leaves the scoreboard
+  sim:event("UPDATE_BATTLEFIELD_SCORE") -- the roster drops Beta before the next tick
+  sim:setCombat(false) -- leaving combat renders at once
+  equal(rowNames(C), "Alpha-Realm", "the departed enemy's row is gone")
+  equal(calls, 1, "one layout")
+  equal(#C.displayOrder, 1, "out of the display order")
+  equal(#C.order, 1, "and the priority order")
+  sim:advance(1)
+  equal(rowNames(C), "Alpha-Realm", "the next tick agrees")
+  C.Layout = layout
+  sim:assertHealthy()
+end)
+end
+
+test("a row Layout can't settle costs one extra layout, not a loop", function()
+  local sim = new("retail")
+  local C = sim.ns.Core
+  sim:enemy("Alpha")
+  sim:join()
+  local layout, calls = C.Layout, 0
+  C.Layout = function(...)
+    calls = calls + 1
+    assert(calls < 10, "layout loop")
+    return layout(...)
+  end
+  -- An entry the roster no longer has, still listed for display.
+  C.displayOrder[#C.displayOrder + 1] = { key = "Ghost-Realm", display = "Ghost" }
+  C.Render()
+  equal(calls, 1, "laid out once, then rendered without laying out again")
+  C.Layout = layout
+  sim:advance(1)
+  equal(rowNames(C), "Alpha-Realm", "the next tick rebuilds the display order")
+  sim:assertHealthy()
+end)
+
+test("a hidden kill-order panel skips its rows while the scope follows your target", function()
+  local sim = new("cata")
+  local C = sim.ns.Core
+  sim:enemy("Alpha")
+  local beta = sim:enemy("Beta")
+  sim:join()
+  local health, drawn = C.UpdateHealth, 0
+  C.UpdateHealth = function(...) drawn = drawn + 1; return health(...) end
+  C.SetFeature("killorder", false)
+  assert(not C.frame:IsShown(), "panel hidden")
+  drawn = 0
+  sim.units.target = beta
+  sim:advance(1)
+  equal(drawn, 0, "no row drawn while hidden")
+  assert(C.sniper:IsShown(), "the scope still follows your target")
+  beta.dead = true
+  sim:advance(0.5)
+  C.SetFeature("killorder", true)
+  sim:advance(0.5)
+  assert(drawn > 0, "rows drawn again once shown")
+  equal(C.rows[2].gap.text, "DEAD", "with what changed while hidden")
+  C.UpdateHealth = health
+  sim:assertHealthy()
+end)
+
+test("a guided preview started in combat shows its panel once combat ends", function()
+  local sim = new("cata")
+  local C = sim.ns.Core
+  C.SetFeature("killorder", false)
+  sim:setCombat(true)
+  C.StartTest(true)
+  assert(not C.frame:IsShown(), "secure panel waits for combat to end")
+  sim:setCombat(false)
+  assert(C.frame:IsShown(), "the guide's panel shows without target recommendations")
+  C.StopTest()
+  sim:assertHealthy()
+end)

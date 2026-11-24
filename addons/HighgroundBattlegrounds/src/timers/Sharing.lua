@@ -40,7 +40,7 @@ function Timers.Flush()
   local db = Timers.DB()
   local chan = Comms.GroupChannel()
   local mapID = Timers.MapID()
-  if #Timers.outbox == 0 or not (chan and mapID and db and ns.Core.On("intelShare") and Comms.CanSend()) then
+  if #Timers.outbox == 0 or not (chan and mapID and db and ns.Core.ShareOn() and Comms.CanSend()) then
     wipe(Timers.outbox)
     return
   end

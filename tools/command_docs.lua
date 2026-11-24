@@ -16,7 +16,7 @@ local function Add(line) lines[#lines + 1] = line end
 local function Escape(text) return (text:gsub("|", "\\|")) end
 local function Availability(row)
   return row.cata and " (Cata)" or row.caps == "spellRanks" and " (WoW Forever)"
-    or row.caps == "enemyMarks" and " (not WoW Forever)" or row.caps and (" (requires " .. row.caps .. ")") or ""
+    or (row.caps == "enemyMarks" or row.caps == "matchSharing") and " (not WoW Forever)" or row.caps and (" (requires " .. row.caps .. ")") or ""
 end
 for _, group in ipairs(ns.CommandCatalog.groups) do
   Add("## " .. group.label); Add("")

@@ -135,6 +135,7 @@ local function scenario(config)
     IsMe = function(name) return type(name) == "string" and name:match("^[^-]+") == "Me" end,
     FontScale = function() return 1 end, OnFontScaleChange = noop,
     On = function(key) return s.db[key] ~= false end,
+    ShareOn = function() return s.db.intelShare ~= false end,
     Text = function(parent) return parent:CreateFontString() end, SetFace = noop,
     Surface = function(parent) return parent:CreateTexture() end, Backdrop = noop, PaintBackdrop = noop,
     Chrome = noop, ClassPaint = noop,

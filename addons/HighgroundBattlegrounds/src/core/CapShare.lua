@@ -21,7 +21,7 @@ local waiting = false -- a retry is scheduled
 -- true when the message went out, false when the game refused it, nil when
 -- there is nothing to share (sharing off, not in a battleground group).
 local function Send(text)
-  local chan = Core.active and not Core.testMode and Core.db and Core.On("intelShare")
+  local chan = Core.active and not Core.testMode and Core.db and Core.ShareOn()
     and Comms.GroupChannel()
   if not chan then return nil end
   if Comms.Blocked() then return false end

@@ -189,6 +189,7 @@ assert(ns.Locale:Register("frFR", {
   ["highground.display.raid_icon_value2.bfd95a"] = "Icône de raid {value2}",
   ["highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"] = "Actuellement : {value2}   |  /hg mark ping attack|warning|assist|onmyway  |  /hg mark icon 1-8",
   ["highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"] = "Actuellement : {value2}  |  /hg mark icon 1-8",
+  ["highground.display.sharing_isn_t_available_on_wow_forever.7e2479"] = "Le partage n'est pas disponible dans WoW Forever : le jeu bloque les messages d'addons pendant les parties de champ de bataille.",
   ["highground.display.pings_are_not_available_on_this_client.23aaf3"] = "Les signaux ne sont pas disponibles sur ce client : /hg mark icon 1-8",
   ["highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"] = "Marquer + annoncer :  /click HighgroundMarkButton  puis  /hg call  sur la ligne suivante",
   ["highground.display.re_points_out_of_combat_only_raid.8d1fb2"] = "Ne se réoriente qu'hors combat. Les icônes de raid peuvent exiger chef/assistant ; les signalements non.",

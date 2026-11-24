@@ -219,18 +219,19 @@ test("chat lockdown holds battleground sharing without counting it as sent", fun
   assert(sentOn(sim, "HighgroundI")[1], "intel goes out after lockdown")
 end)
 
-test("WoW Forever shares despite its advisory restricted flag; retail holds", function()
+test("WoW Forever's restricted flag stays advisory, but nothing is shared in a match; retail holds", function()
   local function forever(s)
     s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
     s.env.loadstring_untainted = nil
     s.secureSnippets = false
   end
-  for _, case in ipairs({ { "Forever", forever, 1 }, { "Retail", nil, 0 } }) do
+  for _, case in ipairs({ { "Forever", forever, false }, { "Retail", nil, true } }) do
     local sim = new("retail", nil, case[2])
     sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })
     sim.addonMessagesRestricted = true
     sim:join()
     sim:advance(2)
-    equal(#sentOn(sim, "HighgroundI") > 0 and 1 or 0, case[3], case[1] .. " intel with outgoing messages restricted")
+    equal(not not sim.ns.Comms.Blocked(), case[3], case[1] .. ": the restricted flag blocks")
+    equal(#sentOn(sim, "HighgroundI"), 0, case[1] .. ": no intel (Forever: no sharing in matches)")
   end
 end)

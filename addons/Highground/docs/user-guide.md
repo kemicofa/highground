@@ -145,9 +145,7 @@ Turn off **Target recommendations** in Battlegrounds settings (or `/hg priority 
 
 Known full immunities never win, whatever the points. Retail reads only clear aura categories and does not guess immunity or breakable CC.
 
-An enemy in view targeting one of your team healers (see **Team healers** above) gets **Targeting one of your healers** on **Live signals** (10 points), so the recommendation helps you peel.
-
-The other targeting pages set point values: **Target priority**, **Objectives**, **Live signals**, **Cooldowns**, **Spec ratings** and **Advanced multipliers**. Hover a value to see its range; multipliers show the effective value (points × your multiplier × battleground modifier, for example a flag bonus of 30 × 1 × 1.5 = 45 in capture-the-flag maps). On **Cooldowns**, **Show spell overrides** lists per-spell values: leave a field blank to use the general value, type a number to fix it, press **x** to clear it.
+The other targeting pages set point values: **Target priority**, **Objectives**, **Live signals**, **Cooldowns**, **Spec ratings** and **Advanced multipliers**. On **Live signals**, **Targeting one of your healers** (10 points) lifts an enemy in view that targets one of your team healers, so the recommendation helps you peel. Hover a value to see its range; multipliers show the effective value (points × your multiplier × battleground modifier, for example a flag bonus of 30 × 1 × 1.5 = 45 in capture-the-flag maps). On **Cooldowns**, **Show spell overrides** lists per-spell values: leave a field blank to use the general value, type a number to fix it, press **x** to clear it.
 
 Spec ratings (0–15) are starting points, not measured odds. Only Retail Frost Death Knight has hand-written matchups; other specs use generic armor, protection and mobility modifiers.
 

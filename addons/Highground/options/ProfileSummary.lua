@@ -63,8 +63,8 @@ local preferences = {
   locked = Message("highground.profilesummary.lock_panel_positions.b7b489"),
 }
 local positions = { point = "profiles.panel.enemies", timersPoint = "profiles.panel.timers", basesPoint = "profiles.panel.objectives",
-  flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena", nearbyPoint = "profiles.panel.nearby",
-  quickCallsPoint = "profiles.panel.callouts" }
+  forecastPoint = "profiles.panel.forecast", flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena",
+  nearbyPoint = "profiles.panel.nearby", quickCallsPoint = "profiles.panel.callouts" }
 local styleLabels = { font = Message("highground.appearance.font.b97c4d"), bar = Message("highground.appearance.bar_texture.5592a1"), barColor = Message("highground.profilesummary.bar_colors.945fb9"), borderColor = Message("highground.appearance.border_color.06186d"), healthStyle = Message("highground.profilesummary.health_display.2dcbdf") }
 local styleChoices = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
 

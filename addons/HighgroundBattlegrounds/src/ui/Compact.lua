@@ -276,13 +276,13 @@ function ns.SetCompact(on)
 end
 
 ---------------------------------------------------------------------------
--- Docking (compact): main panel, flag carriers, resurrection, objectives.
+-- Docking (compact): main panel, flag carriers, resurrection, forecast, timers.
 -- The first shown one sits at the main panel's saved position; each next one
 -- hangs under the previous. The arena panel stays on its own. Without the
 -- main panel (Highground Battlegrounds) the first window takes its place.
 ---------------------------------------------------------------------------
 local PREFIX = ns.FRAME_PREFIX or "Highground"
-Core.DOCK = { PREFIX .. "Frame", PREFIX .. "FlagsFrame", PREFIX .. "TimersFrame", PREFIX .. "BasesFrame" }
+Core.DOCK = { PREFIX .. "Frame", PREFIX .. "FlagsFrame", PREFIX .. "TimersFrame", PREFIX .. "ForecastFrame", PREFIX .. "BasesFrame" }
 
 local function Protected(w)
   return w == Core.frame or w.secure

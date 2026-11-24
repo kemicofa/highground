@@ -30,7 +30,7 @@ ns.UIConfig = {
   appearance = {
     panels = {
       ns.Localization.Define({ key = "main", module = "battlegrounds", label = ns.Locale:Get("shared.ui.main_panel.097f43") }, { label = "shared.ui.main_panel.097f43" }),
-      ns.Localization.Define({ key = "timers", module = "battlegrounds", label = ns.Locale:Get("shared.ui.resurrection_and_objectives.855edb") }, { label = "shared.ui.resurrection_and_objectives.855edb" }),
+      ns.Localization.Define({ key = "timers", module = "battlegrounds", label = ns.Locale:Get("shared.ui.resurrection_timers_and_forecast.ce6138") }, { label = "shared.ui.resurrection_timers_and_forecast.ce6138" }),
       ns.Localization.Define({ key = "flags", module = "battlegrounds", label = ns.Locale:Get("highground.profilesummary.flag_carriers.287119") }, { label = "highground.profilesummary.flag_carriers.287119" }),
       ns.Localization.Define({ key = "arena", module = "arena", label = ns.Locale:Get("highground.toursteps.arena_duels.53e5be") }, { label = "highground.toursteps.arena_duels.53e5be" }),
       ns.Localization.Define({ key = "nearby", module = "nearby", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df") }, { label = "highground.profilesummary.nearby_enemies.85f5df" }),

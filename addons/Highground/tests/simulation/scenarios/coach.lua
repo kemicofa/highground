@@ -189,8 +189,9 @@ test("feature guides keep their switch on every step, enable parents and offer a
     assert(w.enable:IsShown(), id .. " offers its feature switch")
   end
   C.Go(2); equal(C.feature, "timers"); equal(w.enable:GetChecked(), true, "a step without its own switch keeps the previous one")
-  C.Go(4); equal(C.feature, "objectives"); equal(w.enable:GetChecked(), false)
+  C.Go(3); equal(C.feature, "objectives"); equal(w.enable:GetChecked(), false)
   click(w.enable); equal(Core.On("objectives"), true)
+  C.Go(4); equal(C.feature, "forecast"); equal(w.enable:GetChecked(), true, "the win forecast has its own switch, on by default")
   C.Go(3); equal(C.sound, "capture"); assert(w.sound:IsShown() and w.play:IsShown() and w.cue:IsShown())
   C.Go(1); equal(C.sound, "resurrection")
   equal(w.sound:GetChecked(), false, "the resurrection alert starts off")

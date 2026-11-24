@@ -145,8 +145,8 @@ local function client(options)
   end
   state.items = function(width, height) return Split(width, height, false) end
   state.zones = function(width, height) return Split(width, height, true) end
-  state.receive = function(message)
-    ns.Comms.frame.scripts.OnEvent(ns.Comms.frame, "CHAT_MSG_ADDON", "HighgroundI", message, "PARTY", "Ally-Realm")
+  state.receive = function(message, channel)
+    ns.Comms.frame.scripts.OnEvent(ns.Comms.frame, "CHAT_MSG_ADDON", "HighgroundI", message, channel or "PARTY", "Ally-Realm")
   end
   state.flagPickup = function(message)
     driver.scripts.OnEvent(driver, "CHAT_MSG_BG_SYSTEM_HORDE", message)

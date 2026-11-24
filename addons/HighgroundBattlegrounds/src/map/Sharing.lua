@@ -79,7 +79,7 @@ function Intel.Receive(text, sender)
   for tok in body:gmatch("[^;]+") do
     local key, rest = tok:match("^([^,]+),(.+)$")
     if key == "@" then
-      Intel.allyArea[short] = { area = rest, t = now }
+      Intel.allyArea[short] = { area = Clean(rest), t = now }
     elseif key and ns.enemies and ns.enemies[key] then
       if rest == "D" then
         Intel.Died(key, now)
@@ -89,6 +89,7 @@ function Intel.Receive(text, sender)
           x, y = tonumber(x) / 10000, tonumber(y) / 10000
           local how, area
           if ver == "3" then how, area = detail:match("^([^,]+),(.*)$") else area = detail end
+          area = Clean(area) -- shown in tooltips: no escape codes
           area = area ~= "" and area or nil
           if ver == "2" then
             x, y = Intel.AreaXY(tonumber(map), area)

@@ -104,6 +104,19 @@ do
   local s = scenario()
   s.pois = {}
   s:pulse(0.25)
+  local wave = "3:93:W,A,2000,3000,100,|cffff0000Stables|r"
+  s:event("CHAT_MSG_ADDON", "HighgroundT", wave, "WHISPER", "Stranger")
+  equal(#s.ns.Test.timers.gys, 0, "a whispered wave is ignored")
+  s:event("CHAT_MSG_ADDON", "HighgroundT", wave, "INSTANCE_CHAT", "Friend")
+  local gy = s.ns.Test.timers.gys[1]
+  equal(s.ns.Test.timers.NextWave(gy, s.now), s.now + 10, "the group's wave counts")
+  equal(gy.label:find("|", 1, true), nil, "escape codes stripped from the shared area name")
+end
+
+do
+  local s = scenario()
+  s.pois = {}
+  s:pulse(0.25)
   local expected = s.now + 30
   s.ns.ShareWave({ team = "A", x = 0.2, y = 0.3, label = "Stables", wave = expected })
   s.chatLockdown = true

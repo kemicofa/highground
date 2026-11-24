@@ -105,6 +105,7 @@ function Timers.Receive(text, sender)
   local now = GetTime()
   local function spot(x, y, area)
     x, y = tonumber(x) or 0, tonumber(y) or 0
+    area = ns.Util.Clean(area) -- can name a timer row: no escape codes
     area = area ~= "" and area or nil
     if x == 0 and y == 0 then
       if Timers.ConfiguredGYs() then return nil, nil, area end

@@ -116,6 +116,38 @@ test("each prefix reaches only its own module", function()
   assert(Core.logCaps.Buddy, "messages without text ignored")
 end)
 
+test("battleground messages count only from the group channel", function()
+  local sim = new("cata")
+  sim:enemy("Scout") -- a mage
+  sim.units.nameplate1 = nil
+  sim:join()
+  local Timers, Core = sim.ns.Timers, sim.ns.Core
+  local tags, recv = sim.ns.Scope.Saved("specTags", "social"), Timers.stats.recv
+  local function say(channel, sender)
+    sim:event("CHAT_MSG_ADDON", "HighgroundC", "1:S,65,70,Stables", channel, sender)
+    sim:event("CHAT_MSG_ADDON", "HighgroundI", "3:93:Scout-Realm,3000,4000,3,0,coords,", channel, sender)
+    sim:event("CHAT_MSG_ADDON", "HighgroundT", "3:93:W,H,0,0,90,Stables", channel, sender)
+    sim:event("CHAT_MSG_ADDON", "HighgroundS", "1:Scout-Realm,MAGE,2", channel, sender)
+  end
+  -- Anyone outside the match can whisper; guildmates may be elsewhere.
+  say("WHISPER", "Stranger-Realm")
+  say("GUILD", "Guildie-Realm")
+  equal(next(Core.logCaps), nil, "no capture from outside the group")
+  equal(sim.ns.Test.intel["Scout-Realm"], nil, "no sighting from outside the group")
+  equal(Timers.stats.recv, recv, "no timer from outside the group")
+  equal(tags["Scout-Realm"], nil, "no spec tag saved from outside the group")
+
+  say("INSTANCE_CHAT", "Buddy-Realm")
+  assert(Core.logCaps.Buddy, "the group's capture")
+  equal(sim.ns.Test.intel["Scout-Realm"].x, 0.3, "the group's sighting")
+  equal(Timers.stats.recv, recv + 1, "the group's timer")
+  equal(tags["Scout-Realm"].by, "Buddy", "the group's spec tag")
+  say("PARTY", "Pal-Realm")
+  assert(Core.logCaps.Pal, "a party message counts too")
+  equal(Timers.stats.recv, recv + 2, "and a party timer")
+  sim:assertHealthy()
+end)
+
 test("refused sightings stay queued and go out once sending is allowed", function()
   local sim = new("cata")
   sim:enemy("Scout", { position = { x = 0.3, y = 0.4 } })

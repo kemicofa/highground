@@ -63,8 +63,8 @@ if ns.Caps.combatLog then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Timers.OnCombatLog() end }, "timers combatlog",
     Live, "battlegrounds")
 end
-ns.Comms.Listen(Timers.PREFIX, function(text, _, sender)
-  if Live() then Timers.Receive(text, sender) end
+ns.Comms.Listen(Timers.PREFIX, function(text, channel, sender)
+  if Live() and ns.Comms.FromGroup(channel) then Timers.Receive(text, sender) end
 end, "timers receive", "battlegrounds")
 
 local function ErrorText()

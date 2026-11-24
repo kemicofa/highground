@@ -150,4 +150,6 @@ function Core.ReceiveSpecTags(text, sender)
   if changed and Core.Render then Core.Render() end
 end
 
-Comms.Listen(Core.SPEC_TAG_PREFIX, function(text, _, sender) Core.ReceiveSpecTags(text, sender) end, "spectags", "battlegrounds")
+Comms.Listen(Core.SPEC_TAG_PREFIX, function(text, channel, sender)
+  if Comms.FromGroup(channel) then Core.ReceiveSpecTags(text, sender) end
+end, "spectags", "battlegrounds")

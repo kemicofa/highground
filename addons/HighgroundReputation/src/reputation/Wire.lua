@@ -9,10 +9,10 @@ function W.Hash(text, hash)
   return hash
 end
 
+-- The shared rule: WoW Forever reports outgoing messages restricted even
+-- when they send, so only chat lockdown pauses sharing there.
 function W.CanSend()
-  return C_ChatInfo and C_ChatInfo.SendAddonMessage
-    and not U.value(U.call(C_ChatInfo.AreOutgoingAddonChatMessagesRestricted))
-    and not U.value(U.call(C_ChatInfo.InChatMessagingLockdown))
+  return ns.Comms.CanSend() and not ns.Comms.Blocked()
 end
 
 function W.SendRaw(text, channel, target)

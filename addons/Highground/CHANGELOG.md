@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Reputation shares again on WoW Forever. The game marks addon messages there as restricted even when they send, and Reputation took that at its word: it sent no proposals, decisions or updates. Now only chat lockdown pauses sharing, as for the rest of Highground.
 - `/hg bounty submit`, `approve`, `reject`, `remove` and `claim` work again in languages other than English. They stopped with a Lua error.
 - Bounties on WoW Forever no longer alert for another player with the same first name. Sharing a guild or private bounty with everyone keeps the kills already paid, a kill from before a bounty was posted no longer counts, and guild kill reports from a computer whose clock is off are no longer lost. Another player can no longer copy your account ID to mark your shared bounties unfunded or block your posts, or flood the shared board, and a target can no longer change its own wanted portrait. Unanswered claims and imported bounties now expire instead of filling the claims page and the board.
 - The game no longer freezes when an enemy leaves a battleground just before Highground redraws the kill-order panel, such as when you leave combat: the panel kept laying out the departed enemy's row without end.

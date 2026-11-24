@@ -340,10 +340,10 @@ p.locale = { SetText = function() if p:IsVisible() then p.RefreshProfiles() end 
 ns.Localization.Bind(p.locale, "profiles.workspace.title")
 local elapsed = 0
 p:SetScript("OnUpdate", function(_, dt)
-  if not p:IsVisible() or not P.ActiveState then return end
+  if not p:IsVisible() or not P.CurrentState then return end
   elapsed = elapsed + dt
   if elapsed < 0.5 then return end
   elapsed = 0
-  local state = P.ActiveState()
+  local state = P.CurrentState()
   if state.revision ~= p.lastRevision or Core.db.activeProfile ~= p.lastActive or P.pending ~= p.lastPending then p.RefreshProfiles() end
 end)

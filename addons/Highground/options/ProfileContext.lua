@@ -143,12 +143,15 @@ function P.ActiveState()
   return state
 end
 
+-- Every poller (context bars, the Profiles page) shares one status check
+-- per half second; P.RefreshContext() forgets it after a change.
 local bars, cached, at = {}, nil, -1
 local function Current(force)
   local now = GetTime()
   if force or not cached or now - at >= 0.5 then cached, at = P.ActiveState(), now end
   return cached
 end
+P.CurrentState = Current
 
 -- Callers supply the controls anchored to the bottom of their window.
 -- Reserve a footer outside the scrolling content. Embedded pages use the

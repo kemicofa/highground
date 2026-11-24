@@ -76,6 +76,10 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg reset` | Restore the main enemy panel position. | Reset enemy panel position |
 | `/hg rows N` | Set the number of enemies shown. | Choose enemy row count → `battlegrounds-appearance` |
 | `/hg compact [on\|off]` | Toggle the slim one-line enemy layout. | Compact layout switch → `battlegrounds-settings` |
+| `/hg nameplates` | Show the game's nameplate settings that healer marks need. | Nameplate settings → `battlegrounds-settings` |
+| `/hg nameplates range YARDS` | Set how far away nameplates appear, in yards. | Nameplate range → `battlegrounds-settings` |
+| `/hg nameplates all on\|off` | Show nameplates for all units in range, or only your target and units in combat. | Always show nameplates → `battlegrounds-settings` |
+| `/hg nameplates friends on\|off` | Show or hide friendly player nameplates. | Friendly player nameplates → `battlegrounds-settings` |
 | `/hg sniper` | Toggle the target marker. | Target marker switch → `battlegrounds-settings` |
 | `/hg sniper why` | Explain why the target marker is hidden. | Diagnose target marker |
 | `/hg sniper color ring\|skull\|aim HEX\|default` | Choose a ring, skull or aim color; default restores the component color. | Target marker colors → `battlegrounds-appearance` |

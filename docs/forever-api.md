@@ -60,7 +60,7 @@ Blizzard's map reads `C_PvP.GetBattlefieldFlagPosition(index, mapID)`; the old g
 
 ### Enemy's target
 
-With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` returns true and `UnitName` returns the name of the player the enemy targets, your own or a teammate's, neither secret. `UnitIsUnit("targettarget", "player")` is secret (true when the enemy targets you, false otherwise). To tell who an enemy targets, compare names with yours and your group's. Read live in Arathi Basin, build 71037, 2026-11-24.
+With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` returns true and `UnitName` returns the name of the player the enemy targets, your own or a teammate's, neither secret. `UnitIsUnit("targettarget", "player")` is secret (true when the enemy targets you, false otherwise). To tell who an enemy targets, compare names with yours and your group's. The same works for every visible nameplate: `UnitName("nameplateNtarget")` read plainly for enemies and teammates alike, with the surname as the second return, and one read showed three enemies targeting you. So Highground can count the visible enemies on you or on a healer, not only your target's. Read live in Arathi Basin, build 71037, 2026-11-24.
 
 ### Interaction distance
 

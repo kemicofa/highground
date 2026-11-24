@@ -21,6 +21,7 @@ local GAMES = {
     allBattlegrounds = true, -- track every battleground by default, not only rated ones
     orbs = true,             -- Temple of Kotmogu's orbs exist
     spellRanks = false,      -- spells have ranks (each rank its own spell ID)
+    inspectTalents = false,  -- inspected teammates' talent points name their healers
   },
   -- Midnight client, classic content, no rated play.
   forever = {
@@ -47,6 +48,9 @@ local GAMES = {
     allBattlegrounds = true,
     orbs = false,
     spellRanks = true,
+    -- Every teammate's group role is DAMAGER in a match; an inspect reads
+    -- their talent points there (live, 2026-11-24).
+    inspectTalents = true,
   },
   cata = {
     addonChannel = false,   -- discover on custom chat, send data by whisper
@@ -60,6 +64,7 @@ local GAMES = {
     allBattlegrounds = true,
     orbs = false,
     spellRanks = false, -- ranks were removed in 4.0
+    inspectTalents = false,
   },
   classic = {
     addonChannel = false,
@@ -73,6 +78,7 @@ local GAMES = {
     allBattlegrounds = true,
     orbs = false,
     spellRanks = true,
+    inspectTalents = false,
   },
 }
 GAMES.tbc = GAMES.classic
@@ -177,12 +183,14 @@ function Api.NumSpecializationsForClassID(classID)
   return Call(Api.Fn("C_SpecializationInfo", "GetNumSpecializationsForClassID"), classID)
 end
 
--- Points spent per talent tree of your active loadout, in tree order:
--- { { name = "Subtlety", spent = 30 }, ... }. WoW Forever draws its three
--- classic trees as groups of one trait tree. Nil without such groups.
-local function TalentTreePoints()
+-- Points spent per talent tree of your active loadout (or of the last
+-- inspected player), in tree order: { { name = "Subtlety", spent = 30 }, ... }.
+-- WoW Forever draws its three classic trees as groups of one trait tree.
+-- Nil without such groups.
+local INSPECT_CONFIG = -1 -- Constants.TraitConsts.INSPECT_TRAIT_CONFIG_ID
+local function TalentTreePoints(inspect)
   local traits, secret = G.C_Traits, G.issecretvalue
-  local config = Call(Api.Fn("C_ClassTalents", "GetActiveConfigID"))
+  local config = inspect and INSPECT_CONFIG or Call(Api.Fn("C_ClassTalents", "GetActiveConfigID"))
   local info = config and traits.GetConfigInfo(config)
   local tree = info and info.treeIDs and info.treeIDs[1]
   local groups = tree and traits.GetGroupDisplayInfoByTreeID(tree)
@@ -202,6 +210,8 @@ local function TalentTreePoints()
   return points
 end
 function Api.TalentTreePoints() return Call(TalentTreePoints) end
+-- After INSPECT_READY: the inspected player's points, read the same way.
+function Api.InspectTalentTreePoints() return Call(TalentTreePoints, true) end
 
 -- Map names in the client's language: a UI map (C_Map) or an instance
 -- (GetRealZoneText); nil when the client does not know the ID.

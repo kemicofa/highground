@@ -79,10 +79,11 @@ function Core.Profile(specID)
 end
 
 -- Tree index with the most points in a trait-tree loadout (WoW Forever,
--- whose specialization index stays on the first tree). False with no
--- points spent, nil when the client has no tree groups.
-local function SpentTree(cls)
-  local points = ns.Api.TalentTreePoints()
+-- whose specialization index stays on the first tree): yours, or the
+-- points list of an inspected player. False with no points spent, nil
+-- when the client has no tree groups.
+function Core.SpentTree(cls, points)
+  points = points or ns.Api.TalentTreePoints()
   if not points then return end
   local byName, tree, most = Core.specByName[cls] or {}, false, 0
   for i, t in ipairs(points) do
@@ -102,7 +103,7 @@ function Core.UpdateMe()
     -- Cata's talent-tab IDs can differ from specialization IDs. Resolve the
     -- selected tree through the same catalog used for enemy scoreboard names.
     local trees = Core.classSpecs[cls] or {}
-    local tree = SpentTree(cls)
+    local tree = Core.SpentTree(cls)
     if tree == nil then tree = idx end
     if tree ~= false and not trees[tree] then tree = GetPrimaryTalentTree and GetPrimaryTalentTree() end
     if tree ~= false and not trees[tree] and GetTalentTabInfo then

@@ -67,7 +67,9 @@ function Commands.mark(arg, msg, say)
   local sub, val = arg:match("^(%S*)%s*(.-)$")
   local names = { "star", "circle", "diamond", "triangle", "moon", "square", "cross", "skull" }
   local pings = { attack = true, warning = true, assist = true, onmyway = true }
-  if sub == "icon" and tonumber(val) and tonumber(val) >= 1 and tonumber(val) <= 8 then
+  if sub == "icon" and not ns.Caps.enemyMarks then
+    say(Syntax(ns.Locale:Get("highground.display.raid_icons_can_t_go_on_enemy.118b4d")))
+  elseif sub == "icon" and tonumber(val) and tonumber(val) >= 1 and tonumber(val) <= 8 then
     Core.db.markIcon, Core.db.markMode = tonumber(val), "icon"
     Core.markBound = nil
     Core.UpdateTargetButton()
@@ -83,11 +85,13 @@ function Commands.mark(arg, msg, say)
     say(Syntax(ns.Locale:Format("highground.display.mark_button_core_db_pingtype_ping_hg.0496dc", { Core_db_pingType = Core.db.pingType })))
   else
     say(ns.Locale:Get("highground.display.macro_click_highgroundmarkbutton_pings_marks_the_kill.055234"))
-    -- Clients without pings only offer raid icons.
-    say(Syntax(ns.Locale:Format(ns.Caps.pings and "highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"
-      or "highground.display.now_value2_hg_mark_icon_1_8.cc4c9a", { value2 = (Core.db.markMode == "icon" and (ns.Locale:Format("highground.display.raid_icon_value2.bfd95a", { value2 = names[Core.db.markIcon or 8] })) or ns.Locale:Format("shared.copy.type_ping.ffba7c", { type = Core.db.pingType })) })))
+    -- Clients without pings only offer raid icons; WoW Forever only pings.
+    say(Syntax(ns.Locale:Format(not ns.Caps.pings and "highground.display.now_value2_hg_mark_icon_1_8.cc4c9a"
+      or ns.Caps.enemyMarks and "highground.display.now_value2_hg_mark_ping_attack_warning.b0390f"
+      or "highground.display.now_value2_hg_mark_ping_attack_warning.8a54cc", { value2 = (Core.db.markMode == "icon" and (ns.Locale:Format("highground.display.raid_icon_value2.bfd95a", { value2 = names[Core.db.markIcon or 8] })) or ns.Locale:Format("shared.copy.type_ping.ffba7c", { type = Core.db.pingType })) })))
     say(ns.Locale:Get("highground.display.mark_call_click_highgroundmarkbutton_then_hg_call.ba8ce8"))
-    say(ns.Locale:Get("highground.display.re_points_out_of_combat_only_raid.8d1fb2"))
+    say(ns.Locale:Get(ns.Caps.enemyMarks and "highground.display.re_points_out_of_combat_only_raid.8d1fb2"
+      or "highground.display.re_points_out_of_combat_only.b4d99d"))
     local mt = Core.markBtn:GetAttribute("macrotext")
     say(ns.Locale:Format("highground.display.button_currently_does_value2.49efe2", { value2 = ((mt and mt ~= "") and mt:gsub("\n", " | ")
       or ns.Locale:Format("highground.display.value1_nothing_r_no_kill_target_yet.4c3400", { value1 = Hex("danger") })) }))

@@ -129,9 +129,14 @@ end
 -- Shapes of the plain saved settings (Core.DEFAULTS and a few UI keys).
 -- A value of the wrong type, out of range or not in oneOf is reset on load
 -- to Core.DEFAULTS[key] (nil when there is none). max and oneOf may be
--- functions: their tables come from modules that load later.
+-- functions: their tables come from modules that load later. usable: a
+-- valid value this game can't use (also reset on load, skipped on import).
 local UI = ns.UIConfig
 local function HexColor(value) return value == "" or value:match("^%x%x%x%x%x%x$") ~= nil end
+-- The mark key pings, or puts a raid icon on the enemy (WoW Forever only
+-- allows raid icons on teammates).
+local MARK_CAPS = { ping = "pings", icon = "enemyMarks" }
+local function MarkUsable(mode) return ns.Caps[MARK_CAPS[mode]] == true end
 Core.SavedDefs = {
   rows = { type = "number", min = 1, max = function() return Core.MAX_ROWS end, integer = true },
   scale = { type = "number", min = UI.scale.min, max = UI.scale.max },
@@ -157,7 +162,7 @@ Core.SavedDefs = {
   sniperAimColor = { type = "string", validate = HexColor },
   callChannel = { type = "string", oneOf = function() return Core.CALL_CHANNELS end },
   markIcon = { type = "number", min = 1, max = 8, integer = true },
-  markMode = { type = "string", oneOf = { ping = true, icon = true } },
+  markMode = { type = "string", oneOf = { ping = true, icon = true }, usable = MarkUsable },
   pingType = { type = "string", oneOf = { attack = true, warning = true, assist = true, onmyway = true } },
   sniperScale = { type = "number", min = 0.5, max = 3 },
   sniperSound = { type = "number", min = 1, integer = true,
@@ -186,12 +191,18 @@ function Core.SavedValid(def, value)
   return type(oneOf) ~= "table" or oneOf[value] ~= nil
 end
 
--- Reset damaged plain settings to their defaults. Returns the reset keys.
+-- True when this game can use a valid value.
+function Core.SavedUsable(def, value)
+  return not def.usable or def.usable(value)
+end
+
+-- Reset damaged or unusable plain settings to their defaults. Returns the
+-- reset keys.
 function Core.ValidateSaved(db)
   local reset = {}
   for key, def in pairs(Core.SavedDefs) do
     local value = db[key]
-    if value ~= nil and not Core.SavedValid(def, value) then
+    if value ~= nil and not (Core.SavedValid(def, value) and Core.SavedUsable(def, value)) then
       db[key] = Core.DEFAULTS[key]
       reset[#reset + 1] = key
     end

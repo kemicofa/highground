@@ -26,9 +26,17 @@ class ChangesTests(unittest.TestCase):
                      'scripts/build.py', 'assets/addon-logos/logo.png',
                      'addons/Highground/CHANGELOG.md', 'addons/Highground/Highground.toc',
                      'docs/example.lua', '.agents/helper.py', 'new-file.md',
-                     'addons/Highground/docs/commands.md'):
+                     'addons/Highground/docs/commands.md', 'addons/Highground/docs/curseforge.md'):
             with self.subTest(path=path):
                 self.assertFalse(changes.documentation_only(path))
+
+    def test_deleted_addon_docs_require_tests(self):
+        # Packages list addon docs; repository docs only need the link checks.
+        for path in ('addons/Highground/README.md', 'addons/Highground/docs/user-guide.md'):
+            with self.subTest(path=path):
+                self.assertTrue(changes.documentation_only(path))
+                self.assertFalse(changes.documentation_only(path, deleted=True))
+        self.assertTrue(changes.documentation_only('docs/releases.md', deleted=True))
 
     def test_complete_diff_handles_deletion_rename_and_unusual_filenames(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -42,6 +50,9 @@ class ChangesTests(unittest.TestCase):
                 return git('rev-parse', 'HEAD')
             git('init', '-q')
             (root / 'code.lua').write_text('return true\n')
+            guide = root / 'addons/Example/docs/guide.md'
+            guide.parent.mkdir(parents=True)
+            guide.write_text('Guide\n')
             base = commit()
             (root / 'README.md').write_text('Documentation\n')
             docs = commit()
@@ -60,6 +71,12 @@ class ChangesTests(unittest.TestCase):
                 self.assertTrue(changes.requires_tests(base, latest))
                 git('reset', '--hard', docs)
                 (root / 'code.lua').unlink()
+                self.assertTrue(changes.requires_tests(base, commit()))
+                git('reset', '--hard', docs)
+                guide.write_text('Edited guide\n')
+                edited = commit()
+                self.assertFalse(changes.requires_tests(base, edited))
+                guide.unlink()
                 self.assertTrue(changes.requires_tests(base, commit()))
 
     def test_git_errors_fail_instead_of_skipping(self):

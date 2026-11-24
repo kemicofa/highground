@@ -107,12 +107,13 @@ function Quick.Macro(text)
   return "/i " .. text
 end
 
-function Quick.DestinationMacro(count, destination)
-  if not (Quick.Enabled("quickCallsDestinations") and Contains(Quick.Destinations(), destination)) then return nil end
+-- destinations, routes: the lists just read, if the caller has them.
+function Quick.DestinationMacro(count, destination, destinations)
+  if not (Quick.Enabled("quickCallsDestinations") and Contains(destinations or Quick.Destinations(), destination)) then return nil end
   return Quick.Macro(Quick.DestinationMessage(count, destination))
 end
 
-function Quick.RouteMacro(route)
-  if not (Quick.Enabled("quickCallsRoutes") and Contains(Quick.Routes(), route)) then return nil end
+function Quick.RouteMacro(route, routes)
+  if not (Quick.Enabled("quickCallsRoutes") and Contains(routes or Quick.Routes(), route)) then return nil end
   return Quick.Macro(Quick.RouteMessage(route))
 end

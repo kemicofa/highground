@@ -160,6 +160,55 @@ test("completed match history saves result, personal stats and observed timeline
   H.Open(); H.win.search:SetText("Win"); equal(#H.win.items, 1)
 end)
 
+-- The same character back in the same battleground after a /reload or a
+-- reconnect: saved data carried over, the match clock moved on.
+local function rejoin(sim, after, complete)
+  local again = new(sim.client, sim.env.HighgroundDB, function(s)
+    s.now = sim.now + after
+    s.mapID, s.instanceID, s.mapName, s.inBG = sim.mapID, sim.instanceID, sim.mapName, true
+    s.matchStart, s.matchComplete = sim.matchStart, complete
+  end)
+  again:event("PLAYER_ENTERING_WORLD"); again:event("UPDATE_BATTLEFIELD_SCORE")
+  again:advance(1)
+  return again, again.ns.MatchHistory
+end
+
+test("a reload on the final scoreboard keeps the match saved once", function()
+  local sim = new("cata")
+  sim.env.GetBattlefieldWinner = function() return sim.matchComplete and 1 or nil end
+  sim:join(); sim:advance(30)
+  sim.matchComplete = true
+  sim:event("UPDATE_BATTLEFIELD_SCORE")
+  equal(#sim.ns.MatchHistory.All(), 1)
+  local again, H = rejoin(sim, 20, true)
+  again.env.GetBattlefieldWinner = function() return 1 end
+  again:event("UPDATE_BATTLEFIELD_SCORE"); again:advance(2)
+  again:event("PVP_MATCH_COMPLETE"); again:leave()
+  equal(#H.All(), 1, "still one match")
+  again:assertHealthy()
+end)
+
+test("a long disconnect resumes the same match; one that ended meanwhile is saved as left early", function()
+  local sim = new("cata")
+  sim:join(); sim:advance(60)
+  sim:event("CHAT_MSG_BG_SYSTEM_ALLIANCE", "The Alliance has taken the stables!")
+  sim:advance(2)
+  local again, H = rejoin(sim, 300, false)
+  assert(H.current.events[1].text:find("stables", 1, true), "back five minutes later: the same record")
+  again.matchComplete = true
+  again:event("PVP_MATCH_COMPLETE"); again:leave()
+  equal(#H.All(), 1); assert(H.All()[1].events[1].text:find("stables", 1, true), "saved with its first part")
+  local gone = new("cata", again.env.HighgroundDB)
+  gone:join(); gone:advance(60)
+  local later = new("cata", gone.env.HighgroundDB, function(s) s.now = gone.now + 1800 end)
+  later:event("PLAYER_ENTERING_WORLD"); later:advance(1)
+  local all = later.ns.MatchHistory.All()
+  equal(#all, 2, "the match left by the disconnect is kept")
+  equal(all[1].result, "Left early")
+  assert(all[1].duration >= 60 and all[1].duration <= 62, "lasting until it was last seen, not the half hour away")
+  later:assertHealthy()
+end)
+
 test("enemy journal searches notes and muted encounters stay recorded without alerts", function()
   local sim = new("cata")
   local N, H = sim.ns.Nearby, sim.ns.NearbyHistory

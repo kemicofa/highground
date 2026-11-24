@@ -7,16 +7,29 @@
 
 It only enumerates what the game hands to addons and calls read-only functions. It does not inspect, modify or decompile the game client.
 
-## Install
+What it found so far, and leads still to test: [WoW Forever API findings](../../docs/forever-api.md).
 
-Link (or copy) the addon folder into the game's `Interface/AddOns`, then restart the game (a new addon needs a full restart, not `/reload`). For WoW Forever on Linux with Steam:
+## Install (manual)
 
-```sh
-ln -s "$PWD/tools/apiprobe/HighgroundApiProbe" \
-  "$HOME/.local/share/Steam/steamapps/compatdata/battlenet-setup/pfx/drive_c/Program Files (x86)/World of Warcraft/_forever_/Interface/AddOns/HighgroundApiProbe"
-```
+Highground's packages, releases and game links never include this addon. Link it yourself:
 
-Remove the link when you are done.
+1. Find the game's AddOns folder for your client: `<World of Warcraft>/_forever_/Interface/AddOns` for WoW Forever (`_retail_` or `_classic_` for the others). Under Wine or Proton it is inside the prefix's `drive_c`.
+2. Link the folder from the repository root, replacing `<AddOns>` with that path:
+
+   ```sh
+   # macOS, Linux
+   ln -s "$PWD/tools/apiprobe/HighgroundApiProbe" "<AddOns>/HighgroundApiProbe"
+   ```
+
+   ```bat
+   :: Windows (Command Prompt as administrator, or with Developer Mode on)
+   mklink /D "<AddOns>\HighgroundApiProbe" "%CD%\tools\apiprobe\HighgroundApiProbe"
+   ```
+
+   Copying the folder works too, but won't follow repository updates.
+3. Restart the game fully: a new addon doesn't load on `/reload`.
+
+Delete the link (not its target) when you are done.
 
 ## Use
 
@@ -34,7 +47,7 @@ A useful session: `/hgprobe list` once; in a battleground, target an enemy playe
 ## Report
 
 ```sh
-python3 -I tools/apiprobe/report.py ".../SavedVariables/HighgroundApiProbe.lua"
+python3 -I tools/apiprobe/report.py "<World of Warcraft>/_forever_/WTF/Account/<account>/SavedVariables/HighgroundApiProbe.lua"
 ```
 
 It prints (a) functions that returned readable values for an enemy unit inside a PvP instance, by namespace, marking undocumented ones; (b) the same functions in runs outside instances; (c) undocumented functions about units, health, auras, casts, range or position.

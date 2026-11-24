@@ -53,7 +53,7 @@ Canonical addon folders such as `Highground` and its bundled data addons point t
 
 A per-installation operating-system lock serializes link changes, including changes from another clone. The selected worktree remains the owner after the command exits. Another process cannot take over simply because the first command finished.
 
-Existing source symlinks can be adopted when they all refer to one registered checkout. Real addon directories, mixed checkout sources, and duplicate Highground installations are reported before any links are replaced. Preserve conflicting directories or links outside `AddOns` when migration is requested; do not delete them or keep branch-specific folders such as `Highground-feature-a` in `AddOns`.
+Existing source symlinks can be adopted when they all refer to one registered checkout. Real addon directories, mixed checkout sources, and duplicate Highground installations are reported before any links are replaced. Preserve conflicting directories or links outside `AddOns` when migration is requested; do not delete them or keep branch-specific folders such as `Highground-feature-a` in `AddOns`. Developer-only addons under `tools/` whose TOC says `## X-Internal: true`, such as the [API probe](../tools/apiprobe/README.md), are linked by hand and left alone.
 
 Use `status --json` for machine-readable inspection. Do not edit the selection pointer, run independent `ln -sf` commands, or delete the selected worktree while it is linked. Complete the requested return to `main` before cleaning up a selected feature worktree.
 

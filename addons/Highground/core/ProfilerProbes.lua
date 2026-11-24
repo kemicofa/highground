@@ -357,11 +357,10 @@ local function RemoveHooks()
   end
 end
 
--- Enemy loss of control (core/Units.lua, WoW Forever): start, end and the
--- readable clues, to learn which priority means which kind of control.
+-- Enemy loss of control read from the count (core/Units.lua, WoW Forever):
+-- when it starts and ends.
 local function LossOfControl(e)
-  P.Add("loc", string.format("%s on=%s priority=%s display=%s", tostring(e.key), tostring(e.crowdControlled == true),
-    tostring(e.locPriority), tostring(e.locDisplay)))
+  P.Add("loc", string.format("%s on=%s", tostring(e.key), tostring(e.crowdControlled == true)))
 end
 
 function P.SetProbes(on)

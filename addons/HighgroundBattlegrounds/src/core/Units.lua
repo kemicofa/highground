@@ -51,19 +51,15 @@ local TARGET_OF = ns.UnitTokens.target
 -- Health as 0-100 on the Midnight client: secret, but drawable and printable.
 local SCALE_100 = UnitHealthPercent and CurveConstants and CurveConstants.ScaleTo100
 
--- Loss of control on any unit (WoW Forever: readable for enemies while
--- their auras are refused). The count is plain; the kind (stun, fear...),
--- timer and spell are secret, but priority and displayType are plain and
--- kept as clues (e.locPriority, e.locDisplay; recorded by the profiler).
--- Live 2026-11-24: stuns read priority 5, displayType 2.
-local function LossOfControl(e, unit)
+-- Loss of control on any unit token (WoW Forever: readable for enemies,
+-- nameplates and teammates' targets while their auras are refused). Only
+-- the count is plain; the kind, timer and spell are secret, and the plain
+-- priority/displayType don't tell kinds apart (live 2026-11-24: Gouge,
+-- Cheap Shot and Kidney Shot all 5/2). nil when unreadable.
+local function LossOfControl(unit)
   local L = C_LossOfControl
   local n = L and L.GetActiveLossOfControlDataCountByUnit and Util.read(L.GetActiveLossOfControlDataCountByUnit, unit)
-  if type(n) ~= "number" then return nil end
-  local data = n > 0 and L.GetActiveLossOfControlDataByUnit and Util.call(L.GetActiveLossOfControlDataByUnit, unit, 1)
-  e.locPriority = type(data) == "table" and Util.value(data.priority) or nil
-  e.locDisplay = type(data) == "table" and Util.value(data.displayType) or nil
-  return n > 0
+  if type(n) == "number" then return n > 0 end
 end
 
 -- Readings reused per enemy instead of new tables every tick. Fields are
@@ -149,16 +145,12 @@ function Core.ScanUnits()
         -- category alone cannot justify a "do not break" score penalty.
         -- Auras refused (WoW Forever): the loss-of-control count says the
         -- same, with the same unknown kind.
+        local was = e.crowdControlled
         if nCC == nil then
-          e.crowdControlled = LossOfControl(e, unit) or false
-          local sig = e.crowdControlled and (tostring(e.locPriority) .. "/" .. tostring(e.locDisplay)) or nil
-          if sig ~= e.locSig then
-            e.locSig = sig
-            if ns.LossOfControlChanged then ns.LossOfControlChanged(e) end -- bg profiler
-          end
+          e.crowdControlled = LossOfControl(unit) or false
+          if e.crowdControlled ~= was and ns.LossOfControlChanged then ns.LossOfControlChanged(e) end -- bg profiler
         else
           e.crowdControlled = nCC > 0
-          e.locPriority, e.locDisplay = nil, nil
         end
         e.cc, e.stun = false, false
         -- Defensive aura faded while we watched: they just spent it.
@@ -277,7 +269,7 @@ function Core.ScanUnits()
         e.bursts = nil
         e.immune = false
         -- Died (combat log) -> dead until seen alive or the 30s rez wave.
-        e.crowdControlled, e.locPriority, e.locDisplay = false, nil, nil
+        e.crowdControlled = false
         e.dead = e.diedAt ~= nil and GetTime() - e.diedAt < 35
         if e.dead then e.hpSeen, e.hpTint = nil, nil end
       end

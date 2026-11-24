@@ -193,21 +193,20 @@ end)
 test("auras refused: the loss-of-control count marks crowd control, kind unknown", function()
   local s, _, env, core, enemy = client("retail")
   env.C_UnitAuras = { GetUnitAuras = function() error("Auras cannot be accessed when secret") end }
-  local count, data = 1, { priority = 5, displayType = 2 }
+  local count = 1
   env.C_LossOfControl = {
     GetActiveLossOfControlDataCountByUnit = function(unit) return unit == "target" and count or 0 end,
-    GetActiveLossOfControlDataByUnit = function() return data end,
   }
   local changes = 0
   env.ns.LossOfControlChanged = function() changes = changes + 1 end
   core.ScanUnits()
-  assert(enemy.crowdControlled and enemy.locPriority == 5 and enemy.locDisplay == 2, "controlled, clues kept")
+  assert(enemy.crowdControlled, "controlled")
   assert(not enemy.cc and not enemy.stun, "the kind stays unknown: no breakable-CC policy, no stun bonus")
   core.ScanUnits()
   assert(changes == 1, "an unchanged state is reported once")
   count = 0
   core.ScanUnits()
-  assert(not enemy.crowdControlled and enemy.locPriority == nil, "control ended")
+  assert(not enemy.crowdControlled, "control ended")
   assert(changes == 2, "and its end")
   count = { secret = true }
   core.ScanUnits()

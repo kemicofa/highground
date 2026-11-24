@@ -132,7 +132,7 @@ function Core.UpdateHealerMarks()
     for _, unit in ipairs(NAMEPLATES) do
       if Read(UnitIsPlayer, unit) == true and Read(UnitIsFriend, "player", unit) == true
         and Read(UnitIsDeadOrGhost, unit) == false and Read(UnitIsConnected, unit) ~= false then
-        local key = Core.CanonUnit(unit)
+        local key = Core.TickKey(unit)
         if Read(UnitGroupRolesAssigned, unit) == "HEALER" or (key and healers[key]) then
           if ShowMark(used + 1, key, unit, "healer", LIFT) then used = used + 1 end
         end

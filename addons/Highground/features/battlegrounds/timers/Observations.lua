@@ -189,12 +189,16 @@ function Timers.OnCombatLog()
     end
     return
   end
+  -- Casts first: splitting every creature's GUID made a string per event.
+  if not (sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_CAST_START") then
+    return
+  end
   if type(srcGUID) ~= "string" or not srcGUID:find("^Creature") then
     return
   end
   local npc = select(6, strsplit("-", srcGUID))
   local team = GUIDE_TEAM[npc or ""]
-  if not team or not (sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_CAST_START") then
+  if not team then
     return
   end
   local now = GetTime()
@@ -245,8 +249,9 @@ end
 
 -- Spirit guide in front of you (mouseover/target): pin its GUID to the
 -- graveyard you're at.
+local GUIDE_UNITS = { "mouseover", "target" }
 function Timers.ScanGuides()
-  for _, unit in ipairs({ "mouseover", "target" }) do
+  for _, unit in ipairs(GUIDE_UNITS) do
     local ok, guid = pcall(UnitGUID, unit)
     if ok and Timers.plain(guid) and type(guid) == "string" and guid:find("^Creature") then
       local team = GUIDE_TEAM[select(6, strsplit("-", guid)) or ""]

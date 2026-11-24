@@ -33,11 +33,12 @@ function K.Hint()
     or ns.Locale:Get("shared.kills.named_honor_credit_is_reported_automatically_it.9395c7")
 end
 
+local CAUSE_KEYS = { event = true, spellID = true, spellName = true, environment = true, pet = true }
 function K.ValidCause(cause)
   if cause == nil then return true end -- older reports have no cause
   if type(cause) ~= "table" or type(cause.event) ~= "string" then return false end
   for key in pairs(cause) do
-    if not ({ event = true, spellID = true, spellName = true, environment = true, pet = true })[key] then return false end
+    if not CAUSE_KEYS[key] then return false end
   end
   if cause.pet ~= nil and type(cause.pet) ~= "boolean" then return false end
   if SPELLS[cause.event] then
@@ -143,9 +144,18 @@ function K.CombatLog()
   if not B.Enabled() then return end
   local _, sub, _, source, _, _, _, guid, name, flags, _, a, b, c, _, e = CombatLogGetCurrentEventInfo()
   if type(guid) ~= "string" or type(name) ~= "string" then return end
-  if not guid:match("^Player%-") and not (type(flags) == "number" and bit.band(flags, 0x400) ~= 0) then return end
+  -- Most events are neither kills nor lethal hits: settle that before
+  -- reading GUIDs or building a cause.
+  local overkill
+  if sub == "SWING_DAMAGE" then overkill = b
+  elseif sub == "ENVIRONMENTAL_DAMAGE" then overkill = c
+  elseif SPELLS[sub] then overkill = sub == "SPELL_INSTAKILL" and 0 or e
+  elseif sub ~= "PARTY_KILL" then return end
+  if not guid:find("^Player%-") and not (type(flags) == "number" and bit.band(flags, 0x400) ~= 0) then return end
+  if sub ~= "PARTY_KILL" and (type(overkill) ~= "number" or overkill < 0) then K.fatal[guid] = nil; return end
   local mine, pet = source == UnitGUID("player"), source ~= nil and source == UnitGUID("pet")
-  if sub == "PARTY_KILL" and (mine or pet) then
+  if sub == "PARTY_KILL" then
+    if not (mine or pet) then return end
     local hit = K.fatal[guid]
     local cause = hit and GetTime() - hit.at <= 2
       and (hit.source == source or hit.cause.event == "ENVIRONMENTAL_DAMAGE") and hit.cause or nil
@@ -153,12 +163,11 @@ function K.CombatLog()
     K.fatal[guid] = nil
     return
   end
-  local cause, overkill
-  if sub == "SWING_DAMAGE" then cause, overkill = { event = sub }, b
-  elseif sub == "ENVIRONMENTAL_DAMAGE" then cause, overkill = { event = sub, environment = a }, c
-  elseif SPELLS[sub] then cause, overkill = { event = sub, spellID = a, spellName = b }, sub == "SPELL_INSTAKILL" and 0 or e
-  else return end
-  if type(overkill) ~= "number" or overkill < 0 or not K.ValidCause(cause) then K.fatal[guid] = nil; return end
+  local cause
+  if sub == "SWING_DAMAGE" then cause = { event = sub }
+  elseif sub == "ENVIRONMENTAL_DAMAGE" then cause = { event = sub, environment = a }
+  else cause = { event = sub, spellID = a, spellName = b } end
+  if not K.ValidCause(cause) then K.fatal[guid] = nil; return end
   local target = B.Pot.Find(name) or B.Organizations.Find(name) or B.Personal()[B.Key(name)]
   if not target then return end
   if pet then cause.pet = true end

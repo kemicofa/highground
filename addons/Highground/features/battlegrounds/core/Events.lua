@@ -72,6 +72,7 @@ local function OnObjectiveChat(event, msg)
 end
 
 local function OnPlateRemoved(_, unit)
+  if Core.HideCapPlateFor then Core.HideCapPlateFor(unit) end
   if Core.sniper and unit == Core.sniper.unit then
     Core.sniper:Hide()
     Core.sniper.pulse:Stop()
@@ -93,8 +94,9 @@ end
 
 local function OnTalents() Core.UpdateMe() end
 
--- A target change refreshes the panel at once; a burst (tab targeting)
--- shares one trailing refresh per TARGET_GAP instead of a tick per change.
+-- A target or focus change refreshes the panel at once; a burst (tab
+-- targeting) shares one trailing refresh per TARGET_GAP instead of a tick
+-- per change.
 local TARGET_GAP = 0.1
 local targetTickAt, targetPending = -math.huge, false
 local function TargetTick()
@@ -125,6 +127,7 @@ local handlers = {
   end,
   PLAYER_REGEN_ENABLED = OnRegen,
   PLAYER_TARGET_CHANGED = OnTarget,
+  PLAYER_FOCUS_CHANGED = OnTarget,
   NAME_PLATE_UNIT_REMOVED = OnPlateRemoved,
   CHAT_MSG_BG_SYSTEM_ALLIANCE = OnObjectiveChat,
   CHAT_MSG_BG_SYSTEM_HORDE = OnObjectiveChat,

@@ -36,3 +36,30 @@ for _, client in ipairs({ "cata", "retail" }) do
     sim:assertHealthy()
   end)
 end
+
+-- Steady renders keep row icons and an empty hero card's effects as they are.
+for _, client in ipairs({ "cata", "retail" }) do
+  t.test(client .. " steady kill-order renders redraw no icons and restart no effects", function()
+    local sim = new(client, {})
+    local C = sim.ns.Core
+    sim:command("bg test"); sim:advance(3)
+    local draws = 0
+    for i = 1, C.MAX_ROWS do
+      local icon = C.rows[i].icon
+      local texture, atlas = icon.SetTexture, icon.SetAtlas
+      icon.SetTexture = function(...) draws = draws + 1; return texture(...) end
+      icon.SetAtlas = function(...) draws = draws + 1; return atlas(...) end
+    end
+    local sweep, stops = C.hero.sweep, 0
+    local stop = sweep.Stop
+    sweep.Stop = function(...) stops = stops + 1; return stop(...) end
+    for _ = 1, 20 do C.Render() end
+    t.equal(draws, 0, "unchanged specs and classes keep their icons")
+    C.UpdateHero(nil, false)
+    C.UpdateHero(nil, false)
+    C.UpdateHero(nil, false)
+    t.equal(stops, 1, "an emptied card stops its sweep once")
+    sim:command("bg test")
+    sim:assertHealthy()
+  end)
+end

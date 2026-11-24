@@ -171,3 +171,29 @@ In matches, unit scans reuse per-enemy readings and prebuilt unit tokens, scoreb
 | 3v3 arena | 44.8 → 0.9 MiB | 26.4 → 0.6 MiB | 59.6 → 2.3 MiB |
 
 Timer window refreshes fell from 2.0 MiB to 0.12 MiB per minute in the Arathi scenario. Simulated callback CPU fell from 103 to 0 ms/min in the Cata raid, 256 to 184 ms/min in the Cata battleground and 978 to 116 ms/min in the Forever arena. Most remaining unit-scan allocation is the simulator's aura and range APIs. `tests/pvp_events_test.lua` budgets combat-log dispatch and checks that nothing registers outside matches; `tests/pvp_lifecycle_test.lua` covers exits during combat, scoreboard bursts, timer row reuse and event-driven crowd control.
+
+### Repeated work per tick and per event
+
+A later pass removed work the 0.25-second tick and the combat log repeated without new information. From `addons/Highground/`, `luajit ../../tools/performance_pvp.lua bg <client> 60` (allocations per minute, all guarded callbacks):
+
+| Client | Before | After |
+| --- | ---: | ---: |
+| Cata | 3.0 MiB | 1.0 MiB |
+| Retail | 2.0 MiB | 1.6 MiB |
+| Forever | 1.1 MiB | 0.8 MiB |
+
+- Bounty kill tracking (Cata, 1.4 MiB to 0): non-lethal hits returned only after building a cause table and reading two GUIDs. The overkill check now comes first.
+- Map intel (227 to 25 KiB): each sighting asked `C_Map.GetMapInfo`, a new table, to decide whether an area name means the whole battleground. Answers are kept per map and battleground. Moving observers rewrite one anchor record each; the status snapshot is taken when tracking stops and on logout, not every 5 seconds.
+- Timers (172 to 112 KiB on Cata): learned medians sort a reused buffer, base and area names are lower-cased once, the forecast's nearest-rate search and the flag window's text build no tables, and compact docking reuses one list.
+- Kill-order panel (Cata render 345 KiB to 0): the hero card stops its sweep once instead of on every empty render and reads map positions only for enemies out of view; row icons are redrawn when the spec or class changes; cooldown scoring and the card's "down" summary skip the kit when no cooldown is down (Cata score CPU about a third lower).
+- Unit names: one tick resolved the same tokens up to four times (unit scan, nameplates, teammates' targets, carriers, healer markers). `Core.TickKey` keeps each token's key for the rest of that tick's frame only. Group capture scans read the cast before the name.
+- The match journal reads your own score row by GUID where the client can instead of every row on each score event. A target change tick is no longer followed by the regular tick within 0.1 seconds.
+
+`tests/pvp_events_test.lua` budgets non-lethal combat-log hits through bounty tracking.
+
+Still open; each needs a live check before changing:
+
+- Retail reads four aura lists per visible enemy per tick. `GetUnitAuras` returns new tables, and only the first aura is used.
+- Cata reads every aura of every visible enemy per tick. `UNIT_AURA` could gate re-reads, but `raidNtarget` and `mouseover` tokens get no aura events.
+- Each combat-log listener calls `CombatLogGetCurrentEventInfo` itself.
+- An open battleground map rebuilds every pin item, tooltip closure and colour table twice a second, about 2.3 MiB per minute in the simulator.

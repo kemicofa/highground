@@ -114,11 +114,15 @@ local function Record(current, row)
   current.team = U.value(row.faction) or current.team
 end
 
--- Your own scoreboard row. Runs on every score event: other rows are only
--- compared by name.
+-- Your own scoreboard row. Runs on every score event: read by your GUID
+-- where the client can; otherwise other rows are only compared by name.
 function H.Scores()
   local current = H.current
   if not current then return end
+  local byGuid = C_PvP and C_PvP.GetScoreInfoByPlayerGuid
+  local guid = byGuid and U.read(UnitGUID, "player")
+  local own = guid and U.call(byGuid, guid)
+  if type(own) == "table" then Record(current, own); return end
   local count, me = U.read(GetNumBattlefieldScores) or 0, Me()
   for i = 1, count do
     if C_PvP and C_PvP.GetScoreInfo then

@@ -22,20 +22,20 @@ local function Snapshot()
     pinErr = Pins and Pins.stats.lastError, providers = Pins and Pins.Providers() or 0 }
 end
 
--- Every second: scan; every SEND_EVERY seconds: share; every 5s: snapshot.
--- Runs only in a tracked battleground with the map on; stopping clears it.
-local sendT, diagT = 0, 0
+-- Every second: scan; every SEND_EVERY seconds: share. The snapshot is
+-- taken when tracking stops and on logout or /reload, not while it runs.
+local sendT, scanned = 0, false
 local function Idle()
+  if scanned then
+    scanned = false
+    Util.Guard("intel status", Snapshot)
+  end
   Intel.ResetIntel(nil)
-  sendT, diagT = 0, 0
+  sendT = 0
 end
 Intel.ticker = ns.PvPEvents.Every(1, function(elapsed)
   if not Running() then return Idle() end
-  sendT, diagT = sendT + elapsed, diagT + elapsed
-  if diagT >= 5 then
-    diagT = 0
-    Util.Guard("intel status", Snapshot)
-  end
+  sendT, scanned = sendT + elapsed, true
   Intel.Try("scan", Intel.Scan)
   if sendT >= Intel.SEND_EVERY then
     sendT = 0
@@ -55,6 +55,9 @@ local handlers = {
     Intel.myName = ns.Core.UnitShort("player") or UnitName("player")
   end,
   PLAYER_ENTERING_WORLD = Idle,
+  PLAYER_LOGOUT = function()
+    if scanned then Snapshot() end
+  end,
   -- A loading screen can expose only part of the landmark list. Retry
   -- when the client fills it in instead of caching that subset for the match.
   AREA_POIS_UPDATED = WhileRunning(function()

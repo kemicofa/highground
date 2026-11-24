@@ -169,3 +169,13 @@ test("Hide quest tracker covers Blizzard's and Questie's trackers and restores b
   equal(shownByQuestie, 1, "Questie restores its own tracker")
   equal(questie:IsShown(), true, "Questie's tracker back after the battleground")
 end)
+
+test("match history reads your own score row by GUID without scanning names", function()
+  local sim = new("retail")
+  sim:join()
+  sim.units.player.guid = "Player-1-77"
+  -- A name the row-by-row comparison would not match: only the GUID finds it.
+  sim.scores[#sim.scores + 1] = { name = "Someone Else", guid = "Player-1-77", faction = 1, killingBlows = 7 }
+  sim:event("UPDATE_BATTLEFIELD_SCORE")
+  equal(sim.ns.MatchHistory.current.stats.killingBlows, 7, "your row's stats")
+end)

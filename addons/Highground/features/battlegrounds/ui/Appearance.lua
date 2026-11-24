@@ -180,8 +180,10 @@ end
 -- Health bars follow the class (default), the unit's faction, how much
 -- health is left (readable pct; on the Midnight client ui/Health.lua uses
 -- Core.healthCurve instead), or one custom colour.
--- Green to red: one { r, g, b } per band, refreshed from its token per call.
+-- Green to red: one { r, g, b } per band, refreshed from its token per call;
+-- likewise one per faction colour.
 local BANDS = { success = {}, warning = {}, danger = {}, accent = {} }
+local FACTIONS = {}
 local function Band(name)
   local t, c = BANDS[name], ns.Theme.Rgb(name)
   t.r, t.g, t.b = c[1], c[2], c[3]
@@ -202,7 +204,11 @@ function Core.BarColor(classColor, team, pct, enemy)
   if mode ~= "faction" then return classColor end
   local T = ns.Timers
   local c = T and T.FACTION_COLOR and T.FACTION_COLOR[team or (T.Other and T.MyTeam and T.Other(T.MyTeam()))]
-  return c and { r = c[1], g = c[2], b = c[3] } or classColor
+  if not c then return classColor end
+  local t = FACTIONS[c] or {}
+  FACTIONS[c] = t
+  t.r, t.g, t.b = c[1], c[2], c[3]
+  return t
 end
 
 function Core.BorderColor(alpha)

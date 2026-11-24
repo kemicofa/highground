@@ -12,6 +12,7 @@ Core.capPlates = {} -- pool of bars
 Core.CAP_PLATE_COLOR = "capPlate" -- colour token: enemy capping
 Core.CAP_PLATE_ALLY = "capPlateAlly" -- teammate capping
 local BACKING_ALPHA = 0.85
+local LEFT = {} -- the label's values, reused by every bar
 -- Labels are formatted when their tenths change; a language change forces it.
 if ns.Localization then
   ns.Localization.Watch(Core.capPlates, function(bars) for _, b in ipairs(bars) do b.tenths = nil end end)
@@ -43,8 +44,8 @@ local function NewBar()
     local tenths = math.floor(math.max(0, c.finish - now) * 10)
     if tenths ~= self.tenths then
       self.tenths = tenths
-      self.text:SetText(ns.Locale:Format("battlegrounds.capplates.capping_value1.d07a2f",
-        { value1 = string.format("%.1f", tenths / 10) }))
+      LEFT.value1 = string.format("%.1f", tenths / 10)
+      self.text:SetText(ns.Locale:Format("battlegrounds.capplates.capping_value1.d07a2f", LEFT))
     end
   end)
   b:Hide()
@@ -52,7 +53,7 @@ local function NewBar()
 end
 
 local used = 0
-local function Bar(plate, c, color)
+local function Bar(plate, c, color, unit)
   if not plate or (plate.IsForbidden and plate:IsForbidden()) then return end
   used = used + 1
   local b = Core.capPlates[used] or NewBar()
@@ -62,6 +63,7 @@ local function Bar(plate, c, color)
     b:SetPoint("BOTTOM", plate, "TOP", 0, 4)
     b.anchor = plate
   end
+  b.unit = unit
   if b.cap ~= c then b.tenths = nil end
   b.cap = c
   b:SetMinMaxValues(c.start, c.finish)
@@ -78,7 +80,7 @@ function Core.UpdateCapPlates()
       local c = not e.dead and e.plateUnit and Core.Capping(e)
       if c and c.finish > c.start then
         local before = used
-        Bar(C_NamePlate.GetNamePlateForUnit(e.plateUnit), c, Core.CAP_PLATE_COLOR)
+        Bar(C_NamePlate.GetNamePlateForUnit(e.plateUnit), c, Core.CAP_PLATE_COLOR, e.plateUnit)
         if used > before then e.capBarAt = GetTime() end
       end
     end
@@ -91,7 +93,7 @@ function Core.UpdateCapPlates()
         local name = Core.UnitShort(unit)
         local logged = name ~= nil and Core.logCaps[name]
         local c = Core.CaptureCastOf(unit) or (logged and GetTime() <= logged.finish and logged)
-        if c then Bar(C_NamePlate.GetNamePlateForUnit(unit), c, Core.CAP_PLATE_ALLY) end
+        if c then Bar(C_NamePlate.GetNamePlateForUnit(unit), c, Core.CAP_PLATE_ALLY, unit) end
       end
     end
   end
@@ -103,7 +105,18 @@ end
 function Core.HideCapPlates(first)
   for i = first or 1, #Core.capPlates do
     local b = Core.capPlates[i]
-    b.cap, b.anchor = nil, nil
+    b.cap, b.anchor, b.unit = nil, nil, nil
     b:Hide()
+  end
+end
+
+-- A removed nameplate takes its bar at once: the game hands the plate to
+-- another unit, and the next tick is up to 0.25 s away.
+function Core.HideCapPlateFor(unit)
+  for _, b in ipairs(Core.capPlates) do
+    if b.unit == unit then
+      b.cap, b.anchor, b.unit = nil, nil, nil
+      b:Hide()
+    end
   end
 end

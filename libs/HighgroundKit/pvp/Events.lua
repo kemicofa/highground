@@ -3,15 +3,15 @@ local U = ns.Util
 
 ---------------------------------------------------------------------------
 -- Live PvP work: hot events (combat log, unit auras and casts, nameplates)
--- and tickers that only matter in battlegrounds, arenas or duels. Each one
--- has a live() check; the shared frame registers an event only while a live
+-- and tickers that only matter in battlegrounds and arenas. Each one has a
+-- live() check; the shared frame registers an event only while a live
 -- listener wants it, and a ticker only runs while live, so the open world
 -- pays nothing. Dispatch runs each listener guarded without allocating.
 --
 -- Refresh() re-evaluates the checks. Owners call it when their state
--- changes (match start/end, duel, preview, feature switch); world changes
--- call it here, and a one-second check runs while in a PvP instance or duel
--- so settings applied another way (profiles) still take effect.
+-- changes (match start/end, preview, feature switch); world changes call it
+-- here, and a one-second check runs while in a PvP instance so settings
+-- applied another way (profiles) still take effect.
 ---------------------------------------------------------------------------
 local E = { listeners = {}, tickers = {} }
 ns.PvPEvents = E
@@ -127,11 +127,11 @@ local function RefreshAll()
   end
 end
 
--- In a battleground, arena or duel: the only places anything is live.
+-- In a battleground or arena: the only places anything is live.
 local poll
 local function Context()
   local _, kind = U.call(IsInInstance)
-  return kind == "pvp" or kind == "arena" or (ns.Arena and ns.Arena.duel ~= nil) or false
+  return kind == "pvp" or kind == "arena"
 end
 
 function E.Refresh()

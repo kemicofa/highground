@@ -57,7 +57,7 @@ The [user guide](user-guide.md) explains every panel and setting; [commands](com
 
 WoW Forever runs the Retail client with its addon limits; Highground detects it from the interface number and loads Forever's classes and talent trees. Cataclysm shows more because addons can read enemy health, specs and the combat log there. On Cataclysm, Highground also hides a character-pane stat row while Death Knight rune or hit data is missing, which would otherwise break Blizzard's pane.
 
-Battleground tools run in every battleground by default; **Include unrated battlegrounds** in **Battlegrounds → Settings** controls ordinary matches. Nearby enemies, bounties and macros also work outside battlegrounds. The Arena panel covers arenas and duels on Retail and Cataclysm, and duels on WoW Forever. Classic Era and TBC are not supported. See [battleground coverage](battlegrounds.md) for supported maps.
+Battleground tools run in every battleground by default; **Include unrated battlegrounds** in **Battlegrounds → Settings** controls ordinary matches. Nearby enemies, bounties and macros also work outside battlegrounds. The Arena panel covers arenas on Retail and Cataclysm; WoW Forever has no arenas and no Arena panel. Classic Era and TBC are not supported. See [battleground coverage](battlegrounds.md) for supported maps.
 
 ## Moving from a standalone addon
 

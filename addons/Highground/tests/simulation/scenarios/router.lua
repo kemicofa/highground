@@ -313,7 +313,7 @@ test(client .. " addon settings participate in hub history and guards", function
   local Hub, bg = sim.ns.Hub, sim.ns.Options.featurePages.battlegrounds
   Hub.Open("home"); Hub.Open("battlegrounds-settings")
   bg.scroll:SetVerticalScroll(60)
-  Hub.Open("arena-settings")
+  Hub.Open("macros-settings")
   assert(Hub.win.back:IsEnabled())
   click(Hub.win.back)
   equal(Hub.current, "battlegrounds-settings")
@@ -326,7 +326,7 @@ test(client .. " addon settings participate in hub history and guards", function
   Hub.Navigate("nearby")
   equal(Hub.current, "battlegrounds-settings", "blocked navigation retains selection")
   stop(); click(Hub.win.forward)
-  equal(Hub.current, "arena-settings", "Forward restores addon page")
+  equal(Hub.current, "macros-settings", "Forward restores addon page")
   sim:assertHealthy()
 end)
 end

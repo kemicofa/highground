@@ -10,7 +10,7 @@ The hook tests a temporary copy of the **Git index**, including partial staging,
 
 - No per-frame allocations (tables, closures, string concatenation) in OnUpdate or hot event handlers; reuse tables and buffers.
 - Coalesce event bursts with `ns.Throttle` and refresh UI only while it is effectively visible.
-- Disabled features cost nothing: pass the module key to `Util.Events` and `Util.Every` so a disabled module registers nothing, and unregister or stop work when a feature is switched off. Battleground, arena and duel work uses `PvPEvents.Listen`/`Every`, which register only while `live()` passes.
+- Disabled features cost nothing: pass the module key to `Util.Events` and `Util.Every` so a disabled module registers nothing, and unregister or stop work when a feature is switched off. Battleground and arena work uses `PvPEvents.Listen`/`Every`, which register only while `live()` passes.
 - Use `Util.Every` (native tickers) for periodic work and `Util.RunGuarded` for argument-free hot callbacks.
 - Never force garbage collection, skip live permission checks or cache authorization to save time.
 
@@ -156,11 +156,11 @@ For a whole battleground, `/hg bg profiler start` keeps guarded stage times, mem
 
 A rising addon memory counter is not by itself a leak: temporary allocations accumulate until Lua collects them. Simulator results are not FPS predictions; confirm frame times in WoW with the affected player's client, organizations, saved data and addon set before claiming a fix.
 
-## Battleground, arena and duel observers
+## Battleground and arena observers
 
 Profiler: from `addons/Highground/`, run `luajit ../../tools/performance_pvp.lua <world|bg|arena> <cata|retail|forever> 60`. It replays 400 combat-log, 200 aura and 40 cast events per second through the real manifest in a 40-player raid outside instances, a 15v15 Arathi Basin with owned, contested and neutral bases and a live score, or a 3v3 arena, and attributes allocations and CPU to each guarded callback.
 
-Timers, map intel, flag carriers, stealth, arena diminishing returns and Forever spec clues used to register the combat log, unit auras and casts everywhere, and `Util.Guard` packed tables for every event. `libs/pvp/Events.lua` now registers those events and runs PvP tickers only while each owner's `live()` check passes, and dispatches without allocating. Owners refresh it on match start/end, feature switches, previews and duels; a one-second check in PvP instances and duels covers settings written another way. Windows that fade in combat after their ticker stops hide on `PLAYER_REGEN_ENABLED`.
+Timers, map intel, flag carriers, stealth and arena diminishing returns used to register the combat log, unit auras and casts everywhere, and `Util.Guard` packed tables for every event. `libs/pvp/Events.lua` now registers those events and runs PvP tickers only while each owner's `live()` check passes, and dispatches without allocating. Owners refresh it on match start/end, feature switches and previews; a one-second check in PvP instances covers settings written another way. Windows that fade in combat after their ticker stops hide on `PLAYER_REGEN_ENABLED`.
 
 In matches, unit scans reuse per-enemy readings and prebuilt unit tokens, scoreboard bursts read once per frame, map sightings rewrite one record per enemy, timer windows rewrite pooled row models in place (`Timers.RowPool`), arena crowd control is read on `UNIT_AURA` for that opponent plus an expiry check while one is shown, and Forever spec clues repaint only when the evidence changes. Against `c8c1455`, battleground/arena-owned callbacks (simulated allocations per minute; `/hg perf` measures the live client):
 

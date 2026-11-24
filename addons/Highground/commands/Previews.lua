@@ -25,7 +25,7 @@ end
 local GUIDE_HINT = "highground.previews.finish_the_guide_or_panel_placement_before.533997"
 function P.CanStart()
   local allowed = ns.Setup.CanArrange()
-  if not allowed or ns.Arena.duel then return false, ns.Locale:Get("highground.previews.start_previews_outside_combat_battlegrounds_arenas_and.68e09c") end
+  if not allowed then return false, ns.Locale:Get("highground.previews.start_previews_outside_combat_battlegrounds_and_arenas.db0a71") end
   if InGuide() then return false, ns.Locale:Get(GUIDE_HINT) end
   return true
 end
@@ -159,8 +159,6 @@ ns.Util.Events({
   PLAYER_REGEN_DISABLED = StopForPlay,
   PLAYER_ENTERING_WORLD = OnZone,
   ZONE_CHANGED_NEW_AREA = OnZone,
-  DUEL_REQUESTED = StopForPlay,
-  DUEL_TO_THE_DEATH_REQUESTED = StopForPlay,
   PLAYER_LOGOUT = StopForPlay,
   PLAYER_REGEN_ENABLED = function()
     if P.hiddenMain then P.hiddenMain = nil; Core.ApplyKillOrder(); Core.frame:SetAlpha(1) end

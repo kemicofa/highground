@@ -113,20 +113,24 @@ local function Entries(snap)
     Add("Appearance", "style.border", ns.Locale:Get("highground.appearance.border_size.544ebf"), Value(s.border, A.border.default))
     Add("Appearance", "style.frameless", ns.Locale:Get("highground.profilesummary.frameless_panels.a27f5f"), s.frameless == true)
     for _, def in ipairs(A.panels) do
-      local value = (s.scales or {})[def.key] or 1
-      Add("Appearance", "style.scales." .. def.key, ns.Locale:Format("highground.profilesummary.def_label_size.29fc6c", { def_label = def.label }), value, O.Format(value * 100) .. "%")
+      if ns.OptionAvailable(def) then
+        local value = (s.scales or {})[def.key] or 1
+        Add("Appearance", "style.scales." .. def.key, ns.Locale:Format("highground.profilesummary.def_label_size.29fc6c", { def_label = def.label }), value, O.Format(value * 100) .. "%")
+      end
     end
     for _, def in ipairs(A.elements) do
       if ns.OptionAvailable(def) then Add("Appearance", "style.hide." .. def.key, ns.Locale:Format("highground.profilesummary.show_def_label.a9a70f", { def_label = def.label }), not (s.hide or {})[def.key]) end
     end
     Add("Appearance", "style.hide.hero", ns.Locale:Get("highground.profilesummary.show_suggested_target_card.803320"), (s.hide or {}).hero == false)
     for _, owner in ipairs({ "arena", "nearby" }) do
-      Add("Layout", "style.layouts." .. owner, ns.Locale:Format("highground.profilesummary.value1_compact_layout.47987f", { value1 = (owner == "arena" and ns.Locale:Get("highground.modules.arena.1a4ba8") or ns.Locale:Get("highground.modules.nearby.f1536c")) }),
-        Value((s.layouts or {})[owner], Value(setup.features.compact, Value(setup.preferences.compact, Core.DEFAULTS.compact))))
+      if not ns.Modules.absent[owner] then
+        Add("Layout", "style.layouts." .. owner, ns.Locale:Format("highground.profilesummary.value1_compact_layout.47987f", { value1 = (owner == "arena" and ns.Locale:Get("highground.modules.arena.1a4ba8") or ns.Locale:Get("highground.modules.nearby.f1536c")) }),
+          Value((s.layouts or {})[owner], Value(setup.features.compact, Value(setup.preferences.compact, Core.DEFAULTS.compact))))
+      end
     end
     for _, layout in ipairs({ "normal", "compact" }) do
       for _, def in ipairs(A.metrics) do
-        if layout ~= "compact" or not def.normalOnly or (s.compact or {})[def.key] ~= nil then
+        if ns.OptionAvailable(def) and (layout ~= "compact" or not def.normalOnly or (s.compact or {})[def.key] ~= nil) then
           local value = (s[layout] or {})[def.key] or Core.MetricDefault(def.key, layout == "compact")
           Add("Layout", "style." .. layout .. "." .. def.key,
             Message("profiles.label.layout", { panel = Words(def.module), setting = def.label,
@@ -135,8 +139,10 @@ local function Entries(snap)
       end
     end
     for _, key in ipairs(Core.POSITION_KEYS) do
-      Add("Panel positions", "positions." .. key, positions[key] and Message(positions[key]) or Words(key), setup.positions[key],
-        setup.positions[key] == nil and Message("profiles.position.default") or nil)
+      if key ~= "arenaPoint" or not ns.Modules.absent.arena then
+        Add("Panel positions", "positions." .. key, positions[key] and Message(positions[key]) or Words(key), setup.positions[key],
+          setup.positions[key] == nil and Message("profiles.position.default") or nil)
+      end
     end
     for key in P.SortedPairs(Core.SavedDefs) do
       if key ~= "hubSection" and not featureKeys[key] then

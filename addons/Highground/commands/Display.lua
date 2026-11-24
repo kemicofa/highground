@@ -53,7 +53,7 @@ function Commands.arena(arg, msg, say)
     say(on and ns.Locale:Get("highground.display.preview_on_drag_to_move_hg_arena.7301b3") or ns.Locale:Get("highground.display.preview_off.90af6a"))
     return
   end
-  say(ns.Locale:Format("highground.display.arena_duels_value2_hg_arena_on_off.ebae9d", { value2 = (Core.On("arena") and "on" or "off") }))
+  say(ns.Locale:Format("highground.display.arena_value2_hg_arena_on_off.0858c2", { value2 = (Core.On("arena") and "on" or "off") }))
 end
 -- Games without arenas have no Arena module, so no command (core/Modules.lua).
 if not ns.Modules.byKey.arena then Commands.arena = nil end

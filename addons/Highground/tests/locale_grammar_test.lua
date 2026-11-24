@@ -79,12 +79,12 @@ t.test("Home names Nearby enemies and panel locks in one sentence", function()
     assert(Loc.SetPreference(locale))
     sim.ns.Hub.Show("home")
     local on = sim.ns.Core.On("nearby")
-    t.equal(h.state:GetText(), L:Get(on and "highground.home.panels_open_for_battlegrounds_arenas_and_duels.0692a1"
-      or "highground.home.panels_open_for_battlegrounds_arenas_and_duels.2a4c9b"), locale .. " nearby state")
+    t.equal(h.state:GetText(), L:Get(on and "highground.home.panels_open_when_a_match_starts_nearby.75be9a"
+      or "highground.home.panels_open_when_a_match_starts_nearby.0415ef"), locale .. " nearby state")
     has(h.help:GetText(), sim.ns.PanelControls.Hint(), locale .. " help")
   end
-  t.equal(L:Get("highground.home.panels_open_for_battlegrounds_arenas_and_duels.0692a1"),
-    "面板会在战场、竞技场和决斗中打开。“附近敌人”已开启。")
+  t.equal(L:Get("highground.home.panels_open_when_a_match_starts_nearby.75be9a"),
+    "面板会在对局开始时打开。“附近敌人”已开启。")
   Loc.SetPreference("enUS")
   sim:assertHealthy()
 end)

@@ -23,14 +23,13 @@ function A.BuildActivity(r)
   r.cast:Hide(); r.cc:Hide(); r.ccCD:Hide()
 end
 
-function A.LayoutActivity(r, duel)
+function A.LayoutActivity(r)
   local scale = math.max(1, Core.FontScale())
-  local footer = not duel and ns.CLIENT == "cata" and 16 * scale or 0
+  local footer = ns.CLIENT == "cata" and 16 * scale or 0
   r.name:SetPoint("TOPRIGHT", -(6 + 58 * scale), -4)
   r.bar:SetPoint("TOPLEFT", 58, -(6 + 20 * scale))
   r.bar:SetPoint("TOPRIGHT", -48, -(6 + 20 * scale))
   r.trinket:SetPoint("TOPRIGHT", -6, -(7 + 20 * scale))
-  r.number:SetShown(not duel)
   r.dr:SetShown(footer > 0)
   r.cast:ClearAllPoints()
   r.cast:SetHeight(14 * scale)
@@ -172,7 +171,7 @@ function A.ActivityLog()
 end
 
 -- Mark the opponent's row when its auras change: the arena token, or any
--- token that is that opponent (target, focus, nameplates, the duelist).
+-- token that is that opponent (target, focus, nameplates).
 function A.MarkControl(unit)
   unit = plain(unit)
   if type(unit) ~= "string" or not A.rows then return end
@@ -185,7 +184,7 @@ function A.MarkControl(unit)
   end
 end
 ns.PvPEvents.Listen({ UNIT_AURA = function(_, unit) A.MarkControl(unit) end }, "arena control",
-  function() return A.Enabled() and (A.InArena() or A.duel ~= nil) end, "arena")
+  function() return A.Enabled() and A.InArena() end, "arena")
 
 U.Events({ PLAYER_ENTERING_WORLD = function() wipe(A.control); wipe(A.kicks) end }, "arena activity", "arena")
 -- Cata diminishing returns and interrupts: the combat log only in arenas.

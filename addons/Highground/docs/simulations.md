@@ -78,7 +78,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `appearancepreview` | Appearance toolbar and live samples, marker controls, saved-position restoration, global preview handoffs and stop, combat and instance teardown, disabled addons, cue auditioning while muted, sound selection and stealth variants on all three clients |
 | `addonwindows` | Separate addon launchers, settings/window isolation, legacy routes, Reputation preference sharing, widget reuse, matching command/launcher/guide guards with disabled modules, and saved/live language selection with English fallback on all three clients |
 | `commands` | Settings aliases, profiles, input checks, diagnostics, target calls, previews, the Help and commands page and per-addon launchers, minimap button, `/hg help` |
-| `previews` | Battleground and all-addon command/UI routing on Cata, Retail and Forever; disabled addons, existing previews, validation, combat/duel/instance cleanup, guide/placement handoffs and sample isolation |
+| `previews` | Battleground and all-addon command/UI routing on Cata, Retail and Forever; disabled addons, existing previews, validation, combat/instance cleanup, guide/placement handoffs and sample isolation |
 | `compatibility` | Cata character-pane rune and hit guards, Retail left alone |
 | `bursts` | Cata burst markers: PURGE or CC per class, enrage, `/hg burst` and its preview |
 | `forever` | WoW Forever on the Retail manifest: classic classes and talent trees, unrated battlegrounds, `/hg bg test` |
@@ -126,7 +126,7 @@ WoW Forever is simulated on the Retail manifest by setting its interface number 
 
 `tests/battleground_objectives_test.lua`, `battleground_roster_test.lua`, `battleground_timers_test.lua` and `battleground_waves_test.lua` run real battleground rules through the simulator: flag, single-flag and orb carriers, team detection without your own scoreboard row, score prediction (including dead heats and learned rates), graveyard names by side and for cross-faction teams, map pin tooltips, spirit guides, resurrection advice and cart/round status widgets.
 
-`tests/arena_duels.lua` runs against Highground: incoming/outgoing challenges, localized countdowns, cancellation, combat deferral, fixed opponent identity, Forever surnames, restricted data and duel stealth alerts. In particular, `addons/Highground/tests/bounty_public_test.lua` and `bounty_public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh Highground` from the repository root to run them with that addon's other tests.
+In particular, `addons/Highground/tests/bounty_public_test.lua` and `bounty_public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh Highground` from the repository root to run them with that addon's other tests.
 
 ## Write a scenario
 
@@ -182,8 +182,6 @@ Every event and clock step checks errors captured by the addon, including guarde
 ## Data provenance
 
 Arena display calls follow Blizzard's generated [unit API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitDocumentation.lua), [aura API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/UnitAuraDocumentation.lua), and [status bar API](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/SimpleStatusBarAPIDocumentation.lua). Cata diminishing-return categories and the conservative 20-second reset bound were checked against [DRList's maintained Cata data](https://github.com/wardz/DRList-1.0/tree/master/DRList-1.0). Interrupts use observed casts and base cooldowns, without assuming talent or reset state.
-
-Duel requests and finishes follow Blizzard's [duel events](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_APIDocumentationGenerated/DuelInfoDocumentation.lua). Outgoing challenges observe `StartDuel`, also used by the game's [duel menu action](https://github.com/Gethe/wow-ui-source/blob/live/Interface/AddOns/Blizzard_UnitPopupShared/UnitPopupSharedButtonMixins.lua). Countdown messages match the client's localized `DUEL_COUNTDOWN` string; generic arena and battleground timers never start a duel.
 
 `ChatFlags1.lua` and `ChatNodes1–3.lua` contain recorded game message formats from AzerothCore's [broadcast text](https://github.com/azerothcore/azerothcore-wotlk/blob/master/data/sql/base/db_world/broadcast_text.sql) and [localized broadcast text](https://github.com/azerothcore/azerothcore-wotlk/blob/master/data/sql/base/db_world/broadcast_text_locale.sql) tables. Only formats are carried over; matching, normalization and player-name substitution run in Highground. Coverage includes deDE, esES/esMX, frFR, koKR, ruRU, zhCN and zhTW alongside the existing English parsers. These historical formats do not certify current or custom server wording.
 

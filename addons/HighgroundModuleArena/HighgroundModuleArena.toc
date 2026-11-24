@@ -1,4 +1,4 @@
-## Interface: 120100, 120105, 16001, 40402
+## Interface: 120100, 120105, 40402
 ## Title: Highground Arena (module)
 ## IconTexture: Interface\AddOns\HighgroundModuleArena\Icon.tga
 ## Group: Highground

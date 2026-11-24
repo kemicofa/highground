@@ -8,7 +8,7 @@
 Paste into the project summary (plain text, at most 200 characters):
 
 ```
-Your PvP edge. Know who to hit, when bases flip and who's stalking you. Battleground intel, arena and duel panels, nearby enemies, bounties and macros in one addon. Retail, Forever and Cata.
+Your PvP edge. Know who to hit, when bases flip and who's stalking you. Battleground intel, arena panels, nearby enemies, bounties and macros in one addon. Retail, Forever and Cata.
 ```
 
 ## Description
@@ -30,11 +30,10 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Flag carriers and map intel:** carrier health and debuffs, plus where enemies were last seen as circles on the map, shared with teammates.
 - **Quick callouts and history:** one-click calls to battleground chat, and saved results for every match.
 
-### 🎯 Arena and duels
+### 🎯 Arena
 
 - **Enemy team:** clickable opponents with spec icons, casts and crowd control.
 - **PvP trinkets:** see when each opponent's trinket is back.
-- **Duels:** a compact opponent panel when a duel starts.
 
 ### 🌍 Open world
 
@@ -77,7 +76,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 | | Retail | WoW Forever | Cataclysm Classic |
 |---|---|---|---|
 | Battlegrounds, Nearby, Bounties, Reputation, Macros | ✅ | ✅ | ✅ |
-| Arena panel | Arenas and duels | Duels | Arenas and duels |
+| Arena panel | ✅ | — | ✅ |
 | PvP trinket tracking | ✅ | — | ✅ |
 | Highest spell rank | — | ✅ | — |
 | Enemy cooldowns and burst markers | — | — | ✅ |

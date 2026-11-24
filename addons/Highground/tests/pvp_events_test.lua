@@ -73,7 +73,7 @@ for _, client in ipairs(CLIENTS) do
     sim:assertHealthy()
   end)
 
-  t.test(name .. "switches, profiles and duels change live listeners", function()
+  t.test(name .. "switches and profiles change live listeners; duels start none", function()
     local sim = setup(client[1], client[2])
     local C, E = sim.ns.Core, sim.ns.PvPEvents
     sim:enemy("Enemy")
@@ -96,11 +96,8 @@ for _, client in ipairs(CLIENTS) do
     sim:leave()
     sim.units.target = { name = "Duelist", classID = 8, guid = "Player-Duelist" }
     sim:event("DUEL_REQUESTED", "Duelist-Realm")
-    t.equal(Live("arena"), true, "a duel starts the opponent panel refresh")
-    t.equal(Live("pvp stealth"), true, "and the duel observers")
-    sim:event("DUEL_FINISHED")
-    t.equal(Live("arena"), false, "finishing the duel stops it")
-    t.equal(Registered(sim, "UNIT_AURA"), false, "no duel observers remain")
+    assert(not Live("arena") and not Live("pvp stealth"), "a duel opens no opponent panel or observers")
+    t.equal(Registered(sim, "UNIT_AURA"), false, "no duel observers")
     sim:assertHealthy()
   end)
 end

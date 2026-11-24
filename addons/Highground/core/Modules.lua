@@ -6,7 +6,7 @@ local M = { list = {
   ns.Localization.Define({ key = "battlegrounds", name = ns.Locale:Get("highground.modules.battlegrounds.2de13e"), addon = "HighgroundModuleBattlegrounds", standalone = "HighgroundBattlegrounds",
     description = ns.Locale:Get("highground.modules.enemy_targets_map_intel_timers_flag_carriers.d5cc25") }, { name = "highground.modules.battlegrounds.2de13e", description = "highground.modules.enemy_targets_map_intel_timers_flag_carriers.d5cc25" }),
   ns.Localization.Define({ key = "arena", name = ns.Locale:Get("highground.modules.arena.1a4ba8"), addon = "HighgroundModuleArena", standalone = "HighgroundArena",
-    description = ns.Locale:Get("highground.modules.arena_opponents_and_duels_with_target_and.f69404") }, { name = "highground.modules.arena.1a4ba8", description = "highground.modules.arena_opponents_and_duels_with_target_and.f69404" }),
+    description = ns.Locale:Get("highground.modules.arena_opponents_with_target_and_focus.743593") }, { name = "highground.modules.arena.1a4ba8", description = "highground.modules.arena_opponents_with_target_and_focus.743593" }),
   ns.Localization.Define({ key = "nearby", name = ns.Locale:Get("highground.modules.nearby.f1536c"), addon = "HighgroundModuleNearby", standalone = "HighgroundNearby",
     description = ns.Locale:Get("highground.modules.nearby_enemies_encounter_history_and_your_enemy.d82065") }, { name = "highground.modules.nearby.f1536c", description = "highground.modules.nearby_enemies_encounter_history_and_your_enemy.d82065" }),
   ns.Localization.Define({ key = "bounties", name = ns.Locale:Get("highground.modules.bounties.eba0bf"), addon = "HighgroundModuleBounties", standalone = "HighgroundBounties",
@@ -15,15 +15,16 @@ local M = { list = {
     description = ns.Locale:Get("highground.modules.player_reports_and_moderation_in_your_guild.e93a09") }, { name = "highground.modules.reputation.5f2160", description = "highground.modules.player_reports_and_moderation_in_your_guild.e93a09" }),
   ns.Localization.Define({ key = "macros", name = ns.Locale:Get("highground.modules.macros.899bd6"), addon = "HighgroundModuleMacros", standalone = "HighgroundMacros",
     description = ns.Locale:Get("highground.modules.macro_presets_the_macro_builder_and_spell.4132f4") }, { name = "highground.modules.macros.899bd6", description = "highground.modules.macro_presets_the_macro_builder_and_spell.4132f4" }),
-}, byKey = {}, featureOwners = {} }
+}, byKey = {}, featureOwners = {}, absent = {} }
 ns.Modules = M
 -- A game without arenas (WoW Forever) has no Arena module: no page, switch,
--- command, preview or guide chapter, and its features stay off.
+-- command, preview, guide chapter or setting, and its features stay off.
 local game = ns.Games and ns.Games[ns.GAME]
 if game and not game.arenaSize then
   for i = #M.list, 1, -1 do
     if M.list[i].key == "arena" then table.remove(M.list, i) end
   end
+  M.absent.arena = true
 end
 local api = C_AddOns or {}
 local metadata = api.GetAddOnMetadata or GetAddOnMetadata

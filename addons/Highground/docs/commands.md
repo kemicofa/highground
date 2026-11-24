@@ -119,9 +119,9 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 | Command | What it does | UI equivalent |
 | --- | --- | --- |
-| `/hg arena` | Show Arena and duel panel status in chat. | Show Arena status |
-| `/hg arena on` · `/hg arena off` | Enable or disable the Arena and duel panel. | Arena panel switch → `arena-settings` |
-| `/hg arena test` | Start or stop a sample opponent panel; Forever shows one duelist. | Arena preview controls → `arena-previews` |
+| `/hg arena` | Show Arena panel status in chat. (not WoW Forever) | Show Arena status |
+| `/hg arena on` · `/hg arena off` | Enable or disable the Arena panel. (not WoW Forever) | Arena panel switch → `arena-settings` |
+| `/hg arena test` | Start or stop a sample opponent panel. (not WoW Forever) | Arena preview controls → `arena-previews` |
 
 ## Nearby
 
@@ -208,7 +208,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 
 Use each addon's **Previews and guide** page to start and stop samples. Open it from the addon's sidebar section, or choose **Visit** in **Addons**, then **Previews and guide**. Bounties also offers each sample scene there. Preview records stay separate from real records; panel positions can intentionally be saved.
 
-`/hg bg test` toggles the battleground enemy list, target card, timers, objectives and flag carrier samples using your settings; `/hg bg test stop` ends them. `/hg test` and `/hg test all` start the catalogued previews across enabled addons, keeping existing samples on. Repeat either command to stop the set, or use `/hg test stop` to stop all samples. **Help and commands** provides **Toggle all addon previews** and **Stop all previews**. Start outside combat, matches, duels and active guides or panel placement. Managed samples stop on combat, incoming duel requests, PvP instances and guide/placement handoffs. Bounties starts its wanted-poster scene unless another bounty sample is already running. Macros and Reputation use their guides and real tools instead of test toggles.
+`/hg bg test` toggles the battleground enemy list, target card, timers, objectives and flag carrier samples using your settings; `/hg bg test stop` ends them. `/hg test` and `/hg test all` start the catalogued previews across enabled addons, keeping existing samples on. Repeat either command to stop the set, or use `/hg test stop` to stop all samples. **Help and commands** provides **Toggle all addon previews** and **Stop all previews**. Start outside combat, matches and active guides or panel placement. Managed samples stop on combat, PvP instances and guide/placement handoffs. Bounties starts its wanted-poster scene unless another bounty sample is already running. Macros and Reputation use their guides and real tools instead of test toggles.
 
 | Preview | Command | What it shows |
 | --- | --- | --- |
@@ -218,7 +218,7 @@ Use each addon's **Previews and guide** page to start and stop samples. Open it 
 | Map pin | `/hg intel test` | Sample enemy pin on the world map |
 | Burst marker | `/hg burst test` | Marker beside your target's nameplate (Cata) |
 | Pressure shields | `/hg pressure test` | Shield badge on a targeted teammate or yourself (Cata) |
-| Arena & duels | `/hg arena test` | Preview opponents; Forever shows one duelist |
+| Arena panel | `/hg arena test` | Preview opponents (not WoW Forever) |
 | Nearby enemies | `/hg nearby test` | Open-world enemy list |
 | Wanted poster | `/hg bounty test` | Toggle a live-style bounty sighting with sample data |
 | Bounty board | `/hg bounty` | Open or close the bounty board |

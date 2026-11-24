@@ -167,14 +167,10 @@ function Hub.RefreshHome()
     ns.Localization.Bind(h.where, "highground.home.arena.28ee94")
     h.state:SetText(Core.On("arena") and ns.Locale:Get("highground.home.left_click_an_opponent_to_target_right.552ba5")
       or ns.Locale:Get("highground.home.your_arena_panel_is_off_enable_it.473c2f"))
-  elseif ns.Arena and ns.Arena.duel then
-    ns.Localization.Bind(h.where, "highground.home.duel.c539e2")
-    h.state:SetText(Core.On("arena") and ns.Locale:Get("highground.home.duel_panel_active_left_click_target_right.21b690")
-      or ns.Locale:Get("highground.home.your_duel_panel_is_off_enable_it.08cfbb"))
   else
     ns.Localization.Bind(h.where, "highground.home.open_world.a4f95b")
-    h.state:SetText(ns.Locale:Get(Core.On("nearby") and "highground.home.panels_open_for_battlegrounds_arenas_and_duels.0692a1"
-      or "highground.home.panels_open_for_battlegrounds_arenas_and_duels.2a4c9b"))
+    h.state:SetText(ns.Locale:Get(Core.On("nearby") and "highground.home.panels_open_when_a_match_starts_nearby.75be9a"
+      or "highground.home.panels_open_when_a_match_starts_nearby.0415ef"))
   end
   h.card:SetStrip("brand")
   ns.Localization.Bind(h.guide.title, "highground.home.you_re_ready_to_play.ead6eb")

@@ -39,8 +39,8 @@ O.steps = {
     actions = { ns.Localization.Define({ label = ns.Locale:Get("highground.toursteps.start_hunting_guide.46a876"), bounties = "hunt" }, { label = "highground.toursteps.start_hunting_guide.46a876" }) } }, { label = "highground.toursteps.hunt_a_bounty.113007", caption = "highground.toursteps.bounties_hunt.0ebb53", summary = "highground.toursteps.track_a_target_and_follow_its_automatic.508455" }),
   ns.Localization.Define({ key = "nearby", module = "nearby", label = ns.Locale:Get("highground.modules.nearby.f1536c"), logo = "Nearby", summary = ns.Locale:Get("highground.toursteps.fresh_sightings_faded_sightings_and_enemy_history.b46e63"), available = loaded("Nearby"), feature = "nearby",
     actions = { native("nearby"), tool("highground.toursteps.open_enemy_history.6ee9a0", "journal") } }, { label = "highground.modules.nearby.f1536c", summary = "highground.toursteps.fresh_sightings_faded_sightings_and_enemy_history.b46e63" }),
-  ns.Localization.Define({ key = "arena", module = "arena", label = ns.Locale:Get("profiles.panel.arena"), logo = "Arena", summary = ns.Locale:Get("highground.toursteps.target_focus_and_keep_track_of_your.941678"), available = loaded("Arena"), feature = "arena",
-    actions = { ns.Localization.Define({ label = ns.Locale:Get("highground.toursteps.try_it.7ddd66"), preview = "arena" }, { label = "highground.toursteps.try_it.7ddd66" }) } }, { label = "profiles.panel.arena", summary = "highground.toursteps.target_focus_and_keep_track_of_your.941678" }),
+  ns.Localization.Define({ key = "arena", module = "arena", label = ns.Locale:Get("highground.modules.arena.1a4ba8"), logo = "Arena", summary = ns.Locale:Get("highground.toursteps.target_focus_and_keep_track_of_your.941678"), available = loaded("Arena"), feature = "arena",
+    actions = { ns.Localization.Define({ label = ns.Locale:Get("highground.toursteps.try_it.7ddd66"), preview = "arena" }, { label = "highground.toursteps.try_it.7ddd66" }) } }, { label = "highground.modules.arena.1a4ba8", summary = "highground.toursteps.target_focus_and_keep_track_of_your.941678" }),
   ns.Localization.Define({ key = "reputation", module = "reputation", label = ns.Locale:Get("highground.modules.reputation.5f2160"), logo = "Reputation", summary = ns.Locale:Get("highground.toursteps.report_a_player_and_review_a_guild.a8b7c0"), available = loaded("Reputation"),
     actions = { native("reputation"), tool("highground.toursteps.open_player_reputation.37164b", "reputation") } }, { label = "highground.modules.reputation.5f2160", summary = "highground.toursteps.report_a_player_and_review_a_guild.a8b7c0" }),
   ns.Localization.Define({ key = "map", module = "battlegrounds", label = ns.Locale:Get("highground.toursteps.enemy_map.34c638"), summary = ns.Locale:Get("highground.toursteps.try_enemy_sightings_on_warsong_gulch.0f429b"), extra = true, available = loaded("Intel"), feature = "intel",
@@ -63,10 +63,12 @@ O.steps = {
     actions = { native("users"), page("highground.commands.open_addon_users.1c5288", "users") } }, { label = "highground.hub.addon_users.1e4e6f", summary = "highground.toursteps.read_channel_membership_version_reports_and_discovery.acd1fd" }),
 }
 
-function O.Available(step)
-  if step.module and not ns.Modules.byKey[step.module] then return false end -- not in this game
-  return not step.available or step.available()
+-- Chapters of an addon this game lacks (Arena on WoW Forever) do not exist.
+for i = #O.steps, 1, -1 do
+  if ns.Modules.absent[O.steps[i].module] then table.remove(O.steps, i) end
 end
+
+function O.Available(step) return not step.available or step.available() end
 function O.Guides(extra)
   local result = {}
   for _, step in ipairs(O.steps) do

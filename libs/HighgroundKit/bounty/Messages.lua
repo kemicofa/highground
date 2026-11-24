@@ -50,7 +50,8 @@ function M.AddedPersonal(b)
   return ns.Locale:Format("shared.messages.value1_on_value2_personal_value3.056c62", { value1 = string.format("%s", M.Amount(b)), value2 = string.format("%s", Name(b)), value3 = string.format("%s", Bounty.InGuild() and ns.Locale:Format("shared.messages.bounty_cmd_submit_value4_to_post_it.2a49fa", { Bounty_CMD = Bounty.CMD, value4 = Name(b) }) or "") })
 end
 
-local RUN = ns.Localization.Define({ submit = ns.Locale:Get("shared.messages.submit.2dacf6"), approve = ns.Locale:Get("shared.boardactions.approve.7b2c7f"), reject = ns.Locale:Get("shared.messages.remove.e96390"), remove = ns.Locale:Get("shared.messages.remove.e96390"), claim = ns.Locale:Get("shared.messages.claim.dc4e08") }, { submit = "shared.messages.submit.2dacf6", approve = "shared.boardactions.approve.7b2c7f", reject = "shared.messages.remove.e96390", remove = "shared.messages.remove.e96390", claim = "shared.messages.claim.dc4e08" })
+-- Bounty function names, not display text: commands dispatch through them.
+local RUN = { submit = "Submit", approve = "Approve", reject = "Remove", remove = "Remove", claim = "Claim" }
 
 -- Run an action (a key of M.done) on a name. Returns the entry and its
 -- chat line, or nil and the reason.

@@ -6,6 +6,9 @@ P.MAX_DURATION = 30 * 86400
 P.CLAIM_WINDOW = 15 * 60
 P.FUNDS_TTL = 5 * 60
 P.MAX_OFFERS, P.MAX_OWN = 2000, 20
+-- Offers kept per posting character, closed ones included: one player
+-- cannot fill the shared board (P.Merge).
+P.MAX_SENDER = 50
 P.MAX_CLAIMS = 2000
 -- An expired, unpaid contribution to a shared reward waits this long for a
 -- delayed owner decision, then is pruned so it cannot hold a slot forever.
@@ -106,8 +109,16 @@ function P.NewID()
   return P.db.id .. "." .. P.db.sequence
 end
 
-function P.Mine(p)
+-- Account IDs travel in clear: they keep alts to one offer per target,
+-- but a received offer can copy one. An offer is mine only when it was
+-- posted here: walletScope (never sent) marks those, and older ones need
+-- their posting character. Imported offline copies never are.
+function P.Account(p)
   return P.ready and P.db.aliases[p.contributor] == true
+end
+
+function P.Mine(p)
+  return P.Account(p) and not p.imported and (p.walletScope ~= nil or p.by == B.Me())
 end
 
 function P.CanManage(p)

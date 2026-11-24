@@ -129,7 +129,7 @@ function E.Import(packet, replace)
   for _, b in ipairs(current.contributions) do
     if b.id then
       local old = offers[b.id]
-      if not P.Mine(b) and b.by ~= B.Me() and (not old or old.imported and b.revision > old.revision) then
+      if not P.Account(b) and b.by ~= B.Me() and (not old or old.imported and b.revision > old.revision) then
         if old and (old.by ~= b.by or old.contributor ~= b.contributor or old.name ~= b.name
           or not M.SameContract(old.contract, b.contract) or not B.Terms.Same(old, b) or b.gold < old.gold) then return nil, ns.Locale:Get("shared.potexchange.the_update_changes_the_original_contribution.eeb6c5") end
         for id, other in pairs(offers) do

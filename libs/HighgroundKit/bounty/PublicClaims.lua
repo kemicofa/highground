@@ -34,6 +34,10 @@ local function Asked(c) return "status:" .. c.id .. ":" .. c.revision end
 local function Push(c, force) -- reviews retry for up to a week
   return P.Retry(Pushed(c), c.claimant, c.at + 7 * 86400, function() return P.QueueClaim(c) end, force)
 end
+-- Status queries stop when P.Prune would drop the unsettled claim.
+local function Ask(c, send, force)
+  return P.Retry(Asked(c), c.by, (c.at or 0) + P.CONTRACT_GRACE, send, force)
+end
 
 function P.ClaimMessage(count)
   return ns.Locale:Format("shared.publicclaims.saved_count_reward_report_s_for_review.c9b46b", { count = count })
@@ -71,7 +75,7 @@ function P.Claim(name, observed, killedAt, targetGUID, onlyID, quiet, cause)
           B.Pot.Report(p.contract, killedAt, c.evidence, c.cause)
         end
         P.Data().claims[c.id] = c
-        P.Retry(Asked(c), c.by, nil, function() return P.QueueClaim(c) end, true)
+        Ask(c, function() return P.QueueClaim(c) end, true)
         sent = sent + 1
       elseif existing and existing.state == "claimed" then
         P.QueueClaim(existing)
@@ -221,7 +225,7 @@ function P.RetryClaims()
   local now = P.Now()
   for _, c in pairs(P.Data().claims) do
     if c.claimant == B.Me() and c.by ~= B.Me() and (c.state == "claimed" or c.state == "approved") then
-      P.Retry(Asked(c), c.by, nil, function()
+      Ask(c, function()
         if c.state == "claimed" and now <= c.killedAt + P.CLAIM_WINDOW then return P.QueueClaim(c) end
         return P.Enqueue("query", c, c.by)
       end)

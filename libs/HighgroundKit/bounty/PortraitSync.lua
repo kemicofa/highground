@@ -23,10 +23,13 @@ function R.Receive(a, sender, channel, name, organization)
   local b = group and B.Guild(organization)[B.Key(a.name)] or not group and P.Receiving() and P.Find(a.name)
   if not b or b.state == "removed" or b.publicClosed then return end
   if group and not (B.Organizations.Member(organization) and B.Visible(b)) then return end
+  -- Hunters report what they saw; the target cannot describe itself. Once
+  -- a GUID is known for the name, a report must carry that GUID.
+  if B.Key(sender) == B.Key(a.name) then return end
   local old = R.Record(a.name)
-  if old and old.guid ~= "" and a.guid ~= "" and old.guid ~= a.guid then return end
+  if old and old.guid ~= "" and old.guid ~= a.guid then return end
   for _, offer in ipairs(b.contributions or {}) do
-    if offer.guid ~= "" and a.guid ~= "" and offer.guid ~= a.guid then return end
+    if offer.guid ~= "" and offer.guid ~= a.guid then return end
   end
   if R.Save(a) then B.Emit("portrait", a.name) end
 end

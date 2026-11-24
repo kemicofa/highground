@@ -20,6 +20,9 @@ local Core, Bounty, Comms = ns.Core, ns.Bounty, ns.Comms
 ---------------------------------------------------------------------------
 Bounty.PREFIX = "HighgroundB"
 Bounty.REPLY_DELAY = { 1, 6 } -- sync replies wait a random time in this range
+-- Entry versions (`at`) use the sender's clock. Allow it to run this far
+-- ahead of ours; a later version would hold the target until then.
+Bounty.CLOCK_SKEW = 3600
 
 local CODE = { pending = "P", approved = "A", removed = "R" }
 local STATE = { P = "pending", A = "approved", R = "removed" }
@@ -147,7 +150,10 @@ function Bounty.Claim(name, guildOnly, killedAt, evidence, quiet, cause, organiz
   if not b then return nil, ns.Locale:Format("shared.share.no_bounty_on_value2.bce987", { value2 = ns.Core.DisplayName(name) }) end
   if b.state ~= "personal" and b.state ~= "approved" then return nil, ns.Locale:Get("shared.sync.this_organization_bounty_is_not_active.151972") end
   local c = Bounty.Ledger.Record(b, Bounty.Me(), killedAt, evidence, cause)
-  if not c then return nil, ns.Locale:Get("shared.sync.all_requested_kills_have_already_been_reported.4d8d55") end
+  if not c then
+    return nil, ns.Locale:Get(Bounty.Ledger.Before(b, killedAt) and "shared.boardactions.no_eligible_live_reward_to_report.8f689f"
+      or "shared.sync.all_requested_kills_have_already_been_reported.4d8d55")
+  end
   if not quiet and Bounty.Proof then Bounty.Proof.Show(b, evidence or "manual report", killedAt, cause) end
   if b.state == "personal" then
     if b.potID and b.by ~= Bounty.Me() then Bounty.Pot.Report(Bounty.Pot.Contract(b), killedAt, evidence, cause) end
@@ -161,11 +167,13 @@ end
 
 local function Allowed(from, state, by, key, organization)
   if state == "approved" then return Bounty.IsOfficer(from, organization) end
+  local old = Bounty.Guild(organization)[key]
   if state == "removed" then
-    local old = Bounty.Guild(organization)[key]
     return Bounty.IsOfficer(from, organization) or from == (old and old.by or by)
   end
-  -- pending: kept by officers and by its submitter
+  -- pending: kept by officers and by its submitter. It never replaces
+  -- another poster's live approved entry, which a review would then act on.
+  if old and old.state == "approved" and old.by ~= by and Bounty.Pot.Live(old) then return false end
   return (from == by or Bounty.IsOfficer(from, organization)) and (Bounty.IsOfficer(nil, organization) or by == Bounty.Me())
 end
 
@@ -174,7 +182,7 @@ end
 local function Text(value, max) return #value <= max and not value:find("[%c|]") end
 local function Valid(name, by, approver, note)
   local P = Bounty.Public
-  return P.Name(name) ~= nil and (by == "" or P.Name(by) ~= nil) and (approver == "" or P.Name(approver) ~= nil)
+  return P.Name(name) ~= nil and P.Name(by) ~= nil and (approver == "" or P.Name(approver) ~= nil)
     and Text(note, 255)
 end
 
@@ -183,11 +191,11 @@ local function ReceiveEntry(rest, from, version, organization)
   if version == "7" then
     rest, version, expiresAt = rest:match("^(.*),([124]),(%d+)$")
     expiresAt = tonumber(expiresAt)
-    if not rest or not Bounty.Public.Integer(expiresAt, 1, time() + Bounty.Pot.MAX_DURATION + 30) then return end
+    if not rest or not Bounty.Public.Integer(expiresAt, 1, time() + Bounty.Pot.MAX_DURATION + Bounty.CLOCK_SKEW) then return end
   elseif version == "6" then
     rest, version, potID, potAt, expiresAt = rest:match("^(.*),([124]),([%w%.%-]+),(%d+),(%d+)$")
     potAt, expiresAt = tonumber(potAt), tonumber(expiresAt)
-    if not rest or not Bounty.Public.ID(potID) or not Bounty.Public.Integer(potAt, 1, time() + 30)
+    if not rest or not Bounty.Public.ID(potID) or not Bounty.Public.Integer(potAt, 1, time() + Bounty.CLOCK_SKEW)
       or not Bounty.Public.Integer(expiresAt, potAt + 1, potAt + Bounty.Pot.MAX_DURATION) then return end
   end
   if version == "4" then
@@ -204,7 +212,7 @@ local function ReceiveEntry(rest, from, version, organization)
   local name, gold, by, at, code, approver, note =
     rest:match("^,([^,]+),(%d+),([^,]*),(%d+),([PAR]),([^,]*),(.*)$")
   gold, at = tonumber(gold), tonumber(at)
-  if not (name and gold and at) or gold > Bounty.MAX_GOLD or at > time() + 86400 or not Valid(name, by, approver, note) then return end
+  if not (name and gold and at) or gold > Bounty.MAX_GOLD or at > time() + Bounty.CLOCK_SKEW or not Valid(name, by, approver, note) then return end
   local key = Bounty.Key(name)
   if not key then return end
   local reply = organization and replies[organization] or not organization and pendingReply
@@ -269,8 +277,9 @@ function Bounty.Receive(text, sender, organization)
     if version == "4" or version == "5" then name, killedAt, offerAt = rest:match("^,([^,]+),(%d+),(%d+)$")
     else name = rest:match("^,(.+)$") end
     killedAt, offerAt = tonumber(killedAt), tonumber(offerAt)
-    local b = Bounty.Guild(organization)[Bounty.Key(name)]
-    if b and b.state == "approved" and (version ~= "4" and version ~= "5" or offerAt == b.at and killedAt and killedAt <= time() + 30 and killedAt >= time() - Bounty.Public.CLAIM_WINDOW) then
+    local b, now = Bounty.Guild(organization)[Bounty.Key(name)], Bounty.Public.Now()
+    -- Reporters stamp kills with server time (Bounty.Claim).
+    if b and b.state == "approved" and (version ~= "4" and version ~= "5" or offerAt == b.at and killedAt and killedAt <= now + 30 and killedAt >= now - Bounty.Public.CLAIM_WINDOW) then
       Bounty.Emit("claimed", b, from, killedAt, proof and proof.evidence, proof and proof.cause)
       Bounty.Emit("updated")
     end

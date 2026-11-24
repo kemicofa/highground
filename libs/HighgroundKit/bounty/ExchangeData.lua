@@ -64,7 +64,7 @@ function E.Decode(text)
   if audience == "global" then
     b = Offer(b) -- Discard every local-only field, including wallet/guild authority.
     if not P.Valid(b) or not P.Active(b) then return nil, ns.Locale:Get("shared.exchangedata.this_global_bounty_is_invalid_closed_or.2e914a") end
-    if P.Mine(b) or b.by == B.Me() then return nil, ns.Locale:Get("shared.exchangedata.this_is_your_contribution_manage_it_on.a3d8d8") end
+    if P.Account(b) or b.by == B.Me() then return nil, ns.Locale:Get("shared.exchangedata.this_is_your_contribution_manage_it_on.a3d8d8") end
   else
     if P.Name(b.name) ~= b.name or P.Name(b.by) ~= b.by or not P.Integer(b.gold, 0, B.MAX_GOLD)
       or type(b.note) ~= "string" or #b.note > B.NOTE_MAX or B.Clean(b.note) ~= b.note

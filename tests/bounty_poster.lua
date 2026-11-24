@@ -106,8 +106,7 @@ return function(addon)
       t.equal(w.portrait.texture, nil, "previous enemy's portrait cleared")
       click(w.close)
       B.Add("Namesake Alpha", 200); target(s, "Namesake Beta")
-      assert(shown(s) and not w.portrait:IsShown(), "loose first-name match cannot borrow another player's portrait")
-      click(w.close)
+      assert(not shown(s), "another player with the same first name neither matches nor borrows the portrait")
       B.Add("Unready", 300)
       local portraitAPI = s.env.SetPortraitTexture
       s.env.SetPortraitTexture = function() error("unavailable") end

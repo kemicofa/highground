@@ -88,6 +88,18 @@ test("outstanding guild claims cannot be erased by publishing and forged links c
   equal(h.ns.Bounty.LinkedOffer(h.ns.Bounty.Guild()["enemy-realm"]).gold, 500, "linked reward unchanged")
 end)
 
+test("sharing a guild reward keeps its paid kills", function()
+  local a = Guild("Alice", 5000)
+  local B = a.ns.Bounty
+  assert(B.Add("Enemy", 500, nil, { killsRequired = 3 })); local guild = assert(B.Submit("Enemy"))
+  local report = assert(B.Ledger.Record(guild, "Hunter-Realm"))
+  assert(B.Ledger.Change(report, "approved")); assert(B.Ledger.Change(report, "paid"))
+  local p = F.post(a)
+  equal(p.killsAwarded, 1, "the paid kill stays awarded")
+  equal(p.killsPaid, 1, "and paid")
+  equal(P(a).Reserved(), 2 * 500 * 10000, "only the two remaining kills reserve gold")
+end)
+
 test("a claimed guild name cannot bypass the receiver's public opt-out over whisper", function()
   local a = Guild("Alice")
   local h = F.new("Hunter", { guild = "Watch", saved = {} })

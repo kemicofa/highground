@@ -41,7 +41,31 @@ function L.ForBounty(row)
   return found
 end
 
-local function ID(b, from) return table.concat({ b.name, b.by, b.at, from, b.state == "personal" and "personal" or B.Organizations.Key(b) or b.organization or "" }, ";") end
+-- Claims are history once their bounty ended long ago: tracking notes and
+-- unreviewed reports stay "claimed" and must not fill the ledger. Past
+-- `keep`, settled claims go too, oldest first.
+L.KEEP = 200
+local function Ended(c)
+  local contract = type(c.contract) == "table" and c.contract
+  return contract and contract.expiresAt or (c.claimedAt or 0) + B.Pot.MAX_DURATION
+end
+function L.Prune(now, keep)
+  local all = L.All()
+  for i = #all, 1, -1 do
+    local c = all[i]
+    if type(c) ~= "table" or Ended(c) + B.Public.CONTRACT_GRACE < now
+      or #all > (keep or L.KEEP) and (c.state == "paid" or c.state == "rejected") then table.remove(all, i) end
+  end
+end
+
+-- A kill before the bounty was posted does not count. killedAt is server
+-- time and b.at the poster's clock: compare on ours, allowing some skew.
+L.CLOCK_TOLERANCE = 300
+function L.Before(b, killedAt)
+  return killedAt + time() - B.Public.Now() < (b.potAt or b.at or 0) - L.CLOCK_TOLERANCE
+end
+
+local function ID(b, from) return table.concat({ b.name, b.by or "", b.at or 0, from or "", b.state == "personal" and "personal" or B.Organizations.Key(b) or b.organization or "" }, ";") end
 function L.Record(b, from, killedAt, evidence, cause)
   killedAt = killedAt or B.Public.Now()
   if killedAt >= B.Pot.Expires(b) then return nil end
@@ -49,8 +73,10 @@ function L.Record(b, from, killedAt, evidence, cause)
     local p = B.LinkedOffer(b)
     return p and B.Public.GuildClaim(p, from, killedAt, evidence, cause) or nil
   end
+  if L.Before(b, killedAt) then return nil end
   local id = ID(b, from) .. (B.Terms.Count(b) > 1 and (";" .. killedAt) or "")
   for _, c in ipairs(L.All()) do if c.id == id then return c end end
+  if #L.All() >= B.Public.MAX_CLAIMS then L.Prune(B.Public.Now(), B.Public.MAX_CLAIMS - 1) end
   if #L.All() >= B.Public.MAX_CLAIMS then return nil end
   local reports = 0
   for _, c in ipairs(L.All()) do
@@ -66,13 +92,7 @@ function L.Record(b, from, killedAt, evidence, cause)
   c.contract = B.Pot.Contract(b)
   c.ownerOnly = b.potID ~= nil
   table.insert(L.All(), 1, c)
-  if #L.All() > 200 then
-    for i = #L.All(), 1, -1 do
-      if #L.All() <= 200 then break end
-      local old = L.All()[i]
-      if old.state == "paid" or old.state == "rejected" then table.remove(L.All(), i) end
-    end
-  end
+  if #L.All() > L.KEEP then L.Prune(B.Public.Now()) end
   if L.win then L.win:Refresh() end
   return c
 end
@@ -191,8 +211,7 @@ end
 function L.Replay(organization, sent)
   sent = sent or {}
   for _, c in ipairs(L.All()) do
-    if not c.personal and (B.Terms.Custom(c) or c.cause or c.evidence ~= "manual report")
-      and c.organization == organization and (organization ~= nil or c.guild == B.GuildKey()) and c.state ~= "claimed"
+    if not c.personal and c.organization == organization and (organization ~= nil or c.guild == B.GuildKey()) and c.state ~= "claimed"
       and L.CanManage(c) and sent[c.id] ~= c.at then
       if not B.Send(L.Encode(c), c.organization) then return false end
       sent[c.id] = c.at

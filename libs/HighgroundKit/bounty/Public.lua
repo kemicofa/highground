@@ -52,6 +52,22 @@ end
 
 local function Count(t) local n = 0; for _ in pairs(t) do n = n + 1 end; return n end
 
+-- At P.MAX_SENDER, a sender's new offer replaces their least recently
+-- changed one, closed ones first, never one with open claims. False when
+-- every one has claims.
+local function Room(offers, by)
+  local key, count, oldest, oldestID = B.Key(by), 0, nil, nil
+  for _, other in pairs(offers) do if B.Key(other.by) == key then count = count + 1 end end
+  if count < P.MAX_SENDER then return true end
+  for id, other in pairs(offers) do
+    if B.Key(other.by) == key and not P.HasClaims(id) and (not oldest
+      or P.Active(oldest) and not P.Active(other)
+      or P.Active(oldest) == P.Active(other) and other.changedAt < oldest.changedAt) then oldest, oldestID = other, id end
+  end
+  if oldestID then offers[oldestID] = nil end
+  return oldestID ~= nil
+end
+
 -- Account IDs deduplicate; only the posting character may change a pledge.
 -- Never accept a relay's claimed author or use the account ID as authority.
 function P.Merge(p, sender, channel, organization)
@@ -70,6 +86,9 @@ function P.Merge(p, sender, channel, organization)
   local old = offers[p.id]
   local priorSightings = old
   if old and old.imported then old = nil end -- A real author message supersedes unverified offline data.
+  -- This account's offers are saved here before they are sent: an unknown
+  -- one with its ID is a copy, which must not count against its wallet.
+  if P.Account(p) and not old then return false end
   if old then
     if old.by ~= sender or old.contributor ~= p.contributor or old.name ~= p.name or old.createdAt ~= p.createdAt
       or old.guid ~= p.guid or old.audience == "community" and old.organization ~= p.organization or p.revision < old.revision or old.audience ~= p.audience
@@ -94,6 +113,7 @@ function P.Merge(p, sender, channel, organization)
     if id ~= p.id and (other.contributor == p.contributor or B.Key(other.by) == B.Key(p.by)) and B.Key(other.name) == B.Key(p.name)
       and B.Pot.Live(other) and B.Pot.Live(p) then return false end
   end
+  if not offers[p.id] and not Room(offers, sender) then return false end
   if B.Sightings and priorSightings and priorSightings.name == p.name and priorSightings.by == p.by
     and priorSightings.contributor == p.contributor then B.Sightings.Copy(p, priorSightings, true) end
   offers[p.id] = p
@@ -163,7 +183,9 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   local count = 0
   for _, p in pairs(P.Data().offers) do if P.CanManage(p) and P.Active(p) then count = count + 1 end end
   if not old and count >= P.MAX_OWN then return nil, ns.Locale:Format("shared.public.you_can_have_at_most_p_max.1df393", { P_MAX_OWN = P.MAX_OWN }) end
-  local allowed, warning, available = P.CheckReward(gold * validated.killsRequired, old and old.id, guild)
+  -- Kills already counted on the bounty being shared stay done.
+  local started = not old and origin and math.max(B.Ledger.Progress(origin), B.Pot.DecisionProgress(B.Pot.ID(origin))) or 0
+  local allowed, warning, available = P.CheckReward(gold * (validated.killsRequired - started), old and old.id, guild)
   if not allowed then return nil, warning end
   if enablePublishing and not P.Publishing() then
     ns.Core.SetOption("bountyPublish", true)
@@ -172,7 +194,8 @@ function P.Post(name, gold, duration, note, enablePublishing, terms)
   local guid = ""
   if ns.Core.CanonUnit("target") == name then guid = U.value(U.call(UnitGUID, "target")) or "" end
   local p = old or { id = origin and origin.potID or P.NewID(), contributor = P.db.id, name = name, guid = guid, by = B.Me(),
-    createdAt = origin and origin.potAt or now, revision = 0, history = {}, fundsRevision = 0, closedAt = 0, winner = "" }
+    createdAt = origin and origin.potAt or now, revision = 0, history = {}, fundsRevision = 0, closedAt = 0, winner = "",
+    killsAwarded = started, killsPaid = started, killsStarted = started > 0 and started or nil }
   if origin and origin.potID then expires = math.max(B.Pot.Expires(origin), math.min(expires, p.createdAt + P.MAX_DURATION)) end
   if old then p.history[p.revision] = P.Snapshot(p) end
   B.Terms.Copy(p, validated)
@@ -265,7 +288,10 @@ function P.Prune()
   local now = P.Now()
   local pending, settled = {}, {}
   for id, c in pairs(P.Data().claims) do
-    if c.state == "claimed" or c.state == "approved" then pending[c.pledge] = true
+    if c.state == "claimed" or c.state == "approved" then
+      -- An unsettled claim waits this long after its last change for a
+      -- review or payment, then goes with its offer.
+      if now > (c.at or 0) + P.CONTRACT_GRACE then P.Data().claims[id] = nil else pending[c.pledge] = true end
     else settled[#settled + 1] = { id = id, at = c.at } end
   end
   table.sort(settled, function(a, b) return a.at > b.at end)
@@ -282,6 +308,7 @@ function P.Prune()
       if not p.contract and now > snapshot.expiresAt + P.CLAIM_WINDOW then p.history[rev] = nil end
     end
   end
+  if not P.pruning then B.Ledger.Prune(now); B.Pot.PruneOriginals(now) end
   if B.Pot.PruneDecisions then B.Pot.PruneDecisions(now) end
   if P.PruneDeliveries then P.PruneDeliveries(now) end
 end

@@ -204,12 +204,19 @@ return function(addon)
     local nan = P.Copy(original); nan.displayID = 0 / 0
     assert(not R.Validate(nan), "non-finite display IDs rejected before serialization")
     for _, change in ipairs({ { "displayID", -1 }, { "displayID", "RTPortrait1" },
-      { "at", P.Now() + 86400 }, { "at", 1 }, { "name", "Other-Other" }, { "guid", "Player-9-XYZ" } }) do
+      { "at", P.Now() + 86400 }, { "at", 1 }, { "name", "Other-Other" }, { "guid", "Player-9-XYZ" }, { "guid", "" } }) do
       local bad = P.Copy(original); bad.displayID = 99999; bad[change[1]] = change[2]
       P.Enqueue("portrait", bad, "Hunter-Realm"); F.deliver(a, h)
       t.equal(h.ns.Bounty.Portraits.Record("Enemy-Other").displayID, original.displayID, "valid model kept")
       t.equal(h.ns.Bounty.Portraits.Record("Other-Other"), nil, "no unsolicited target record")
     end
+    local rogue = setup("Rogue", 120100)
+    P.QueueOffer(assert(P.Post("Rogue-Realm", 500, "2h")), "Hunter-Realm"); F.deliver(a, h)
+    local own = { name = "Rogue-Realm", guid = "Player-1-Rogue", displayID = 99999, class = "MAGE", race = 1, sex = 2, at = P.Now() }
+    rogue.ns.Bounty.Public.Enqueue("portrait", own, "Hunter-Realm"); F.deliver(rogue, h)
+    t.equal(h.ns.Bounty.Portraits.Record("Rogue-Realm"), nil, "a target cannot describe itself")
+    P.Enqueue("portrait", own, "Hunter-Realm"); F.deliver(a, h)
+    t.equal(h.ns.Bounty.Portraits.Record("Rogue-Realm").displayID, 99999, "a hunter's report is kept")
     h:assertHealthy()
   end)
 

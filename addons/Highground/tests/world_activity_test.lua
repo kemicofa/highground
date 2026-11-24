@@ -117,4 +117,25 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
+for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
+  test(case[2] .. ": /hg nearby test opens World activity with sample zones and closes it with the preview", function()
+    local sim = setup(case[1], case[2])
+    local A = sim.ns.WorldActivity
+    sim:command("nearby test")
+    local w = A.Preview(true)
+    assert(w and w:IsShown(), "sample zones open with the preview")
+    equal(#w.items, 2)
+    equal(#A.Entries(), 0, "live data untouched")
+    assert(not (A.win and A.win:IsShown()), "the live window stays closed")
+    sim:command("nearby test")
+    assert(not w:IsShown(), "stopping the preview closes it")
+    sim:command("nearby test")
+    assert(w:IsShown())
+    sim.ns.Nearby.preview = false -- placement or combat ending the preview
+    sim:advance(1)
+    assert(not w:IsShown(), "any end of the preview closes it")
+    sim:assertHealthy()
+  end)
+end
+
 t.finish("World activity: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

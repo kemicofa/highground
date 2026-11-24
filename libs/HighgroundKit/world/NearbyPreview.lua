@@ -28,6 +28,7 @@ function ns.NearbyPreview()
   Nearby.preview = not Nearby.preview
   Nearby.Update()
   if ns.MapPins then ns.MapPins.Refresh() end -- samples on an open map
+  if ns.WorldActivity then ns.WorldActivity.Preview(Nearby.preview) end -- sample zones
   return Nearby.preview
 end
 

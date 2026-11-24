@@ -148,7 +148,28 @@ function A.Changed()
   if A.win and A.win:IsShown() then A.win:Refresh() end
 end
 
--- Guide samples: two zones, one with a mark and kills.
+-- `/hg nearby test`: the sample zones in their own window. It closes when
+-- the Nearby preview stops, however it stops (command, placement, combat).
+local preview = { entries = function() return A.Samples() end }
+function A.Preview(on)
+  if not on then
+    if preview.win and preview.win:IsShown() then preview.win:Hide() end
+    return
+  end
+  local w = A.Build(preview)
+  if not preview.watch then
+    preview.watch = Util.Every(0.5, function()
+      if not ns.Nearby.preview and w:IsShown() then w:Hide() end
+    end, "world activity preview", "nearby")
+    preview.watch.Stop()
+    w:HookScript("OnShow", preview.watch.Start)
+    w:HookScript("OnHide", preview.watch.Stop)
+  end
+  w:Open()
+  return w
+end
+
+-- Guide and preview samples: two zones, one with a mark and kills.
 function A.Samples()
   local now = GetTime()
   local busy = { mapID = 0, enemies = 9, now = 6, classes = { ROGUE = 4, MAGE = 3, PRIEST = 2 }, guilds = { ["Night Watch"] = 5 },

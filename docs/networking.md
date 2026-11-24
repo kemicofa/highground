@@ -19,7 +19,7 @@ Load `core/Util.lua`, `core/Events.lua`, your `ns.Core`, `core/Names.lua`, `core
 | `capture` | `HighgroundC` | 1 | 1 |
 | `spectags` | `HighgroundS` spec tags | 1 | 1 |
 | `intel` | `HighgroundI` | 3 | 2, 3 |
-| `timers` | `HighgroundT` | 2 | 2 |
+| `timers` | `HighgroundT` | 3 | 2, 3 |
 | `guild` | `HighgroundB` | 1, 2, 4, 5, 6, 7 | 1, 2, 4, 5, 6, 7 |
 | `offer`, `claim` | `HighgroundBP` payload kinds | 1, 2, 3 | 1, 2, 3 |
 | `bounty` | Other `HighgroundBP` payloads | 1 | 1 |
@@ -30,7 +30,7 @@ Load `core/Util.lua`, `core/Events.lua`, your `ns.Core`, `core/Names.lua`, `core
 Capabilities use a separate `HighgroundN` prefix and a bounded, single-frame envelope:
 
 ```text
-1|<Scope.Social()>|intel=2,3;timers=2;wire=1
+1|<Scope.Social()>|intel=2,3;timers=2,3;wire=1
 ```
 
 The announcement lists receive formats, not permissions or enabled sharing settings. Valid unknown feature IDs are ignored. Each message is a partial advertisement: records from different standalone addons on one character merge, and omitted features remain unknown. Transport support is associated with the features in that same advertisement, so another standalone's library revision cannot overwrite those features' transport capabilities. A cache of at most 500 characters expires each feature record after 15 minutes, clears on social/character scope changes, and is never saved. Malformed, foreign-scope and unsupported-envelope messages are ignored.

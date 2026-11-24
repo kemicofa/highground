@@ -3,10 +3,12 @@ local Timers, Comms = ns.Timers, ns.Comms
 
 ---------------------------------------------------------------------------
 -- Timer sharing (prefix HighgroundT, group channel): exact waves (you dead
--- at a healer) and enemy vote intervals, at most 10 queued per flush.
---   2:mapID:W,team,x,y,secondsUntilWave,area
---   2:mapID:V,x,y,diedAgo,seenAgo,area
--- x/y in 1/10000 of the map, 0 = unknown; area is the sub-zone name.
+-- at a healer, or just revived) and enemy vote intervals, at most 10 queued
+-- per flush.
+--   3:mapID:W,team,x,y,tenthsUntilWave,area
+--   3:mapID:V,x,y,diedAgo,seenAgo,area
+-- x/y in 1/10000 of the map, 0 = unknown; area is the sub-zone name; ages
+-- in seconds. Version 2 (still read) sent the wave in whole seconds.
 ---------------------------------------------------------------------------
 -- A full outbox (messages kept while sending is refused) drops its oldest.
 -- WoW Forever locks chat for a whole match: nothing could go out, so
@@ -19,11 +21,12 @@ function Timers.Queue(msg)
   Timers.outbox[#Timers.outbox + 1] = msg
 end
 
-function ns.ShareWave(g)
+-- force: your revival, more precise than the countdown shared before it.
+function ns.ShareWave(g, force)
   if not g then return end
   local now = GetTime()
   local nw = Timers.NextWave(g, now)
-  if nw and (not g.sharedAt or now - g.sharedAt > 10) then
+  if nw and (force or not g.sharedAt or now - g.sharedAt > 10) then
     g.sharedAt = now
     Timers.Queue({ kind = "W", team = g.team, x = g.x, y = g.y, at = nw, area = g.label })
   end
@@ -56,7 +59,7 @@ function Timers.Flush()
       local at, period = msg.at, Timers.WaveCycle()
       if at < now and period then at = at + math.ceil((now - at) / period) * period end
       if at >= now then
-        part = string.format("W,%s,%d,%d,%d,%s", msg.team, x, y, math.floor(at - now + 0.5), area)
+        part = string.format("W,%s,%d,%d,%d,%s", msg.team, x, y, math.floor((at - now) * 10 + 0.5), area)
       end
     else
       part = string.format("V,%d,%d,%d,%d,%s", x, y, math.floor(now - msg.t0), math.floor(now - msg.t1), area)
@@ -66,7 +69,7 @@ function Timers.Flush()
   -- Send complete records only: truncating a long area name can relocate a
   -- wave, and truncating a timestamp can corrupt its phase. After a refused
   -- packet, keep it and the rest for the next flush.
-  local prefix, packet, batch, kept = "2:" .. mapID .. ":", "", {}, {}
+  local prefix, packet, batch, kept = "3:" .. mapID .. ":", "", {}, {}
   local function Send()
     if packet == "" then return end
     if #kept == 0 and Comms.Send(Timers.PREFIX, prefix .. packet, chan) then
@@ -94,9 +97,10 @@ function Timers.Receive(text, sender)
     return
   end
   local ver, map, body = text:match("^(%d+):(%d+):(.*)$")
-  if ver ~= "2" or tonumber(map) ~= Timers.MapID() then
+  if (ver ~= "2" and ver ~= "3") or tonumber(map) ~= Timers.MapID() then
     return
   end
+  local unit = ver == "3" and 10 or 1 -- the wave in tenths, or whole seconds
   Timers.stats.recv = Timers.stats.recv + 1
   local now = GetTime()
   local function spot(x, y, area)
@@ -118,7 +122,7 @@ function Timers.Receive(text, sender)
           gx, gy = ns.AreaXY(Timers.MapID(), garea)
         end
         local g = (gx or garea) and Timers.GetGY(team, gx, gy, true, garea) or Timers.TeamGY(team)
-        Timers.SetWave(g, now + tonumber(left), "shared") -- transit time is not locally observable
+        Timers.SetWave(g, now + tonumber(left) / unit, "shared") -- transit time is not locally observable
       end
     elseif kind == "V" then
       local x, y, ago0, ago1, area = rest:match("^(%d+),(%d+),(%d+),(%d+),?(.*)$")

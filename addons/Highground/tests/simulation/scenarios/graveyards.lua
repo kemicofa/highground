@@ -109,7 +109,9 @@ test("Cata Warsong Horde resurrection works without coordinates and never adds b
   equal(rowFor(sim, "Horde Base Graveyard").time.text, "12s", "healer countdown reaches timer window")
   sim.releasePosition = { x = h.x, y = h.y }
   sim:advance(0.5)
-  sim.units.player.ghost, sim.healerTime = false, nil
+  sim.healerTime = 1; sim:advance(0.5) -- the countdown runs out
+  sim.healerTime = nil; sim:advance(0.75)
+  sim.units.player.ghost = false
   sim:advance(1)
   assert(h.wave <= sim.now, "resurrection establishes the wave phase")
   equal(a.wave, nil, "friendly resurrection does not set enemy wave")

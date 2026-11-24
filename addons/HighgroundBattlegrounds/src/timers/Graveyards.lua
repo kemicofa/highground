@@ -46,7 +46,7 @@ function Timers.Reset(mapID)
   wipe(Timers.track)
   Timers.dieAlertedFor = nil
   Timers.clock, Timers.clockShared, Timers.periodOverride, Timers.startClock, Timers.releaseGY = nil, nil, nil, nil, nil
-  Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
+  Timers.healerEnd, Timers.healerAt, Timers.healerG, Timers.healerLeft = nil, nil, nil, nil
   Timers.downtimeOverride = nil
   wipe(Timers.periodVotes)
   wipe(Timers.downtimes)
@@ -363,8 +363,9 @@ function Timers.NextWave(g, now)
   end
 end
 
-function Timers.SetWave(g, t, conf)
-  if not g or not Timers.Available(g) then return end
+-- report: a teammate's revival seen here, possibly late (Timers.LateReport).
+function Timers.SetWave(g, t, conf, report)
+  if not g or not Timers.Available(g) or report and Timers.LateReport(g, t) then return end
   if conf == "exact" or conf == "guide" or conf == "shared" then
     if g.wave and (g.conf == "exact" or g.conf == "guide") then Timers.CheckPeriod(t - g.wave) end
     Timers.ClockEvidence(g, t)
@@ -376,7 +377,7 @@ function Timers.SetWave(g, t, conf)
   if g.wave and (rank[g.conf] or 0) > (rank[conf] or 0) and GetTime() - (g.waveAt or 0) < 120 then
     return
   end
-  g.wave, g.conf, g.waveAt = t, conf, GetTime()
+  g.wave, g.conf, g.waveAt, g.lateReport = t, conf, GetTime(), nil
   Timers.stats.waves = Timers.stats.waves + 1
 end
 

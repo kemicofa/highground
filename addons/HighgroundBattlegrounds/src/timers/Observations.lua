@@ -4,11 +4,33 @@ local Timers = ns.Timers
 ---------------------------------------------------------------------------
 -- Resurrections
 ---------------------------------------------------------------------------
+-- A teammate's revival can reach this client seconds after the wave (far
+-- from you, say), or come at any time at their corpse or by a player's
+-- spell. Against a timed wave, one more than 1.5 s off is set aside unless
+-- another, one to three cycles earlier, was off by as much: then the clock
+-- moved.
+function Timers.LateReport(g, t)
+  local cycle = Timers.WaveCycle()
+  local wave, est = cycle and Timers.NextWave(g, t - cycle / 2)
+  if not wave or est then return false end
+  local off = t - wave
+  if math.abs(off) <= Timers.CLOCK_TOLERANCE then return false end
+  local prev = g.lateReport
+  g.lateReport = { at = t, off = off }
+  return not (prev and t - prev.at >= cycle / 2 and t - prev.at <= 3 * cycle
+    and math.abs(off - prev.off) <= Timers.CLOCK_TOLERANCE)
+end
+
 -- ghost[name] tracks ghosts; pendingRez[name] holds the observation time.
 -- Teammates are listed under first and full name, you also under your group
 -- token: rezPlaced[unit or "player"] keeps one resurrection one wave.
 local rezPlaced = {}
 function Timers.ScanTeam()
+  -- The final score brings everyone back at once: no wave.
+  if Timers.MatchOver() then
+    wipe(Timers.ghost); wipe(Timers.pendingRez)
+    return
+  end
   local now = GetTime()
   local units = ns.AllyUnits and ns.AllyUnits() or { [UnitName("player")] = "player" }
   for name, unit in pairs(units) do
@@ -39,16 +61,24 @@ function Timers.ScanTeam()
         local start = own and Timers.StartGY(Timers.MyTeam())
         local g = own and Timers.releaseGY
           or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start or Timers.TeamGY(Timers.MyTeam())
+        -- Back off the countdown's waves: at your corpse or by a player's
+        -- spell, not a wave. Waves follow the last countdown read every
+        -- cycle; a countdown that just restarted had its wave.
+        local cycle = Timers.WaveCycle()
+        local off = own and Timers.healerLeft and cycle and t - (Timers.healerAt + Timers.healerLeft)
+        local offWave = off and (off + Timers.CLOCK_TOLERANCE) % cycle > Timers.CLOCK_TOLERANCE + Timers.MAX_REVIVE_LAG
         if own then
           Timers.releaseGY = nil
           -- How long after the countdown's end you came back.
-          if Timers.healerEnd and t - Timers.healerAt < 5 then Timers.NoteReviveLag(t - Timers.healerEnd) end
-          Timers.healerEnd, Timers.healerAt, Timers.healerG = nil, nil, nil
+          if Timers.healerEnd and t - Timers.healerAt < 5 and not offWave then Timers.NoteReviveLag(t - Timers.healerEnd) end
+          Timers.healerEnd, Timers.healerAt, Timers.healerG, Timers.healerLeft = nil, nil, nil, nil
         end
-        Timers.SetWave(g, t, "exact")
+        if not offWave then Timers.SetWave(g, t, "exact", not own) end
         if g and g.x then
           Timers.Learn(g)
         end
+        -- Your own revival is the most precise wave: share it at once.
+        if own and not offWave then ns.ShareWave(g, true) end
       end
     end
   end
@@ -78,8 +108,9 @@ function Timers.ScanTeam()
       end
       -- Base graveyards give a release position, start graveyards don't:
       -- without one, on a map with starts, you are at yours.
+      -- A release position read earlier this death keeps its graveyard.
       local start = Timers.StartGY(Timers.MyTeam())
-      local g = not rx and start or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start
+      local g = not rx and (Timers.healerG or start) or (x or area) and Timers.GetGY(Timers.MyTeam(), x, y, true, area) or start
         or Timers.TeamGY(Timers.MyTeam())
       Timers.releaseGY = g -- where your resurrection will be
       if g and rx and not g.exact and not g.configured then
@@ -99,7 +130,7 @@ function Timers.ScanTeam()
       local reading = now + left
       local moved = not Timers.healerEnd or reading > Timers.healerEnd + 0.05 or g ~= Timers.healerG
       if not Timers.healerEnd or reading > Timers.healerEnd then Timers.healerEnd = reading end
-      Timers.healerAt, Timers.healerG = now, g
+      Timers.healerAt, Timers.healerG, Timers.healerLeft = now, g, left
       if moved then Timers.SetWave(g, Timers.healerEnd + Timers.ReviveLag(), "exact") end
       ns.ShareWave(g)
     end

@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import json
+import os
 from pathlib import Path
 import re
 import sys
@@ -98,7 +99,14 @@ class Catalog:
                 self.entries[m.group(2)] = (n, decode(m.group(3)))
 
     def write(self):
-        self.path.write_text("".join(self.lines), encoding="utf-8")
+        # Replace the catalog only once its new text is complete, so an interruption cannot truncate it.
+        temporary = self.path.with_name(f".{self.path.name}.tmp")
+        try:
+            temporary.write_text("".join(self.lines), encoding="utf-8")
+            os.replace(temporary, self.path)
+        except BaseException:
+            temporary.unlink(missing_ok=True)
+            raise
 
     def line(self, key, text):
         return f'{self.indent}["{key}"] = {encode(text)},\n'
@@ -112,7 +120,9 @@ class Catalog:
                 anchor = self.entries[earlier][0]
                 break
         if anchor is None:
-            anchor = next(n for n, l in enumerate(self.lines) if "Register(" in l)
+            anchor = next((n for n, l in enumerate(self.lines) if "Register(" in l), None)
+            if anchor is None:
+                raise SystemExit(f"{self.path}: no Register( line to insert {key} after")
         self.lines.insert(anchor + 1, self.line(key, text))
         self.index()
 

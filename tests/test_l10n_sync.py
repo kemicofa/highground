@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("l10n_sync", ROOT / "scripts/l10n_sync.py")
@@ -98,6 +99,28 @@ class L10nSyncTests(unittest.TestCase):
         self.assertEqual(self.entries("deDE")["a.first"], "Erste")
         self.apply({"a.first": {"deDE": "Erstens"}}, "--overwrite")
         self.assertEqual(self.entries("deDE")["a.first"], "Erstens")
+
+    def test_interrupted_write_leaves_the_catalog_intact(self):
+        before = (self.folder / "deDE.lua").read_text()
+        files = sorted(self.folder.iterdir())
+        translations = self.root / "todo.json"
+        translations.write_text(json.dumps({"a.command": {"deDE": "Gib /hg help ein"}}))
+        write = Path.write_text
+
+        def interrupted(path, text, *args, **kwargs):
+            write(path, text[:20], *args, **kwargs)
+            raise KeyboardInterrupt
+
+        with patch.object(Path, "write_text", interrupted), self.assertRaises(KeyboardInterrupt):
+            self.run_cli("apply", str(self.root), str(translations))
+        self.assertEqual((self.folder / "deDE.lua").read_text(), before)
+        self.assertEqual(sorted(self.folder.iterdir()), files, "no temporary file left behind")
+
+    def test_catalog_without_a_register_line_is_a_clear_error(self):
+        (self.folder / "deDE.lua").write_text("return {}\n")
+        with self.assertRaisesRegex(SystemExit, r"deDE\.lua: no Register\( line to insert a\.first after"):
+            self.apply({"a.first": {"deDE": "Erste"}})
+        self.assertEqual((self.folder / "deDE.lua").read_text(), "return {}\n")
 
     def test_repository_catalogs_are_complete(self):
         code, output = self.run_cli("missing", str(ROOT))

@@ -113,6 +113,13 @@ function C.NearbySteps()
     Nearby.preview = true; Nearby.Update()
   end
   local function Context() return data.win end
+  -- Sample rows by name: their order follows the samples' ages.
+  local function Row(name)
+    for _, r in ipairs(Nearby.rows or {}) do
+      if r.who == name and r:IsShown() then return r end
+    end
+    return Nearby.rows[1]
+  end
   local function Form()
     local w = B.Form.previewWin
     if not (N.bountyOwned and w and w:IsVisible()) then data.bounty(data.entries()[1]); w = B.Form.previewWin end
@@ -123,7 +130,10 @@ function C.NearbySteps()
       enter = Panel, target = function() return Nearby.rows[1] end, context = function() return Nearby.win end,
       feature = "nearby", settingLabel = ns.Locale:Get("highground.coachsamples.enable_nearby_panel_in_game.a52135") },
     { id = "memory", title = ns.Locale:Get("highground.coachsamples.faded_means_last_seen_earlier.c06c8f"), text = ns.Locale:Get("highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"),
-      enter = Panel, target = function() return Nearby.rows[3] end, context = function() return Nearby.win end },
+      enter = Panel, target = function() return Row("Holyhands") end, context = function() return Nearby.win end },
+    { id = "shared", title = ns.Locale:Get("guide.nearby.shared.title"), text = ns.Locale:Get("guide.nearby.shared.text"),
+      enter = Panel, target = function() return Row("Ironhide") end, context = function() return Nearby.win end,
+      feature = "nearbyShare", settingLabel = ns.Locale:Get("nearby.world.share_label") },
     { id = "sound", sound = "nearby", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"),
       enter = Panel, target = function() return Nearby.win.sound end, context = function() return Nearby.win end,
       hint = ns.Locale:Get("highground.coachsamples.this_is_your_real_sound_preference.c14faf") },

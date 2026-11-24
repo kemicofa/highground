@@ -323,6 +323,7 @@ function HighgroundDataProviderMixin:OnMapChanged()
   self:RefreshAllData()
 end
 
+-- Once per map frame; Nearby's world layer (world/Map.lua) attaches too.
 local function Attach(mapFrame)
   if not (mapFrame and mapFrame.AddDataProvider) or providers[mapFrame] then
     return
@@ -332,6 +333,7 @@ local function Attach(mapFrame)
   providers[mapFrame] = p
   Util.Guard("map rings", Rings.Attach, mapFrame)
 end
+MapPins.Attach = Attach
 
 -- A guide can supply isolated data to an actual map canvas. It still uses
 -- this provider, the XML pin template, pooling and the normal pin renderer.

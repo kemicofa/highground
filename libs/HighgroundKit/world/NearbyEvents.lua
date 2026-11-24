@@ -79,6 +79,7 @@ local redraw = ns.Throttle and ns.Throttle.New(0.1, Update, "nearby")
 local function Refresh()
   if redraw then redraw:Request() else Guard("nearby", Nearby.Update) end
 end
+Nearby.Refresh = Refresh -- shared sightings arrive in bursts too (world/Share.lua)
 local function Observe(unit)
   Guard("nearby", Nearby.NoteUnit, unit)
   Refresh()

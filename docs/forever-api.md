@@ -99,6 +99,27 @@ Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy p
 | Enemy power type readable; a Moonkin's model file ID readable outside a match | Druid form estimates on WoW Forever: ~Restoration, ~Feral, ~Balance from a Moonkin model (#326) |
 | Enemies' target names readable | On you, on your healer and the header's ON YOU count on WoW Forever (#339) |
 
+## Open world
+
+Midnight's restrictions are lighter outside instances. Blizzard's API notes (warcraft.wiki.gg, *Patch 12.0.0 API changes*, *Secret Values*) say:
+
+- Chat lockdown applies only in a PvP match, a Mythic+ run, an encounter or a restricted map such as a dungeon or raid, not in open-world combat. Addon messages to party, raid, guild and custom channels work there; Highground's shared sightings (`HighgroundW`, `world/Share.lua`) and bounty sightings rely on it.
+- An enemy player's identity (name, class, GUID) is secret only for units that aren't player-controlled, or inside a match. Nearby already reads enemy class, level and guild in the world.
+- Auras and cooldowns of other units are secret whenever you are in combat, anywhere. Other units' casts are always secret. The combat log is gone everywhere; `PARTY_KILL` and `UNIT_DEATH` replace part of it, with readable GUIDs when the identity is readable.
+- Unit comparisons are secret only on addon-restricted maps.
+
+None of this has been measured on WoW Forever in the open world yet. To check with an enemy player as target, in and out of combat with them:
+
+```
+/run local R,A=Enum.AddOnRestrictionType,C_RestrictedActions.IsAddOnRestrictionActive print(C_ChatInfo.InChatMessagingLockdown(),A(R.Combat),A(R.Map))
+/run local t="target" print(UnitGUID(t),UnitClass(t),issecretvalue(UnitHealth(t)),issecretvalue(UnitIsUnit("targettarget","player")))
+/run print(pcall(C_UnitAuras.GetAuraDataByIndex,"target",1,"HELPFUL"))
+/run local m=C_Map.GetBestMapForUnit("player") local p=C_Map.GetPlayerMapPosition(m,"party1") print(m,p and p.x,p and p.y)
+/run local f=CreateFrame("Frame")f:RegisterEvent("PARTY_KILL")f:RegisterEvent("UNIT_DEATH")f:SetScript("OnEvent",function(_,e,...)print(e,...)end)
+```
+
+Also still to check: whether a raid icon on an enemy player reads back with `GetRaidTargetIndex("target")`, and whether a character of the other faction can read addon messages in a custom channel (two accounts needed).
+
 ## Leads to try
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.

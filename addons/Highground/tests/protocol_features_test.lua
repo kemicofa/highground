@@ -10,7 +10,7 @@ end
 
 t.test("Highground loads the registry and advertises its loaded features", function()
   local expected = {
-    Highground = { "users", "intel", "timers", "capture", "spectags", "guild", "offer", "claim", "deaths", "reputation", "profiles" },
+    Highground = { "users", "intel", "timers", "capture", "spectags", "guild", "offer", "claim", "deaths", "world", "reputation", "profiles" },
   }
   for _, client in ipairs({ "retail", "cata" }) do
     for addon, ids in pairs(expected) do

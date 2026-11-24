@@ -191,6 +191,7 @@ P.Register("offer", "HighgroundBP", "shared.protocols.bounty_offers.19bea0", "1,
 P.Register("claim", "HighgroundBP", "shared.protocols.bounty_claims.0173fe", "1,2,3", "1,2,3")
 P.Register("bounty", "HighgroundBP", "shared.protocols.bounty_messages.8171bf", "1", "1")
 P.Register("deaths", "HighgroundD", "shared.protocols.guild_death_reports.90111e", "1", "1")
+P.Register("world", "HighgroundW", "shared.protocols.world_sightings", "1", "1")
 P.Register("reputation", "HighgroundRep", "shared.protocols.reputation_sharing.61e978", "1", "1")
 P.Register("profiles", "HighgroundP", "shared.protocols.profile_sharing.81fba6", "1", "1")
 P.active.wire = true

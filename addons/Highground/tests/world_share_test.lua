@@ -250,4 +250,49 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
+for _, build in ipairs({ 120100, 16001 }) do
+  test(build .. ": everyone in the users channel gets coarse sightings only with the opt-in", function()
+    local sim = setup("retail", build)
+    local N = sim.ns.Nearby
+    sim.ns.Peers.ChannelID = function() return 7 end
+    sim.ns.Peers.CHANNEL = sim.ns.Peers.CHANNEL or "HighgroundUsersPvP"
+    local function channel()
+      local out = {}
+      for _, m in ipairs(sim.sent) do
+        if m.prefix == "HighgroundW" and m.channel == "CHANNEL" and m.message:find("^1:") then out[#out + 1] = m end
+      end
+      return out
+    end
+    plate(sim, "Sneaky")
+    sim:advance(25)
+    equal(#channel(), 0, "off by default")
+    sim:command("nearby share world on")
+    sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")
+    sim:advance(25)
+    local sentWorld = channel()
+    equal(#sentWorld, 1)
+    equal(sentWorld[1].target, 7)
+    assert(sentWorld[1].message:find(",5250,4250,", 1, true), "the cell's centre, not where you stood: " .. sentWorld[1].message)
+    local function hear(text, name)
+      -- The channel's name can reset while the ruleset is unknown (Forever).
+      sim.ns.Peers.CHANNEL = sim.ns.Peers.CHANNEL or "HighgroundUsersPvP"
+      sim:event("CHAT_MSG_ADDON", "HighgroundW", text, "CHANNEL", "Scout-Realm", "", 0, 7, name or sim.ns.Peers.CHANNEL)
+    end
+    hear("1:" .. HILLSBRAD .. ":Rover-Realm,MAGE,60,2250,2250,100,3,")
+    N.Update()
+    local e = N.seen.Rover
+    assert(e and e.via == "world", "everyone's sightings from your zone are listed")
+    local r = row(sim, "Rover")
+    equal(r and r.sub.text, "Lv 60 · Reported by Scout")
+    hear("1:" .. ARATHI .. ":Elsewhere-Realm,MAGE,60,2250,2250,100,3,")
+    equal(N.seen.Elsewhere, nil, "other zones are dropped")
+    hear("1:" .. HILLSBRAD .. ":Trader-Realm,MAGE,60,2250,2250,100,3,", "Trade")
+    equal(N.seen.Trader, nil, "only the users channel")
+    sim:command("nearby share world off")
+    hear("1:" .. HILLSBRAD .. ":Late-Realm,MAGE,60,2250,2250,100,3,")
+    equal(N.seen.Late, nil, "nothing is read with the opt-in off")
+    sim:assertHealthy()
+  end)
+end
+
 t.finish("World sightings: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

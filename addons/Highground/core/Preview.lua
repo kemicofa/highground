@@ -74,7 +74,8 @@ local function SeedEnemies(guided)
         testStacks = (n == 7) and 4 or nil,
         allyCount = (n == 1) and 4 or (n == 3) and 1 or 0,
         onMe = (n == 2 or n == 6),
-        marker = (n == 1) and 8 or (n == 5) and 7 or nil,
+        -- Raid markers only where enemy players can carry them.
+        marker = ns.Caps.enemyMarks and ((n == 1) and 8 or (n == 5) and 7) or nil,
         -- In view (clickable, live distance); health and mana are fixed.
         unit = (n == 1 or n == 3 or n == 4) and "player" or nil,
         testHp = n ~= 10 and HP[n] or nil, hpPct = n ~= 10 and HP[n] or nil,

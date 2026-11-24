@@ -125,7 +125,10 @@ function P.PrepareSetup(source)
     end
     for key, value in pairs(setup.preferences) do
       if key == "reducedMotion" or key == "locked" then assert(type(value) == "boolean", "invalid motion preference")
-      elseif Core.SavedDefs[key] and key ~= "hubSection" then assert(Core.SavedValid(Core.SavedDefs[key], value), "invalid " .. key)
+      elseif Core.SavedDefs[key] and key ~= "hubSection" then
+        assert(Core.SavedValid(Core.SavedDefs[key], value), "invalid " .. key)
+        -- Another game's choice (a raid-icon mark on WoW Forever) keeps the default.
+        if not Core.SavedUsable(Core.SavedDefs[key], value) then setup.preferences[key] = nil end
       else setup.preferences[key] = nil end
     end
     -- Feature switches apply after preferences. Compare their effective value

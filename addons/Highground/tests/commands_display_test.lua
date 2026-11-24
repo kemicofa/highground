@@ -107,6 +107,62 @@ t.test("/hg mark ping changes the ping where pings exist and is refused elsewher
   assert(not has(out, "mark ping"), "help omits pings on this client")
 end)
 
+-- WoW Forever: the retail manifest on interface 16001.
+local function forever(s)
+  s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  s.env.loadstring_untainted = nil
+  s.secureSnippets = false
+end
+
+t.test("WoW Forever refuses raid icons on enemies: the mark key pings and marker scores are hidden", function()
+  local sim = new("retail", {}, forever)
+  local ns, db = sim.ns, sim.env.HighgroundDB
+  equal(ns.GAME, "forever", "Forever client")
+  local out = run(sim, "mark icon 3")
+  equal(db.markMode, "ping", "mode unchanged")
+  equal(db.markIcon, 8, "icon unchanged")
+  assert(has(out, "raid icons can't go on enemy players"), "refusal explained: " .. out)
+  out = run(sim, "mark")
+  assert(has(out, "/hg mark ping attack|warning|assist|onmyway"), "help offers pings")
+  assert(not has(out, "/hg mark icon"), "help omits raid icons: " .. out)
+  assert(not has(out, "Raid icons may need"), "no raid-icon note")
+  local skull, cross, marker
+  for _, row in ipairs(ns.Core.POINTS) do
+    if row.key == "skull" then skull = row elseif row.key == "cross" then cross = row end
+  end
+  for _, w in ipairs(ns.Core.WEIGHTS) do if w.key == "marker" then marker = w end end
+  assert(not ns.OptionAvailable(skull) and not ns.OptionAvailable(cross), "skull/cross values hidden")
+  assert(not ns.OptionAvailable(marker), "marker multiplier hidden")
+
+  -- A mark key saved on a raid icon pings again, on load and from a profile.
+  local saved = new("retail", { markMode = "icon", markIcon = 3 }, forever)
+  equal(saved.env.HighgroundDB.markMode, "ping", "saved raid icon resets to ping")
+  saved:enemy("Pinged")
+  saved:join()
+  assert(has(run(saved, "mark"), "/ping [@target] attack"), "button pings")
+  local setup = saved.ns.Options.Profiles.PrepareSetup({ preferences = { markMode = "icon", pingType = "warning" } })
+  equal(setup.preferences.markMode, nil, "imported raid icon keeps the default")
+  equal(setup.preferences.pingType, "warning", "other preferences import")
+
+  -- Retail and Cata keep raid icons; Cata can't keep a ping mode.
+  local retail = new("retail", { markMode = "icon", markIcon = 3 })
+  equal(retail.env.HighgroundDB.markMode, "icon", "Retail keeps raid icons")
+  assert(retail.ns.OptionAvailable(skull), "Retail shows the skull value")
+  equal(new("cata", { markMode = "ping" }).env.HighgroundDB.markMode, "icon", "Cata has no pings")
+end)
+
+t.test("the battleground preview shows raid markers only where enemies can carry them", function()
+  local function markers(sim)
+    sim:command("bg test")
+    local n = 0
+    for _, e in pairs(sim.ns.Core.enemies) do if e.marker then n = n + 1 end end
+    sim:command("bg test stop")
+    return n
+  end
+  equal(markers(new("retail", {})), 2, "skull and cross samples on Retail")
+  equal(markers(new("retail", {}, forever)), 0, "no samples on WoW Forever")
+end)
+
 t.test("/hg burst lists recent burst buffs with what each marker showed", function()
   local diag = {}
   for i = 1, 8 do

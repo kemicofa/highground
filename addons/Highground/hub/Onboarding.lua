@@ -266,6 +266,12 @@ end
 
 local function ScheduleOffer() C_Timer.After(2, O.TryOffer) end
 
+-- The guide's own window. The hub's Addons page borrows the same frame and
+-- stays open in combat and across zones.
+local function GuideShown()
+  return O.win and O.win:IsVisible() and not (ns.Hub.content and O.win:GetParent() == ns.Hub.content)
+end
+
 ns.Util.Events({
   PLAYER_LOGIN = function()
     local state = O.State()
@@ -279,7 +285,7 @@ ns.Util.Events({
     ScheduleOffer()
   end,
   PLAYER_ENTERING_WORLD = function()
-    if IsInInstance() and (O.exploring or O.win and O.win:IsVisible()) then O.Dismiss() end
+    if IsInInstance() and (O.exploring or GuideShown()) then O.Dismiss() end
     ScheduleOffer()
   end,
   PLAYER_REGEN_ENABLED = function()
@@ -288,7 +294,7 @@ ns.Util.Events({
   end,
   PLAYER_REGEN_DISABLED = function()
     -- Stop owned samples before live combat. Resuming is explicit.
-    if O.SAMPLE_MODES[O.exploring] or O.win and O.win:IsVisible() then O.Dismiss() end
+    if O.SAMPLE_MODES[O.exploring] or GuideShown() then O.Dismiss() end
   end,
 }, "first installation guide")
 

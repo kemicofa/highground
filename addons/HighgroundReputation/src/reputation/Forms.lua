@@ -17,7 +17,8 @@ end
 
 function UI.Dialog(key, title, width, height, preview)
   return K.Dialog((ns.FRAME_PREFIX or "Highground") .. "Reputation" .. key .. (preview and "Preview" or ""),
-    { title = title, width = width, height = height, savedKey = not preview and "reputation" .. key or nil, child = key ~= "Window" })
+    { title = title, width = width, height = height, savedKey = not preview and "reputation" .. key or nil, child = key ~= "Window",
+      stage = key == "Window" and K.STAGES.reputation or nil })
 end
 
 function UI.Result(frame, value, err, source)

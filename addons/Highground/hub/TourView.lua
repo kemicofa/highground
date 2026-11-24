@@ -58,6 +58,7 @@ local function GuideCard(w, step)
   end
   card.name = GuideText(card, "label", "text", step, "label")
   card.name:SetJustifyH("CENTER")
+  if module and Kit.STAGES[step.module] then card.stage = Kit.StageBadge(card, Kit.STAGES[step.module]) end
   card.start = ns.Localization.BindWidget(Kit.Button(card, ns.Locale:Get("highground.tourview.start.952f37"), 88, 28, { tone = "accent", onClick = function()
     O.Go(step.key); O.Explore(step.actions[1])
   end }), { [0] = "highground.tourview.start.952f37" })
@@ -111,6 +112,10 @@ local function GuideCard(w, step)
     end
     self.name:ClearAllPoints(); self.name:SetPoint("TOP", 0, -y)
     y = y + Measure(self.name, width - 28) + 8
+    if self.stage then
+      self.stage:ClearAllPoints(); self.stage:SetPoint("TOP", 0, -y)
+      y = y + self.stage:GetHeight() + 8
+    end
     self.summary:SetShown(not self.logo)
     if not self.logo then
       self.summary:ClearAllPoints(); self.summary:SetPoint("TOP", 0, -y)
@@ -196,6 +201,7 @@ function O.Build()
     end
     self:SetTitle(group and O.Text(group, "pathTitle") or ns.Locale:Get("highground.tourview.addons.7ef91f"))
     self:SetSub(group and O.Text(group, "pathHint") or ns.Locale:Get("highground.tourview.visit_enable_or_explore_an_addon.3b715b"))
+    self.header:SetStage(group and Kit.STAGES[group.module])
     self.status:SetText(self.problem or (pending and ns.Locale:Get("highground.tourview.addon_changes_apply_after_reload_your_settings.816060")
       or group and ns.Locale:Get("highground.tourview.each_path_saves_its_own_place.97ac31") or ns.Locale:Get("highground.tourview.each_guide_saves_its_own_place.505697")))
     self.later:ClearAllPoints(); self.later:SetPoint("BOTTOMRIGHT", -24, 18)

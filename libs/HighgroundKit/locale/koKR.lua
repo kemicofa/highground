@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("koKR", {
   ["shared.windows.remaining.5c9d2e"] = "나머지: ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "카운트다운은 아직 관찰되지 않았습니다",
   ["shared.actionrow.open.cf9b77"] = "열기",
+  ["shared.stage.alpha"] = "알파",
+  ["shared.stage.alpha.hint"] = "초기 버전입니다. 변경될 수 있으며 버그가 생길 가능성이 더 높습니다. 문제가 있으면 Discord에서 알려 주세요.",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "에스케이프는 또한 이 창을 닫습니다.",
   ["shared.fields.no_choices_available.f0f5e6"] = "사용 가능한 선택 사항이 없습니다",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}-{value2} 또는 {n}",

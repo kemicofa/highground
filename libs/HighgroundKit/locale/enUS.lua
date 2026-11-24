@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("enUS", {
   ["shared.windows.remaining.5c9d2e"] = "Remaining: ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "Countdown not observed yet",
   ["shared.actionrow.open.cf9b77"] = "Open",
+  ["shared.stage.alpha"] = "Alpha",
+  ["shared.stage.alpha.hint"] = "Early version: it may change, and bugs are more likely. Please tell us about problems on Discord.",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Escape also closes this window.",
   ["shared.fields.no_choices_available.f0f5e6"] = "No choices available",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}-{value2} OF {n}",

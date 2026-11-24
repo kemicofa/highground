@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("esMX", {
   ["shared.windows.remaining.5c9d2e"] = "Restante: ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "Cuenta atrás aún no observada",
   ["shared.actionrow.open.cf9b77"] = "Abrir",
+  ["shared.stage.alpha"] = "Alfa",
+  ["shared.stage.alpha.hint"] = "Versión preliminar: puede cambiar y es más probable que tenga errores. Cuéntanos los problemas en Discord.",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Esc también cierra esta ventana.",
   ["shared.fields.no_choices_available.f0f5e6"] = "No hay opciones disponibles",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}-{value2} DE {n}",

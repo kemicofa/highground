@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("zhCN", {
   ["shared.windows.remaining.5c9d2e"] = "剩余： ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "倒计时尚未观察到",
   ["shared.actionrow.open.cf9b77"] = "打开",
+  ["shared.stage.alpha"] = "Alpha 版",
+  ["shared.stage.alpha.hint"] = "早期版本：可能会有变动，出错的可能性更高。如有问题，请在 Discord 告诉我们。",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Esc 键也会关闭此窗口。",
   ["shared.fields.no_choices_available.f0f5e6"] = "没有可用的选项",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}至{value2}或{n}",

@@ -176,6 +176,57 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy()
   end)
 
+  t.test(client .. " only Bounties and Reputation are marked alpha", function()
+    local s = make()
+    local O, M, Hub, Options = s.ns.Onboarding, s.ns.Modules, s.ns.Hub, s.ns.Options
+    local alpha = { bounties = true, reputation = true }
+    local function marked(badge, expected, where)
+      t.equal(badge ~= nil and badge:IsVisible(), expected, where)
+      if expected then t.equal(badge.label:GetText(), "Alpha", where) end
+    end
+    local function follows(header, where)
+      if not header.stage then return end
+      local title, stage = s.bounds(header.title), s.bounds(header.stage)
+      assert(title[1] + title[3] <= stage[1], where .. ": the badge follows the title")
+      inside(s, header.stage, header)
+    end
+    s:command("guide")
+    for _, def in ipairs(M.list) do marked(O.win.cards[def.key].stage, alpha[def.key] == true, def.key .. " guide card") end
+    for _, def in ipairs(M.list) do
+      Hub.Open("module-" .. def.key)
+      marked(Hub.activeFrame.header.stage, alpha[def.key] == true, def.key .. " overview")
+      follows(Hub.activeFrame.header, def.key .. " overview")
+    end
+    local groups = 0
+    for _, group in ipairs(Hub.win.navGroups) do
+      if group.module then
+        local lines = group.wbTooltip.lines(group)
+        t.equal(lines[3] ~= nil, alpha[group.module] == true, group.module .. " sidebar tooltip")
+        if lines[3] then t.equal(lines[3][1], s.ns.Locale:Get("shared.stage.alpha.hint"), "sidebar explains alpha") end
+        groups = groups + 1
+      end
+    end
+    t.equal(groups, #M.list, "every addon group has a tooltip")
+    O.Open(); O.Go("bounties")
+    marked(O.win.header.stage, true, "bounty path picker")
+    O.Go("battlegrounds")
+    marked(O.win.header.stage, false, "battleground path picker")
+    O.Dismiss()
+    for _, tool in ipairs({ "history", "journal", "bountyboard", "reputation", "macros" }) do
+      Options.OpenTool(tool)
+      local w = ({ history = s.ns.MatchHistory.win, journal = s.ns.EnemyJournal.win, bountyboard = s.ns.Bounty.Board.win,
+        reputation = s.ns.Reputation.UI.window, macros = s.ns.Macros.Window.win })[tool]
+      marked(w.header.stage, tool == "bountyboard" or tool == "reputation", tool .. " window")
+      follows(w.header, tool .. " window")
+      w:Hide()
+    end
+    s.ns.Localization.SetPreference("deDE")
+    t.equal(s.ns.Bounty.Board.win.header.stage.label:GetText(), "Alpha", "German keeps the term")
+    s.ns.Localization.SetPreference("ruRU")
+    t.equal(s.ns.Bounty.Board.win.header.stage.label:GetText(), "Альфа", "the badge follows a language change")
+    s:assertHealthy()
+  end)
+
   t.test(client .. " module controls and pending reload fit both guide hosts at large text sizes", function()
     local s = make()
     local O = s.ns.Onboarding
@@ -194,6 +245,11 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
           t.equal(guide[2], visit[2], "Visit sits beside the walkthrough button")
           assert(guide[1] + guide[3] < visit[1], "card actions do not overlap")
           if card.enable then inside(s, card.enable, card) end
+          if card.stage then
+            inside(s, card.stage, card)
+            local name, stage = s.bounds(card.name), s.bounds(card.stage)
+            assert(name[2] + name[4] <= stage[2] and stage[2] + stage[4] <= guide[2], "alpha badge sits between the name and actions")
+          end
           local a, b = s.bounds(card.addon), s.bounds(card.addonStatus)
           assert(a[2] + a[4] <= b[2], "switch and status do not overlap")
         end

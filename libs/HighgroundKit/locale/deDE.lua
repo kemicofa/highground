@@ -4132,6 +4132,8 @@ assert(ns.Locale:Register("deDE", {
   ["shared.windows.remaining.5c9d2e"] = "Rest: ",
   ["shared.windows.countdown_not_observed_yet.dc953b"] = "Countdown noch nicht beobachtet",
   ["shared.actionrow.open.cf9b77"] = "Öffnen",
+  ["shared.stage.alpha"] = "Alpha",
+  ["shared.stage.alpha.hint"] = "Frühe Version: Änderungen sind möglich und Fehler wahrscheinlicher. Bitte melden Sie Probleme auf Discord.",
   ["shared.dialog.escape_also_closes_this_window.876235"] = "Escape schließt auch dieses Fenster.",
   ["shared.fields.no_choices_available.f0f5e6"] = "Keine Auswahl verfügbar",
   ["shared.lists.value1_value2_of_n.181912"] = "{value1}-{value2} VON {n}",

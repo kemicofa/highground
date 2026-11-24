@@ -112,6 +112,12 @@ local function Features()
   local preview = Step("preview", ns.Locale:Get("appearance.preview.guide_title"),
     ns.Locale:Get("appearance.preview.guide_text"),
     appearanceKey, function() return Appearance().preview end, ns.Locale:Get("appearance.preview.guide_hint"))
+  local enemy = bg and Step("enemy-style", ns.Locale:Get("enemy.appearance.title"),
+    ns.Locale:Get("enemy.appearance.guide"), appearanceKey, function() return Appearance().enemyPreset end)
+  if enemy then enemy.enter = function()
+    N.Page(appearanceKey)
+    local page = Appearance(); N.Reveal(page.scroll, page.child, page.enemyPreset, 24)
+  end end
   local language = ns.Localization.Define(Step("language", ns.Locale:Get("locale.guide.title"), ns.Locale:Get("locale.guide.text"), "general",
     function() return ns.Options.general.language.select end), { title = "locale.guide.title", text = "locale.guide.text" })
   language.enter = function()
@@ -119,7 +125,7 @@ local function Features()
     local page = ns.Options.general
     N.Reveal(page.scroll, page.content, page.language, 8)
   end
-  return {
+  local steps = {
     ns.Localization.Define(Step("group", ns.Locale:Get("highground.coachpreferences.settings_live_with_their_addon.f2c359"), ns.Locale:Get("highground.coachpreferences.use_an_addon_s_settings_appearance_commands.b1a987"), settingsKey,
       function() return ns.Options.featurePages[bg and "battlegrounds" or "shared"].featureGroups[1].heading end), { title = "highground.coachpreferences.settings_live_with_their_addon.f2c359", text = "highground.coachpreferences.use_an_addon_s_settings_appearance_commands.b1a987" }),
     ns.Localization.Define(Step("switch", bg and ns.Locale:Get("highground.coachpreferences.keep_the_panels_you_want.abbf0b") or ns.Locale:Get("highground.coachpreferences.choose_shared_preferences.f69dd0"),
@@ -127,6 +133,8 @@ local function Features()
       function() return Box(bg and "killorder" or "minimap") end), { title = bg and "highground.coachpreferences.keep_the_panels_you_want.abbf0b" or "highground.coachpreferences.choose_shared_preferences.f69dd0", text = bg and "highground.coachpreferences.checked_means_enabled_all_available_feature_switches.16b69f" or "highground.coachpreferences.checked_means_enabled_this_switch_shows_the.de650b" }),
     appearance, preview, theme, details, language,
   }
+  if enemy then steps[#steps + 1] = enemy end
+  return steps
 end
 local function Alerts()
   local bg = ns.Modules.Active("battlegrounds")

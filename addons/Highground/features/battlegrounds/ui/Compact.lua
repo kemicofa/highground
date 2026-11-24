@@ -21,6 +21,11 @@ local function ApplyMetrics(compact)
   local m = compact and Core.THEME.compact.main or Core.THEME.main
   local M = function(key) return Core.Metric(key, compact) end
   Core.WIDTH, Core.ROW_H, Core.GAP, Core.PAD = M("width"), M("row"), M("gap"), M("padding")
+  -- A requested thick bar grows the row instead of running into the name.
+  if Core.HealthStyle() == "bar" then
+    local _, size = ns.Theme.Font(compact and "control" or "rowName")
+    Core.ROW_H = math.max(Core.ROW_H, M("healthBar") + math.ceil(size * Core.FontScale() * 1.2) + (compact and 4 or 8))
+  end
   local frameless = Core.Frameless()
   -- Bar style: the suggested-target card grows to fit its bar under the text.
   local heroBar = Core.HealthStyle() == "bar" and M("healthBar") + (compact and 3 or 6) or 0
@@ -48,7 +53,7 @@ local ROLES = {
   rank = { "figure", "code" }, pip = { "label", "caption" }, dist = { "code", "label" },
   spec = { "body", "note" }, hpText = { "figureLarge", "code" },
   trinket = { "labelOutline", "captionOutline" }, name = { "rowName", "control" },
-  barText = { "labelOutline", "captionOutline" },
+  barText = { "figure", "captionOutline" },
 }
 local function Role(fs, key, compact)
   ns.Theme.SetRole(fs, ROLES[key][compact and 2 or 1])
@@ -167,6 +172,9 @@ function Core.LayoutRow(r, i, compact)
   local style = Core.HealthStyle()
   local fill, bar = style == "fill", style == "bar"
   r.fillMode, r.barMode = fill, bar
+  -- The solid bar already supplies its selected colour. Keep the class
+  -- underline only for row fills, where it helps locate the health edge.
+  r.classBg.healthLine:SetShown(fill)
   r.hp:ClearAllPoints()
   r.hp:SetPoint("BOTTOMLEFT", r.strip, "BOTTOMRIGHT", 0, 0)
   r.hp:SetPoint("BOTTOMRIGHT")
@@ -212,7 +220,7 @@ function Core.LayoutRow(r, i, compact)
   r.nameRoom, r.compactRow = room, compact
   if compact then
     local distW, pipW, specW = S("distance") and 22 or NONE, S("status") and 40 or NONE, S("spec") and 54 or NONE
-    local hpW, trinketW = hpText and 30 or NONE, S("trinket") and 14 or NONE
+    local hpW, trinketW = hpText and LabelWidth(r.hpText, "100%") or NONE, S("trinket") and 14 or NONE
     r.dist:SetWidth(distW)
     Place(r.dist, "RIGHT", -4, 0)
     r.pip:SetSize(pipW, 12)
@@ -270,7 +278,7 @@ function Core.LayoutRow(r, i, compact)
     r.hp:ClearAllPoints()
     r.hp:SetPoint("BOTTOMLEFT", r, "BOTTOMLEFT", textX, 4)
     r.hp:SetPoint("BOTTOMRIGHT", r, "BOTTOMRIGHT", -right, 4)
-    r.hpText:SetWidth(hpText and 40 or NONE)
+    r.hpText:SetWidth(hpText and LabelWidth(r.hpText, "100%") or NONE)
     Place(r.hpText, "RIGHT", r.hp, "RIGHT", -3, 0)
     room.pip = 5 + pipW
     room.ally = room.pip + (S("status") and 4 or 0) + allyW
@@ -284,7 +292,7 @@ function Core.LayoutRow(r, i, compact)
     Place(r.gap, "BOTTOMRIGHT", -6, 5)
     r.dist:SetWidth(S("distance") and 28 or NONE)
     Place(r.dist, "RIGHT", r.gap, "LEFT", S("gap") and -10 or 0, 0)
-    local pipW, trinketW, hpW = S("status") and 54 or NONE, S("trinket") and 18 or NONE, hpText and 42 or NONE
+    local pipW, trinketW, hpW = S("status") and 54 or NONE, S("trinket") and 18 or NONE, hpText and LabelWidth(r.hpText, "100%") or NONE
     r.pip:SetSize(pipW, 15)
     Place(r.pip, "TOPRIGHT", -5, -3)
     r.spec:SetWidth(80)

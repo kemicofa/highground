@@ -65,8 +65,8 @@ local preferences = {
 local positions = { point = "profiles.panel.enemies", timersPoint = "profiles.panel.timers", basesPoint = "profiles.panel.objectives",
   forecastPoint = "profiles.panel.forecast", flagsPoint = "profiles.panel.carriers", arenaPoint = "profiles.panel.arena",
   nearbyPoint = "profiles.panel.nearby", quickCallsPoint = "profiles.panel.callouts" }
-local styleLabels = { font = Message("highground.appearance.font.b97c4d"), bar = Message("highground.appearance.bar_texture.5592a1"), barColor = Message("highground.profilesummary.bar_colors.945fb9"), borderColor = Message("highground.appearance.border_color.06186d"), healthStyle = Message("highground.profilesummary.health_display.2dcbdf") }
-local styleChoices = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
+local styleLabels = { enemyBar = Message("enemy.appearance.texture"), enemyColor = Message("enemy.appearance.color"), font = Message("highground.appearance.font.b97c4d"), bar = Message("highground.appearance.bar_texture.5592a1"), barColor = Message("highground.profilesummary.bar_colors.945fb9"), borderColor = Message("highground.appearance.border_color.06186d"), healthStyle = Message("highground.profilesummary.health_display.2dcbdf") }
+local styleChoices = { enemyBar = A.enemyBars, enemyColor = A.enemyColors, font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
 
 -- One ordered catalogue of effective settings. Partial/legacy profiles list
 -- only their supported scope. A missing feature leaves the live value alone.
@@ -101,7 +101,7 @@ local function Entries(snap)
       end
     end
     local s = setup.style
-    for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle" }) do
+    for _, key in ipairs({ "font", "bar", "barColor", "borderColor", "healthStyle", "enemyBar", "enemyColor" }) do
       local choices = styleChoices[key]
       local value = s[key] or choices[1].key
       Add("Appearance", "style." .. key, styleLabels[key], value, Choice(choices, value))
@@ -109,6 +109,13 @@ local function Entries(snap)
     local custom = type(s.barCustom) == "table" and s.barCustom
     local hex = custom and string.format("#%02X%02X%02X", custom[1] * 255 + 0.5, custom[2] * 255 + 0.5, custom[3] * 255 + 0.5)
     Add("Appearance", "style.barCustom", ns.Locale:Get("shared.ui.custom_color.34cfc6"), hex or "", hex or ns.Locale:Get("highground.appearance.default.808d7d"))
+    local enemyCustom = type(s.enemyCustom) == "table" and s.enemyCustom
+    local enemyHex = enemyCustom and string.format("#%02X%02X%02X", enemyCustom[1] * 255 + 0.5, enemyCustom[2] * 255 + 0.5, enemyCustom[3] * 255 + 0.5)
+    Add("Appearance", "style.enemyCustom", ns.Locale:Get("enemy.appearance.custom"), enemyHex or "", enemyHex or ns.Locale:Get("highground.appearance.default.808d7d"))
+    for _, def in ipairs(A.enemyNumbers) do
+      local value = Value(s[def.key], def.default)
+      Add("Appearance", "style." .. def.key, def.label, value, O.Format(value * 100) .. "%")
+    end
     Add("Appearance", "style.fontScale", ns.Locale:Get("highground.appearance.text_size.3cc6e1"), s.fontScale or 1, O.Format((s.fontScale or 1) * 100) .. "%")
     Add("Appearance", "style.border", ns.Locale:Get("highground.appearance.border_size.544ebf"), Value(s.border, A.border.default))
     Add("Appearance", "style.frameless", ns.Locale:Get("highground.profilesummary.frameless_panels.a27f5f"), s.frameless == true)

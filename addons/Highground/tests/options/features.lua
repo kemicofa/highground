@@ -70,7 +70,7 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
   equal(check("PvP trinket") ~= nil, not s.ns.Core.IS_RETAIL, "trinket element only where tracked")
   local Core = s.ns.Core
   Core.SetMetric("row", 99, false)
-  equal(Core.Metric("row", false), 48, "row height is clamped to its range")
+  equal(Core.Metric("row", false), 64, "row height is clamped to its range")
   equal(Core.Metric("row", true), 20, "compact keeps its own row height")
   Core.SetPanelScale("arena", 1.3)
   equal(Core.PanelScale("arena"), 1.3, "panels scale separately")

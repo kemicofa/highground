@@ -121,7 +121,7 @@ function Core.Render(relaid)
       r.icon:SetDesaturated(e.dead)
 
       r.name:SetText(Core.ShortName(e))
-      Paint(r.name, "text", not e.unit and 0.6 or nil)
+      Paint(r.name, "text", not (e.unit or e.testHp) and Core.EnemyNumber("enemyNames") or nil)
       if ns.Bounty then ns.Bounty.MarkRow(r, not Core.testMode and e.key or nil) end
 
       -- Spec text, tinted by matchup: green = good for you, red = bad.
@@ -156,7 +156,7 @@ function Core.Render(relaid)
       end
       r.specText = specText
 
-      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, Core.PlainHealth(e)),
+      Core.UpdateHealth(r, not e.dead and e.unit or nil, e.dead and color or Core.BarColor(color, nil, Core.PlainHealth(e), true),
         not e.dead and e.testHp or nil, e)
       Core.UpdateHealthText(r, e)
       Core.UpdateMana(r, e)

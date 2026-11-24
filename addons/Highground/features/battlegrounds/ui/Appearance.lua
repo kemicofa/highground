@@ -12,6 +12,7 @@ local SetFontScale = Core.SetFontScale
 ---------------------------------------------------------------------------
 local A = Core.THEME.appearance
 local CHOICES = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors,
+  enemyBar = A.enemyBars, enemyColor = A.enemyColors,
   healthStyle = A.healthStyles }
 
 local function Find(list, key)
@@ -162,17 +163,17 @@ end
 -- Custom bar colour { r, g, b } (Health bar color: Custom colour); the
 -- theme's success green until one is picked.
 local custom = {}
-function Core.BarCustomColor()
-  local c, default = Core.StyleDB().barCustom, ns.Theme.Rgb("success")
+function Core.BarCustomColor(enemy)
+  local c, default = Core.StyleDB()[enemy and "enemyCustom" or "barCustom"], ns.Theme.Rgb("success")
   if type(c) ~= "table" then c = default end
-  custom.r, custom.g, custom.b = c[1] or default[1], c[2] or default[2], c[3] or default[3]
+  custom.r, custom.g, custom.b = Clamp(Number(c[1]) or default[1], 0, 1), Clamp(Number(c[2]) or default[2], 0, 1), Clamp(Number(c[3]) or default[3], 0, 1)
   return custom
 end
 
 -- nil restores the default.
-function Core.SetBarCustomColor(r, g, b)
+function Core.SetBarCustomColor(r, g, b, enemy)
   r, g, b = Number(r), Number(g), Number(b)
-  Core.StyleDB().barCustom = r and g and b and { Clamp(r, 0, 1), Clamp(g, 0, 1), Clamp(b, 0, 1) } or nil
+  Core.StyleDB()[enemy and "enemyCustom" or "barCustom"] = r and g and b and { Clamp(r, 0, 1), Clamp(g, 0, 1), Clamp(b, 0, 1) } or nil
   return Core.ApplyStyle("barColor")
 end
 
@@ -180,15 +181,20 @@ end
 -- health is left (readable pct; on the Midnight client ui/Health.lua uses
 -- Core.healthCurve instead), or one custom colour.
 -- Green to red: one { r, g, b } per band, refreshed from its token per call.
-local BANDS = { success = {}, warning = {}, danger = {} }
+local BANDS = { success = {}, warning = {}, danger = {}, accent = {} }
 local function Band(name)
   local t, c = BANDS[name], ns.Theme.Rgb(name)
   t.r, t.g, t.b = c[1], c[2], c[3]
   return t
 end
-function Core.BarColor(classColor, team, pct)
-  local mode = Core.StyleChoice("barColor").key
-  if mode == "custom" then return Core.BarCustomColor() end
+function Core.EnemyColorMode()
+  local mode = Core.StyleChoice("enemyColor").key
+  return mode == "shared" and Core.StyleChoice("barColor").key or mode
+end
+function Core.BarColor(classColor, team, pct, enemy)
+  local mode = enemy and Core.EnemyColorMode() or Core.StyleChoice("barColor").key
+  if mode == "theme" then return Band("accent") end
+  if mode == "custom" then return Core.BarCustomColor(enemy and Core.StyleChoice("enemyColor").key ~= "shared") end
   if mode == "health" then
     if type(pct) ~= "number" then return classColor end
     return Band(pct >= 0.6 and "success" or pct >= 0.3 and "warning" or "danger")
@@ -220,6 +226,9 @@ function Core.ApplyStyle(change)
   if not change or change == "bar" then
     local file = Core.BarFile()
     for _, bar in ipairs(Core.bars) do bar:SetStatusBarTexture(file) end
+  end
+  if not change or change == "bar" or change == "enemyBar" or change == "enemyBackground" or change == "frameless" then
+    Core.ApplyEnemyStyle()
   end
   if not change or change == "border" or change == "frameless" then ns.ApplyOpacity() end
   local applied = true
@@ -293,8 +302,57 @@ function Core.ResetStyle(owner)
         if def.module == owner then Sub(layout)[def.key] = Core.MetricDefault(def.key, layout == "compact") end
       end
     end
-    if owner == "battlegrounds" then style.hide, style.healthStyle = nil, nil
+    if owner == "battlegrounds" then
+      style.hide, style.healthStyle, style.enemyBar, style.enemyColor, style.enemyCustom = nil, nil, nil, nil, nil
+      for _, def in ipairs(A.enemyNumbers) do style[def.key] = nil end
     else Sub("layouts")[owner] = false end
   end
   return Changed()
+end
+
+function Core.EnemyNumber(key)
+  local def = Find(A.enemyNumbers, key)
+  if not def then return end
+  return Clamp(Number(Core.StyleDB()[key]) or def.default, def.min, def.max)
+end
+
+function Core.SetEnemyNumber(key, value)
+  local def, number = Find(A.enemyNumbers, key), Number(value)
+  if not (def and number) then return false end
+  Core.StyleDB()[key] = Clamp(number, def.min, def.max)
+  return Core.ApplyStyle(key)
+end
+
+function Core.ApplyEnemyStyle()
+  local choice = Core.StyleChoice("enemyBar")
+  local file = choice.file or Core.BarFile()
+  local alpha = Core.Frameless() and 0 or Core.EnemyNumber("enemyBackground")
+  for _, row in ipairs(Core.rows or {}) do
+    row.hp:SetStatusBarTexture(file)
+    if row.base then ns.Theme.Paint(row.base, "surface", alpha) end
+  end
+  if Core.hero then Core.hero.hp:SetStatusBarTexture(file) end
+end
+
+-- Explicit presets only: installation and theme switches never overwrite a
+-- player's layout. Apply once so the secure geometry can defer as a whole.
+function Core.SetEnemyPreset(key)
+  if not Find(A.enemyPresets, key) then return false end
+  local style = Core.StyleDB()
+  for _, layout in ipairs({ "normal", "compact" }) do
+    for _, metric in ipairs({ "width", "row", "gap", "padding", "health", "healthBar" }) do Sub(layout)[metric] = nil end
+  end
+  style.hide, style.healthStyle, style.enemyColor, style.enemyBar, style.enemyCustom = nil, nil, nil, nil, nil
+  for _, def in ipairs(A.enemyNumbers) do style[def.key] = nil end
+  Core.db.compact = key == "compact"
+  if key ~= "default" then
+    style.healthStyle, style.enemyColor, style.enemyBar = "bar", "health", "blizzard"
+    style.enemyBackground, style.enemyNames = 0.95, 0.85
+    Sub("hide").rank, Sub("hide").hero = true, key == "compact"
+    local normal, compact = Sub("normal"), Sub("compact")
+    normal.width, normal.row, normal.gap, normal.healthBar = 380, 44, 4, 16
+    compact.width, compact.row, compact.gap, compact.healthBar = 300, 28, 2, 8
+  end
+  Core.ApplyStyle()
+  return true
 end

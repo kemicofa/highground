@@ -222,6 +222,7 @@ core/Profiler.lua
 core/ProfilerProbes.lua
 commands/Diagnostics.lua
 commands/Settings.lua
+commands/EnemyAppearance.lua
 libs/bounty/Commands.lua
 commands/Display.lua
 commands/Previews.lua

@@ -76,13 +76,17 @@ end
 
 local function Style(style)
   assert(type(style) == "table", "invalid appearance")
-  local choices = { font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
+  local choices = { enemyColor = A.enemyColors, enemyBar = A.enemyBars, font = A.fonts, bar = A.bars, barColor = A.barColors, borderColor = A.borderColors, healthStyle = A.healthStyles }
   for key, v in pairs(style) do
     if choices[key] then assert(Choice(choices[key], v), "invalid " .. key)
     elseif key == "frameless" or key == "hideHero" then assert(type(v) == "boolean", "invalid " .. key)
     elseif key == "fontScale" then assert(Finite(v, A.fontScale.min, A.fontScale.max), "invalid text size")
     elseif key == "border" then assert(Finite(v, A.border.min, A.border.max), "invalid border")
-    elseif key == "barCustom" then
+    elseif key == "enemyBackground" or key == "enemyOpacity" or key == "enemyNames" then
+      for _, def in ipairs(A.enemyNumbers) do
+        if def.key == key then assert(Finite(v, def.min, def.max), "invalid enemy appearance") end
+      end
+    elseif key == "barCustom" or key == "enemyCustom" then
       assert(type(v) == "table" and #v == 3, "invalid custom bar color")
       for i = 1, 3 do assert(Finite(v[i], 0, 1), "invalid custom bar color") end
     elseif key == "layouts" then

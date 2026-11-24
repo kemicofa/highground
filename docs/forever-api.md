@@ -68,6 +68,10 @@ With an enemy player as `target`, `targettarget` reads plainly: `UnitExists` ret
 
 `UnitAffectingCombat(unit)` stays readable for an enemy player during a match: it read true for an enemy in a fight and false for one out of it, neither secret. "Not in combat" can mark an enemy arriving or drinking. Read live in Arathi Basin, build 71037, 2026-11-24.
 
+### Tooltip lines
+
+Every `leftText` in `C_TooltipInfo.GetUnit(unit).lines` is secret for an enemy player, the name line included: name, guild, "Level 32 Night Elf (Player)", class, faction and "PvP". `rightText` is nil. The lines can be displayed but not read, so they reveal nothing the direct reads hide. Read live in Arathi Basin, build 71037, 2026-11-24.
+
 ## Teammate reads
 
 - `UnitGroupRolesAssigned` is readable for teammates but returns `"DAMAGER"` for you and every raid member in a match. Players can't set or request a role.
@@ -101,12 +105,6 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 
 ```
 /run local u="target" C_PvP.RequestCrowdControlSpell(u) C_Timer.After(1,function()local d=C_PvP.GetArenaCrowdControlDuration(u) print("zero",d:IsZero(),"sec",d:HasSecretValues(),"rem",d:GetRemainingDuration(),"info",C_PvP.GetArenaCrowdControlInfo(u))end)
-```
-
-**Tooltip lines.** `C_TooltipInfo.GetUnit(unit)` returned readable fields with secret GUIDs; the probe didn't open its `lines`. Some may hold text the direct reads hide.
-
-```
-/run for i,l in ipairs(C_TooltipInfo.GetUnit("target").lines) do print(i,l.leftText,issecretvalue(l.leftText)) end
 ```
 
 **Ask the game what is secret.** The two-argument `C_Secrets` checks (`ShouldUnitComparisonBeSecret`, `CanCompareUnitTokens`, `ShouldUnitAuraIndexBeSecret`...) weren't called. Capability checks through `C_Secrets` could replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`).

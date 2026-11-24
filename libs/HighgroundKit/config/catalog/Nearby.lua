@@ -19,6 +19,7 @@ ns.OptionsAdd({
     ns.Localization.Define({ key = "nearbyRaidSize", page = "nearby", def = 8, min = 3, max = 40, integer = true, unit = "enemies", desc = ns.Locale:Get("calls.raid_desc") }, { desc = "calls.raid_desc" }),
     -- Opt-in: marks you place reveal where you marked to the whole channel.
     ns.Localization.Define({ key = "nearbyMarksWorld", page = "nearby", def = false, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("marks.world_desc") }, { desc = "marks.world_desc" }),
+    ns.Localization.Define({ key = "nearbyShareWorld", page = "nearby", def = false, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("nearby.world.everyone_desc") }, { desc = "nearby.world.everyone_desc" }),
     ns.Localization.Define({ key = "nearbyTrackWorld", page = "nearby", def = false, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("tracking.world_desc") }, { desc = "tracking.world_desc" }),
   },
   features = {

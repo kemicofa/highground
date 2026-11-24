@@ -87,8 +87,11 @@ function A.Entry(z, now, name)
     lines[#lines + 1] = ns.Locale:Get("activity.detail.kills")
     for i = 1, math.min(#z.kills, 10) do
       local f = z.kills[i]
+      -- A bounty on the victim: its reward (bounty/).
+      local bounty = ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(f.victim)
       lines[#lines + 1] = "  " .. ns.Locale:Format("activity.detail.kill", { killer = Name(f.killer), victim = Name(f.victim),
         where = f.area and (" · " .. f.area) or "", ago = Util.Ago(math.floor(now - f.at)) })
+        .. (bounty and (" · " .. ns.Locale:Format("shared.journal.bounty_value2.b4abd7", { value2 = ns.Bounty.GoldText(bounty) })) or "")
     end
   end
   lines[#lines + 1] = ns.Locale:Format("activity.detail.last", { ago = Util.Ago(math.max(0, math.floor(now - z.last))) })

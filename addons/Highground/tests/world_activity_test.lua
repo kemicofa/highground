@@ -80,6 +80,14 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     assert(hills.detail:find("Guilds: <Night Watch> 1", 1, true), hills.detail)
     assert(hills.detail:find("Marks: Help needed 1", 1, true))
     assert(hills.detail:find("You killed Rogueone", 1, true), hills.detail)
+    -- A bounty on the victim shows its reward.
+    if sim.ns.Bounty then
+      local find, enabled, gold = sim.ns.Bounty.Find, sim.ns.Bounty.Enabled, sim.ns.Bounty.GoldText
+      sim.ns.Bounty.Enabled, sim.ns.Bounty.Find = function() return true end, function(name) return name == "Rogueone-Realm" and {} or nil end
+      sim.ns.Bounty.GoldText = function() return "500g" end
+      assert(A.Entries()[1].detail:find("You killed Rogueone · Tarren Mill · now · Bounty: 500g", 1, true), A.Entries()[1].detail)
+      sim.ns.Bounty.Find, sim.ns.Bounty.Enabled, sim.ns.Bounty.GoldText = find, enabled, gold
+    end
     sim.ns.Options.OpenTool("activity")
     local w = A.win
     assert(w:IsShown(), "opens as a tool")

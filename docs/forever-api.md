@@ -97,7 +97,7 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 /run print(UnitAffectingCombat("target"),issecretvalue(UnitAffectingCombat("target")))
 ```
 
-**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Target a druid in Moonkin form, then in caster form, and compare the model file IDs:
+**Moonkin form.** `UnitPowerType` can't tell Moonkin from caster form (both mana), so Balance druids read as Restoration. If an enemy's model is readable, Moonkin would name Balance. Outside a battleground a friendly Tauren druid in Moonkin form read `Humanoid 7581785 false`: the model file ID is plain there, and `UnitCreatureType` doesn't change with form (live, 2026-11-24). Still to check: an enemy inside a match (identity reads are secret there), the Night Elf Moonkin ID, and that caster form reads a different ID. Target the druid and run:
 
 ```
 /run local m=CreateFrame("PlayerModel",nil,UIParent)m:SetSize(9,9)m:SetPoint("CENTER")m:SetUnit("target")C_Timer.After(1,function()local f=m:GetModelFileID()print(UnitCreatureType("target"),f,issecretvalue(f))m:Hide()end)

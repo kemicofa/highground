@@ -1,6 +1,6 @@
 ## Interface: 120100, 120105, 16001
 ## Title: Highground API Probe
-## Notes: Developer tool: lists the client's functions against Blizzard's API documentation and records which unit reads return readable or secret values. Not part of Highground.
+## Notes: Developer tool: lists the client's functions against Blizzard's API documentation and records which unit reads return readable or secret values, in instances and the open world. Not part of Highground.
 ## Author: kemicofa
 ## Version: 1.0.0
 ## X-Internal: true
@@ -8,3 +8,4 @@
 
 Catalog.lua
 Probe.lua
+World.lua

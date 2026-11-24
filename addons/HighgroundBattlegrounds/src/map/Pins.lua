@@ -153,6 +153,80 @@ function ZonePinMixin:OnMouseLeave()
   GameTooltip_Hide()
 end
 
+-- Fight rings: a circle around a group member at their live position, drawn
+-- by the game's UnitPositionFrame (Lua never learns where). Two frames per
+-- map, fill and outline, made out of combat and never shown or hidden after.
+-- Units are re-added after a roster, map or size change; otherwise a refresh
+-- only sets colours, alpha 0 hiding a unit's ring.
+local Rings = { frames = {} }
+MapPins.Rings = Rings
+local FILL = "Interface\\CHARACTERFRAME\\TempPortraitAlphaMask"
+
+local function RingLevel(map)
+  local levels = map.GetPinFrameLevelsManager and map:GetPinFrameLevelsManager()
+  local ok, level = pcall(function() return levels:GetValidFrameLevel("PIN_FRAME_LEVEL_AREA_POI") end)
+  return ok and type(level) == "number" and level or (map:GetCanvas():GetFrameLevel() or 0) + 1
+end
+
+function Rings.Attach(map)
+  if Rings.frames[map] or not (map and map.GetCanvas) or InCombatLockdown() then return end
+  local canvas = map:GetCanvas()
+  local set = { units = {}, shown = {} }
+  for i, texture in ipairs({ FILL, ns.Core.MAP_RING }) do
+    local ok, f = pcall(CreateFrame, "UnitPositionFrame", nil, canvas)
+    if not (ok and f and f.AddUnit and f.SetUnitColor) then return end
+    f:SetAllPoints(canvas)
+    f:EnableMouse(false) -- the map and its pins keep every hover and click
+    f.ringTexture, f.ringLayer = texture, i
+    set[i] = f
+  end
+  Rings.frames[map] = set
+end
+
+-- Whether this map can draw rings now (Blizzard hides group pins on some maps).
+function Rings.Ready(map, mapID)
+  local display = C_Map and C_Map.GetMapDisplayInfo
+  return Rings.frames[map] ~= nil and not (display and Util.read(display, mapID) == true)
+end
+
+local function Rebuild(map, set, mapID, size)
+  wipe(set.units)
+  wipe(set.shown)
+  local units, n = ns.UnitTokens.Group()
+  set.units[1] = "player"
+  for i = 1, n do
+    if Util.read(UnitIsUnit, units[i], "player") ~= true then set.units[#set.units + 1] = units[i] end
+  end
+  for _, f in ipairs(set) do
+    f:SetFrameLevel(RingLevel(map))
+    f:SetUiMapID(mapID)
+    f:ClearUnits()
+    for _, unit in ipairs(set.units) do
+      f:AddUnit(unit, f.ringTexture, size, size, 1, 1, 1, 0, f.ringLayer, false)
+    end
+    f:FinalizeUnits()
+  end
+  set.mapID, set.size, set.dirty = mapID, size, false
+end
+
+-- wanted[unit] = alpha; radius: 0-1 of the map width, as zone pins.
+function Rings.Draw(map, mapID, wanted, radius)
+  local set = Rings.frames[map]
+  if not set then return end
+  if radius and (set.dirty or set.mapID ~= mapID or math.abs(2 * radius * map:GetCanvas():GetWidth() - (set.size or 0)) > 1) then
+    Rebuild(map, set, mapID, math.max(8, 2 * radius * map:GetCanvas():GetWidth()))
+  end
+  local r, g, b = Theme.Color("mapZone")
+  for _, unit in ipairs(set.units) do
+    local alpha = wanted[unit] or 0
+    if alpha > 0 or set.shown[unit] then
+      set[1]:SetUnitColor(unit, r, g, b, 0.1 * alpha)
+      set[2]:SetUnitColor(unit, r, g, b, 0.7 * alpha)
+      set.shown[unit] = alpha > 0 or nil
+    end
+  end
+end
+
 -- Data provider: refreshes its pins twice a second while the map is open.
 -- Pins are updated in place, not released and acquired again: a hovered
 -- pin stays shown and its tooltip follows. An enemy keeps its own pin
@@ -169,8 +243,9 @@ function HighgroundDataProviderMixin:RemoveAllData()
 end
 
 -- Reused between refreshes: this refresh's items, last refresh's pins (in
--- order and by enemy key), the pins taken and each template's next pin.
-local items, previous, previousKeys, used, claimed, cursor = {}, {}, {}, {}, {}, {}
+-- order and by enemy key), the pins taken, each template's next pin and the
+-- ringed units' alpha.
+local items, previous, previousKeys, used, claimed, cursor, wanted = {}, {}, {}, {}, {}, {}, {}
 local function Usable(pin, template)
   return pin and pin.hgTemplate == template and not used[pin] and pin:IsShown()
 end
@@ -189,12 +264,18 @@ function HighgroundDataProviderMixin:RefreshAllData()
     / (map.GetGlobalPinScale and map:GetGlobalPinScale() or 1)
   local width = canvas and canvas:GetWidth() * scale
   local height = canvas and canvas:GetHeight() * scale
-  wipe(items)
+  wipe(items); wipe(wanted)
+  -- Layers return ring items ({ unit, radius, alpha }) only when told the
+  -- map can draw them; a guide preview never gets rings.
+  local rings, radius = not self.preview and Rings.Ready(map, mapID), nil
   for _, fn in ipairs(self.preview and { self.preview } or layers) do
-    local ok, list = Util.Guard("map layer", fn, mapID, width, height)
+    local ok, list = Util.Guard("map layer", fn, mapID, width, height, nil, rings)
     if ok and type(list) == "table" then
       for _, item in ipairs(list) do
-        if item.x and item.y then items[#items + 1] = item end
+        if item.unit and rings then
+          wanted[item.unit] = math.max(wanted[item.unit] or 0, item.alpha or 1)
+          radius = math.max(radius or 0, item.radius)
+        elseif item.x and item.y then items[#items + 1] = item end
       end
     elseif not ok then
       stats.lastError = tostring(list):match("^[^\n]*")
@@ -234,6 +315,7 @@ function HighgroundDataProviderMixin:RefreshAllData()
   -- A hovered pin's tooltip and highlight follow its new item.
   local owner = GameTooltip:IsShown() and GameTooltip:GetOwner()
   if owner and used[owner] then owner:OnMouseEnter() end
+  Util.Guard("map rings", Rings.Draw, map, mapID, wanted, radius)
   stats.draws, stats.pins = stats.draws + 1, #items
 end
 
@@ -248,6 +330,7 @@ local function Attach(mapFrame)
   local p = CreateFromMixins(HighgroundDataProviderMixin)
   mapFrame:AddDataProvider(p)
   providers[mapFrame] = p
+  Util.Guard("map rings", Rings.Attach, mapFrame)
 end
 
 -- A guide can supply isolated data to an actual map canvas. It still uses
@@ -297,6 +380,11 @@ Util.Events({
     elseif name == "Blizzard_WorldMap" then
       Attach(WorldMapFrame)
     end
+  end,
+  GROUP_ROSTER_UPDATE = function() for _, set in pairs(Rings.frames) do set.dirty = true end end,
+  -- A map first opened in combat gets its rings afterwards.
+  PLAYER_REGEN_ENABLED = function()
+    for mapFrame in pairs(providers) do Util.Guard("map rings", Rings.Attach, mapFrame) end
   end,
 }, "map pins", "battlegrounds")
 -- Live pins redraw while a battleground is tracked; stopping clears them.

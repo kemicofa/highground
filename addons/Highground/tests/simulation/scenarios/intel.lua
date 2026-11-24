@@ -40,7 +40,7 @@ test("remote node announcements place last-seen enemies and ownership does not r
 end)
 
 test("approximate sightings share a faint circle that holds their enemies on both canvases", function()
-  local sim = new("cata")
+  local sim = new("cata", { intelRings = false })
   sim.area = "Lighthouse"
   for i = 1, 15 do sim:enemy("Scout" .. i) end
   sim:join(275, 761, "Battle for Gilneas")
@@ -92,7 +92,7 @@ test("approximate sightings share a faint circle that holds their enemies on bot
 end)
 
 test("Gilneas sightings follow named areas on both maps without coordinate APIs", function()
-  local sim = new("cata")
+  local sim = new("cata", { intelRings = false })
   sim.area = "Lighthouse"
   sim:enemy("Scout")
   sim:join(275, 761, "Battle for Gilneas")
@@ -136,7 +136,7 @@ test("Gilneas sightings follow named areas on both maps without coordinate APIs"
 end)
 
 test("Arathi area pins survive unlocated teammate combat on both maps", function()
-  local sim = new("cata")
+  local sim = new("cata", { intelRings = false })
   sim.members, sim.units.party1 = 2, { name = "Friend", classID = 1 }
   local _, token = sim:enemy("Scout")
   sim:join(1461, 529, "Arathi Basin")
@@ -269,4 +269,77 @@ test("map pins update in place: a hovered enemy keeps its pin and its tooltip fo
   equal(pinOf("Other-Realm"), nil, "a dead enemy's pin is released")
   equal(pinOf("Scout-Realm"), scout, "the other keeps its pin")
   sim:assertHealthy()
+end)
+
+-- Fight rings (map/Pins.lua): the game's UnitPositionFrame draws them at a
+-- player's live position; the simulated frame records units and alpha.
+local function rings(sim, canvas)
+  local set = assert(sim.ns.MapPins.Rings.frames[canvas], "ring frames on the map")
+  return set[1], set[2]
+end
+local function enemyPins(canvas)
+  local n = 0
+  for _, pin in ipairs(canvas.pins) do
+    if pin.item.radius or pin.item.icon == "classicon-mage" then n = n + 1 end
+  end
+  return n
+end
+local function forever(s)
+  s.env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end
+  s.env.loadstring_untainted = nil
+  s.secureSnippets = false
+end
+
+test("a fight in Warsong Gulch's open middle rings you, not the map's centre", function()
+  local sim = new("retail", nil, forever)
+  sim.area = "Warsong Gulch"
+  local _, token = sim:enemy("Scout")
+  sim:join(1460, 489, "Warsong Gulch")
+  sim:advance(2.5)
+  equal(sim.ns.Test.intel["Scout-Realm"].how, "area", "only the zone's name places the sighting")
+  for _, canvas in ipairs({ sim.env.WorldMapFrame, sim.env.BattlefieldMapFrame }) do
+    local fill, rim = rings(sim, canvas)
+    equal(enemyPins(canvas), 0, "no circle at the zone's centre while the ring shows the fight")
+    equal(rim.uiMapID, 1460, "the ring frame draws this map")
+    equal(rim.alpha.player, 0.7, "the outline rings you at full strength")
+    equal(fill.alpha.player, 0.1, "over a faint fill")
+    equal(rim.units.player.texture, sim.ns.Core.MAP_RING, "the zone circles' outline")
+    assert(math.abs(rim.units.player.size - 2 * 40 / 1000 * canvas:GetWidth()) < 0.01, "40 yards around you, in map units")
+  end
+  -- The enemy leaves: the ring fades, then the last-seen circle returns.
+  sim.units[token] = nil
+  sim:advance(6)
+  local _, rim = rings(sim, sim.env.WorldMapFrame)
+  assert(rim.alpha.player > 0 and rim.alpha.player < 0.7, "the ring fades after the fight")
+  sim:advance(4)
+  equal(rim.alpha.player, 0, "and goes ten seconds after the last sighting")
+  assert(enemyPins(sim.env.WorldMapFrame) > 0, "the enemy is back in its last-seen circle")
+end)
+
+-- Teammates' fights come from the combat log (Cata, not WoW Forever).
+test("fight rings follow teammates, skip ghosts and can be turned off", function()
+  local sim = new("cata")
+  sim.members, sim.units.party1 = 2, { name = "Friend", classID = 1 }
+  sim.env.UnitInRange = function(unit) return unit == "party1", true end
+  sim.area = "Warsong Gulch"
+  local _, token = sim:enemy("Scout")
+  sim:join(1460, 489, "Warsong Gulch")
+  sim.units[token] = nil -- out of your sight: only Friend's fight places it
+  sim:event("GROUP_ROSTER_UPDATE")
+  sim:advance(3)
+  sim:combatLog("SWING_DAMAGE", "Friend", "Scout")
+  sim:advance(0.5)
+  equal(sim.ns.Test.intel["Scout-Realm"].by, "Friend", "Friend's fight is the sighting")
+  local _, rim = rings(sim, sim.env.WorldMapFrame)
+  equal(rim.alpha.party1, 0.7, "the ring is on Friend")
+  equal(rim.alpha.player, 0, "not on you")
+  sim.units.party1.dead = true
+  sim:advance(0.5)
+  equal(rim.alpha.party1, 0, "a dead teammate's ring would run to the graveyard: none")
+  sim.units.party1.dead = false
+  sim.ns.Core.db.intelRings = false
+  sim:combatLog("SWING_DAMAGE", "Friend", "Scout")
+  sim:advance(0.5)
+  equal(rim.alpha.party1, 0, "Fight rings off: no ring")
+  assert(enemyPins(sim.env.WorldMapFrame) > 0, "the area circle instead")
 end)

@@ -110,7 +110,22 @@ local function Zones(items, mapID, width, height)
   end
   return zones
 end
-function Intel.Pins(mapID, width, height, sample)
+-- Fight rings (map/Pins.lua): a rough sighting by you or a teammate in the
+-- last RING_SECONDS is a ring around that player, drawn by the game at their
+-- real position, instead of a circle at the area's guessed spot. Only area
+-- guesses qualify; sightings with coordinates are already placed.
+local RING_SECONDS = 10
+local RING_HOW = { area = true, recent = true }
+local ringAlpha = {}
+
+local function RingUnit(it, age)
+  if age >= RING_SECONDS or not RING_HOW[it.how] then return nil end
+  local unit = Intel.allyUnit[it.by or ""]
+  -- A ghost runs to the graveyard: its ring would leave the fight.
+  return unit and ns.Util.read(UnitIsDeadOrGhost, unit) ~= true and unit or nil
+end
+
+function Intel.Pins(mapID, width, height, sample, rings)
   width, height = width and width > 0 and width or 1000, height and height > 0 and height or 667
   local items = {}
   if not sample and Intel.testPins then
@@ -128,10 +143,17 @@ function Intel.Pins(mapID, width, height, sample)
   local now = sample and sample.now or GetTime()
   local killNow = sample and sample.killNow or (not sample and ns.GetKillNow and ns.GetKillNow())
   local enemies = sample and sample.enemies or ns.enemies
+  rings = rings and not sample and Intel.On("intelRings")
+  wipe(ringAlpha)
   for key, it in pairs(sample and sample.intel or Intel.intel) do
     local e = enemies[key]
     local age = now - it.t
-    if e and it.x and not it.dead and age < Intel.KEEP then
+    local unit = rings and e and not it.dead and RingUnit(it, age)
+    if unit then
+      -- Full strength while fresh, then fading until the ring goes.
+      local a = age < Intel.FRESH and 1 or 1 - 0.6 * (age - Intel.FRESH) / (RING_SECONDS - Intel.FRESH)
+      ringAlpha[unit] = math.max(ringAlpha[unit] or 0, a)
+    elseif e and it.x and not it.dead and age < Intel.KEEP then
       local fresh = age < Intel.FRESH
       local objective = it.how == "objective"
       local approximate = it.how ~= "coords" and it.by ~= "flag"
@@ -207,6 +229,10 @@ function Intel.Pins(mapID, width, height, sample)
     if not item.hidden then out[#out + 1] = item end
   end
   for _, z in ipairs(zones) do out[#out + 1] = z end
+  if rings then
+    local radius = MAX_REACH / WorldSize(mapID)
+    for unit, a in pairs(ringAlpha) do out[#out + 1] = { unit = unit, radius = radius, alpha = a } end
+  end
   return out
 end
 AddLayer(Intel.Pins)

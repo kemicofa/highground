@@ -86,6 +86,8 @@ function C.MapSteps()
       text = ns.Locale:Get("highground.coachmap.this_faded_mage_was_last_seen_36.2fe437") },
     { id = "rough", title = ns.Locale:Get("highground.coachmap.a_location_can_be_approximate.08cdfb"), target = function() return M.Pin("rough") end, event = "OnEnter",
       text = ns.Locale:Get("highground.coachmap.a_faint_circle_marks_roughly_where_an.47c0a0") },
+    { id = "fight", feature = "intelRings", title = ns.Locale:Get("highground.coachmap.fights_are_circled_where_they_happen.5e393b"), target = Canvas,
+      text = ns.Locale:Get("highground.coachmap.in_a_fight_the_circle_sits_on.14392f") },
     { id = "share", feature = "intelShare", title = ns.Locale:Get("highground.coachmap.use_the_whole_picture.b9e5f8"), target = Canvas,
       text = ns.Locale:Get("highground.coachmap.compare_fresh_pins_older_sightings_and_the.a2fa1f") },
   }

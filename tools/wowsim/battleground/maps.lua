@@ -24,6 +24,24 @@ return function(sim, env)
     end,
     GetWorldPosFromMapPos = function() end,
   }
+  -- The game's UnitPositionFrame draws units where Lua never sees them: the
+  -- simulated one records the units it was given and each one's alpha.
+  local create = env.CreateFrame
+  env.CreateFrame = function(kind, ...)
+    local f = create(kind, ...)
+    if kind == "UnitPositionFrame" then
+      f.units, f.alpha = {}, {}
+      function f:SetUiMapID(id) self.uiMapID = id end
+      function f:ClearUnits() self.units, self.alpha = {}, {} end
+      function f:AddUnit(unit, texture, width, _, _, _, _, alpha) self.units[unit], self.alpha[unit] = { texture = texture, size = width }, alpha end
+      function f:FinalizeUnits() self.finalized = true end
+      function f:SetUnitColor(unit, _, _, _, alpha)
+        assert(self.units[unit], "colour for a unit never added: " .. unit)
+        self.alpha[unit] = alpha
+      end
+    end
+    return f
+  end
   local function canvas(name)
     local map = env.CreateFrame("Frame", name, env.UIParent)
     map:SetSize(name == "WorldMapFrame" and 1000 or 300, name == "WorldMapFrame" and 667 or 200)

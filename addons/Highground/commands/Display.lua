@@ -16,6 +16,9 @@ function Commands.intel(arg, msg, say)
   elseif arg == "share off" or arg == "share on" then
     if ns.Caps.matchSharing == false then return say(ns.Locale:Get("highground.display.sharing_isn_t_available_on_wow_forever.7e2479")) end
     Core.SetFeature("intelShare", arg == "share on")
+  elseif arg == "circles off" or arg == "circles on" then
+    Core.SetFeature("intelRings", arg == "circles on")
+    say(ns.Locale:Format("highground.display.fight_circles_value.ec8fcb", { value = Core.On("intelRings") and ns.Locale:Get("shared.copy.on.db3d40") or ns.Locale:Get("shared.copy.off.ad5048") }))
   end
   say(ns.Locale:Format("highground.display.intel_map_value1_sharing_with_teammates_value2.4a53da", { value1 = string.format("%s", Core.On("intel") and ns.Locale:Get("shared.copy.on.db3d40") or ns.Locale:Get("shared.copy.off.ad5048")), value2 = string.format("%s", Core.ShareOn() and ns.Locale:Get("shared.copy.on.db3d40") or ns.Locale:Get("shared.copy.off.ad5048")) }))
   if ns.IntelStatus then

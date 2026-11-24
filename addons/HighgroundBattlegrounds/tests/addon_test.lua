@@ -204,7 +204,7 @@ test("settings page saves its switches and the resurrection alert numbers", func
   local page = sim.ns.StandaloneSettings.frame
   assert(page, "settings page built")
   page.scripts.OnShow(page)
-  equal(#page.rows, 24, "battleground switches, optional destination and route calls, timer and forecast switches and alert numbers")
+  equal(#page.rows, 25, "battleground switches, optional destination and route calls, timer and forecast switches, map switches and alert numbers")
   page.rows[1].scripts.OnClick(page.rows[1])
   equal(saved.allBGs, false, "every-battleground switch saved")
   local stepper

@@ -14,6 +14,8 @@ ns.OptionsAdd({
     ns.Localization.Define({ key = "nearbyForget", page = "nearby", def = 300, min = 30, max = 3600, unit = "seconds", desc = ns.Locale:Get("shared.nearby.remove_an_enemy_unseen_for.cc95cc") }, { desc = "shared.nearby.remove_an_enemy_unseen_for.cc95cc" }),
     ns.Localization.Define({ key = "nearbyStealth", page = "nearby", def = true, type = "boolean", desc = ns.Locale:Get("shared.nearby.tell_me_when_a_nearby_enemy_stealths.8861ca") }, { desc = "shared.nearby.tell_me_when_a_nearby_enemy_stealths.8861ca" }),
     ns.Localization.Define({ key = "nearbyHistory", page = "nearby", def = true, type = "boolean", desc = ns.Locale:Get("shared.nearby.remember_every_enemy_you_meet_with_kills.40ec3d") }, { desc = "shared.nearby.remember_every_enemy_you_meet_with_kills.40ec3d" }),
+    -- Opt-in: it tells every Highground user in the channel whom you track.
+    ns.Localization.Define({ key = "nearbyTrackWorld", page = "nearby", def = false, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("tracking.world_desc") }, { desc = "tracking.world_desc" }),
   },
   features = {
     {
@@ -22,6 +24,7 @@ ns.OptionsAdd({
       ns.Localization.Define({ key = "nearbyMap", parent = "nearby", label = ns.Locale:Get("nearby.world.map_label"), desc = ns.Locale:Get("nearby.world.map_desc") }, { label = "nearby.world.map_label", desc = "nearby.world.map_desc" }),
       ns.Localization.Define({ key = "nearbyShare", parent = "nearby", label = ns.Locale:Get("nearby.world.share_label"), desc = ns.Locale:Get("nearby.world.share_desc") }, { label = "nearby.world.share_label", desc = "nearby.world.share_desc" }),
       ns.Localization.Define({ key = "nearbyShareGuild", parent = "nearbyShare", label = ns.Locale:Get("nearby.world.guild_label"), desc = ns.Locale:Get("nearby.world.guild_desc") }, { label = "nearby.world.guild_label", desc = "nearby.world.guild_desc" }),
+      ns.Localization.Define({ key = "nearbyTrack", parent = "nearby", label = ns.Locale:Get("tracking.label"), desc = ns.Locale:Get("tracking.desc") }, { label = "tracking.label", desc = "tracking.desc" }),
     },
   },
 })

@@ -11,10 +11,12 @@ for _, d in ipairs({
   ns.Localization.Define({ "resurrection", ns.Locale:Get("shared.alerts.resurrection.a19b05"), 4, true }, { [2] = "shared.alerts.resurrection.a19b05" }), ns.Localization.Define({ "go", ns.Locale:Get("battlegrounds.commands.kill_window.e9f9d7"), 4 }, { [2] = "battlegrounds.commands.kill_window.e9f9d7" }),
   ns.Localization.Define({ "sap", ns.Locale:Get("shared.alerts.sap_opportunity.20392d"), 3, true }, { [2] = "shared.alerts.sap_opportunity.20392d" }), ns.Localization.Define({ "bounty", ns.Locale:Get("shared.alerts.bounty_spotted.7c221e"), 2 }, { [2] = "shared.alerts.bounty_spotted.7c221e" }),
   ns.Localization.Define({ "stealth", ns.Locale:Get("shared.alerts.enemy_stealth.fa0e89"), 3 }, { [2] = "shared.alerts.enemy_stealth.fa0e89" }), ns.Localization.Define({ "nearby", ns.Locale:Get("shared.alerts.nearby_enemy.7dac16"), 1 }, { [2] = "shared.alerts.nearby_enemy.7dac16" }),
+  ns.Localization.Define({ "tracked", ns.Locale:Get("tracking.alert.label"), 3 }, { [2] = "tracking.alert.label" }),
   ns.Localization.Define({ "lockon", ns.Locale:Get("shared.alerts.target_lock.c964c3"), 1 }, { [2] = "shared.alerts.target_lock.c964c3" }),
 }) do
   A.categories[#A.categories + 1] = { key = d[1], label = d[2], priority = d[3], objective = d[4],
-    module = d[1] == "bounty" and "bounties" or d[1] == "stealth" and "shared" or d[1] == "nearby" and "nearby" or "battlegrounds" }
+    module = d[1] == "bounty" and "bounties" or d[1] == "stealth" and "shared"
+      or (d[1] == "nearby" or d[1] == "tracked") and "nearby" or "battlegrounds" }
 end
 -- Notify's sound for each category, created once: plays the chosen cue.
 for _, def in ipairs(A.categories) do
@@ -49,6 +51,7 @@ for _, d in ipairs({
   { "lockon", "highground.sniper.highground_lock_on.8cbbfb", Lockon, function() return ns.Core.SNIPER_SOUNDS and Lockon end },
   { "bounty", "alerts.sound.bounty", nil, Owned("Bounty", "Sound") },
   { "nearby", "alerts.sound.nearby", nil, Owned("Nearby", "Sound") },
+  { "tracked", "tracking.alert.sound", Game(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) },
   { "stealth", "alerts.sound.stealth", nil, Owned("Stealth", "EnterSound") },
   { "raidwarning", "alerts.sound.raid_warning", Game(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) },
   { "readycheck", "alerts.sound.ready_check", Game(SOUNDKIT and SOUNDKIT.READY_CHECK or 8960) },

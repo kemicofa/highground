@@ -273,6 +273,7 @@ libs/world/Deaths.lua
 libs/world/Honor.lua
 libs/world/History.lua
 libs/world/Journal.lua
+libs/world/Tracking.lua
 libs/bounty/State.lua
 libs/bounty/Terms.lua
 libs/bounty/Scope.lua

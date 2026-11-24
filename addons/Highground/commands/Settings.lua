@@ -229,17 +229,47 @@ end
 Commands.options = Commands.config
 
 -- /hg nearby [on | off | map on|off | share on|off | share guild on|off |
+-- tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
 -- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
--- map pins and shared sightings (world/Map.lua, world/Share.lua) and its
--- saved history (world/History.lua).
+-- map pins and shared sightings (world/Map.lua, world/Share.lua), tracked
+-- enemies (world/Tracking.lua) and its saved history (world/History.lua).
 local NEARBY_SWITCHES = {
   ["on"] = "nearby", ["off"] = "nearby",
   ["map on"] = "nearbyMap", ["map off"] = "nearbyMap",
   ["share on"] = "nearbyShare", ["share off"] = "nearbyShare",
   ["share guild on"] = "nearbyShareGuild", ["share guild off"] = "nearbyShareGuild",
+  ["tracking on"] = "nearbyTrack", ["tracking off"] = "nearbyTrack",
 }
+local function Track(verb, typed, say)
+  local T = ns.Tracking
+  if not T then return say(ns.Locale:Get("tracking.unavailable")) end
+  local name = typed and typed:lower() == "target" and Core.FullUnitName("target") or T.Resolve(typed)
+  if not name then return say(ns.Locale:Get("tracking.usage")) end
+  local ok, why = T.Set(name, verb == "track")
+  say(ok and ns.Locale:Format(verb == "track" and "tracking.action.on" or "tracking.action.off",
+    { name = Core.DisplayName(name) }) or why)
+end
+
+local function Tracked(say)
+  local T = ns.Tracking
+  if not T then return say(ns.Locale:Get("tracking.unavailable")) end
+  say(T.Status())
+  for _, item in ipairs(T.List()) do
+    local r = item.record.report
+    say("  " .. Core.DisplayName(item.key) .. (type(r) == "table" and (" — " .. T.Where(r) .. " · "
+      .. ns.Util.Ago(math.max(0, time() - (r.at or time())))) or ""))
+  end
+end
+
 function Commands.nearby(arg, msg, say)
-  if NEARBY_SWITCHES[arg] then
+  local verb = arg:match("^(%S+)")
+  if verb == "track" or verb == "untrack" then
+    return Track(verb, msg:match("^%S+%s+%S+%s+(.-)%s*$"), say)
+  elseif arg == "tracked" then
+    return Tracked(say)
+  elseif arg == "watch on" or arg == "watch off" then
+    Core.SetTuning("option", "nearbyTrackWorld", arg == "watch on")
+  elseif NEARBY_SWITCHES[arg] then
     Core.SetFeature(NEARBY_SWITCHES[arg], arg:match("on$") ~= nil)
   elseif arg == "test" and ns.NearbyPreview then
     local on = ns.NearbyPreview()
@@ -259,6 +289,7 @@ function Commands.nearby(arg, msg, say)
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
   say(ns.Locale:Format("highground.settings.nearby_enemies_value2_n_remembered_hg_nearby.874130", { value2 = (Core.On("nearby") and "on" or "OFF"), n = n }))
   if ns.WorldShare then say(ns.WorldShare.Status()) end
+  if ns.Tracking then say(ns.Tracking.Status()) end
 end
 
 -- /hg theme [NAME]: list the themes, or switch to one (saved).

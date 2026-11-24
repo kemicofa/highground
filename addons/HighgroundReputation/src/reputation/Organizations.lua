@@ -68,7 +68,7 @@ function W.Reconcile(scopeOnly)
     W.index, W.caseCache = nil, setmetatable({}, { __mode = "k" })
     wipe(W.outbox); wipe(W.incoming); wipe(W.requests); wipe(W.jobs); wipe(W.served); wipe(W.inbound); wipe(W.peers)
     wipe(W.probes); wipe(W.watchers); wipe(W.deliveries)
-    wipe(W.candidates); wipe(W.departed); W.guildDiscovery = nil
+    wipe(W.candidates); wipe(W.departed); wipe(W.loginChecked); W.guildDiscovery = nil
   end
   -- Waiting for an acknowledgement does not require another roster check.
   -- Flush validates the selected recipient immediately before every fragment;
@@ -110,7 +110,9 @@ local function Gone(id)
   if id == W.guildId or id:match("^guild:") then
     local inGuild = ns.Util.read(IsInGuild)
     if inGuild == nil then inGuild = ns.Guild.InGuild() end
-    return inGuild == false
+    if inGuild == false then return true end
+    local guild = O.Guild()
+    return guild ~= nil and guild.id ~= id
   end
   if not O.CommunitiesAvailable() then return false end
   local list, state = O.List()
@@ -119,19 +121,39 @@ local function Gone(id)
   return true
 end
 
+-- Characters of this account seen as members are remembered per
+-- organization. A remembered character missing from the game's complete
+-- list at the start of a session left while logged out: that starts a
+-- departure too. Reports leave once no remembered character belongs;
+-- organizations saved before this record existed leave at once.
+W.loginChecked = {}
 function W.ReconcileDepartures(now)
   if not W.ready then return end
   local guild = O.Guild()
   if guild then W.guildId = guild.id end
+  local me = ns.Scope.Character()
+  for id, c in pairs(W.communities) do
+    if me and next(c.reports) then
+      c.characters = type(c.characters) == "table" and c.characters or {}
+      if O.IsMember(id) then c.characters[me], W.loginChecked[id] = true, true
+      elseif c.characters[me] and not W.loginChecked[id] and select(2, O.List()) == "ready" then
+        W.loginChecked[id] = true
+        Depart(id)
+      end
+    end
+  end
   for id, since in pairs(W.departed) do
     local c = W.communities[id]
     if not c then W.departed[id] = nil
     elseif now - since >= W.DEPARTURE_CONFIRM then
       W.departed[id] = nil
       if Gone(id) then
-        for key, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[key] = nil end end
-        W.caseCache[c] = nil
-        W.Changed(c)
+        if type(c.characters) == "table" and me then c.characters[me] = nil end
+        if type(c.characters) ~= "table" or next(c.characters) == nil then
+          for key, report in pairs(c.reports) do if report.account ~= W.db.id then c.reports[key] = nil end end
+          W.caseCache[c] = nil
+          W.Changed(c)
+        end
       end
     end
   end
@@ -140,6 +162,17 @@ end
 function W.NoteDeparture(event, clubId)
   if event == "CLUB_REMOVED" and type(clubId) == "number" then Depart("club:" .. clubId)
   elseif event == "PLAYER_GUILD_UPDATE" and not ns.Guild.InGuild() then Depart(W.guildId) end
+end
+
+-- Cancel one organization's transfers (all of them when id is nil).
+function W.ResetTransfers(id)
+  if not id then wipe(W.inbound); wipe(W.jobs); wipe(W.served); wipe(W.requests); wipe(W.outbox); return end
+  W.inbound[id] = nil
+  local prefix = id .. ":"
+  for _, keyed in ipairs({ W.jobs, W.served, W.requests }) do
+    for key in pairs(keyed) do if key:sub(1, #prefix) == prefix then keyed[key] = nil end end
+  end
+  for i = #W.outbox, 1, -1 do if W.outbox[i].packet.community == id then table.remove(W.outbox, i) end end
 end
 
 O.Listen(function(event, clubId, memberId)
@@ -164,8 +197,11 @@ O.Listen(function(event, clubId, memberId)
   -- A changed role during a transfer requires a fresh snapshot, even if
   -- the role is later restored. No network-supplied role data is accepted.
   if event == "CLUB_MEMBER_ROLE_UPDATED" or event == "CLUB_SELF_MEMBER_ROLE_UPDATED"
-    or event == "CLUB_MEMBER_REMOVED" or event == "CLUB_REMOVED" or event == "PLAYER_GUILD_UPDATE" then
-    wipe(W.inbound); wipe(W.jobs); wipe(W.served); wipe(W.requests); wipe(W.outbox)
+    or event == "CLUB_MEMBER_REMOVED" or event == "CLUB_REMOVED" then
+    W.ResetTransfers(type(clubId) == "number" and "club:" .. clubId or nil)
+  elseif event == "PLAYER_GUILD_UPDATE" then
+    local guild = O.Guild()
+    W.ResetTransfers(guild and guild.id or W.guildId)
   end
   W.nextDiscovery = math.min(W.nextDiscovery or math.huge, GetTime() + 2)
   W.nextSync = math.min(W.nextSync or math.huge, GetTime() + 2)

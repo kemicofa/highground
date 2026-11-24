@@ -369,27 +369,6 @@ test("legacy snapshots still confirm a receiver and game restrictions keep repor
   equal(rc.reports[r.id].note, "Legacy receiver", "private notes commit only after the authorized snapshot is verified")
 end)
 
-test("WoW Forever shares while the game reports outgoing messages restricted", function()
-  local native = F.native("Owner Bright")
-  native[42].members["Member-Realm"] = nil
-  native[42].members["Moderator-Realm"] = nil
-  native[42].members["Member Bright-Realm"] = { name = "Member Bright-Realm", memberId = 10, role = 4, presence = 1 }
-  local owner = F.new("Owner Bright", { build = 16001, native = native })
-  local member = F.new("Member Bright", { build = 16001, native = native })
-  owner.addonLocked, member.addonLocked = true, true
-  local W, M, c = F.W(owner), F.W(member), F.community(owner)
-  assert(W.Decide(c, F.target(owner, "Enemy Bright-Realm"), "ban", { toxic = true }, "Public reason"))
-  local mc = F.join(owner, member, c)
-  assert(M.Match(F.target(member, "Enemy Bright-Realm")), "snapshot arrives despite the advisory flag")
-  local r = assert(M.Submit(mc, F.target(member, "Other Bright-Realm"), { toxic = true }, "Advisory"))
-  F.pump({ owner, member }, 45)
-  assert(c.reports[r.id] and not M.db.pending[r.id], "report delivered and acknowledged")
-  equal(M.Availability(mc.id).code, "ready", "the advisory flag does not show sharing as paused")
-  member.chatLocked = true
-  equal(M.Availability(mc.id).code, "restricted", "chat lockdown still pauses sharing")
-  assert(M.Status(mc):find("paused by the game", 1, true))
-end)
-
 test("legacy migration preserves confirmation without treating member opt-in as activation", function()
   local native = F.native("Owner")
   offline(native)

@@ -149,6 +149,23 @@ test("a stale report record keeps the newer local copy and applies the rest", fu
   assert(D.Match(F.target(moderator, Name(7))), "the rest of the snapshot applies")
 end)
 
+test("another copy of a held decision ID keeps the local one and the rest of the snapshot applies", function()
+  local owner, member, c = pair()
+  local W, M = F.W(owner), F.W(member)
+  local first = assert(W.Decide(c, F.target(owner, "First-Realm"), "ban", { toxic = true }, "First"))
+  local second = assert(W.Decide(c, F.target(owner, "Second-Realm"), "ban", { toxic = true }, "Second"))
+  local mc = F.join(owner, member, c)
+  -- The same character decided on another computer before syncing.
+  mc.operations[first.id] = nil
+  mc.operations[second.id].note = "Another computer"
+  local request = assert(M.RequestPeer(mc, "Owner-Realm", true))
+  F.pump({ owner, member }, 30)
+  equal(request.state, "complete", "the snapshot is not rejected")
+  assert(mc.operations[first.id], "the missing decision arrives")
+  equal(mc.operations[second.id].note, "Another computer", "the local copy is kept")
+  owner:assertHealthy(); member:assertHealthy()
+end)
+
 test("packets repeated after a completed sync are ignored", function()
   local owner, member, c = pair()
   local W, M = F.W(owner), F.W(member)
@@ -324,6 +341,25 @@ test("other members' private reports leave with a confirmed departure", function
   equal(c.reports[foreign.id], nil, "a confirmed departure removes other members' reports")
   assert(c.reports[own.id], "the account's own report remains")
   owner:assertHealthy()
+end)
+
+test("a character removed while logged out takes other members' reports at the next login", function()
+  local owner, W, c, native, foreign, own = Departure()
+  W.ReconcileDepartures(owner.now)
+  native[42].members["Owner-Realm"] = nil
+  local saved = W.Copy(W.db)
+  local alt = F.new("Alt", { native = native, database = W.Copy(saved) })
+  F.pump({ alt }, 200)
+  assert(F.W(alt).communities[c.id].reports[foreign.id], "a character that never belonged does not count as leaving")
+  local later = F.new("Owner", { native = native, database = saved })
+  local L = F.W(later)
+  local lc = L.communities[c.id]
+  F.pump({ later }, 30)
+  assert(lc.reports[foreign.id], "the departure is confirmed a minute later")
+  F.pump({ later }, 150)
+  equal(lc.reports[foreign.id], nil, "other members' reports leave")
+  assert(lc.reports[own.id], "the account's own report remains")
+  later:assertHealthy()
 end)
 
 test("rejoining before confirmation keeps the reports", function()

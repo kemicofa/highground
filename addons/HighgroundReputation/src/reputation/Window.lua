@@ -83,24 +83,24 @@ local function BuildSettings(f, source)
     { "tooltip", ns.Locale:Get("reputation.window.show_community_reasons_on_player_tooltips.879b94") } }) do
     local key = option[1]
     local toggle = K.Toggle(f.settingsBody, option[2], { width = 650, onChange = function(_, checked)
-      W.db.settings[key] = checked; W.Changed()
+      if W.ready then W.db.settings[key] = checked; W.Changed() end
     end })
     toggle:SetPoint("TOPLEFT", 0, -(i - 1) * 48); f.toggles[key] = toggle
   end
   f.replyInterval = K.Select(f.settingsBody, { width = 380, label = ns.Locale:Get("reputation.window.automatic_reply_frequency.1db7de"), menu = true,
-    choices = W.REPLY_INTERVALS, onChange = function(_, value) W.db.settings.replyInterval = value; W.Changed() end })
+    choices = W.REPLY_INTERVALS, onChange = function(_, value) if W.ready then W.db.settings.replyInterval = value; W.Changed() end end })
   f.replyInterval:SetPoint("TOPLEFT", 0, -174)
   f.replyText = ns.Localization.BindWidget(K.Input(f.settingsBody, 650, ns.Locale:Get("reputation.window.automatic_reply_message_200_characters.6bf328")), { caption = "reputation.window.automatic_reply_message_200_characters.6bf328" })
   f.replyText:SetPoint("TOPLEFT", 0, -238); f.replyText:SetMaxLetters(200)
   f.replyText:SetScript("OnTextChanged", function(self)
-    if not self.refreshing then W.db.settings.replyText = self:GetText() end
+    if W.ready and not self.refreshing then W.db.settings.replyText = self:GetText() end
   end)
   f.replyText:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
   -- A custom message cannot be recovered after a reset: confirm it. Labels
   -- follow the language on refresh (RefreshSettings).
   f.resetReply = K.ConfirmButton(f.settingsBody, ns.Locale:Get("reputation.window.reset_message.91b174"), { width = 150, height = 30,
     confirm = ns.Locale:Get("reputation.reply.confirm_reset"), timeout = 5,
-    onConfirm = function() W.db.settings.replyText = nil; W.Changed() end })
+    onConfirm = function() if W.ready then W.db.settings.replyText = nil; W.Changed() end end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, ns.Locale:Get("reputation.window.use_organization_for_the_guild_or_community.507da7"), 0, -278, 650)
   f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)

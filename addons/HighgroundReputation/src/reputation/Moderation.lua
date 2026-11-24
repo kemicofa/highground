@@ -26,11 +26,15 @@ local EPOCH = 1577836800
 function W.ClockAhead(op) return op.clock > math.min(1000000000, W.Now() - EPOCH) end
 
 -- Returns whether the operation is stored; "clock" when it claims a clock
--- that is not possible yet.
+-- that is not possible yet, "conflict" when another copy holds its ID (the
+-- same character deciding on two computers before they synced).
 function W.MergeOperation(c, op, sender, attested)
   if not W.CanModerate(c, sender) or (not attested and sender ~= op.by) or not W.ValidOperation(c, op) then return false end
   local old = c.operations[op.id]
-  if old then return ns.Codec.Pack(old) == ns.Codec.Pack(op) end
+  if old then
+    if ns.Codec.Pack(old) == ns.Codec.Pack(op) then return true end
+    return false, "conflict"
+  end
   if W.ClockAhead(op) then return false, "clock" end
   if W.Count(c.operations) >= W.MAX_OPS and W.PruneOperations(c) == 0 then return false end
   c.operations[op.id] = W.Copy(op)

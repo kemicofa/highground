@@ -289,6 +289,36 @@ test("acknowledgements go only to organization members and stay within the send 
   owner:assertHealthy()
 end)
 
+test("a native role event cancels only its own organization's transfers", function()
+  local native = F.native("Owner")
+  native[43] = { name = "Second community", members = {} }
+  for name, info in pairs(native[42].members) do
+    native[43].members[name] = { name = info.name, role = info.role, memberId = info.memberId, presence = info.presence }
+  end
+  local owner = F.new("Owner", { native = native })
+  local W = F.W(owner)
+  for _, id in ipairs({ "club:42", "club:43" }) do
+    assert(W.Enable(id))
+    W.requests[id .. ":Moderator-Realm"] = { id = "r." .. id, at = owner.now, state = "requested" }
+    W.jobs[id .. ":Member-Realm"] = { community = id, target = "Member-Realm", records = {}, queue = {}, index = 0 }
+    W.inbound[id] = { id = "t." .. id, sender = "Moderator-Realm", records = {}, received = 0, at = owner.now }
+  end
+  assert(W.Enqueue({ kind = "query", community = "club:42", request = "q42", heads = {} }, "Moderator-Realm", true, "query:club:42"))
+  assert(W.Enqueue({ kind = "query", community = "club:43", request = "q43", heads = {} }, "Moderator-Realm", true, "query:club:43"))
+  owner:event("CLUB_MEMBER_ROLE_UPDATED", 43, 3, 4)
+  assert(W.requests["club:42:Moderator-Realm"] and W.jobs["club:42:Member-Realm"] and W.inbound["club:42"], "the other organization keeps its transfers")
+  equal(W.requests["club:43:Moderator-Realm"], nil, "its own requests are cancelled")
+  equal(W.jobs["club:43:Member-Realm"], nil, "its own snapshots are cancelled")
+  equal(W.inbound["club:43"], nil, "its own receive session is cancelled")
+  local kept
+  for _, item in ipairs(W.outbox) do
+    equal(item.packet.community, "club:42", "only its own queued packets leave")
+    kept = kept or item.packet.request == "q42"
+  end
+  assert(kept, "the other organization's query stays queued")
+  owner:assertHealthy()
+end)
+
 test("an impossible decision clock is refused and later decisions stay valid", function()
   local native = F.native("Owner")
   local owner, moderator = F.new("Owner", { native = native }), F.new("Moderator", { native = native })

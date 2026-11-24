@@ -155,10 +155,11 @@ local function Commit(c, incoming)
     hash = W.Hash(ns.Codec.Pack(record), hash)
     local ok, reason = false, nil
     if record.type == "op" then
-      -- An impossible clock skips that operation, as an older version may
-      -- have accepted it; the rest of the snapshot still applies.
+      -- An impossible clock (an older version may have accepted it) or
+      -- another copy of a held ID skips that operation and keeps the local
+      -- one; the rest of the snapshot still applies.
       ok, reason = W.MergeOperation(candidate, record.value, incoming.sender, true)
-      ok = ok or reason == "clock"
+      ok = ok or reason == "clock" or reason == "conflict"
     elseif record.type == "report" and ns.Organizations.CanModerate(c.id) then
       -- A valid report already held at a newer revision, a full store or a
       -- second report for the same account and player keeps the local copy;

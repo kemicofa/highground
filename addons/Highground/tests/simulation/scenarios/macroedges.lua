@@ -104,6 +104,39 @@ test("localized bodies change only spell names, never conditions or spacing", fu
   equal(M.LocalSpell("Skull Bash", "retail"), "Coup de crâne (Retail)", "Retail's identifier")
 end)
 
+test("localized dispel presets name each class's own spell in every game", function()
+  local sim = new("cata", nil, function(_, env) env.GetLocale = function() return "deDE" end end)
+  local M = sim.ns.Macros
+  M.Host.SpellName = function(id) return "S" .. id end
+  local function entry(class, name, mode)
+    for _, e in ipairs(M.catalog) do
+      if e.class == class and e.name == name and M.InMode(e, mode) then return e end
+    end
+    error("missing preset " .. class .. " " .. name)
+  end
+  local function casts(class, name, mode, game, id)
+    local body = M.Build(entry(class, name, mode), game)
+    assert(body and body:find(" S" .. id .. "$"), class .. " " .. name .. " on " .. game .. ": " .. tostring(body))
+  end
+  for _, game in ipairs({ "cata", "forever", "classic", "tbc" }) do
+    casts("PRIEST", "Dispel MO", "pvp", game, 527) -- 528 is Cure Disease here
+    casts("PRIEST", "Dispel", "pve", game, 527)
+    casts("PRIEST", "Cure Disease", "pve", game, 528)
+  end
+  casts("PRIEST", "Purge", "pvp", "retail", 528)
+  casts("PRIEST", "Purify", "pvp", "retail", 527)
+  casts("PRIEST", "Dispel", "pve", "retail", 527)
+  for _, game in ipairs({ "cata", "retail", "forever", "classic" }) do
+    casts("DRUID", "Decurse", "pvp", game, 2782) -- not the mage's Remove (Lesser) Curse
+    casts("DRUID", "Decurse", "pve", game, 2782)
+  end
+  casts("MAGE", "Remove Curse", "pvp", "forever", 475)
+  casts("SHAMAN", "Cure Disease", "pvp", "forever", 2870) -- not the priest's
+  casts("SHAMAN", "Cure Disease", "pve", "classic", 2870)
+  equal(M.LocalSpell("Purify", "classic"), "S1152", "vanilla Purify is the paladin's")
+  equal(M.LocalSpell("Cure Disease", "retail"), "Cure Disease", "no Retail ID: the name stays")
+end)
+
 test("wrapped preset code and default names keep whole letters", function()
   local sim = new("cata")
   local M = sim.ns.Macros

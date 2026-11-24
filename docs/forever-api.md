@@ -48,6 +48,8 @@ The API probe called 273 read-only functions on an enemy player in Warsong Gulch
 
 `C_Secrets` reports per unit what is secret: `ShouldUnitHealthMaxBeSecret`, `ShouldUnitPowerBeSecret`, `ShouldUnitPowerMaxBeSecret`, `ShouldUnitSpellCastingBeSecret` and `ShouldUnitIdentityBeSecret` return true; `ShouldUnitThreatStateBeSecret` returns false.
 
+The two-argument checks agree with the reads they guard, so they can replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`). With an enemy as target: `HasSecretRestrictions()` and `CanCompareUnitTokens("target", "player")` return true, and `ShouldUnitAuraIndexBeSecret("target", 1)` returns true, matching the refused auras. `ShouldUnitComparisonBeSecret("targettarget", "player")` returned true while the enemy targeted you, together with a secret `UnitIsUnit`; an earlier read returned false, probably while the enemy had no target. Read live in Arathi Basin, build 71037, 2026-11-24; not yet checked on a teammate.
+
 ### Loss of control
 
 `C_LossOfControl.GetActiveLossOfControlDataCountByUnit(unit)` is readable for enemies on `target`, `nameplateN` and `raidNtarget`: 1 while the enemy is controlled, 0 within 0.1 s after the effect ends. In `GetActiveLossOfControlDataByUnit(unit, 1)` only `priority` and `displayType` are readable, and they don't separate kinds: Gouge, Cheap Shot and Kidney Shot all read 5 and 2. The type, duration, spell and icon are secret.
@@ -105,12 +107,6 @@ Each needs a match, an enemy player as target and `/console scriptErrors 1`. Eve
 
 ```
 /run local u="target" C_PvP.RequestCrowdControlSpell(u) C_Timer.After(1,function()local d=C_PvP.GetArenaCrowdControlDuration(u) print("zero",d:IsZero(),"sec",d:HasSecretValues(),"rem",d:GetRemainingDuration(),"info",C_PvP.GetArenaCrowdControlInfo(u))end)
-```
-
-**Ask the game what is secret.** Capability checks through `C_Secrets` could replace hard-coded per-client flags (`libs/HighgroundKit/config/Client.lua`). With an enemy as target in Arathi Basin (build 71037, 2026-11-24): `HasSecretRestrictions()` true, `CanCompareUnitTokens("target", "player")` true, `ShouldUnitAuraIndexBeSecret("target", 1)` true, and `ShouldUnitComparisonBeSecret` false for both `target` and `targettarget` against `player`. That last answer disagrees with the secret `UnitIsUnit("targettarget", "player")` under [Enemy's target](#enemys-target); whether the enemy had a target during the check is unknown. Still to check: the predicate and `UnitIsUnit` read together while the enemy has a target, and the same checks on a teammate.
-
-```
-/run local t,p="targettarget","player" local e=UnitExists(t) local a=UnitIsUnit(t,p) print("tot",e,UnitName(t),"cmpSecret",C_Secrets.ShouldUnitComparisonBeSecret(t,p),"isUnit",a,issecretvalue(a))
 ```
 
 Record results here with the date and build.

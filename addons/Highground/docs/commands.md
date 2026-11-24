@@ -75,6 +75,20 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg timers on` · `/hg timers off` | Enable or disable battleground timers. | Battleground timer switch → `battlegrounds-settings` |
 | `/hg timers reset` | Restore battleground panel positions and spacing. | Reset battleground positions |
 | `/hg reset` | Restore the main enemy panel position. | Reset enemy panel position |
+| `/hg enemy` | Enemy appearance | Enemy appearance → `battlegrounds-appearance` |
+| `/hg enemy preset readable\|compact\|default` | Enemy row preset | Enemy row preset → `battlegrounds-appearance` |
+| `/hg enemy style bar\|fill\|line` | Health style | Health style → `battlegrounds-appearance` |
+| `/hg enemy color shared\|theme\|class\|faction\|health\|custom` | Health bar color | Health bar color → `battlegrounds-appearance` |
+| `/hg enemy texture shared\|flat\|blizzard\|raid` | Bar texture | Bar texture → `battlegrounds-appearance` |
+| `/hg enemy custom HEX\|default` | Custom color | Custom color → `battlegrounds-appearance` |
+| `/hg enemy height PX` | Bar thickness | Bar thickness → `battlegrounds-appearance` |
+| `/hg enemy line PX` | Thin line height | Thin line height → `battlegrounds-appearance` |
+| `/hg enemy row PX` | Enemy row height | Enemy row height → `battlegrounds-appearance` |
+| `/hg enemy width PX` | Main panel width | Main panel width → `battlegrounds-appearance` |
+| `/hg enemy background PCT` | Row background opacity | Row background opacity → `battlegrounds-appearance` |
+| `/hg enemy opacity PCT` | Health bar opacity | Health bar opacity → `battlegrounds-appearance` |
+| `/hg enemy names PCT` | Unseen name brightness | Unseen name brightness → `battlegrounds-appearance` |
+| `/hg enemy hero on\|off` | Suggested target card | Suggested target card → `battlegrounds-appearance` |
 | `/hg rows N` | Set the number of enemies shown. | Choose enemy row count → `battlegrounds-appearance` |
 | `/hg compact [on\|off]` | Toggle the slim one-line enemy layout. | Compact layout switch → `battlegrounds-settings` |
 | `/hg nameplates` | Show the game's nameplate settings that healer marks need. | Nameplate settings → `battlegrounds-settings` |
@@ -137,9 +151,17 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby untrack NAME` | Stop tracking an enemy by name, or your target. | Stop tracking an enemy |
 | `/hg nearby tracked` | List tracked enemies and where they were last reported. | Open tracked enemies (separate window) |
 | `/hg nearby watch on` · `/hg nearby watch off` | Watch for tracked enemies with every Highground user of your faction on this realm. | Watch with everyone switch → `nearby` |
+| `/hg nearby mark enemies\|ganker\|help` | Mark enemies, a ganker or a call for help at your position, for your group and guild. | Mark the map |
+| `/hg nearby mark clear` | Remove your map marks for everyone. | Clear my marks |
+| `/hg nearby marks on` · `/hg nearby marks off` | Show and share map marks, or turn them off. | Map marks switch → `nearby` |
+| `/hg nearby marks world on` · `/hg nearby marks world off` | Share map marks with every Highground user of your faction on this realm. | Marks with everyone switch → `nearby` |
+| `/hg nearby calls on` · `/hg nearby calls off` | Turn World PvP calls on or off: known gankers, enemy raids and others' map marks. | World PvP calls switch → `nearby` |
+| `/hg nearby fights on` · `/hg nearby fights off` | Run the kill order in open-world group fights, or stop. | World fights switch → `nearby` |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
 | `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |
+| `/hg nearby feed on` · `/hg nearby feed off` | Share kills and deaths with your group and guild, or stop. | Kill feed switch → `nearby` |
+| `/hg activity` | Open World activity: zones with recent enemies, marks and kills. | Open world activity (separate window) |
 | `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal (separate window) |
 
 ## Bounties

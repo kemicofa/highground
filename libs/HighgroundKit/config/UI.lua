@@ -38,11 +38,11 @@ ns.UIConfig = {
     panelScale = { min = 0.5, max = 2, step = 0.05 },
     metrics = {
       ns.Localization.Define({ module = "battlegrounds", key = "width", label = ns.Locale:Get("shared.ui.main_panel_width.d3aaab"), min = 200, max = 480, step = 10 }, { label = "shared.ui.main_panel_width.d3aaab" }),
-      ns.Localization.Define({ module = "battlegrounds", key = "row", label = ns.Locale:Get("shared.ui.enemy_row_height.80c620"), normal = { 28, 48 }, compact = { 16, 30 }, step = 1 }, { label = "shared.ui.enemy_row_height.80c620" }),
+      ns.Localization.Define({ module = "battlegrounds", key = "row", label = ns.Locale:Get("shared.ui.enemy_row_height.80c620"), normal = { 28, 64 }, compact = { 16, 40 }, step = 1 }, { label = "shared.ui.enemy_row_height.80c620" }),
       ns.Localization.Define({ module = "battlegrounds", key = "gap", label = ns.Locale:Get("shared.ui.row_spacing.502469"), min = 0, max = 12, step = 1 }, { label = "shared.ui.row_spacing.502469" }),
       ns.Localization.Define({ module = "battlegrounds", key = "padding", label = ns.Locale:Get("shared.ui.panel_padding.3dc00b"), min = 0, max = 16, step = 1 }, { label = "shared.ui.panel_padding.3dc00b" }),
       ns.Localization.Define({ module = "battlegrounds", key = "health", style = "line", label = ns.Locale:Get("shared.ui.thin_line_height.dadca8"), min = 1, max = 12, step = 1 }, { label = "shared.ui.thin_line_height.dadca8" }),
-      ns.Localization.Define({ module = "battlegrounds", key = "healthBar", style = "bar", label = ns.Locale:Get("shared.ui.bar_thickness.18928a"), normal = { 6, 20 }, compact = { 3, 10 }, step = 1 }, { label = "shared.ui.bar_thickness.18928a" }),
+      ns.Localization.Define({ module = "battlegrounds", key = "healthBar", style = "bar", label = ns.Locale:Get("shared.ui.bar_thickness.18928a"), normal = { 6, 28 }, compact = { 3, 14 }, step = 1 }, { label = "shared.ui.bar_thickness.18928a" }),
       ns.Localization.Define({ module = "battlegrounds", key = "timerWidth", label = ns.Locale:Get("shared.ui.timer_panel_width.9ba638"), min = 200, max = 420, step = 10, normalOnly = true }, { label = "shared.ui.timer_panel_width.9ba638" }),
       ns.Localization.Define({ module = "battlegrounds", key = "timerRow", label = ns.Locale:Get("shared.ui.timer_row_height.53a02f"), normal = { 24, 48 }, compact = { 14, 28 }, step = 1 }, { label = "shared.ui.timer_row_height.53a02f" }),
       ns.Localization.Define({ module = "battlegrounds", key = "timerGap", label = ns.Locale:Get("shared.ui.timer_row_spacing.821ba3"), min = 0, max = 12, step = 1 }, { label = "shared.ui.timer_row_spacing.821ba3" }),
@@ -102,4 +102,19 @@ ns.UIConfig = {
       ns.Localization.Define({ key = "white", label = ns.Locale:Get("shared.ui.white.37619f"), color = C.white }, { label = "shared.ui.white.37619f" }),
     },
   },
+}
+
+-- Enemy-panel overrides inherit shared styling until explicitly selected.
+local A = ns.UIConfig.appearance
+local function Choice(key, label) return ns.Localization.Define({ key = key, label = ns.Locale:Get(label) }, { label = label }) end
+A.enemyBars = { Choice("shared", "enemy.appearance.shared") }
+for _, choice in ipairs(A.bars) do A.enemyBars[#A.enemyBars + 1] = choice end
+A.enemyColors = { Choice("shared", "enemy.appearance.shared"), Choice("theme", "highground.profilesummary.theme_default.a99097") }
+for _, choice in ipairs(A.barColors) do A.enemyColors[#A.enemyColors + 1] = choice end
+A.enemyPresets = { Choice("readable", "enemy.appearance.readable"), Choice("compact", "enemy.appearance.compact"),
+  Choice("default", "highground.appearance.default.808d7d") }
+A.enemyNumbers = {
+  ns.Localization.Define({ key = "enemyBackground", label = ns.Locale:Get("enemy.appearance.background"), min = 0, max = 1, default = 0 }, { label = "enemy.appearance.background" }),
+  ns.Localization.Define({ key = "enemyOpacity", label = ns.Locale:Get("enemy.appearance.opacity"), min = 0.3, max = 1, default = 1 }, { label = "enemy.appearance.opacity" }),
+  ns.Localization.Define({ key = "enemyNames", label = ns.Locale:Get("enemy.appearance.names"), min = 0.4, max = 1, default = 0.6 }, { label = "enemy.appearance.names" }),
 }

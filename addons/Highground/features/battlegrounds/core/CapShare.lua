@@ -21,7 +21,7 @@ local waiting = false -- a retry is scheduled
 -- true when the message went out, false when the game refused it, nil when
 -- there is nothing to share (sharing off, not in a battleground group).
 local function Send(text)
-  local chan = Core.active and not Core.testMode and Core.db and Core.ShareOn()
+  local chan = ns.IsActive() and Core.db and Core.ShareOn()
     and Comms.GroupChannel()
   if not chan then return nil end
   if Comms.Blocked() then return false end
@@ -62,7 +62,7 @@ end
 
 -- In a battleground only; a preview keeps its sample rows.
 function Core.ReceiveCapture(text, sender)
-  if not Core.active or Core.testMode then return end
+  if not ns.IsActive() then return end
   local short = type(sender) == "string" and sender:match("^[^-]+")
   if not short or Core.IsMe(sender) then return end
   local kind, rest = text:match("^1:(%u)(.*)$")

@@ -16,17 +16,18 @@ local function Populate()
 local P = page.child
 Options.AddAppearancePreview(page, owner)
 local refreshers = {}
-local CONTROL_X = 250
+local CONTROL_X, stacked = 250, false
 
 local function Label(text)
   local fs = Theme.Text(P, "bodyLarge")
   fs:SetPoint("TOPLEFT", 24, page.y - S("sm"))
   ns.Localization.Bind(fs, text)
+  if stacked then page.y = page.y - 30 end
   return fs
 end
 
 local function Next()
-  page.y = page.y - 26
+  page.y = page.y - (stacked and 34 or 26)
   P:SetHeight(-page.y + 10)
 end
 
@@ -67,7 +68,7 @@ local function Pixels(v) return ns.Locale:Format("highground.appearance.v_px.1a6
 -- previous one.
 local function Cycle(text, kind, list)
   local label = Label(text)
-  local select = Kit.Select(P, { choices = list, width = 160, onChange = function(_, key)
+  local select = Kit.Select(P, { choices = list, width = stacked and 220 or 160, onChange = function(_, key)
     Core.SetStyleChoice(kind, key)
     Options.RefreshPage(page)
   end })
@@ -76,6 +77,7 @@ local function Cycle(text, kind, list)
   refreshers[#refreshers + 1] = { label = label, select = select,
     refresh = function() select:SetValue(Core.StyleChoice(kind).key, true) end }
   Next()
+  return select
 end
 
 local function Check(text, desc, get, set)
@@ -94,6 +96,38 @@ local function Check(text, desc, get, set)
   refreshers[#refreshers + 1] = { refresh = function() cb:SetChecked(get(), true) end }
   Next()
   return cb
+end
+
+local function CustomColor(enemy)
+  local label = Label("shared.ui.custom_color.34cfc6")
+  local button = Kit.Button(P, "", enemy and 160 or 120, Z("control"))
+  button:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 28, 0)
+  local swatch = Theme.Fill(button, "OVERLAY", "white")
+  swatch:SetSize(14, 14); swatch:SetPoint("LEFT", 8, 0)
+  local reset = ns.Localization.Bind(Kit.Button(P, ns.Locale:Get("highground.appearance.default.808d7d"), 70, Z("control")), "highground.appearance.default.808d7d")
+  reset:SetPoint("LEFT", button, "RIGHT", S("sm") + S("xs"), 0)
+  local function Hex(c) return string.format("#%02X%02X%02X", c.r * 255 + 0.5, c.g * 255 + 0.5, c.b * 255 + 0.5) end
+  button:SetScript("OnClick", function()
+    local c, saved = Core.BarCustomColor(enemy), Core.StyleDB()[enemy and "enemyCustom" or "barCustom"]
+    local previous = saved and { unpack(saved) }
+    Options.PickColor({ c.r, c.g, c.b }, function(r, g, b) Core.SetBarCustomColor(r, g, b, enemy); Options.RefreshPage(page) end,
+      function() Core.SetBarCustomColor(previous and previous[1], previous and previous[2], previous and previous[3], enemy); Options.RefreshPage(page) end,
+      button)
+  end)
+  reset:SetScript("OnClick", function() Core.SetBarCustomColor(nil, nil, nil, enemy); Options.RefreshPage(page) end)
+  button:HookScript("OnHide", function() Options.ClosePickerFor(button) end)
+  Kit.Tooltip(button, function() return { ns.Locale:Get("shared.ui.custom_color.34cfc6"), ns.Locale:Get("shared.ui.bar_color_used_when_health_bar_color.56d2e5") } end)
+  if enemy then page.enemyCustom = button else page.barCustom = button end
+  refreshers[#refreshers + 1] = { label = label, refresh = function()
+    local c, on = Core.BarCustomColor(enemy), Core.StyleChoice(enemy and "enemyColor" or "barColor").key == "custom"
+    Theme.Paint(swatch, { c.r, c.g, c.b })
+    button:SetText(Hex(c))
+    button:SetEnabled(on)
+    reset:SetEnabled(on and Core.StyleDB()[enemy and "enemyCustom" or "barCustom"] ~= nil)
+    label:SetAlpha(on and 1 or Theme.Alpha("disabled"))
+  end }
+  Next()
 end
 
 -- Theme: colours and type of every Highground window (config/Theme.lua).
@@ -146,6 +180,35 @@ Stepper("highground.appearance.text_size.3cc6e1", Core.FontScale, Core.SetFontSc
 end
 
 if owner == "battlegrounds" then
+Options.Section(page, ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), nil, "highground.appearance.enemy_rows.26dea1")
+page.enemyControls = {}
+CONTROL_X, stacked = 24, true
+Label("enemy.appearance.preset")
+page.enemyPreset = Kit.Select(P, { choices = A.enemyPresets, width = 220, menu = true })
+page.enemyPreset:SetPoint("TOPLEFT", CONTROL_X, page.y)
+page.enemyPreset:SetValue("readable", true)
+page.applyEnemyPreset = ns.Localization.Bind(Kit.Button(P, ns.Locale:Get("enemy.appearance.apply"), 160, Z("control")), "enemy.appearance.apply")
+page.applyEnemyPreset:SetPoint("LEFT", page.enemyPreset, "RIGHT", S("sm"), 0)
+page.applyEnemyPreset:SetScript("OnClick", function()
+  Core.SetEnemyPreset(page.enemyPreset:GetValue()); Options.RefreshPage(page)
+end)
+Next()
+local hint = Theme.Text(P, "body", "textMuted")
+hint:SetPoint("TOPLEFT", 24, page.y); hint:SetPoint("TOPRIGHT", -24, page.y)
+hint:SetJustifyH("LEFT"); hint:SetWordWrap(true); hint:SetHeight(116)
+page.enemyHint = hint
+ns.Localization.Bind(hint, "enemy.appearance.hint")
+page.y = page.y - 124
+page.enemyControls.style = Cycle("highground.appearance.health_style.42b74a", "healthStyle", A.healthStyles)
+page.enemyControls.texture = Cycle("highground.appearance.bar_texture.5592a1", "enemyBar", A.enemyBars)
+page.enemyControls.color = Cycle("highground.appearance.health_bar_color.0e69b9", "enemyColor", A.enemyColors)
+CustomColor(true)
+for _, def in ipairs(A.enemyNumbers) do
+  page.enemyControls[def.key] = Stepper(def.label, function() return Core.EnemyNumber(def.key) end,
+    function(value) Core.SetEnemyNumber(def.key, value) end, 0.05, Percent, function() return def.default end)
+end
+CONTROL_X, stacked = 250, false
+page.y = page.y - S("md")
 Options.Section(page, ns.Locale:Get("highground.appearance.sniper_marker.2ac0d6"), nil, "highground.appearance.sniper_marker.2ac0d6", nil)
 do
   Label("highground.appearance.marker_style.a15069")
@@ -267,42 +330,10 @@ if owner == "battlegrounds" then
       box.key = el.key; elementBoxes[#elementBoxes + 1] = box
     end
   end
-  Cycle("highground.appearance.health_style.42b74a", "healthStyle", A.healthStyles)
 elseif not owner then
   Cycle("highground.appearance.bar_texture.5592a1", "bar", A.bars)
   Cycle("highground.appearance.health_bar_color.0e69b9", "barColor", A.barColors)
-  -- Custom colour: a swatch button opening the colour picker, plus Default.
-  do
-    local label = Label("shared.ui.custom_color.34cfc6")
-    local button = Kit.Button(P, "", 120, Z("control"))
-    button:SetPoint("TOPLEFT", CONTROL_X, page.y)
-    button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 28, 0)
-    local swatch = Theme.Fill(button, "OVERLAY", "white")
-    swatch:SetSize(14, 14); swatch:SetPoint("LEFT", 8, 0)
-    local reset = ns.Localization.Bind(Kit.Button(P, ns.Locale:Get("highground.appearance.default.808d7d"), 70, Z("control")), "highground.appearance.default.808d7d")
-    reset:SetPoint("LEFT", button, "RIGHT", S("sm") + S("xs"), 0)
-    local function Hex(c) return string.format("#%02X%02X%02X", c.r * 255 + 0.5, c.g * 255 + 0.5, c.b * 255 + 0.5) end
-    button:SetScript("OnClick", function()
-      local c, saved = Core.BarCustomColor(), Core.StyleDB().barCustom
-      local previous = saved and { unpack(saved) }
-      Options.PickColor({ c.r, c.g, c.b }, function(r, g, b) Core.SetBarCustomColor(r, g, b); Options.RefreshPage(page) end,
-        function() Core.SetBarCustomColor(previous and previous[1], previous and previous[2], previous and previous[3]); Options.RefreshPage(page) end,
-        button)
-    end)
-    reset:SetScript("OnClick", function() Core.SetBarCustomColor(); Options.RefreshPage(page) end)
-    button:HookScript("OnHide", function() Options.ClosePickerFor(button) end)
-    Kit.Tooltip(button, function() return { ns.Locale:Get("shared.ui.custom_color.34cfc6"), ns.Locale:Get("shared.ui.bar_color_used_when_health_bar_color.56d2e5") } end)
-    page.barCustom = button
-    refreshers[#refreshers + 1] = { label = label, refresh = function()
-      local c, on = Core.BarCustomColor(), Core.StyleChoice("barColor").key == "custom"
-      Theme.Paint(swatch, { c.r, c.g, c.b })
-      button:SetText(Hex(c))
-      button:SetEnabled(on)
-      reset:SetEnabled(on and Core.StyleDB().barCustom ~= nil)
-      label:SetAlpha(on and 1 or Theme.Alpha("disabled"))
-    end }
-    Next()
-  end
+  CustomColor(false)
   Options.Section(page, ns.Locale:Get("highground.appearance.borders.685f23"), nil, "highground.appearance.borders.685f23", nil)
   Stepper("highground.appearance.border_size.544ebf", Core.BorderSize, Core.SetBorderSize, A.border.step, Pixels, function() return A.border.default end)
   Cycle("highground.appearance.border_color.06186d", "borderColor", A.borderColors)

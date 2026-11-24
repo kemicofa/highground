@@ -130,6 +130,10 @@ do
   Core.hero.hpText = Theme.Text(Core.hero.hp, "labelOutline")
   Core.hero.hpText:SetJustifyH("RIGHT")
   Core.hero.hpText:Hide()
+  Core.hero.hpTextBg = Theme.Fill(Core.hero.hp, "ARTWORK", "chipBg", nil, 1)
+  Core.hero.hpTextBg:SetPoint("TOPLEFT", Core.hero.hpText, "TOPLEFT", -2, 0)
+  Core.hero.hpTextBg:SetPoint("BOTTOMRIGHT", Core.hero.hpText, "BOTTOMRIGHT", 2, 0)
+  Core.hero.hpTextBg:Hide()
   Core.hero.exec = Core.TokenBorder(Core.hero, "attackEdge")
   Core.hero.exec:SetAlpha(0)
 

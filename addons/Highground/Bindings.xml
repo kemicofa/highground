@@ -17,4 +17,7 @@
   <Binding name="HIGHGROUND_BOUNTY" category="ADDONS">
     Highground_BountyBoard()
   </Binding>
+  <Binding name="HIGHGROUND_WORLD_MARK" category="ADDONS">
+    Highground_WorldMark()
+  </Binding>
 </Bindings>

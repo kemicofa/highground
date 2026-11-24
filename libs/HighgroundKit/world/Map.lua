@@ -18,7 +18,7 @@ local GRID = 0.025 -- map share of one cluster cell
 
 -- Where a zone's position falls on another map (a continent above it).
 local rects = {}
-local function Translate(from, to, x, y)
+function WorldMap.Translate(from, to, x, y)
   if from == to then return x, y end
   local key = from .. ":" .. to
   local r = rects[key]
@@ -89,7 +89,7 @@ function WorldMap.Pins(mapID)
     local age = now - e.last
     local x, y
     if Nearby.preview then x, y = e.sx, e.sy
-    elseif e.x and e.mapID and age <= forget then x, y = Translate(e.mapID, mapID, e.x, e.y) end
+    elseif e.x and e.mapID and age <= forget then x, y = WorldMap.Translate(e.mapID, mapID, e.x, e.y) end
     local tracked = Nearby.preview and e.tracked or not Nearby.preview and ns.Tracking and ns.Tracking.Get(e.name)
     if tracked and x and x > 0 and x < 1 and y > 0 and y < 1 then
       local tooltip = Tooltip({ e }, now)

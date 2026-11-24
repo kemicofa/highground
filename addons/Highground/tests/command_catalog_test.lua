@@ -68,6 +68,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     literals(C, s.ns.Reputation.Command, "reputation", { command = true })
     literals(C, s.ns.Bounty.Public.Command, "bounty shared", { action = true })
     literals(C, s.ns.PressureCommand, "pressure", { sub = true })
+    literals(C, s.ns.Commands.enemy, "enemy", { key = true })
     for verb in pairs(s.ns.Bounty.Messages.done) do assert(surface(C, "bounty " .. verb), "Missing bounty action: " .. verb) end
     for mode in pairs(s.ns.Macros.Window.MODES) do assert(surface(C, "macros " .. mode), "Missing macro mode: " .. mode) end
     t.equal(C.Owner("guide users"), nil, "shared guide remains shared")
@@ -124,6 +125,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       reputation = function() return s.ns.Reputation.UI.window end,
       bountyboard = function() return s.ns.Bounty.Board.win end,
       journal = function() return s.ns.EnemyJournal.win end,
+      activity = function() return s.ns.WorldActivity.win end,
       history = function() return s.ns.MatchHistory.win end,
       healers = function() return s.ns.TeamHealers.win end,
     }

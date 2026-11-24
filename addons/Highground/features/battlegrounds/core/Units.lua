@@ -218,7 +218,7 @@ function Core.ScanUnits()
       end
       -- Green to red on the Midnight client: the curve's colour, kept with
       -- the reading and only handed to the bar.
-      e.hpTint = not e.dead and SCALE_100 and Core.healthCurve and Core.StyleChoice("barColor").key == "health"
+      e.hpTint = not e.dead and SCALE_100 and Core.healthCurve and Core.EnemyColorMode() == "health"
         and Util.call(UnitHealthPercent, unit, true, Core.healthCurve) or nil
       -- Mana (plain on Cata). Only while mana is their shown power: a
       -- shapeshifted druid reports 0 mana in cat/bear form.

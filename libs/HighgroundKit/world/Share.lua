@@ -271,9 +271,15 @@ function Share.Listening(channel)
 end
 
 function Share.Receive(text, channel, sender, ...)
-  -- Tracking's watch requests and reports (world/Tracking.lua).
+  -- Tracking's watch requests and reports, map marks.
   if text:find("^1[TR]:") then
     if ns.Tracking then ns.Tracking.Receive(text, channel, sender, ...) end
+    return
+  elseif text:find("^1M:") then
+    if ns.WorldMarks then ns.WorldMarks.Receive(text, channel, sender, ...) end
+    return
+  elseif text:find("^1K:") then
+    if ns.WorldFeed then ns.WorldFeed.Receive(text, channel, sender) end
     return
   end
   local via = Share.Listening(channel)
@@ -305,6 +311,7 @@ function Share.Receive(text, channel, sender, ...)
         map, x, y, math.min(tonumber(r), 500), at, from, via) then
         changed = true
         if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via }) end
+        if ns.WorldCalls then ns.WorldCalls.Sighting(name, map, from, via) end
       end
     end
   end

@@ -38,6 +38,7 @@ end
 -- threshold. Secret on the Midnight client: the text widget formats it,
 -- nothing here reads it. Bright while in view, grey from the last reading.
 function Core.UpdateHealthText(r, e)
+  if r.hpTextBg then r.hpTextBg:Hide() end
   if not (r.hpText and Core.ShowsElement("healthText")) or e.dead then
     if r.hpText then r.hpText:Hide() end
     return
@@ -47,6 +48,7 @@ function Core.UpdateHealthText(r, e)
     r.hpText:SetText(PERCENT[math.max(0, math.min(100, math.floor(pct * 100 + 0.5)))])
     Theme.Paint(r.hpText, pct <= Core.db.executePct and "kill" or (e.unit or e.testHp) and "text" or "textMuted")
     r.hpText:Show()
+    if r.hpTextBg then r.hpTextBg:SetShown(r.barMode and not r.compactRow) end
     return
   end
   local seen = Seen(e)
@@ -56,6 +58,7 @@ function Core.UpdateHealthText(r, e)
   end
   Theme.Paint(r.hpText, e.unit and "text" or "textMuted")
   r.hpText:Show()
+  if r.hpTextBg then r.hpTextBg:SetShown(r.barMode and not r.compactRow) end
 end
 
 -- Bar opacity: live, last seen and unknown health. Fill sits behind the row's
@@ -63,14 +66,14 @@ end
 local FILL = { "healthFill", "healthStale", "healthUnseen" }
 local SOLID = { "healthBar", "healthBarStale", "healthBarUnseen" }
 local function Alpha(r, state)
-  return Theme.Alpha((r.fillMode and FILL or SOLID)[state])
+  return Theme.Alpha((r.fillMode and FILL or SOLID)[state]) * Core.EnemyNumber("enemyOpacity")
 end
 
 -- Class, faction or custom colour; Green to red from the curve colour read
 -- with the health (secret on the Midnight client, never inspected).
 local function Paint(r, e, color, alpha)
   local tint = e and e.hpTint
-  if type(tint) == "table" and type(e.testHp or e.hpPct) ~= "number" then
+  if Core.EnemyColorMode() == "health" and type(tint) == "table" and type(e.testHp or e.hpPct) ~= "number" then
     local ok, cr, cg, cb = pcall(tint.GetRGB, tint)
     if ok and pcall(r.hp.SetStatusBarColor, r.hp, cr, cg, cb, alpha) then return end
   end

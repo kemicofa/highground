@@ -168,6 +168,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     C.Step(1); C.Update(); assert(not P.session, "moving to shared theme ends the local sample")
     C.Step(-1); C.Update(); click(C.target); O.Return()
     assert(not P.session and not s.ns.Core.testMode, "closing guide ends its sample")
+    O.Start("features"); go("enemy-style")
+    equal(C.target, s.ns.Options.byKey["battlegrounds-appearance"].enemyPreset, "guide reaches real enemy presets")
+    assert(C.target:IsVisible() and s.ns.Core.db.style.enemyColor == nil, "guide does not apply a preset implicitly")
+    O.Return()
     O.Start("alerts"); go("sample"); click(C.target)
     s.ns.Kit.Dropdown.Accept(2)
     assert(s.sounds[#s.sounds]:find("stealth-exit.ogg", 1, true))
@@ -182,7 +186,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local samples = { capture = "alert-capture.ogg", objective = "alert-objective.ogg",
       resurrection = "alert-resurrection.ogg", sap = "alert-sap.ogg",
       go = "sounds\\go.ogg", lockon = "sounds\\lockon.ogg", nearby = "libs\\sounds\\nearby.ogg", bounty = "bounty.ogg",
-      tracked = 18871 }
+      tracked = 18871, worldcall = "alert-objective.ogg" }
     -- A file cue by name, a game sound by number.
     local function heard(expected, why)
       local last = s.sounds[#s.sounds]

@@ -17,6 +17,8 @@ function Core.CreateRow(i)
   Core.WrapRestore(r)
   r:Hide()
 
+  r.base = Theme.Fill(r, "BACKGROUND", "surface", 0, -1)
+  r.base:SetAllPoints()
   r.classBg = ns.Hud.EnemySurface(r)
 
   -- Health sits below the content frame so that, filling the whole row
@@ -118,6 +120,10 @@ function Core.CreateRow(i)
   -- Health percentage (Cata, where health is readable).
   r.hpText = Theme.Text(c, "figureLarge")
   r.hpText:SetJustifyH("RIGHT")
+  r.hpTextBg = Theme.Fill(c, "ARTWORK", "chipBg")
+  r.hpTextBg:SetPoint("TOPLEFT", r.hpText, "TOPLEFT", -2, 0)
+  r.hpTextBg:SetPoint("BOTTOMRIGHT", r.hpText, "BOTTOMRIGHT", 2, 0)
+  r.hpTextBg:Hide()
 
   -- Mana: a bar along the bottom of the row (ui/Health.lua); placed by
   -- Core.LayoutRow for the Health style.

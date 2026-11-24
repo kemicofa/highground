@@ -10,6 +10,7 @@
 - [Player reputation](reputation.md): organizations, reports, moderation and chat filtering.
 - [Script macros](macro-scripts.md): utility presets, builder actions and API checks.
 - [Battleground coverage](battlegrounds.md): supported battlegrounds and their limits.
+- [Enemy appearance](enemy-appearance.md): readable presets, health bar styles, colors and sizing.
 - [Observations and timers](observations.md): map positions, shared intel, resurrection and capture countdowns.
 - [Data scopes](data-scopes.md): which data belongs to your character, faction, ruleset or account.
 - [Changelog](../CHANGELOG.md) and the [2.7–2.19 archive](changelog-2.7-2.19.md).

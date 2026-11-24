@@ -108,17 +108,11 @@ Midnight's restrictions are lighter outside instances. Blizzard's API notes (war
 - Auras and cooldowns of other units are secret whenever you are in combat, anywhere. Other units' casts are always secret. The combat log is gone everywhere; `PARTY_KILL` and `UNIT_DEATH` replace part of it, with readable GUIDs when the identity is readable.
 - Unit comparisons are secret only on addon-restricted maps.
 
-None of this has been measured on WoW Forever in the open world yet. To check with an enemy player as target, in and out of combat with them:
+None of this has been measured on WoW Forever in the open world yet. The [API probe](../tools/apiprobe/README.md)'s `/hgprobe world` records it in one snapshot: each `C_RestrictedActions.IsAddOnRestrictionActive` type and the chat restrictions; identity, health, auras and raid icon of the target, `party1` and enemy players' nameplates; whether each enemy targets you; group map positions; and whether you are in combat and in an instance. While loaded, the probe also counts `PARTY_KILL` and `UNIT_DEATH` and whether their GUIDs were secret.
 
-```
-/run local R,A=Enum.AddOnRestrictionType,C_RestrictedActions.IsAddOnRestrictionActive print(C_ChatInfo.InChatMessagingLockdown(),A(R.Combat),A(R.Map))
-/run local t="target" print(UnitGUID(t),UnitClass(t),issecretvalue(UnitHealth(t)),issecretvalue(UnitIsUnit("targettarget","player")))
-/run print(pcall(C_UnitAuras.GetAuraDataByIndex,"target",1,"HELPFUL"))
-/run local m=C_Map.GetBestMapForUnit("player") local p=C_Map.GetPlayerMapPosition(m,"party1") print(m,p and p.x,p and p.y)
-/run local f=CreateFrame("Frame")f:RegisterEvent("PARTY_KILL")f:RegisterEvent("UNIT_DEATH")f:SetScript("OnEvent",function(_,e,...)print(e,...)end)
-```
+In a party, with an enemy player as target, run `/hgprobe world` out of combat, again in combat with them, and once in a battleground for contrast. Kill someone, then `/reload` and run the [report](../tools/apiprobe/README.md#report): section (d) lines the snapshots up, (e) lists the kill events. Record results here with the date and build.
 
-Also still to check: whether a raid icon on an enemy player reads back with `GetRaidTargetIndex("target")`, and whether a character of the other faction can read addon messages in a custom channel (two accounts needed).
+Also still to check: whether a character of the other faction can read addon messages in a custom channel (two accounts needed).
 
 ## Leads to try
 

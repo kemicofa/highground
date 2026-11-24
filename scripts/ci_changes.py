@@ -10,7 +10,7 @@ import subprocess
 GENERATED_DOCS = {"addons/Highground/docs/commands.md"}
 
 
-def documentation_only(path: str) -> bool:
+def documentation_only(path: str, deleted: bool = False) -> bool:
     parts = PurePosixPath(path).parts
     if path in GENERATED_DOCS:
         return False
@@ -20,6 +20,10 @@ def documentation_only(path: str) -> bool:
         if parts[0] in {"docs", ".agents", ".claude"}:
             return True
         if len(parts) >= 3 and parts[0] == "addons":
+            # The build checks the CurseForge description and packages addon docs (scripts/build.py,
+            # tests/test_build.py), so editing that description or deleting a doc needs tests.
+            if deleted or parts[2:] == ("docs", "curseforge.md"):
+                return False
             return parts[2] in {"README.md", "AGENTS.md", "docs"}
     return False
 
@@ -28,10 +32,10 @@ def requires_tests(base: str, head: str) -> bool:
     # Disable rename detection so moving code into docs still reports its deletion.
     # NUL delimiters preserve spaces, newlines and arbitrary Git filename bytes.
     changed = subprocess.check_output([
-        "git", "diff", "--name-only", "--no-renames", "-z", f"{base}...{head}", "--",
-    ])
-    return any(not documentation_only(path.decode("utf-8", "surrogateescape"))
-               for path in changed.split(b"\0") if path)
+        "git", "diff", "--name-status", "--no-renames", "-z", f"{base}...{head}", "--",
+    ]).split(b"\0")
+    return any(not documentation_only(path.decode("utf-8", "surrogateescape"), status == b"D")
+               for status, path in zip(changed[0::2], changed[1::2]) if path)
 
 
 if __name__ == "__main__":

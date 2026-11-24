@@ -48,7 +48,7 @@ The build fails when Highground's TOC versions differ, its first changelog secti
 
 The [CI and release workflow](../.github/workflows/ci.yml) runs on ready pull requests and pushes to `main`, with manual retries available. Draft PR checks are skipped until ready.
 
-Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs, except the generated `commands.md`. `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks. Documentation-only PRs instead run the **Documentation checks** job: `tests/test_links.py` and `tests/test_docs.py` (relative links, guide indexes, the simulation group table and the 400-line limit for addon Markdown).
+Ready PRs skip test/package jobs when the complete PR diff changes only known documentation paths: root README/AGENTS/LICENSE, the PR template, Markdown under `docs/`, `.agents/` or `.claude/`, and addon README/AGENTS or Markdown docs, except the generated `commands.md`, the build-checked `curseforge.md` and deleted addon docs (the package lists them). `scripts/ci_changes.py` owns this conservative list. Code, tests, workflows, assets, release metadata/changelogs and unknown paths still run all checks. Pushes to `main` and manual runs always run all checks. Documentation-only PRs instead run the **Documentation checks** job: `tests/test_links.py` and `tests/test_docs.py` (relative links, guide indexes, the simulation group table and the 400-line limit for addon Markdown).
 
 Source symlinks cross host boundaries, so all retained hosts still receive validation and Lua regression coverage.
 
@@ -64,9 +64,11 @@ Keep the required `CI` check name. Failed or unexpectedly skipped prerequisites 
 
 Follow the [release skill](../.claude/skills/release/SKILL.md) when a release is requested. Bump only Highground's TOCs, add its changelog entry, update its project description and announcement, validate and build, then use the release PR workflow.
 
-GitHub receives `vX.Y.Z` at the tested commit, with the ZIP, checksum and release notes. Assets upload to a draft before publication; interrupted uploads can resume from the same commit. Existing published versions and tags are never overwritten.
+GitHub receives `vX.Y.Z` at the tested commit, with the ZIP, checksum and release notes. Assets upload to a draft before publication; interrupted uploads can resume from the same commit. Existing published versions and tags are never overwritten. A version already released from another commit stops publication, so CurseForge and Wago only receive the released commit's build.
 
 CurseForge uploads use `CURSEFORGE_TOKEN`, TOC interface versions and the upload API; there is no webhook. Wago uses `WAGO_API_KEY` and matches TOC interfaces to Wago's patch lists. A missing secret skips that destination; a missing upload tag keeps the version unpublished for retry. New CurseForge files may await moderation.
+
+A `<tag>-pending` tag, such as `curseforge-vX.Y.Z-pending`, exists while an upload runs. It is removed when the site refuses the upload. If the upload may have arrived without its tag, a retry stops instead of uploading again: check the site's files, create the missing tag at the release commit if the file is there, delete the pending tag and retry.
 
 ## Discord announcements
 

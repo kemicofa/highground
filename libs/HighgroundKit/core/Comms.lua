@@ -11,6 +11,7 @@ local _, ns = ...
 --   HighgroundB  guild bounties   bounty/Sync.lua
 --   HighgroundBP bounty transport bounty/PublicWire.lua
 --   HighgroundD  death reports    bounty/SuggestionSync.lua
+--   HighgroundW  world sightings  world/Share.lua
 --   HighgroundRep reputation     reputation/State.lua and Wire.lua (feature)
 --   HighgroundP  setup profiles   options/ProfileSharing.lua (Highground)
 --   HighgroundN  capabilities     core/Protocols.lua and ProtocolTransport.lua

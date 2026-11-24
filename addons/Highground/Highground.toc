@@ -266,6 +266,8 @@ features/arena/arena/Activity.lua
 features/arena/arena/Duel.lua
 libs/world/Nearby.lua
 libs/world/NearbyEvents.lua
+libs/world/Share.lua
+libs/world/Map.lua
 libs/world/Deaths.lua
 libs/world/Honor.lua
 libs/world/History.lua

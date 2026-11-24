@@ -1,6 +1,6 @@
 local _, ns = ...
 
--- Nearby enemies settings (world/Nearby.lua, world/History.lua): Highground,
+-- Nearby enemies settings (world/Nearby.lua, History.lua, Share.lua, Map.lua): Highground,
 -- Highground Nearby and Highground Bounties. See config/Options.lua.
 ns.OptionsAdd({
   module = "nearby",
@@ -19,6 +19,9 @@ ns.OptionsAdd({
     {
       ns.Localization.Define({ group = "Open world", order = 4 }, { groupLabel = "highground.profileassignments.open_world.41995c" }),
       ns.Localization.Define({ key = "nearby", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df"), desc = ns.Locale:Get("shared.nearby.open_world_list_of_hostile_players_you.ffffe0") }, { label = "highground.profilesummary.nearby_enemies.85f5df", desc = "shared.nearby.open_world_list_of_hostile_players_you.ffffe0" }),
+      ns.Localization.Define({ key = "nearbyMap", parent = "nearby", label = ns.Locale:Get("nearby.world.map_label"), desc = ns.Locale:Get("nearby.world.map_desc") }, { label = "nearby.world.map_label", desc = "nearby.world.map_desc" }),
+      ns.Localization.Define({ key = "nearbyShare", parent = "nearby", label = ns.Locale:Get("nearby.world.share_label"), desc = ns.Locale:Get("nearby.world.share_desc") }, { label = "nearby.world.share_label", desc = "nearby.world.share_desc" }),
+      ns.Localization.Define({ key = "nearbyShareGuild", parent = "nearbyShare", label = ns.Locale:Get("nearby.world.guild_label"), desc = ns.Locale:Get("nearby.world.guild_desc") }, { label = "nearby.world.guild_label", desc = "nearby.world.guild_desc" }),
     },
   },
 })

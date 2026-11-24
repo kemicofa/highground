@@ -228,11 +228,19 @@ end
 
 Commands.options = Commands.config
 
--- /hg nearby [on | off | test | clear | forget]: the open-world enemy list
--- (world/Nearby.lua) and its saved history (world/History.lua).
+-- /hg nearby [on | off | map on|off | share on|off | share guild on|off |
+-- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
+-- map pins and shared sightings (world/Map.lua, world/Share.lua) and its
+-- saved history (world/History.lua).
+local NEARBY_SWITCHES = {
+  ["on"] = "nearby", ["off"] = "nearby",
+  ["map on"] = "nearbyMap", ["map off"] = "nearbyMap",
+  ["share on"] = "nearbyShare", ["share off"] = "nearbyShare",
+  ["share guild on"] = "nearbyShareGuild", ["share guild off"] = "nearbyShareGuild",
+}
 function Commands.nearby(arg, msg, say)
-  if arg == "on" or arg == "off" then
-    Core.SetFeature("nearby", arg == "on")
+  if NEARBY_SWITCHES[arg] then
+    Core.SetFeature(NEARBY_SWITCHES[arg], arg:match("on$") ~= nil)
   elseif arg == "test" and ns.NearbyPreview then
     local on = ns.NearbyPreview()
     if on == nil then say(ns.Locale:Get("highground.display.leave_combat_first.8497e3")); return end
@@ -250,6 +258,7 @@ function Commands.nearby(arg, msg, say)
   local n = 0
   for _ in pairs(ns.Nearby and ns.Nearby.seen or {}) do n = n + 1 end
   say(ns.Locale:Format("highground.settings.nearby_enemies_value2_n_remembered_hg_nearby.874130", { value2 = (Core.On("nearby") and "on" or "OFF"), n = n }))
+  if ns.WorldShare then say(ns.WorldShare.Status()) end
 end
 
 -- /hg theme [NAME]: list the themes, or switch to one (saved).

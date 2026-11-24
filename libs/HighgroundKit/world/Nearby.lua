@@ -24,11 +24,15 @@ local Nearby = ns.Nearby
 -- Tracking states: off (feature disabled), paused (inside an instance) and
 -- tracking (open world). Unit and combat-log events are registered only
 -- while tracking; a one-second poll notices switches (NearbyEvents.lua).
+-- Shared sightings (world/Share.lua) add enemies your group or guild saw:
+-- rows say who saw them, and only your own zone's are listed.
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
 Nearby.ROW_H = 44
 Nearby.ACTION_H = 26
-Nearby.seen = {} -- [name] = { name, class, level, guild, zone, first, last, noted, hidden }
+-- [name] = { name, class, level, guild, zone, first, last, noted, hidden,
+--   mapID, x, y, r (world/Share.lua), by and via for a received sighting }
+Nearby.seen = {}
 Nearby.preview = false
 Nearby.ALERT_GAP = 10 -- seconds between new-enemy sounds
 local Stealth = ns.Stealth
@@ -80,6 +84,7 @@ end
 -- burst: a combat-log repeat, which can arrive many times a second. Within
 -- a second of the last full sighting it only keeps the enemy fresh; zone,
 -- history and bounty sightings update at most once per second per enemy.
+-- An enemy only someone else saw is new to you: it sounds and counts as met.
 function Nearby.Note(name, class, level, guild, unit, burst)
   if type(name) ~= "string" or name == "" then return end
   local now = GetTime()
@@ -88,13 +93,15 @@ function Nearby.Note(name, class, level, guild, unit, burst)
     e.last = now
     return false
   end
-  local fresh = not e or now - e.last > O("nearbyForget")
+  local forget = O("nearbyForget")
+  local fresh = not e or now - e.last > forget or not e.noted or now - e.noted > forget
   e = e or { name = name, first = now }
   e.class, e.level, e.guild = class or e.class, level or e.level, guild or e.guild
   e.zone = Util.ZoneName()
   if fresh then e.first, e.hidden = now, nil end
   e.last, e.noted = now, now
   Nearby.seen[name] = e
+  if ns.WorldShare then ns.WorldShare.Local(e, unit) end
   if fresh then Alert(name) end
   if ns.NearbyHistory then ns.NearbyHistory.Seen(e, fresh) end
   if ns.Bounty then ns.Bounty.Spot(name, e.class, false, unit) end
@@ -136,7 +143,7 @@ function Nearby.NoteUnit(unit, aura)
   if not name then return end
   local e = Nearby.seen[name]
   local hidden, fresh = e and e.hidden, false
-  if aura and Recent(e, GetTime()) then e.last = GetTime()
+  if aura and Recent(e, GetTime()) then e.last, e.by, e.via = GetTime(), nil, nil
   else
     local _, class = Call(UnitClass, unit)
     local level = Plain(Call(UnitLevel, unit))
@@ -157,12 +164,14 @@ local function Newer(a, b)
   return a.first > b.first
 end
 
+-- Shared sightings from another zone stay for the map only.
 local function Collect(now, out)
   local forget, n = O("nearbyForget"), 0
+  local zone = ns.WorldShare and ns.WorldShare.Here()
   for name, e in pairs(Nearby.seen) do
     if now - e.last > forget then
       Nearby.seen[name] = nil
-    else
+    elseif not (e.by and e.mapID ~= zone) then
       n = n + 1
       out[n] = e
     end
@@ -212,6 +221,7 @@ function Nearby.Build()
           lines[#lines + 1] = { (e.level and e.level > 0 and (ns.Locale:Format("shared.nearby.level_e_level.11d226", { e_level = e.level })) or "") .. (Util.ClassName(e.class) or ns.Locale:Get("shared.journal.unknown_class.b6275c")), "textMuted" }
           if e.guild and e.guild ~= "" then lines[#lines + 1] = { e.guild, "textMuted" } end
           if e.zone and e.zone ~= "" then lines[#lines + 1] = { ns.Locale:Format("shared.nearby.last_seen_e_zone.51d878", { e_zone = e.zone }), "textMuted" } end
+          if e.by then lines[#lines + 1] = { Nearby.SeenBy(e), "info" } end
           if GetTime() - e.last >= 2 then lines[#lines + 1] = { ns.Locale:Get("shared.nearby.the_player_may_have_moved_away.7cd55b"), "textMuted" } end
         end
         if b then
@@ -262,11 +272,26 @@ function Nearby.Layout()
   w:SetHeight(top + (Nearby.shownCount or 0) * (Nearby.ROW_H + gap) + Nearby.ACTION_H + pad)
 end
 
+-- Who saw a received sighting: a group member or a guild member.
+function Nearby.SeenBy(e)
+  return ns.Locale:Format(e.via == "guild" and "nearby.world.seen_by_guild" or "nearby.world.seen_by",
+    { name = Core.DisplayName(e.by) })
+end
+
+-- sx, sy: the sample's spot on any open map (world/Map.lua).
 local PREVIEW = {
-  ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1 }, { zone = "shared.preview.tarren_mill.f2b545" }),
-  { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25 },
-  ns.Localization.Define({ name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"), ago = 140 }, { zone = "shared.nearby.hillsbrad_fields.ead610" }),
+  ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1, sx = 0.46, sy = 0.42 }, { zone = "shared.preview.tarren_mill.f2b545" }),
+  { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25, sx = 0.465, sy = 0.425 },
+  { name = "Ironhide", class = "WARRIOR", level = 60, guild = "Night Watch", ago = 40, by = "Guildmate", via = "guild", sx = 0.62, sy = 0.3 },
+  ns.Localization.Define({ name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"), ago = 140, sx = 0.3, sy = 0.66 }, { zone = "shared.nearby.hillsbrad_fields.ead610" }),
 }
+
+-- Sample sightings for the preview, last seen relative to now.
+function Nearby.Samples(now)
+  local list = {}
+  for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
+  return list
+end
 
 -- A row's click binding changes only out of combat, and only when its
 -- enemy does: unchanged rows keep their secure attributes untouched.
@@ -290,7 +315,7 @@ local function Fill(r, e, now, fade, zone)
     LEVEL.e_level = e.level
     sub = ns.Locale:Format("shared.nearby.lv_e_level.4f13d0", LEVEL)
   end
-  local detail = e.hidden and e.hidden.spell
+  local detail = e.hidden and e.hidden.spell or e.by and Nearby.SeenBy(e)
     or e.zone and e.zone ~= "" and e.zone ~= zone and e.zone or nil
   if detail then sub = sub and (sub .. " · " .. detail) or detail end
   r.sub:SetText(sub or "")
@@ -326,8 +351,7 @@ function Nearby.Update()
   local list = Collect(now, live)
   if Nearby.test then list = Nearby.test.rows()
   elseif Nearby.preview then
-    list = {}
-    for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
+    list = Nearby.Samples(now)
   end
   if not Nearby.win then
     Nearby.Build()
@@ -384,6 +408,7 @@ function ns.NearbyPreview()
   if InCombatLockdown() then return nil end
   Nearby.preview = not Nearby.preview
   Nearby.Update()
+  if ns.MapPins then ns.MapPins.Refresh() end -- samples on an open map
   return Nearby.preview
 end
 

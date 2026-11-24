@@ -15,6 +15,7 @@ local PER_TICK, MAX_RETURNS, MAX_FIELDS, MAX_TEXT = 40, 20, 40, 60
 local function Say(text)
   print("|cffd4a72cHighground API probe:|r " .. text)
 end
+Probe.Say = Say
 
 local function SecretTable(v)
   return issecrettable ~= nil and issecrettable(v) == true or canaccesstable ~= nil and canaccesstable(v) == false
@@ -48,6 +49,7 @@ local function Describe(v, nested)
   end
   return d
 end
+Probe.Describe = Describe
 
 local function Pack(...)
   return select("#", ...), { ... }
@@ -61,21 +63,23 @@ local function Read(fn, ...)
   if Secret(value) then return "secret" end
   return value
 end
+Probe.Read = Read
 
 local function Context(unit)
   local okInstance, inInstance, kind = pcall(IsInInstance)
+  if not okInstance then inInstance, kind = nil, nil end
   return { date = date("%Y-%m-%d %H:%M:%S"), build = ns.Build(), unit = unit,
-    zone = Read(GetRealZoneText) or Read(GetZoneText), inInstance = okInstance and inInstance or nil,
-    instanceType = okInstance and kind or nil, lockdown = C_ChatInfo and Read(C_ChatInfo.InChatMessagingLockdown),
+    zone = Read(GetRealZoneText) or Read(GetZoneText), inInstance = inInstance, instanceType = kind,
+    lockdown = C_ChatInfo and Read(C_ChatInfo.InChatMessagingLockdown),
     combat = Read(InCombatLockdown), exists = Read(UnitExists, unit), enemy = Read(UnitCanAttack, "player", unit),
     player = Read(UnitIsPlayer, unit), name = Read(UnitName, unit) }
 end
+Probe.Context = Context
 
-local function Call(candidate, unit)
-  local args = {}
-  args[candidate.unit] = unit
-  local n, r = Pack(pcall(candidate.fn, unpack(args, 1, candidate.unit)))
-  local record = { ok = r[1] == true, n = n - 1, doc = candidate.documented or nil }
+-- { ok, n = return count, r = described returns } or { ok = false, err }.
+function Probe.Invoke(fn, ...)
+  local n, r = Pack(pcall(fn, ...))
+  local record = { ok = r[1] == true, n = n - 1 }
   if not record.ok then
     local err = r[2]
     record.err = type(err) == "string" and not Secret(err) and err:sub(1, 120) or "error"
@@ -83,6 +87,14 @@ local function Call(candidate, unit)
   end
   record.r = {}
   for i = 2, math.min(n, MAX_RETURNS + 1) do record.r[i - 1] = Describe(r[i]) end
+  return record
+end
+
+local function Call(candidate, unit)
+  local args = {}
+  args[candidate.unit] = unit
+  local record = Probe.Invoke(candidate.fn, unpack(args, 1, candidate.unit))
+  record.doc = candidate.documented or nil
   return record
 end
 
@@ -101,6 +113,7 @@ local function PlainCount(record)
   end
   return plain, secret
 end
+Probe.Count = PlainCount
 
 function Probe.Run(unit)
   if Probe.running then return Say("a run is already in progress.") end
@@ -148,10 +161,11 @@ function Probe.Summary()
       tostring(c.unit), tostring(c.zone), c.enemy == true and "enemy" or "not enemy", run.called or 0, run.errors or 0,
       run.plain or 0, run.secret or 0))
   end
-  if not list and #db.runs == 0 then Say("nothing recorded yet.") end
+  local world = ns.World.Summary()
+  if not list and #db.runs == 0 and not world then Say("nothing recorded yet.") end
 end
 
-local USAGE = "/hgprobe list | unit [token] | summary | clear  (token: target, focus, nameplate1, raid3target...)"
+local USAGE = "/hgprobe list | unit [token] | world | summary | clear  (token: target, focus, nameplate1, raid3target...)"
 
 SLASH_HGPROBE1 = "/hgprobe"
 SlashCmdList.HGPROBE = function(msg)
@@ -165,10 +179,13 @@ SlashCmdList.HGPROBE = function(msg)
     local unit = rest ~= "" and rest or "target"
     if not unit:match("^%a+%d*%a*$") then return Say("not a unit token: " .. unit) end
     Probe.Run(unit)
+  elseif command == "world" then
+    ns.World.Snapshot()
   elseif command == "summary" then
     Probe.Summary()
   elseif command == "clear" then
     HighgroundApiProbeDB.list, HighgroundApiProbeDB.runs = nil, {}
+    HighgroundApiProbeDB.world, HighgroundApiProbeDB.kills = {}, {}
     Say("cleared.")
   else
     Say(USAGE)
@@ -181,5 +198,7 @@ loader:SetScript("OnEvent", function(self, _, name)
   if name ~= addonName then return end
   self:UnregisterEvent("ADDON_LOADED")
   if type(HighgroundApiProbeDB) ~= "table" then HighgroundApiProbeDB = {} end
-  if type(HighgroundApiProbeDB.runs) ~= "table" then HighgroundApiProbeDB.runs = {} end
+  for _, key in ipairs({ "runs", "world", "kills" }) do
+    if type(HighgroundApiProbeDB[key]) ~= "table" then HighgroundApiProbeDB[key] = {} end
+  end
 end)

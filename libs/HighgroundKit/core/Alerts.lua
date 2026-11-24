@@ -51,7 +51,7 @@ for _, d in ipairs({
   { "lockon", "highground.sniper.highground_lock_on.8cbbfb", Lockon, function() return ns.Core.SNIPER_SOUNDS and Lockon end },
   { "bounty", "alerts.sound.bounty", nil, Owned("Bounty", "Sound") },
   { "nearby", "alerts.sound.nearby", nil, Owned("Nearby", "Sound") },
-  { "tracked", "tracking.alert.sound", Game(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) },
+  { "tracked", "tracking.alert.sound", Game(SOUNDKIT and SOUNDKIT.ALARM_CLOCK_WARNING_2 or 18871) },
   { "stealth", "alerts.sound.stealth", nil, Owned("Stealth", "EnterSound") },
   { "raidwarning", "alerts.sound.raid_warning", Game(SOUNDKIT and SOUNDKIT.RAID_WARNING or 8959) },
   { "readycheck", "alerts.sound.ready_check", Game(SOUNDKIT and SOUNDKIT.READY_CHECK or 8960) },

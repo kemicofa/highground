@@ -215,6 +215,30 @@ test("cog fades reverse smoothly and reduced motion settles them", function()
   sim:advance(0.1); equal(w.gear:GetAlpha(), 0.25)
 end)
 
+test("a hover fade repaints its own panel, including backgrounds added later", function()
+  local sim = new("retail", { nearby = true, locked = true })
+  sim:advance(1.2)
+  local w, C = sim.ns.Nearby.win, sim.ns.Core
+  assert(w.wbPanelFade, "the panel fades")
+  local later = C.Surface(w, "BACKGROUND")
+  local other = C.Surface(sim.env.UIParent, "BACKGROUND")
+  local checked, panelFade = 0, C.PanelFade
+  C.PanelFade = function(region)
+    if region == other then checked = checked + 1 end
+    return panelFade(region)
+  end
+  sim.mouseOver = w
+  sim.ns.PanelControls.RefreshGears()
+  sim:advance(0.05)
+  assert(later:GetAlpha() > 0.65 * C.BgAlpha() and later:GetAlpha() < C.BgAlpha(), "a later background fades with its panel")
+  sim:advance(0.3)
+  equal(later:GetAlpha(), C.BgAlpha(), "and finishes with it")
+  assert(checked <= 1, "another panel's background is looked at once, not on every frame")
+  C.PanelFade = panelFade
+  sim.mouseOver = nil; sim:advance(0.3)
+  sim:assertHealthy()
+end)
+
 test("HUD header controls fit normal, compact and enlarged text layouts", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   local C = sim.ns.Core

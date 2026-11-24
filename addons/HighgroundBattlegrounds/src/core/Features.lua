@@ -41,13 +41,16 @@ end
 function Core.SetOption(key, value) return Tune("option", key, value) end
 function Core.SetPoint(key, value) return Tune("point", key, value) end
 
--- Back to default points, weights, spec ratings and behavior options.
--- Feature switches, appearance and tracking choices are kept.
+-- Back to default points, weights, spec ratings and the Target behavior
+-- options. Feature switches, appearance, tracking choices and the options of
+-- other pages (Nearby, Bounties: def.page) are kept.
 function Core.ResetTuning()
   Core.db.specRatings = {}
   wipe(Core.profileCache)
   Core.db.points, Core.db.weights = {}, {}
-  for _, def in ipairs(ns.OptionsConfig.behavior) do Core.db[def.key] = def.def end
+  for _, def in ipairs(ns.OptionsConfig.behavior) do
+    if not def.page then Core.db[def.key] = def.def end
+  end
   Core.BuildCurve()
 end
 

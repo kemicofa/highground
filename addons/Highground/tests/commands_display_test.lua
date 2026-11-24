@@ -350,6 +350,8 @@ t.test("previews refuse to start in combat", function()
   assert(not (sim.env.HighgroundArenaFrame and sim.env.HighgroundArenaFrame:IsShown()), "arena sample stays hidden")
   out = run(sim, "nearby test")
   assert(has(out, "leave combat first"), "nearby preview")
+  out = run(sim, "arena test ")
+  assert(has(out, "leave combat first"), "a trailing space still starts the preview: " .. out)
 end)
 
 t.test("/hg pressure validates its count and prints its choices intact", function()

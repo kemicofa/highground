@@ -21,10 +21,16 @@ for _, s in ipairs({ cata, client("retail") }) do
   equal(s.killOrderApplied, true, "target recommendations switch applies to the panel")
   equal(s:feature("sniper").enabled, true, "world target marker stays available to follow your own target")
   s.db.scale = 0.65
+  s.db.prioritySort, s.db.nearbyRows, s.db.nearbyFade, s.db.bountyShare, s.db.bountyOfficerRank = true, 3, 30, false, 4
   local reset = assert(s:find("Button", "Reset target tuning"))
   reset.scripts.OnClick(reset)
   equal(s.db.scale, 0.65, "reset tuning preserves UI scale")
   equal(s.db.killorder, false, "reset tuning preserves feature choices")
+  equal(s.db.prioritySort, false, "reset tuning restores target behavior")
+  equal(s.db.nearbyRows, 3, "reset tuning keeps the Nearby list size")
+  equal(s.db.nearbyFade, 30, "reset tuning keeps Nearby options")
+  equal(s.db.bountyShare, false, "reset tuning keeps bounty sharing")
+  equal(s.db.bountyOfficerRank, 4, "reset tuning keeps the bounty officer rank")
 end
 local retail = client("retail")
 equal(retail:tracking(), nil, "Retail hides the unsupported per-spell tracking page")

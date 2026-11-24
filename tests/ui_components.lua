@@ -290,6 +290,15 @@ t.test("scroll areas clamp on content changes and ignore retired bodies", functi
   assert(not area.bar:IsShown(), "no scrollbar for content that fits")
   area:SetHeight(20); fire(area.view, "OnSizeChanged")
   assert(area.bar:IsShown() and area.thumb:GetHeight() <= 16, "thumb fits even a very short viewport")
+  local fail = true
+  area.onLayout = function() if fail then fail = false; error("layout broke") end end
+  area:Refresh()
+  local stats = s.ns.Util.GuardStats["scroll area"]
+  assert(stats and stats.lastError:find("layout broke", 1, true), "a failing layout is recorded")
+  s.ns.Util.ClearErrors()
+  replacement:SetHeight(400); fire(replacement, "OnSizeChanged")
+  t.close(area.range, 380, "the next change measures again")
+  area.onLayout = nil
 end)
 
 t.test("scroll text grows after short text, reflows with width and fonts, and clears old scroll", function()

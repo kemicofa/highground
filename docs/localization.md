@@ -200,8 +200,11 @@ font and layout checks in the simulator do not replace live-client glyph review.
    arbitrary visible text or localize dispatch keys.
 5. For a view whose computed content must refresh on selection, use
    `ns.Localization.Watch(view, refresh)`. It runs only during initialization or
-   an explicit language change, not every frame. Read persistent error/status
-   messages at their display boundary rather than caching English at file load.
+   an explicit language change, not every frame. `Watch` replaces the view's
+   refresh; `Kit.OnLocale(view, refresh)` adds one after an existing refresh,
+   such as the title refresh of every `Options.MakePage` page. Read persistent
+   error/status messages at their display boundary rather than caching English
+   at file load.
 6. Measure longer/wrapped text in the real control. Reuse paragraph layout and
    avoid fixed widths that assume English. Add a focused behavior test for the
    migrated interaction, then check its guide and preview.

@@ -99,7 +99,7 @@ local function Build(page, owner)
     if not page.layingOut then page.layingOut = true; page.RefreshPreviews(); page.layingOut = nil end
   end)
   Core.OnFontScaleChange(function() if page.frame:IsVisible() then page.RefreshPreviews() end end)
-  ns.Localization.Watch(page, function(self) if self.frame:IsVisible() then self.RefreshPreviews() end end)
+  Kit.OnLocale(page, function(self) if self.frame:IsVisible() then self.RefreshPreviews() end end) -- after MakePage's title refresh
   page.RefreshPreviews()
 end
 

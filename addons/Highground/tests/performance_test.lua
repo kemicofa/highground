@@ -123,6 +123,21 @@ for _, client in ipairs({ "cata", "retail" }) do
     t.equal(checks, 0, "hidden profile indicators do no polling work")
   end)
 
+  t.test(client .. " the Profiles page shares the footer's throttled profile status", function()
+    local sim = new(client, {})
+    local P, C, p = sim.ns.Options.Profiles, sim.ns.Core, sim.ns.Options.panel
+    P.SaveProfile("Saved"); C.db.activeProfile = "Saved"
+    sim.ns.Hub.Open("profiles"); sim:advance(1)
+    local checks, active = 0, P.ActiveState
+    P.ActiveState = function(...) checks = checks + 1; return active(...) end
+    sim:advance(5)
+    assert(checks <= 11, "one status check per half second for the page and footer: " .. checks)
+    C.SetFeature("sniper", false); sim:advance(1.1)
+    t.equal(p.lastRevision, P.revision, "the page still notices a live edit")
+    assert(p.activeState.modified, "and shows the profile as modified")
+    sim:assertHealthy()
+  end)
+
   t.test(client .. " Home with a named profile does not copy unchanged settings every poll", function()
     local sim = new(client, {})
     local P, C = sim.ns.Options.Profiles, sim.ns.Core

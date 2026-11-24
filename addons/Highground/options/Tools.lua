@@ -146,7 +146,7 @@ local function Build(page, owner)
   page.child:HookScript("OnSizeChanged", page.LayoutCommands)
   page.frame:HookScript("OnShow", page.LayoutCommands)
   ns.Core.OnFontScaleChange(function() if page.frame:IsVisible() then page.LayoutCommands() end end)
-  ns.Localization.Watch(page, function(self) if self.frame:IsVisible() then self.LayoutCommands() end end)
+  Kit.OnLocale(page, function(self) if self.frame:IsVisible() then self.LayoutCommands() end end) -- after MakePage's title refresh
   page.LayoutCommands()
 end
 

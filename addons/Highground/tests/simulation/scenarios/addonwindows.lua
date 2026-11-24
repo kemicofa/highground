@@ -157,6 +157,23 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s:assertHealthy()
   end)
 
+  test(client .. " a failing addon switch refresh is recorded and the next one still runs", function()
+    local s = make(nil, { arena = true })
+    s.ns.Hub.Open("module-arena")
+    local p = s.ns.Hub.BuildModules("arena")
+    p.problem = "first"
+    local setText = p.status.SetText
+    p.status.SetText = function() error("status broke") end
+    p.Refresh()
+    local stats = s.ns.Util.GuardStats["addon switches"]
+    assert(stats and stats.lastError:find("status broke", 1, true), "the failure is recorded")
+    s.ns.Util.ClearErrors()
+    p.status.SetText = setText
+    p.problem = "second"; p.Refresh()
+    equal(p.status:GetText(), "second", "the page refreshes again")
+    s:assertHealthy()
+  end)
+
   test(client .. " old workspace sections open their configuration and disabled tools stay closed", function()
     local destinations = { macros = "macros-settings", reputation = "reputation-settings", bountyboard = "bounty",
       journal = "nearby", history = "battlegrounds-settings" }

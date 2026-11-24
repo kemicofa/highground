@@ -19,6 +19,25 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
       if geometry then dofile('../../tools/wowsim/geometry.lua')(s) end
     end)
   end
+  test(client .. ' a failing refresh or layout is recorded and the next one still runs', function()
+    local s=make(); local p=open(s)
+    for _, broken in ipairs({ 'assignments', 'footer' }) do
+      local method = broken == 'assignments' and 'Refresh' or 'Layout'
+      local original = p[broken][method]
+      p[broken][method] = function() error(broken .. ' broke') end
+      p.RefreshProfiles()
+      local stats = s.ns.Util.GuardStats[broken == 'footer' and 'profiles layout' or 'profiles page']
+      assert(stats and stats.lastError:find(broken .. ' broke', 1, true), 'the failure is recorded')
+      s.ns.Util.ClearErrors()
+      p[broken][method] = original
+      click(p.profileButtons.New)
+      assert(p.profileButtons.Save:IsShown(), 'the page refreshes again')
+      p.profileName:SetText(string.rep('Long name ', 3)); p.LayoutProfiles()
+      click(p.profileButtons.Copy)
+    end
+    s:assertHealthy()
+  end)
+
   test(client .. ' creation previews a source against Default and offers complete contents explicitly', function()
     local s=make(); local p,P,C=open(s);local live=P.ExportString(P.Snapshot())
     click(p.profileButtons.New);p.source:SetValue('preset:healer')

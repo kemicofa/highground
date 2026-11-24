@@ -56,6 +56,26 @@ test("Home grows its blocks with large text instead of clipping, and reuses them
   equal(Owned(), frames, "text size changes reuse the Home controls")
 end)
 
+test("Previews and Commands pages follow a language change in their titles and rows", function()
+  local sim = new("cata", {})
+  local O, L = sim.ns.Options, sim.ns.Localization
+  for _, key in ipairs({ "battlegrounds-previews", "battlegrounds-commands", "tools" }) do
+    sim.ns.Hub.Open(key)
+    local page = O.byKey[key]
+    L.SetPreference("deDE")
+    local name = sim.ns.OptionsConfig.pages[key].name
+    equal(page.name, name, key .. " page name follows the language")
+    equal(page.frame.name, name, key .. " Blizzard settings name follows the language")
+    assert(page.title:GetText():find(name, 1, true), key .. " title follows the language")
+    if page.previews then
+      assert(page.previews[1]:GetText():find("Starten Sie ", 1, true), "preview rows are relabelled too")
+    end
+    L.SetPreference("enUS")
+    assert(page.title:GetText():find(sim.ns.OptionsConfig.pages[key].name, 1, true), key .. " title returns to English")
+  end
+  sim:assertHealthy()
+end)
+
 test("sidebar scrollbar only appears when expanded navigation needs it", function()
   local sim = new("cata", {}, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
   sim.ns.Hub.Open("profiles")

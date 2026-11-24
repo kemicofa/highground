@@ -279,6 +279,18 @@ function Timers.LayoutRow(w, r, i)
   r.place:SetPoint("RIGHT", r.time, "LEFT", -4, 0)
 end
 
+-- What each row tag means, for its tooltip. Define keeps the table in the
+-- current language, so an open tooltip redrawing with each update reads it.
+local MEANINGS = ns.Localization.Define({}, {
+  YOU = "shared.windows.your_resurrection_destination.e4788f", OURS = "shared.windows.friendly_objective_or_graveyard.db4a27",
+  THEIRS = "shared.windows.enemy_objective_or_graveyard.304835", SOON = "shared.windows.your_graveyard_revives_players_soon_this_is.ba3bdc",
+  CAP = "shared.windows.capture_in_progress.2e15da", LOCK = "shared.windows.timed_node_ownership.aac8d0", RESET = "shared.windows.node_resetting.c67e3a",
+  FLAG = "shared.windows.flag_respawn_countdown.819f0d", CONTEST = "shared.windows.contested_objective.79f8ef",
+  STATUS = "shared.windows.observed_game_status.0f8c50", GATE = "shared.windows.gate_status_from_the_game.f3b238", CART = "shared.windows.observed_cart_or_delivery_objective.11cdb7",
+  ROUND = "shared.windows.round_information_from_the_game.49309c", CONTROL = "shared.windows.observed_control_progress.2ff37b",
+  EVENT = "shared.windows.recent_battleground_announcement.aad5da", OBJECTIVE = "shared.windows.observed_map_objective.3c3cd9",
+  RES = "shared.windows.awaiting_graveyard_observations.a5654e" })
+
 function Timers.RowFrame(w, i)
   local r = w.rows[i]
   if r then return r end
@@ -310,16 +322,7 @@ function Timers.RowFrame(w, i)
     if not row then return end
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     Timers.TipLine(GameTooltip, row.detail or row.text or "", "white")
-    local meanings = { YOU = ns.Locale:Get("shared.windows.your_resurrection_destination.e4788f"), OURS = ns.Locale:Get("shared.windows.friendly_objective_or_graveyard.db4a27"),
-      THEIRS = ns.Locale:Get("shared.windows.enemy_objective_or_graveyard.304835"), SOON = ns.Locale:Get("shared.windows.your_graveyard_revives_players_soon_this_is.ba3bdc"),
-      CAP = ns.Locale:Get("shared.windows.capture_in_progress.2e15da"), LOCK = ns.Locale:Get("shared.windows.timed_node_ownership.aac8d0"), RESET = ns.Locale:Get("shared.windows.node_resetting.c67e3a"),
-      FLAG = ns.Locale:Get("shared.windows.flag_respawn_countdown.819f0d"),
-      CONTEST = ns.Locale:Get("shared.windows.contested_objective.79f8ef"),
-      STATUS = ns.Locale:Get("shared.windows.observed_game_status.0f8c50"), GATE = ns.Locale:Get("shared.windows.gate_status_from_the_game.f3b238"), CART = ns.Locale:Get("shared.windows.observed_cart_or_delivery_objective.11cdb7"),
-      ROUND = ns.Locale:Get("shared.windows.round_information_from_the_game.49309c"), CONTROL = ns.Locale:Get("shared.windows.observed_control_progress.2ff37b"),
-      EVENT = ns.Locale:Get("shared.windows.recent_battleground_announcement.aad5da"), OBJECTIVE = ns.Locale:Get("shared.windows.observed_map_objective.3c3cd9"),
-      RES = ns.Locale:Get("shared.windows.awaiting_graveyard_observations.a5654e") }
-    local meaning = meanings[row.kind or row.tag] -- kind: the id behind a translated tag
+    local meaning = MEANINGS[row.kind or row.tag] -- kind: the id behind a translated tag
     if meaning then Timers.TipLine(GameTooltip, meaning, "info") end
     if row.left then
       Timers.TipLine(GameTooltip, (row.est and ns.Locale:Get("shared.windows.estimated.21ab00") or ns.Locale:Get("shared.windows.remaining.5c9d2e")) .. Timers.Clock(row.left), "text")

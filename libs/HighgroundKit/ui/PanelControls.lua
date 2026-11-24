@@ -84,14 +84,21 @@ local function FadeTarget(active)
   return Core.PanelTransparency() and not active and Core.THEME.opacity.idle or 1
 end
 
+-- A fade's own surfaces and backdrops. The registries only grow, so each
+-- hover frame repaints its members and only new registrations are checked.
+local function Collect(fade, registry, members, seen)
+  for i = (fade[seen] or 0) + 1, #registry do
+    if Core.PanelFade(registry[i]) == fade then fade[members][#fade[members] + 1] = registry[i] end
+  end
+  fade[seen] = #registry
+end
+
 local function PaintFade(fade, value)
   fade.value = value
-  for _, surface in ipairs(Core.surfaces) do
-    if Core.PanelFade(surface) == fade then Core.PaintSurface(surface) end
-  end
-  for _, frame in ipairs(Core.backdrops) do
-    if Core.PanelFade(frame) == fade then Core.PaintBackdrop(frame, true) end
-  end
+  Collect(fade, Core.surfaces, "surfaces", "surfacesSeen")
+  Collect(fade, Core.backdrops, "backdrops", "backdropsSeen")
+  for _, surface in ipairs(fade.surfaces) do Core.PaintSurface(surface) end
+  for _, frame in ipairs(fade.backdrops) do Core.PaintBackdrop(frame, true) end
 end
 
 local function FadePanel(w, active)
@@ -101,7 +108,7 @@ local function FadePanel(w, active)
     fade = CreateFrame("Frame", nil, w)
     w.wbPanelFade = fade
     fade:EnableMouse(false)
-    fade.target = target
+    fade.target, fade.surfaces, fade.backdrops = target, {}, {}
     PaintFade(fade, target)
   end
   fade.active = active

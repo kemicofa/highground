@@ -182,6 +182,9 @@ end
 if owner == "battlegrounds" then
 Options.Section(page, ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), nil, "highground.appearance.enemy_rows.26dea1")
 page.enemyControls = {}
+-- First on the page: the card sits on the enemy list, not with panel sizes.
+page.heroCard = Check("highground.appearance.suggested_target_card.12115b", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
+  function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
 CONTROL_X, stacked = 24, true
 Label("enemy.appearance.preset")
 page.enemyPreset = Kit.Select(P, { choices = A.enemyPresets, width = 220, menu = true })
@@ -266,8 +269,6 @@ page.opacity = Stepper("highground.appearance.background_opacity.f12e36", Core.B
 Check("highground.appearance.frameless.d60b06", "highground.appearance.no_background_or_border_title_bars_hide.141944",
   Core.Frameless, Core.SetFrameless)
 elseif owner == "battlegrounds" then
-Check("highground.appearance.suggested_target_card.12115b", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
-  function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
 Stepper("highground.appearance.enemies_shown.f77aae", function() return Core.db.rows end,
   function(value) Core.SetRows(value) end, 1, function(value) return tostring(value) end, function() return Core.MAX_ROWS end)
 elseif owner == "nearby" then

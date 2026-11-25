@@ -102,7 +102,8 @@ test("demotion retires private history while preserving report and reason drafts
     target = target, categories = { toxic = true }, note = "Private reporter note", revision = 1, at = W.Now() }, "Member-Realm"))
   W.Open(); W.OpenDetails(c, W.FindCase(c, target))
   local details = W.UI.details
-  assert(details.text:GetText():find("Private reporter note", 1, true), "moderator can review private notes")
+  local entry = details.view.reports[1]
+  equal(entry.body:GetText(), "Private reporter note", "moderator can review private notes")
   local approve, revoke, dismiss = s.bounds(details.approve), s.bounds(details.revoke), s.bounds(details.dismiss)
   assert(approve[1] + approve[3] < revoke[1] and revoke[1] + revoke[3] < dismiss[1], "moderator actions sit in one row without overlap")
   assert(dismiss[1] + dismiss[3] <= s.bounds(details)[1] + s.bounds(details)[3], "and fit inside the dialog")
@@ -128,7 +129,7 @@ test("demotion retires private history while preserving report and reason drafts
   s.native[42].members[W.Me()].role = 4
   s:event("CLUB_SELF_MEMBER_ROLE_UPDATED", 42)
   assert(W.UI.report:IsVisible(), "demotion preserves active report")
-  equal(details.text:GetText(), "", "hidden history no longer contains private notes")
+  assert(entry.body:GetText() == "" and not entry:IsShown(), "hidden history no longer contains private notes")
   W.UI.report:Hide()
   assert(not details:IsShown(), "closing report cannot return to obsolete moderator history")
   s.native[42].members[W.Me()].role = 1
@@ -239,9 +240,59 @@ test("moderation history names each decision instead of its internal kind", func
   local target = F.target(s)
   assert(W.Decide(c, target, "ban", { toxic = true }, "Public explanation"))
   W.Open(); W.OpenDetails(c, W.FindCase(c, target))
-  local text = W.UI.details.text:GetText()
-  assert(text:find("\nBLACKLISTED - ", 1, true), "decision label: " .. text)
-  assert(not text:find("\nBAN - ", 1, true), "no internal operation kind")
+  local v = W.UI.details.view
+  equal(v.entries[1].title:GetText(), "Blacklisted", "decision label")
+  equal(v.state:GetText(), "BLACKLISTED", "case state label")
+  equal(W.UI.details.header.sub:GetText(), W.Name(c), "subtitle names the organization only")
+end)
+
+test("details stack the record into cards that fit any width and text size", function()
+  local s = F.new("Owner", { configure = function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end })
+  local W, c = F.W(s), F.community(s)
+  local target, now = F.target(s), s.env.time()
+  s.ns.Core.SetOption("nearbyHistory", true)
+  s.ns.NearbyHistory.All()[target.name] = { class = "ROGUE", level = 60, zone = "Tarren Mill", guild = "Night Watch",
+    times = 4, killedThem = 1, killedMe = 3, first = now - 86400, last = now - 600 }
+  local note = "Camped the flight master for twenty minutes and kept whispering insults afterwards."
+  assert(W.MergeReport(c, { id = "member.report", account = "member", by = "Member-Realm", target = target,
+    categories = { toxic = true, griefing = true }, note = note, revision = 1, at = W.Now() - 3600 }, "Member-Realm"))
+  assert(W.Decide(c, target, "ban", { toxic = true, griefing = true }, "Repeated harassment."))
+  assert(W.Submit(c, target, { cheating = true }, ""))
+  W.Open(); W.OpenDetails(c, W.FindCase(c, target))
+  local f = W.UI.details
+  local v = f.view
+  equal(v.state:GetText(), "BLACKLISTED", "the hero names the state")
+  equal(v.metrics[1].value:GetText() .. "/" .. v.metrics[2].value:GetText() .. "/" .. v.metrics[3].value:GetText(), "2/1/1",
+    "reporters, awaiting review and decisions")
+  assert(v.reports[1].meta:GetText():find("^Awaiting review"), "unreviewed reports come first")
+  equal(v.reports[1].body:GetText(), "No note.", "an empty note says so")
+  equal(v.reports[2].body:GetText(), note, "a reviewed report keeps its note")
+  assert(v.class:GetText():find("Night Watch", 1, true) and v.met:GetText():find("Killed you: 3", 1, true),
+    "your Nearby history adds class, guild and encounters")
+  local function Check(label)
+    local body = s.bounds(v)
+    local bottom = body[2]
+    for i, r in ipairs({ v.hero, v.stats, v.sections.explanation.label, v.explanation, v.sections.reports.label, v.reports[1],
+      v.reports[2], v.sections.encounters.label, v.met, v.lastSeen, v.sections.history.label, v.entries[1] }) do
+      local b = s.bounds(r)
+      assert(r:IsShown() and b[2] >= bottom - 0.5, label .. ": block " .. i .. " starts below the one before")
+      assert(b[1] >= body[1] - 0.5 and b[1] + b[3] <= body[1] + body[3] + 0.5, label .. ": block " .. i .. " fits the width")
+      bottom = b[2] + b[4]
+    end
+    assert(bottom <= body[2] + body[4] + 0.5, label .. ": the scroll body holds every block")
+    local hero = s.bounds(v.hero)
+    for _, badge in ipairs(v.badges) do
+      local b = s.bounds(badge)
+      assert(b[1] + b[3] <= hero[1] + hero[3] + 0.5 and b[2] + b[4] <= hero[2] + hero[4] + 0.5, label .. ": badges wrap inside the hero")
+    end
+  end
+  Check("default")
+  -- The simulator does not raise OnSizeChanged; refresh as the game would.
+  f:SetWidth(420); f.history:Refresh()
+  Check("narrow")
+  s.ns.Core.SetFontScale(1.5)
+  Check("large text")
+  s.ns.Core.SetFontScale(1)
 end)
 
 t.finish("Reputation forms: " .. t.tests .. " scenarios")

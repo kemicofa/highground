@@ -23,6 +23,8 @@ The organization list and report form explain delivery readiness. **No moderator
 
 **Proposals** distinguishes queued reports, sending reports awaiting receipt, and reports received for review. Queued proposals survive logout/reload and retry automatically while the reporting character and an eligible moderator are online. When viewing a report from an alt, its status names the character to log into for delivery. Receipt is not approval, and a report alone never blacklists anyone.
 
+**Details** on an entry shows the player's state, approved categories, public explanation and moderation history. Moderators also see reporter and pending counts and every report with its note and review status. If your own Nearby history has met the player, their class, guild and your encounters appear too; that record stays on your computer.
+
 Reply cooldowns belong to the current character, faction and realm or Forever ruleset. Changing character rechecks organization access and clears stale cached views.
 
 Automatic replies only go to players whose whispers are blocked by Reputation. Each reply starts with a `[Highground Reputation]` prefix, in English whatever the addon language, and Highground never answers a whisper that starts with it. This stops reply loops between players who use different languages, including the translated prefixes Highground 3.0.0 sent. WoW's own chat restrictions still apply.

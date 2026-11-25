@@ -56,7 +56,7 @@ local function Rows(c, source)
   elseif c and UI.mode ~= "settings" then
     for _, row in ipairs(W.Rows(c, UI.mode)) do
       local value = row
-      local hint = row.active and W.CategoryText(row.active.categories) or row.state
+      local hint = row.active and W.CategoryText(row.active.categories) or W.StateText(row.state)
       if UI.mode == "proposals" then
         local report = not W.CanModerate(c) and W.OwnReport(c, row.target)
         hint = report and W.DeliveryText(c, report) or ns.Locale:Format("reputation.window.row_count_value2_row_pending_awaiting_review.5adbf5", { row_count = row.count, value2 = (row.count == 1 and ns.Locale:Get("reputation.window.reporter.816779") or ns.Locale:Get("reputation.window.reporters.901fa0")), row_pending = row.pending })

@@ -19,6 +19,9 @@ local ACTION_GAP = S("md")
 -- A feature may supply router/route to include browsing in its page history.
 -- state(window) may return ResolveState facts (loading/error/unavailable/
 -- disabled). Blocked providers are not read; refresh again when they recover.
+-- Optional filters = { choices (Segmented choices; the first shows every
+-- entry), match(entry, key, window), empty(key) (message when none match) }
+-- add a choice beside the search. It is part of the page state.
 function Kit.Browser(name, opts)
   local w = Kit.Dialog(name, { title = opts.title, sub = opts.hint or "", width = opts.width or 760, height = opts.height or 610,
     savedKey = not opts.transient and name or nil, strata = opts.strata or "DIALOG", alpha = opts.alpha, child = opts.child })
@@ -28,6 +31,19 @@ function Kit.Browser(name, opts)
   w.search:HookScript("OnTextChanged", function() w.offset = 0; w:Refresh() end)
   w.clear = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.board.clear_search.67300d"), 120, Z("input"), { onClick = function() w.search:SetText("") end }), "shared.board.clear_search.67300d")
   w.clear:SetPoint("LEFT", w.search, "RIGHT", S("lg"), 0)
+  -- w.filterKey is the applied choice: the control changes before the
+  -- page it leaves is captured for Back.
+  local filters = opts.filters
+  local everything = filters and filters.choices[1].key
+  local function Choose(key)
+    local state = w:CaptureNavigation()
+    state.filter, state.offset, state.selected, state.scroll = key, 0, nil, 0
+    w:Navigate(state)
+  end
+  if filters then
+    w.filterKey = everything
+    w.filter = Kit.Segmented(w, { choices = filters.choices, onChange = function(_, key) Choose(key) end })
+  end
   -- Themed detail scrolling; .detailBody is the scroll body that renderers fill.
   w.detailScroll = Kit.ScrollArea(w)
   w.detailBody = w.detailScroll.body
@@ -109,6 +125,13 @@ function Kit.Browser(name, opts)
     -- Rows fill the height between the list top and the status/pager footer.
     self.visible = math.max(1, math.min(#self.rows, math.floor((self:GetHeight() - LIST_Y - STATUS_Y - S("xl") * 2 - footer) / step)))
     self.search:SetWidth(width)
+    if self.filter then
+      -- Right of Clear search, to the window's edge, centred on the search.
+      local left = INSET + width + S("lg") + self.clear:GetWidth() + GAP
+      self.filter:Layout(math.max(1, self:GetWidth() - INSET - left))
+      Kit.Place(self.filter, "TOPRIGHT", self, "TOPRIGHT", -INSET,
+        -SEARCH_Y - (self.search:GetHeight() - self.filter:GetHeight()) / 2)
+    end
     Kit.Place(self.status, "BOTTOMLEFT", self, "BOTTOMLEFT", INSET, STATUS_Y + footer)
     self.status:SetWidth(width)
     Kit.Place(self.prev, "BOTTOMLEFT", self, "BOTTOMLEFT", INSET, INSET + (opts.footerHeight or 0))
@@ -133,13 +156,16 @@ function Kit.Browser(name, opts)
     for key, value in pairs(opts.state and opts.state(self) or {}) do facts[key] = value end
     local blocked = Kit.ResolveState(facts).blocked
     local list = not blocked and opts.data(self) or {}
+    local filter = self.filterKey ~= everything and self.filterKey or nil
     self.items = {}
     for _, e in ipairs(list or {}) do
-      if query == "" or (e.search or ((e.title or "") .. " " .. (e.detail or ""))):lower():find(query, 1, true) then
+      if (query == "" or (e.search or ((e.title or "") .. " " .. (e.detail or ""))):lower():find(query, 1, true))
+        and (not filter or filters.match(e, filter, self)) then
         self.items[#self.items + 1] = e
       end
     end
-    facts.count, facts.filtered, facts.empty = #self.items, query ~= "", opts.empty
+    facts.count, facts.filtered, facts.empty = #self.items, query ~= "" or filter ~= nil, opts.empty
+    if filter and query == "" and filters.empty then facts.filtered = filters.empty(filter) end
     self.viewState = Kit.ResolveState(facts)
     local count = self.visible
     self.offset = math.max(0, math.min(self.offset, math.floor(math.max(0, #self.items - 1) / count) * count))
@@ -186,10 +212,14 @@ function Kit.Browser(name, opts)
   local router, route = opts.router or ns.Router.New(), opts.route or "entries"
   function w:CaptureNavigation()
     return { query = self.search:GetText(), offset = self.offset, selected = self.selected,
-      scroll = self.detailScroll:GetVerticalScroll() }
+      scroll = self.detailScroll:GetVerticalScroll(), filter = self.filterKey }
   end
   function w:RestoreNavigation(state)
     state = state or {}
+    if self.filter then
+      self.filterKey = self.filter.byKey[state.filter] and state.filter or everything
+      self.filter:SetValue(self.filterKey, true)
+    end
     self.search:SetText(state.query or "")
     self.offset, self.selected = state.offset or 0, state.selected
     self:Refresh(); self.detailScroll:SetVerticalScroll(state.scroll or 0)
@@ -197,6 +227,12 @@ function Kit.Browser(name, opts)
   function w:Navigate(state)
     local current = router:Current()
     return router:Navigate({ name = route, params = current and current.params, state = state }, { restoreState = true })
+  end
+  -- Choose a filter as the player would; false for an unknown key.
+  function w:SetFilter(key)
+    if not (self.filter and self.filter.byKey[key]) then return false end
+    if key ~= self.filterKey then Choose(key) end
+    return true
   end
   function w:Select(key)
     if key == self.selected then return router:Navigate(router:Current() or { name = route, state = self:CaptureNavigation() }) end

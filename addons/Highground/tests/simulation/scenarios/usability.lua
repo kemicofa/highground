@@ -93,6 +93,10 @@ test("journal paging, searching and undo stay usable at " .. scale * 100 .. "% t
   equal(#w.items, 0)
   assert(w.detail.text:find("Clear the search", 1, true))
   assert(w.clear:IsVisible() and not w.prev:IsVisible() and not w.next:IsVisible())
+  local clear, filter, frame = sim.bounds(w.clear), sim.bounds(w.filter), sim.bounds(w)
+  assert(clear[1] + clear[3] < filter[1], "the filter sits beside Clear search")
+  assert(filter[1] + filter[3] <= frame[1] + frame[3], "the filter fits the window")
+  for _, b in ipairs(w.filter.buttons) do assert(b:IsVisible() and b:GetWidth() >= 80, "each filter choice is readable") end
   assert(not w.actions[4]:IsEnabled())
   click(w.clear); equal(#w.items, 12)
   w.search:SetText(selected); equal(#w.items, 1)

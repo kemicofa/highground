@@ -224,7 +224,7 @@ t.test("/hg nearby switches the list, counts sightings and clears them", functio
   assert(next(sim.ns.NearbyHistory.All()), "history kept by clear")
   out = run(sim, "nearby forget")
   equal(next(sim.ns.NearbyHistory.All()), nil, "history forgotten")
-  assert(has(out, "enemy history forgotten"), "forget confirmed")
+  assert(has(out, "Enemy history forgotten. Tracked enemies and bounty targets stay."), "forget confirmed")
   out = run(sim, "nearby later")
   assert(has(out, "| /hg nearby on | off | test | clear | forget"), "unknown word prints status and choices")
 end)

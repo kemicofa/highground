@@ -104,13 +104,18 @@ end
 
 local function Last(h) return type(h) == "table" and tonumber(h.last) or 0 end
 
+-- A bounty you can see on this name, while the Bounties addon is on.
+function History.HasBounty(name)
+  local B = ns.Bounty
+  return type(name) == "string" and B ~= nil and (not ns.Modules or ns.Modules.Active("bounties"))
+    and B.Find(name) ~= nil
+end
+
 -- Tracked enemies and bounty targets are never deleted: not by the size
 -- limit, forgetting the history or the journal's Delete.
 function History.Kept(name, h)
   if type(h) ~= "table" then return false end
-  if h.tracked then return true end
-  local B = ns.Bounty
-  return type(name) == "string" and B ~= nil and B.Find(name) ~= nil
+  return h.tracked == true or History.HasBounty(name)
 end
 local Kept = History.Kept
 

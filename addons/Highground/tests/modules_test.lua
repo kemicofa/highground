@@ -187,6 +187,13 @@ for _, client in ipairs({ "cata", "retail" }) do
     local success = O.Coach.nearbySample.bounty(O.Coach.nearbySample.entries()[1])
     assert(success == false and not s.ns.Bounty.Form.previewWin, "sample journal explains the unavailable addon")
     O.Return(); assert(not s.ns.Nearby.preview and not s.ns.Setup.placement)
+    local H = s.ns.NearbyHistory.All()
+    H["Enemy-Realm"] = { times = 1, killedMe = 0, killedThem = 0, first = 1, last = 1 }
+    s:command("journal bounty")
+    t.equal(s.ns.Hub.current, "module-bounties", "/hg journal bounty points to the disabled addon")
+    local w = s.ns.EnemyJournal.Open()
+    assert(w:IsVisible() and not w.filter.byKey.bounty:IsEnabled(), "the Bounty filter needs the addon")
+    s:command("nearby forget"); t.equal(next(H), nil, "forgetting works without the addon")
     s:assertHealthy()
   end)
 end

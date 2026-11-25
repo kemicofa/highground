@@ -14,7 +14,7 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Link("nearby tracking on", "tracking.commands.switch", "nearby", "tracking.commands.switch_label", { aliases = { "nearby tracking off" } }),
   C.Action("nearby track", "tracking.commands.track", "tracking.commands.track_label", { usage = "NAME", fields = Name() }),
   C.Action("nearby untrack", "tracking.commands.untrack", "tracking.commands.untrack_label", { usage = "NAME", fields = Name() }),
-  C.Tool("nearby tracked", "tracking.commands.list", "journal", "tracking.commands.list_label"),
+  C.Tool("nearby tracked", "tracking.commands.list", "journal", "tracking.commands.list_label", { toolArg = "tracked" }),
   C.Link("nearby watch on", "tracking.commands.watch", "nearby", "tracking.commands.watch_label", { aliases = { "nearby watch off" } }),
   C.Action("nearby mark", "marks.commands.mark", "marks.commands.mark_label", { usage = "enemies|ganker|help", fields = {
     ns.Localization.Define({ label = ns.Locale:Get("marks.commands.type"), choices = function()
@@ -30,11 +30,13 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Action("guide nearby", "nearby.commands.guide", "nearby.commands.guide_label", { aliases = { "nearby guide", "checklist nearby" } }),
   C.Link("nearby test", "nearby.commands.start_or_stop_the_nearby_enemy_sample.f6cd99", "nearby-previews", "nearby.commands.nearby_preview_controls.405cb3"),
   C.Action("nearby clear", "nearby.commands.clear_current_nearby_sightings.0272a7", "nearby.commands.clear_nearby_sightings.383754", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.clear_current_nearby_sightings.0f891d") }, { confirm = "nearby.commands.clear_current_nearby_sightings.0f891d" })),
-  C.Action("nearby forget", "nearby.commands.forget_saved_enemy_encounter_history.dca8f5", "nearby.commands.forget_enemy_history.d2bf57", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.forget_all_saved_enemy_encounter_history.49c687") }, { confirm = "nearby.commands.forget_all_saved_enemy_encounter_history.49c687" })),
+  C.Action("nearby forget", "journal.forget.command", "nearby.commands.forget_enemy_history.d2bf57", ns.Localization.Define({ confirm = ns.Locale:Get("journal.forget.confirm") }, { confirm = "journal.forget.confirm" })),
   C.Link("nearby feed on", "feed.commands.switch", "nearby", "feed.commands.switch_label", { aliases = { "nearby feed off" } }),
   C.Tool("activity", "activity.commands.open", "activity", "activity.commands.open_label"),
   C.Link("activity test", "activity.commands.test", "nearby-previews", "activity.commands.test_label"),
-  C.Tool("journal", "nearby.commands.search_encounters_write_notes_mute_alerts_or.4997c6", "journal", "highground.toursteps.open_enemy_journal.87d457"),
+  C.Tool("journal", "nearby.commands.search_encounters_write_notes_mute_alerts_or.4997c6", "journal", "highground.toursteps.open_enemy_journal.87d457", { toolArg = "all", aliases = { "journal all" } }),
+  C.Tool("journal tracked", "journal.commands.tracked", "journal", "journal.commands.tracked_label", { toolArg = "tracked" }),
+  C.Tool("journal bounty", "journal.commands.bounty", "journal", "journal.commands.bounty_label", { toolArg = "bounty" }),
 }, {
   ns.Localization.Define({ cmd = "nearby test", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df"), desc = ns.Locale:Get("nearby.commands.open_world_enemy_list.3aeeb3") }, { label = "highground.profilesummary.nearby_enemies.85f5df", desc = "nearby.commands.open_world_enemy_list.3aeeb3" }),
 })

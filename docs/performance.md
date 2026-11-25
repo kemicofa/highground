@@ -25,7 +25,8 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_tick.lua cata 30` | `addons/Highground/` | Allocations per battleground tick stage, then retained growth over 30 virtual minutes |
 | `luajit ../../tools/performance_events.lua cata 1000` | `addons/Highground/` | Bytes allocated per native event in a live battleground with 15 enemies, then the tick's allocations and widget calls (`retail` also works) |
 | `luajit ../../tools/performance_nearby.lua cata world 15 25 60` | `addons/Highground/` | Open-world nameplate churn: aura, flag and combat-log bursts for Nearby (`retail`/`forever`, `instance`/`off`) |
-| `luajit ../../tools/performance_pvp.lua bg cata 60` | `addons/Highground/` | Battleground, arena and world event traffic through the PvP observers (`world`/`arena`, `retail`/`forever`) |
+| `luajit ../../tools/performance_pvp.lua bg cata 60` | `addons/Highground/` | Battleground, arena and world event traffic through the PvP observers (`world`/`arena`, `retail`/`forever`; add `map` to keep both maps open) |
+| `luajit ../../tools/performance_world_map.lua cata 60` | `addons/Highground/` | Open-world sightings, shared sightings, tracking reports, marks and kills with the world and zone maps open (`retail`/`forever`, `closed`) |
 | `luajit ../../tools/performance_hub.lua cata 5` | `addons/Highground/` | Idle Home with and without a named profile, then the closed window |
 | `luajit ../../tools/performance_bounty_idle.lua 5 form loading` | `addons/Highground/` | Forever, two communities, empty bounty records: closed UI, the idle bounty board (`board`) or Create Bounty open (`form`), with organizations ready or still `loading` |
 | `luajit ../../tools/performance_panel_idle.lua retail split` | `addons/Highground/` | Idle HUD panel cogs and fades with exact and rounded alpha readback (`cata`, `compact` also work) |
@@ -196,6 +197,45 @@ reachable), `tests/reputation_filtering_test.lua` (one parse per sender),
 the `macroedges` and `profileshare` simulations, and `tests/ui_lists.lua`
 (measured lists, colour edit boxes).
 
+## Open maps
+
+An open map refreshes its pin layers once per map frame: every second in
+the open world, twice a second in battlegrounds. Each refresh built every
+pin item again, with a tooltip closure per pin, a colour table per ring,
+cluster cells, sort comparators and key and label strings. Layers now
+rewrite the items they returned last time, kept per map frame so a pin on
+one map never reads the other's (`MapPins.Add` passes the provider).
+Tooltips are module functions that read the hovered item; released pins
+let go of their item. Received sightings check whether the enemy is
+tracked before building a report, and map names are read once.
+Simulator allocations per minute with the world map and the zone map
+open, after a minute of the same traffic:
+
+| `performance_world_map.lua <client> 60` | Cata | Retail | Forever |
+| --- | ---: | ---: | ---: |
+| World map refreshes | 6,708 → 376 KiB | 6,836 → 394 KiB | 6,708 → 376 KiB |
+| Received sightings, maps open | 480 → 60 KiB | 501 → 70 KiB | 484 → 63 KiB |
+| Everything | 7,868 → 1,116 KiB | 8,669 → 1,796 KiB | 7,617 → 864 KiB |
+
+| `performance_pvp.lua bg <client> 60 map` | Cata | Retail | Forever |
+| --- | ---: | ---: | ---: |
+| Battleground map refreshes | 4,921 → 523 KiB | 4,921 → 525 KiB | 5,326 → 523 KiB |
+
+What remains is the simulator's own widget work (heat pins' hit
+rectangles, layout geometry); the layers allocate nothing in a steady
+state. Fight rings below their 8 px minimum were also rebuilt on every
+refresh. Pins appear, fade and group as before.
+
+Map IDs in received sightings, marks, kills and tracking reports come
+from other players. Unknown IDs are dropped, and the answers, map
+rectangles and widths are capped at 256 entries each. Watch requests and
+reports expire during chat lockdown too and go when watching stops;
+remembered sightings expire while Nearby is paused or off; heat older than
+the hour goes once a minute, and all of it when the heatmap is switched
+off. `tests/performance/maps.lua` budgets both maps' layers on Cata and
+Retail and received batches; `tests/world_maps_test.lua` covers the item
+reuse, unknown maps, caps and expiry.
+
 ## In-game capture
 
 When the live client still grows or stutters after a simulated fix, reload so the changed code is loaded, then run `/hg perf start` with the affected UI state. It records 60 seconds of sampled FPS, guarded callback CPU and allocations, addon memory at start and end, buffer sizes and roster-work counts, then stops and restores the original functions. `/hg perf` prints the largest sources and `/hg perf stop` ends early. `/reload` after it finishes writes `HighgroundDB.lastPerformance` to SavedVariables.
@@ -246,4 +286,3 @@ Still open; each needs a live check before changing:
 - Retail reads four aura lists per visible enemy per tick. `GetUnitAuras` returns new tables, and only the first aura is used.
 - Cata reads every aura of every visible enemy per tick. `UNIT_AURA` could gate re-reads, but `raidNtarget` and `mouseover` tokens get no aura events.
 - Each combat-log listener calls `CombatLogGetCurrentEventInfo` itself.
-- An open battleground map rebuilds every pin item, tooltip closure and colour table twice a second, about 2.3 MiB per minute in the simulator.

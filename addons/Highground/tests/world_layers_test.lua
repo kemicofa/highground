@@ -66,7 +66,7 @@ end
 
 local function tip(item)
   local lines = {}
-  item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
+  item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }, item)
   return table.concat(lines, "\n")
 end
 

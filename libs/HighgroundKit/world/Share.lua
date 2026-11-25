@@ -78,10 +78,8 @@ function Share.Here()
   return here.map, here.x, here.y
 end
 
-function Share.MapName(mapID)
-  local ok, info = pcall(C_Map.GetMapInfo, mapID)
-  return ok and type(info) == "table" and Plain(info.name) and info.name or nil
-end
+-- A map's name, read once (world/Map.lua).
+function Share.MapName(mapID) return ns.WorldMap.Name(mapID) end
 
 -- How far an enemy you see can be from you, in yards: melee, about 28
 -- yards (interaction distance 4), else a nameplate's reach.
@@ -166,8 +164,10 @@ local function Freshest(a, b) return a.last > b.last end
 
 -- Up to MAX_PARTS messages, freshest sightings first. What does not fit
 -- stays queued for the next batch; stale and received entries are dropped.
-local byMap = {}
+-- The lists are reused between batches.
+local byMap, spare, tokens, entries = {}, {}, {}, {}
 local function Batch(audience, channel, now, target)
+  for _, list in pairs(byMap) do spare[#spare + 1] = list end
   wipe(byMap)
   local queue, seen = queues[audience], ns.Nearby.seen
   for name in pairs(queue) do
@@ -175,8 +175,12 @@ local function Batch(audience, channel, now, target)
     if not (e and not e.by and e.mapID and now - e.last <= Share.FRESH) then
       queue[name] = nil
     else
-      local list = byMap[e.mapID] or {}
-      byMap[e.mapID] = list
+      local list = byMap[e.mapID]
+      if not list then
+        list = table.remove(spare) or {}
+        wipe(list)
+        byMap[e.mapID] = list
+      end
       list[#list + 1] = e
     end
   end
@@ -186,7 +190,8 @@ local function Batch(audience, channel, now, target)
     local head = "1:" .. map .. ":"
     local i = 1
     while i <= #list and parts < Share.MAX_PARTS do
-      local tokens, len, entries = {}, #head, {}
+      local len = #head
+      wipe(tokens); wipe(entries)
       while i <= #list do
         local token = Token(list[i], now, audience == "world")
         if #tokens > 0 and len + #token + 1 > 250 then break end
@@ -329,6 +334,7 @@ function Share.Receive(text, channel, sender, ...)
   local ver, map, body = text:match("^(%d+):(%d+):(.*)$")
   if ver ~= "1" then return end
   map = tonumber(map)
+  if not ns.WorldMap.Known(map) then return end
   -- Everyone's sightings from other zones would only fill the list: they
   -- only add heat.
   local far = via == "world" and map ~= Share.Here()
@@ -358,7 +364,10 @@ function Share.Receive(text, channel, sender, ...)
         if Share.Merge(name, class ~= "" and class or nil, level > 0 and level or nil, guild ~= "" and guild or nil,
           map, x, y, math.min(tonumber(r), 500), at, from, via, layer) then
           changed = true
-          if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via, layer = layer }) end
+          -- A report only for a tracked enemy: no table per sighting.
+          if ns.Tracking and ns.Tracking.On() and ns.Tracking.Get(name) then
+            ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via, layer = layer })
+          end
           if ns.WorldCalls then ns.WorldCalls.Sighting(name, map, from, via) end
         end
       end

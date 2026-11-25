@@ -160,7 +160,7 @@ end
 
 local function tooltip(item)
   local lines = {}
-  item.tooltip({ AddLine = function(_, text) lines[#lines + 1] = text end })
+  item.tooltip({ AddLine = function(_, text) lines[#lines + 1] = text end }, item)
   return table.concat(lines, " "):lower()
 end
 

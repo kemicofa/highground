@@ -50,7 +50,7 @@ function ZonePinMixin:OnMouseEnter()
   local item = self.item
   if not (item and item.tooltip) then return end
   GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-  if Util.Guard("map zone tooltip", item.tooltip, GameTooltip) then
+  if Util.Guard("map zone tooltip", item.tooltip, GameTooltip, item) then
     GameTooltip:Show()
   end
 end
@@ -58,6 +58,13 @@ end
 function ZonePinMixin:OnMouseLeave()
   self:SetHighlight(false)
   GameTooltip_Hide()
+end
+
+-- Back in the map's pool: forget the item, which a producer may reuse.
+function ZonePinMixin:OnReleased()
+  local item = self.item
+  if item and item.pin == self then item.pin = nil end
+  self.item = nil
 end
 
 -- Heat pins live in map units too: a soft blob three cells wide, so
@@ -88,3 +95,4 @@ end
 HeatPinMixin.OnMouseEnter = ZonePinMixin.OnMouseEnter
 function HeatPinMixin:SetHighlight() end
 HeatPinMixin.OnMouseLeave = ZonePinMixin.OnMouseLeave
+HeatPinMixin.OnReleased = ZonePinMixin.OnReleased

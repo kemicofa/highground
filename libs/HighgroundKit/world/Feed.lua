@@ -73,6 +73,7 @@ function Feed.Receive(text, channel, sender, ...)
   if not (map and (killer == from or victim == from) and killer ~= victim and age <= Feed.KEEP) then return end
   local at = GetTime() - age
   map, x, y = tonumber(map), tonumber(x) / 10000, tonumber(y) / 10000
+  if not ns.WorldMap.Known(map) then return end
   if x < 0 or x > 1 or y < 0 or y > 1 then x, y = nil, nil end
   -- The sender is on your side: their kill is yours, their death theirs.
   if ns.WorldHeat then

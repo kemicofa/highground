@@ -15,7 +15,7 @@ for _, case in ipairs({ { "cata", 65 }, { "retail", 60 }, { "retail", 30, true }
     for _, item in ipairs(sim.env.WorldMapFrame.pins) do
       if item.x == 0.2 and item.item.tooltip then
         local lines = {}
-        item.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
+        item.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }, item.item)
         if table.concat(lines, " "):find("Stables", 1, true) then pin = item end
       end
     end

@@ -16,7 +16,9 @@ local Heat = ns.WorldHeat
 -- with kills gets a badge: the leading side's crest and both sides' kills.
 -- Open world only. Event-driven, no tickers: an open map rebuilds its
 -- items at most every 2 seconds, and every 10 while nothing changes,
--- rewriting the same item tables.
+-- rewriting the same item tables. The world map's tick (world/Map.lua)
+-- drops data older than the window once a minute, and all of it once the
+-- heatmap is switched off.
 ---------------------------------------------------------------------------
 Heat.WINDOW = 3600 -- seconds anything counts: an hour at most
 Heat.CELLS = 20 -- across the shown map: Share's coarse squares on a zone map
@@ -43,10 +45,13 @@ end
 -- Drop what adds no heat; when still full, the oldest tenth, so a busy
 -- realm sorts once per many sightings instead of scanning on each.
 local ages = {}
-local function Prune(now)
+local function Expire(now)
   for key, s in pairs(spots) do
     if now - s.at > Heat.WINDOW then spots[key], count = nil, count - 1 end
   end
+end
+local function Prune(now)
+  Expire(now)
   if count < Heat.MAX then return end
   wipe(ages)
   for _, s in pairs(spots) do ages[#ages + 1] = s.at end
@@ -95,6 +100,19 @@ end
 function Heat.Clear()
   wipe(spots); wipe(kills); wipe(cache); count = 0
   rev = rev + 1
+end
+
+-- Once a second (world/Map.lua): switched off, drop everything; else drop
+-- what the window no longer counts, once a minute.
+local sweptAt = -math.huge
+function Heat.Tick()
+  if count == 0 and not kills[1] then return end
+  if not Heat.On() then return Heat.Clear() end
+  local now = GetTime()
+  if now - sweptAt < 60 then return end
+  sweptAt = now
+  Expire(now)
+  while kills[1] and now - kills[1].at > Heat.WINDOW do table.remove(kills, 1) end
 end
 
 -- The preview's crowd, placed around you like Nearby's samples

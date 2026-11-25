@@ -20,7 +20,7 @@ test("remote node announcements place last-seen enemies and ownership does not r
     equal(pin.x, 0.35904251, "announcement selects Lighthouse capture flag")
     equal(pin.y, 0.62878461, "announcement selects Lighthouse capture flag")
     local lines = {}
-    pin.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
+    pin.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }, pin.item)
     local tip = table.concat(lines, " ")
     assert(tip:find("Scout", 1, true) and tip:find("Last seen %d+s ago") and not tip:find(" by ", 1, true),
       "a circled enemy's tooltip gives only who and how long ago")
@@ -85,7 +85,7 @@ test("approximate sightings share a faint circle that holds their enemies on bot
         enemies[1].scripts.OnLeave(enemies[1])
       end
       local lines = {}
-      zone.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
+      zone.item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }, zone.item)
       assert(table.concat(lines, " "):find("Somewhere in this circle", 1, true), "the circle explains itself")
     end
   end
@@ -187,10 +187,12 @@ test("local coordinates flow through observations, packets and both map canvases
   assert(sent, "observation broadcast from actual queue")
   sim.units[token] = nil
   sim:advance(6)
-  local early = sim.env.WorldMapFrame.pins[1].item
+  -- Items are reused between refreshes: compare copies of their values.
+  local function look(item) return { desat = item.desat, alpha = item.alpha, size = item.size } end
+  local early = look(sim.env.WorldMapFrame.pins[1].item)
   equal(early.desat > 0, true, "old observations grey out")
   sim:advance(60)
-  local late = sim.env.WorldMapFrame.pins[1].item
+  local late = look(sim.env.WorldMapFrame.pins[1].item)
   equal(late.desat > early.desat and late.alpha < early.alpha and late.size < early.size, true,
     "older observations are greyer, fainter and smaller")
   sim:advance(60)

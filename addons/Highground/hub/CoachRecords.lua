@@ -87,6 +87,13 @@ function P.Availability()
   return { ready = true, label = ns.Locale:Get("highground.coachrecords.enabled_moderator_online.21d494"), message = ns.Locale:Get("highground.coachrecords.a_sample_moderator_can_receive_this_proposal.a2aac7") }
 end
 function P.DeliveryText() return ns.Locale:Get("highground.coachrecords.received_awaiting_review.ed989d") end
+-- A sample encounter record, so the Details view shows what Nearby history adds.
+function P.Encounter(target)
+  if not (R.data and W.Same(target, R.data.target)) then return nil end
+  R.data.encounter = R.data.encounter or { class = "ROGUE", level = 60, zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"),
+    times = 3, killedThem = 1, killedMe = 2, first = time() - 86400, last = time() - 1800 }
+  return R.data.encounter
+end
 function P.Disable() R.data.community.enabled = false; P.Changed() end
 function P.RequestSync()
   local data, request = R.data, {}
@@ -127,8 +134,10 @@ function P.Submit(c, target, categories, note)
   if not W.ValidTarget(target) then return nil, ns.Locale:Get("highground.coachrecords.select_an_exact_player_identity.d6a825") end
   categories = W.Categories(categories)
   if not categories then return nil, ns.Locale:Get("highground.coachrecords.choose_at_least_one_category.2d9bda") end
-  local row = P.FindCase(c, target) or { target = W.Copy(target), reports = {}, actions = {}, count = 1 }
-  local report = { by = "Sample Member-Example", categories = categories, note = W.Text(note, 280), delivery = ns.Locale:Get("highground.coachrecords.received_in_sample.cb63da") }
+  local row = P.FindCase(c, target) or { target = W.Copy(target), reports = {}, actions = {}, reviewed = {}, count = 1 }
+  local old = row.reports.sample
+  local report = { by = "Sample Member-Example", account = "sample", revision = old and old.revision + 1 or 1, at = time(),
+    categories = categories, note = W.Text(note, 280), delivery = ns.Locale:Get("highground.coachrecords.received_in_sample.cb63da") }
   row.reports.sample, row.pending, row.state = report, 1, row.active and "blacklisted" or "proposed"
   R.data.row, R.data.submissions = row, R.data.submissions + 1
   P.Changed(); return report
@@ -140,10 +149,12 @@ function P.Decide(c, target, kind, categories, note)
   categories, note = W.Categories(categories), W.Text(note, 280)
   if kind == "ban" and not categories then return nil, ns.Locale:Get("highground.coachrecords.choose_at_least_one_category.2d9bda") end
   if kind ~= "ban" and note == "" then return nil, ns.Locale:Get("highground.coachrecords.a_reason_is_required.6b13e9") end
-  local row = P.FindCase(c, target) or { target = W.Copy(target), reports = {}, actions = {}, count = 0 }
+  local row = P.FindCase(c, target) or { target = W.Copy(target), reports = {}, actions = {}, reviewed = {}, count = 0 }
   local op = { id = "sample:" .. (#row.actions + 1), clock = #row.actions + 1, kind = kind,
     at = time(), by = "Sample Officer-Example", categories = categories or {}, note = note }
   row.actions[#row.actions + 1] = op
+  -- A decision reviews the reports it saw, as W.Decide records.
+  for account, report in pairs(row.reports) do row.reviewed[account] = report.revision end
   if kind == "ban" then row.active = op elseif kind == "revoke" then row.active = nil end
   row.pending, row.state = 0, row.active and "blacklisted" or kind == "revoke" and "revoked" or "dismissed"
   R.data.row, R.data.decisions = row, R.data.decisions + 1
@@ -236,9 +247,9 @@ function C.ReputationSteps()
       function() Open("overview", true); P.Get().activated = false; P.Changed() end,
       function() return U.window.openReports end,
       function() return P.CanModerate(P.Get()) and U.mode == "proposals" end, ns.Locale:Get("highground.coachrecords.click_enable_moderation_your_real_role_stays.9c4ac2")), { title = "highground.coachrecords.enable_moderation_when_you_are_ready.1ef1b7", text = "highground.coachrecords.sample_officer_view_if_you_already_participate.dc1f5a" }),
-    ns.Localization.Define(Step("details_open", ns.Locale:Get("highground.coachrecords.inspect_the_proposal.78f73b"), ns.Locale:Get("highground.coachrecords.sample_officer_view_details_opens_the_player.b61867"),
+    ns.Localization.Define(Step("details_open", ns.Locale:Get("highground.coachrecords.inspect_the_proposal.78f73b"), ns.Locale:Get("highground.coachrecords.sample_officer_view_details_opens_the_player.387e1f"),
       function() Open("proposals", true); Proposal() end, function() return U.window.rows[1].action end,
-      function() return Visible(U.details) end, ns.Locale:Get("highground.coachrecords.click_details.96898c")), { title = "highground.coachrecords.inspect_the_proposal.78f73b", text = "highground.coachrecords.sample_officer_view_details_opens_the_player.b61867" }),
+      function() return Visible(U.details) end, ns.Locale:Get("highground.coachrecords.click_details.96898c")), { title = "highground.coachrecords.inspect_the_proposal.78f73b", text = "highground.coachrecords.sample_officer_view_details_opens_the_player.387e1f" }),
     ns.Localization.Define(Step("review", ns.Locale:Get("highground.coachrecords.review_before_approving.2cea1b"), ns.Locale:Get("highground.coachrecords.read_the_report_and_its_note_review.8aa605"),
       function() Details(false) end, function() return Visible(U.reason) and U.reason.submit or U.details.approve end,
       function()

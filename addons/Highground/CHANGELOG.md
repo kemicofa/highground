@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Reputation: **Details** is a player card instead of a block of text. It shows the state, approved categories as badges, the public explanation and a timeline of decisions; moderators also get reporter and pending counts and each report with its note and review status. When your Nearby history knows the player, their class, guild and your encounters are listed. The History tab and Details name states such as **Awaiting review** instead of internal words.
 - Arena: duels no longer open the Arena panel; it is for arena matches on Retail and Cataclysm Classic. WoW Forever has no arenas, so Highground there has no Arena addon: no pages, commands, guide chapter, previews or profile entries.
 - Battlegrounds do less work while you play. The kill-order panel, Timers, the win forecast, map intel and bounty kill tracking reuse what they already know instead of rebuilding it several times a second: in a simulated 15v15 match Highground makes about two thirds less garbage on Cataclysm and a quarter less on WoW Forever. The panel also follows a focus change at once, as it does for your target, and a capture bar leaves a nameplate as soon as that nameplate goes away instead of up to a quarter second later over another unit.
 - **World activity** has a sample: `/hg activity test`, or **World activity** on Nearby's Previews page. `/hg nearby guide` starts the Nearby walkthrough, like `/hg guide nearby`.

@@ -154,7 +154,7 @@ function UI.RefreshDialogs(source)
   f = UI.details
   if f and f.community and (not W.Joined(f.community) or f.moderator and not W.CanModerate(f.community)) then
     -- A suspended history window must not reveal private notes on return.
-    f.text:SetText(""); f.row = nil
+    f:Clear()
     K.Windows.Close(f)
   end
 end

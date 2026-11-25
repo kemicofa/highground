@@ -10,7 +10,7 @@ LANGUAGES = ("deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zh
 class LayoutTests(unittest.TestCase):
     def test_only_highground_is_a_public_addon(self):
         self.assertEqual(set(addons.load(include_deprecated=True)), {"Highground"})
-        expected = {"Highground", "HighgroundBountyData", "HighgroundReputationData"}
+        expected = {"Highground", "HighgroundBountyData", "HighgroundReputationData", "HighgroundMatchData"}
         expected.update("HighgroundModule" + name for name in
                         ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation"))
         expected.update("HighgroundLocale" + code[0].upper() + code[1:] for code in LANGUAGES)

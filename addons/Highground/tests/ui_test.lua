@@ -91,6 +91,7 @@ local function client(saved)
     s.timerScale = env.HighgroundDB.scale
   end
   fire("ADDON_LOADED", "Highground")
+  ns.Options.BuildPage("general") -- settings pages build on first open
   s.ns, s.main, s.db = ns, main, env.HighgroundDB
   function s:regen()
     self.combat = false

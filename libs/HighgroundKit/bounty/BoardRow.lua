@@ -26,7 +26,7 @@ function Row.Build(parent)
   function r.details:RefreshFinish(immediate)
     finish(self, immediate)
     self.edge:SetColor("posterEdge")
-    self.glow:SetColor("posterEdge")
+    if self.glow then self.glow:SetColor("posterEdge") end
   end
   Kit.Paint(r.details, "posterInk", "posterPaper")
   Kit.Tooltip(r.details, function() return { ns.Locale:Get("shared.boardrow.view_wanted_poster.9a40a3"), ns.Locale:Get("shared.boardrow.open_the_full_portrait_reward_progress_and.1153d7") } end)

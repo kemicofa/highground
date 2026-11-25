@@ -36,7 +36,8 @@ local function start(saved, locale, inject)
   end)
 end
 local function control(s)
-  return s.ns.Options.general.language
+  -- Settings pages build on first use, which may follow a language change.
+  return s.ns.Options.BuildPage("general").language
 end
 local saved = {}
 local s = start(saved, "frFR", true)
@@ -68,9 +69,9 @@ assert(not p.select:SetValue("invalid"))
 ns.Kit.Dropdown.Hide()
 s:assertHealthy()
 
--- SavedVariables are applied after module load: already created labels update.
+-- SavedVariables are applied after module load: controls show the saved locale.
 local restored = start({ locale = "frFR" }, "enUS", true)
-assert(control(restored).sample:GetText():find("Exemple", 1, true), "saved locale updates early-created widgets")
+assert(control(restored).sample:GetText():find("Exemple", 1, true), "saved locale reaches the language control")
 local auto = start({ locale = "auto" }, "koKR")
 assert(auto.ns.Locale:GetLocale() == "koKR" and auto.ns.Localization.Font() == "NativeFont.ttf")
 assert(control(auto).sample:GetFont() == "NativeFont.ttf", "native script face reaches the renderer")

@@ -169,6 +169,7 @@ end)
 
 test("addon settings preserve hidden choices and parent dependencies", function()
   local sim = new("cata", {})
+  sim.ns.Options.BuildPage("arena-settings") -- built hidden, like a page visited earlier
   sim.ns.Hub.Open("battlegrounds-settings")
   local boxes = {}
   for _, cb in ipairs(sim.ns.Options.featureBoxes) do boxes[cb.key] = cb end

@@ -8,6 +8,7 @@ local S, Z = Theme.Space, Theme.Size
 -- hover), toggles, steppers, pages and section titles.
 ---------------------------------------------------------------------------
 Options.rows = {} -- every value row on every page
+Options.byKey = {} -- settings pages by key
 function Options.Get(row)
   if row.kind == "kitspell" then
     row.def = Core.P(row.kindKey) -- follows the type's value unless overridden
@@ -148,6 +149,18 @@ function Options.Stepper(parent, boxWidth)
   return Kit.Stepper(parent, { width = 2 * (h + S("xs")) + boxWidth, manual = true })
 end
 
+-- Pages create their controls (page.build) on first show, or when a guide,
+-- command or test needs them first. Controls read saved values when shown.
+function Options.BuildPage(page)
+  page = type(page) == "string" and Options.byKey[page] or page
+  if page and page.build then
+    local build = page.build
+    page.build = nil
+    build()
+  end
+  return page
+end
+
 -- A sub-page: title, hint, its own scroll area.
 function Options.MakePage(key)
   local config = ns.OptionsConfig.pages[key]
@@ -209,15 +222,10 @@ function Options.MakePage(key)
       if ns.Hub then ns.Hub.Open("module-" .. config.module) end
       return
     end
-    if page.build then
-      local build = page.build
-      page.build = nil
-      build()
-    end
+    Options.BuildPage(page)
     page.LayoutHeader()
     Options.RefreshPage(page)
   end)
-  Options.byKey = Options.byKey or {}
   Options.byKey[key] = page
   ns.Localization.Watch(page, function()
     page.name, page.frame.name = config.name, config.name

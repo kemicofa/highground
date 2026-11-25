@@ -37,8 +37,12 @@ for _, client in ipairs({ "cata", "retail" }) do
     local sim = new(client, {})
     local Hub, O = sim.ns.Hub, sim.ns.Onboarding
     Hub.Open("addons")
-    for _, def in ipairs(sim.ns.Modules.list) do
-      O.win.cards[def.key].visit:Click(); Hub.Back()
+    -- The first visits expand sidebar groups; the next build each entry's
+    -- glint on its first visible selection.
+    for _ = 1, 2 do
+      for _, def in ipairs(sim.ns.Modules.list) do
+        O.win.cards[def.key].visit:Click(); Hub.Back()
+      end
     end
     local objects = #sim.frames
     for _ = 1, 3 do

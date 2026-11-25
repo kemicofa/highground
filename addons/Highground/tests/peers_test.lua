@@ -355,6 +355,7 @@ for _, client in ipairs({ "retail", "cata" }) do
     t.equal(s.ns.Hub.current, "users", "command opens correct page")
     t.equal(w.total:GetText(), "2 characters detected", "unique total including self visible")
     t.equal(w.rows.CHANNEL.value:GetText(), "2 detected", "context including self visible")
+    s.ns.Hub.Show("home"); s:command("users") -- Home's sidebar mark is built on its first selection
     local count = #s.frames
     s.ns.Hub.Show("home"); s:command("users")
     t.equal(#s.frames, count, "page widgets reused")

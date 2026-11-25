@@ -167,6 +167,7 @@ end)
 test("/hg arena off goes through Core.SetFeature and refreshes the General page", function()
   local sim = new("cata")
   local box
+  sim.ns.Options.BuildPage("arena-settings")
   for _, cb in ipairs(sim.ns.Options.featureBoxes) do if cb.key == "arena" then box = cb end end
   sim.ns.Options.RefreshFeatures() -- the General page as shown
   assert(box and box:GetChecked(), "arena switch starts on")
@@ -188,6 +189,7 @@ test("WoW Forever has no Arena command, page or switch", function()
   local C = sim.ns.CommandCatalog
   equal(C.byCommand.arena, nil, "no catalog entry")
   equal(sim.ns.Commands.arena, nil, "no handler")
+  for _, page in ipairs(sim.ns.Options.pages) do sim.ns.Options.BuildPage(page) end
   for _, cb in ipairs(sim.ns.Options.featureBoxes) do assert(cb.key ~= "arena", "no Arena switch") end
   equal(sim.ns.Onboarding.Find("arena"), nil, "no Arena guide chapter")
   sim:command("arena on")

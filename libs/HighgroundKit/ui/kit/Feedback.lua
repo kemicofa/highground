@@ -23,29 +23,49 @@ local function ShowLayer(layer, on, duration)
   Motion.Value(layer, layer:GetAlpha() or 1, on and 1 or 0, duration, LayerAlpha)
 end
 
+-- Hover and press layers are built hidden on the first hover or press, so
+-- controls nobody points at cost no textures for them.
+local function Layer(frame, key, build)
+  local layer = frame[key]
+  if not layer then
+    layer = build(frame)
+    frame[key] = layer
+    ShowLayer(layer, false, 0)
+  end
+  return layer
+end
+
 -- Shared hover/press feedback, independent of click handlers and tooltips.
 -- Press relief is a tinted layer; labels and hit areas stay in place.
--- opts: press, pressParent, edge, onEnter, onLeave. The control supplies .hover.
+-- opts: press, pressParent, edge, onEnter, onLeave. The control supplies
+-- .hover, or opts.hover(frame) to build it on first use.
 function Kit.Feedback(frame, opts)
   opts = opts or {}
-  local hover = frame.hover
-  ShowLayer(hover, false, 0)
+  if frame.hover then ShowLayer(frame.hover, false, 0) end
+  local Pressed
   if opts.press then
     if frame.cornerRadius and not opts.pressParent then
-      frame.pressed = Kit.RoundedFill(frame, "overlayStrong", nil, "BORDER")
+      Pressed = function() return Kit.RoundedFill(frame, "overlayStrong", nil, "BORDER") end
     else
-      frame.pressed = Theme.Fill(opts.pressParent or frame, "BORDER", "overlayStrong")
-      frame.pressed:SetAllPoints(hover)
+      Pressed = function()
+        local pressed = Theme.Fill(opts.pressParent or frame, "BORDER", "overlayStrong")
+        pressed:SetAllPoints(frame.hover)
+        return pressed
+      end
     end
-    ShowLayer(frame.pressed, false, 0)
   end
   local function Enabled(self) return not self.wbDisabled and self.enabled ~= false end
   local function Paint(self, immediate)
     local enabled = Enabled(self)
     local hovering = enabled and self.wbHovered and not self.wbPressed
-    ShowLayer(hover, hovering, immediate and 0 or (self.wbPressed and "press" or hovering and "hover" or "exit"))
-    if self.pressed then
-      ShowLayer(self.pressed, enabled and self.wbPressed, immediate and 0 or "press")
+    local hover = self.hover or hovering and opts.hover and Layer(self, "hover", opts.hover)
+    if hover then
+      ShowLayer(hover, hovering, immediate and 0 or (self.wbPressed and "press" or hovering and "hover" or "exit"))
+    end
+    local pressing = enabled and self.wbPressed
+    local pressed = self.pressed or pressing and Pressed and Layer(self, "pressed", Pressed)
+    if pressed then
+      ShowLayer(pressed, pressing, immediate and 0 or "press")
     end
     if opts.edge then
       opts.edge:SetColor(enabled and self.wbHovered and "controlBorder" or self.selected and "accent" or "border")

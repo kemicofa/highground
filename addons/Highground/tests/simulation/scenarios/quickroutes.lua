@@ -146,6 +146,7 @@ test("new callout options are opt-in, saved in profiles and disabled in previews
     local C = sim.ns.Core
     equal(C.db.quickCallsDestinations, false); equal(C.db.quickCallsRoutes, false)
     C.SetFeature("quickCalls", true)
+    sim.ns.Hub.Open("battlegrounds-settings")
     for _, key in ipairs({ "quickCallsDestinations", "quickCallsRoutes" }) do
       local toggle
       for _, box in ipairs(sim.ns.Options.featureBoxes) do if box.key == key then toggle = box end end

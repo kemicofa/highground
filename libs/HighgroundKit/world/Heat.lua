@@ -91,10 +91,11 @@ function Heat.Clear()
   rev = rev + 1
 end
 
--- The preview's crowd, at its own spots on any open map: a raid around
--- Nearby's fresh samples with a few beside it, a group by the guild's
--- and some stragglers. Kills: your side winning by the raid, the enemy
--- winning by the guild's group, an even fight to the south.
+-- The preview's crowd, placed around you like Nearby's samples
+-- (Nearby.SampleAt): a raid around the fresh samples with a few beside it,
+-- a group by the guild's and some stragglers. Kills: your side winning by
+-- the raid, the enemy winning by the guild's group, an even fight to the
+-- south.
 local samples = {
   { x = 0.452, y = 0.405, ago = 1 }, { x = 0.46, y = 0.42, ago = 5 }, { x = 0.468, y = 0.41, ago = 10 },
   { x = 0.476, y = 0.43, ago = 15 }, { x = 0.484, y = 0.415, ago = 20 }, { x = 0.492, y = 0.44, ago = 30 },
@@ -175,8 +176,15 @@ local function Build(c, mapID, preview)
   now, any = GetTime(), false
   wipe(used)
   if preview then
-    for _, s in ipairs(samples) do Put(s.x, s.y, now - s.ago) end
-    for _, k in ipairs(sampleKills) do Put(k.x, k.y, now - k.ago, k.ours and "ours" or "theirs") end
+    local Nearby = ns.Nearby
+    for _, s in ipairs(samples) do
+      local x, y = Nearby.SampleOn(mapID, s.x, s.y)
+      Put(x, y, now - s.ago)
+    end
+    for _, k in ipairs(sampleKills) do
+      local x, y = Nearby.SampleOn(mapID, k.x, k.y)
+      Put(x, y, now - k.ago, k.ours and "ours" or "theirs")
+    end
   else
     for _, s in pairs(spots) do
       if now - s.at <= Heat.WINDOW then

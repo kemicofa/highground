@@ -196,7 +196,8 @@ function Marks.Pins(mapID)
   local now, list = GetTime(), {}
   if Nearby.preview then
     for _, s in ipairs(SAMPLES) do
-      list[#list + 1] = { type = s.type, mapID = mapID, x = s.x, y = s.y, at = now - s.ago, by = s.by, via = s.via, ttl = Marks.TTL[s.type] }
+      local map, x, y = Nearby.SampleAt(s.x, s.y)
+      list[#list + 1] = { type = s.type, mapID = map or mapID, x = x, y = y, at = now - s.ago, by = s.by, via = s.via, ttl = Marks.TTL[s.type] }
     end
   elseif Nearby.State() == "tracking" then
     for _, m in pairs(Marks.own) do list[#list + 1] = m end

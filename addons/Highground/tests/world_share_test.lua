@@ -211,7 +211,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim:assertHealthy()
   end)
 
-  test(build .. ": the preview lists a shared sample and pins samples on any open map", function()
+  test(build .. ": the preview lists a shared sample and pins samples around you", function()
     local sim = setup(client, build)
     sim.grouped = false
     local N, W = sim.ns.Nearby, sim.ns.WorldMap
@@ -222,12 +222,17 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
       if r:IsShown() and r.sub.text:find("Seen by Guildmate", 1, true) then found = true end
     end
     assert(found, "a sample row shows who shared it")
-    assert(#W.Pins(ARATHI) > 0, "samples show on whatever map is open")
+    local near
+    for _, p in ipairs(W.Pins(HILLSBRAD)) do
+      if p.sortKey and math.abs(p.x - 0.5) < 0.05 and math.abs(p.y - 0.4) < 0.05 then near = true end
+    end
+    assert(near, "the fresh samples sit where you stand, on your zone map")
+    equal(#W.Pins(ARATHI), 0, "not on another zone's map")
     sim:advance(5)
     equal(#sim.sent, 0, "samples are never sent")
     sim:command("nearby test")
     assert(not N.preview)
-    equal(#W.Pins(ARATHI), 0, "stopping clears the samples")
+    equal(#W.Pins(HILLSBRAD), 0, "stopping clears the samples")
     sim:assertHealthy()
   end)
 

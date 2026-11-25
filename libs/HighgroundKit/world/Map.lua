@@ -148,7 +148,11 @@ end
 -- Open maps redraw once a second while Nearby tracks or previews.
 function WorldMap.Tick()
   local Nearby = ns.Nearby
-  if not (Showing() and Core.On("nearbyMap") and (Nearby.preview or Nearby.State() == "tracking")) then return end
+  if not Showing() then
+    if ns.WorldHeat then ns.WorldHeat.Release() end
+    return
+  end
+  if not (Core.On("nearbyMap") and (Nearby.preview or Nearby.State() == "tracking")) then return end
   Pins.Refresh()
 end
 

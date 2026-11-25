@@ -143,13 +143,18 @@ end
 -- Sending
 ---------------------------------------------------------------------------
 -- coarse: the centre of the sighting's map cell, and that cell's reach.
+-- The centre of the coarse square a zone position (0-1) falls in.
+function Share.Cell(x, y)
+  local n = Share.CELLS
+  return (math.min(n - 1, math.floor(x * n)) + 0.5) / n, (math.min(n - 1, math.floor(y * n)) + 0.5) / n
+end
+
 local function Token(e, now, coarse)
   local x, y, r = e.x or 0, e.y or 0, e.r or 0
   if coarse and e.x then
-    local n = Share.CELLS
-    x, y = (math.min(n - 1, math.floor(x * n)) + 0.5) / n, (math.min(n - 1, math.floor(y * n)) + 0.5) / n
+    x, y = Share.Cell(x, y)
     local width = ns.WorldMap and ns.WorldMap.Width(e.mapID)
-    r = width and width / n * 0.71 or 0
+    r = width and width / Share.CELLS * 0.71 or 0
   end
   return string.format("%s,%s,%d,%d,%d,%d,%d,%s", Clean(Core.Canon(e.name) or e.name), Clean(e.class),
     math.floor(tonumber(e.level) or 0), math.floor(x * 10000 + 0.5), math.floor(y * 10000 + 0.5),
@@ -310,7 +315,7 @@ function Share.Receive(text, channel, sender, ...)
     if ns.WorldMarks then ns.WorldMarks.Receive(text, channel, sender, ...) end
     return
   elseif text:find("^1K:") then
-    if ns.WorldFeed then ns.WorldFeed.Receive(text, channel, sender) end
+    if ns.WorldFeed then ns.WorldFeed.Receive(text, channel, sender, ...) end
     return
   end
   local _, _, localID, channelName = ...

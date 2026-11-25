@@ -98,6 +98,38 @@ local function Assist(target)
   return button and not button.opensMenu and button or nil
 end
 
+-- "Click History, or Next." named from the control's own label, so the
+-- hint matches the player's language and the button's current state.
+-- The coach reads hints several times a second, so each one is rebuilt only
+-- when its label or language changes.
+local function Named(message, find)
+  local label, template, hint
+  return function()
+    local button = find()
+    local text = button and button.GetText and button:GetText()
+    local current = ns.Locale:Get(message)
+    if text ~= label or current ~= template then
+      label, template = text, current
+      hint = text and text ~= "" and ns.Locale:Format(message, { control = text }) or nil
+    end
+    return hint
+  end
+end
+function C.ClickHint(control)
+  return Named("guide.hint.click_or_next", function() return Value(control) end)
+end
+-- A page tab, named even when the strip has collapsed into its page menu.
+function C.TabHint(group, key)
+  return Named("guide.hint.choose_or_next", function()
+    local tabs = Value(group)
+    return tabs and tabs.buttons[key]
+  end)
+end
+
+-- A step off the current path (payment after a rejected claim) is left out
+-- of the count and of Next.
+local function Skipped(step) return step.skip ~= nil and step.skip() == true end
+
 -- C.status: "idle" before any guide, "entering" while a step prepares, then
 -- each update derives "missing" (target closed), "clipped" (scrolled out of
 -- view), "waiting" (a required action is pending), "done" or "ready".
@@ -159,7 +191,7 @@ function C.Update()
   local hint = Value(step.hint) or (C.observed and ns.Locale:Get("highground.coach.done_use_next_when_you_re_ready.8b0590")
     or "")
   if hidden == "clipped" then hint = ns.Locale:Get("guide.coach.clipped")
-  elseif not visible then hint = Value(step.missing) or ns.Locale:Get("highground.coach.this_example_is_closed_use_replay_to.c72509") end
+  elseif not visible then hint = Value(step.missing) or ns.Locale:Get("guide.coach.closed") end
   if C.win.hint:GetText() ~= hint then C.win.hint:SetText(hint); C.Layout(); C.Position(C.target, context) end
   C.Observe(step.observe and step.observe() or C.target, step.event)
 end
@@ -167,7 +199,14 @@ end
 function C.Refresh()
   if not C.running or C.entering then return end
   local step, w = C.steps[C.index], C.win
-  w.caption:SetText(ns.Locale:Format("guide.caption", { guide = O.Text(O.Current(), "caption") or O.Text(O.Current(), "label"), step = C.index, total = #C.steps }))
+  local position, total = 0, 0
+  for i, candidate in ipairs(C.steps) do
+    if i == C.index or not Skipped(candidate) then
+      total = total + 1
+      if i <= C.index then position = position + 1 end
+    end
+  end
+  w.caption:SetText(ns.Locale:Format("guide.caption", { guide = O.Text(O.Current(), "caption") or O.Text(O.Current(), "label"), step = position, total = total }))
   w.title:SetText(Value(step.title)); w.body:SetText(Value(step.text))
   w.hint:SetText(Value(step.hint) or "")
   local feature, label = C.StepFeature(C.steps, C.index)
@@ -182,7 +221,7 @@ function C.Refresh()
   C.sound = step.sound
   if C.RefreshSound then C.RefreshSound() end
   w.back:SetEnabled(true)
-  w.next:SetText(C.index == #C.steps and ns.Locale:Get("highground.coach.done.e9b450") or ns.Locale:Get("highground.coach.next.bc9819"))
+  w.next:SetText(position == total and ns.Locale:Get("highground.coach.done.e9b450") or ns.Locale:Get("highground.coach.next.bc9819"))
   C.Layout(); C.Update()
 end
 
@@ -223,12 +262,14 @@ function C.Step(delta)
     if destination then
       for i, step in ipairs(C.steps) do if step.id == destination then index = i; break end end
     end
+    while C.steps[index] and Skipped(C.steps[index]) do index = index + 1 end
   end
   if index > #C.steps then
+    local finished = O.active or O.Current().key
     O.State().samples[C.key] = "done"
-    O.Mark(O.active or O.Current().key)
+    O.Mark(finished)
     C.finishing = true
-    O.Return()
+    O.Return(); O.Finished(finished)
   elseif index >= 1 then
     local history, cursor = C.router:History()
     local visit = history[cursor + delta]
@@ -259,6 +300,8 @@ function C.Continue()
     if not ns.Setup.CanArrange() or Value(step.action) ~= button or not Clickable(button) then return end
     button:Click("LeftButton")
     C.Update()
+    -- A sample that refuses the click (an invalid form) doesn't hold the guide.
+    if C.running and C.router == router and C.steps[C.index] == step then C.Step(1) end
   end
   if Core.ReducedMotion() then return Activate() end
   C.PointAt(button, C.win.next)

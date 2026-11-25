@@ -19,11 +19,11 @@ The sidebar has:
 
 ### Guides
 
-Each guide uses the real controls with short explanations, highlights and a moving pointer (off with Reduced motion). **Guides**, **Replay**, **Back** and **Next** share one row, and each guide saves its place. **Next** always works: when a step asks you to click something, Next clicks it for you. Every step of a feature's guide shows that feature's switch, which saves its real preference immediately and also turns on any parent feature it needs. Steps about an alert add **Play this sound in game**, **Play sound** and a sound choice; turning the sound on also turns on its alert, and the guide says when your alert level still mutes it. Sample records stay separate from yours; real settings and macro saves are labelled.
+Each guide uses the real controls with short explanations, highlights and a moving pointer (off with Reduced motion). **Guides**, **Replay**, **Back** and **Next** share one row, and each guide saves its place. **Next** always works: when a step asks you to click something, Next clicks it for you, and moves on if the sample refuses the click. Each card shows **In progress** or **Completed**, and finishing a guide says so. If a guide can't start (in combat, in a match, or with all its panels off), the reason appears on its card. Every step of a feature's guide shows that feature's switch, which saves its real preference immediately and also turns on any parent feature it needs. Steps about an alert add **Play this sound in game**, **Play sound** and a sound choice; turning the sound on also turns on its alert, and the guide says when your alert level still mutes it. Sample records stay separate from yours; real settings and macro saves are labelled.
 
 - `/hg guide battlegrounds` offers **Enemy rows & targeting** (`/hg guide enemies` or `/hg guide targeting`) and **Objectives & flag carriers** (`/hg guide objectives`).
 - `/hg guide bounties` offers **Post a bounty** (`bounty_post`: creation, claim review and payment records) and **Hunt a bounty** (`bounty_hunt`: discovery, tracking, kill reports and your own claims). Each follows one sample target; **Back** retraces your steps.
-- Nearby's guide covers **History → select an enemy → Add bounty**. `/hg guide reputation` shows organizations and reports with sample records.
+- Nearby's guide covers **History → select an enemy → Add bounty**. `/hg guide reputation` follows one sample report from submission through moderation, then pausing participation and your preferences.
 - **More guides** in Addons covers shared topics such as the enemy map, Quick callouts, appearance, alerts and saved setups. **How addons work** (`/hg guide addons`) explains installation, the switches and reloads.
 
 ### Addon users

@@ -174,7 +174,8 @@ test("disabled battleground panels stay disabled and a callout-only sample has a
   local sim = new("cata", { killorder = false, timers = false, flags = false, quickCalls = false }, geometry)
   local O, C = sim.ns.Onboarding, sim.ns.Onboarding.Coach
   O.Start("panels")
-  assert(not C.running and O.win:IsVisible() and O.win.status.text:find("panels are off", 1, true))
+  local card = O.win.cards.panels
+  assert(not C.running and O.win:IsVisible() and card:IsVisible() and card.refusal.text:find("panels are off", 1, true))
   sim.ns.Core.SetFeature("quickCalls", true)
   O.Start("panels")
   assert(C.running and C.target == sim.ns.QuickCalls.win and C.target:IsVisible())

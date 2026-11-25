@@ -29,8 +29,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
           local context = closed and step.context and step.context()
           if context then context:Hide() end
           assert(C.win.next.enabled ~= false, key .. ":" .. step.id .. " keeps Next enabled")
+          local visits = #C.router:History()
           click(C.win.next); s:advance(1); C.Update()
           assert(not C.running or C.index ~= i, key .. ":" .. step.id .. (closed and " (closed)" or "") .. " leaves on Next")
+          assert(not C.running or #C.router:History() <= visits + 1, key .. ":" .. step.id .. " moves one step, never two")
           checked = checked + 1
           O.Return()
         end
@@ -45,8 +47,39 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     s.ns.Core.SetFontScale(1)
     assert(checked > 40, "the sweep reaches the guides' required clicks")
     assert(menus > 0, "and steps whose target is a menu")
+    O.State().samples.nearby = "history"; O.Start("nearby"); C.Update()
+    equal(C.win.hint:GetText(), "Click History, or Next.", "hints name the control and say Next works")
+    O.State().samples.macros = "library"; O.Start("macros"); C.Update()
+    equal(C.win.hint:GetText(), "Choose My macros in the tabs or page menu, or Next.")
+    O.Return()
     O.State().samples.records = "events"; O.Start("records"); C.Update()
     equal(C.target, C.matchSample.timeline.box, "a resumed timeline step opens the timeline it explains")
     O.Return(); s:assertHealthy()
   end)
 end
+
+local function finish(s, C)
+  for _ = 1, 30 do
+    if not C.running then return end
+    click(C.win.next); s:advance(1)
+  end
+  error("guide never finished")
+end
+
+test("a finished guide says so where the player lands and cards show progress", function()
+  local s = new("cata", {}, function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end)
+  local O, C = s.ns.Onboarding, s.ns.Onboarding.Coach
+  s.ns.Core.db.reducedMotion = true
+  O.Start("macros"); finish(s, C)
+  local card = O.win.cards.macros
+  assert(O.win:IsVisible() and O.win.status.text:find("Macros guide complete", 1, true), "the chooser says the guide is complete")
+  assert(card.progress:IsVisible() and card.progress.text == "Completed" and card.start:GetText() == "Replay")
+  O.Start("nearby"); click(C.win.next); s:advance(1); O.Return()
+  equal(O.win.cards.nearby.progress.text, "In progress")
+  assert(not O.win.status.text:find("complete", 1, true), "the message belongs to the finished guide's return")
+  O.Dismiss()
+  s.ns.Hub.Open("general"); s:command("guide macros"); finish(s, C)
+  assert(not O.win:IsVisible() and s.ns.Hub.current == "general", "the guide returns to the page that started it")
+  assert(s.messages[#s.messages]:find("Macros guide complete", 1, true), "and says so in chat")
+  s:assertHealthy()
+end)

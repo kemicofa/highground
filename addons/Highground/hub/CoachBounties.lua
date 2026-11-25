@@ -29,7 +29,7 @@ local function SaveHint()
   local w = V(B.Form.previewWin)
   if not w then return ns.Locale:Get("highground.coachbounties.replay_to_reopen_your_draft.fc6f69") end
   if w.formMode ~= "public" then return ns.Locale:Get("highground.coachbounties.back_returns_to_the_audience_choice_this.331865") end
-  return w.error:GetText() ~= "" and w.error:GetText() or ns.Locale:Get("highground.coachbounties.save_this_sample_reward_nothing_is_published.860b3b")
+  return w.error:GetText() ~= "" and w.error:GetText() or ns.Locale:Get("guide.bounty.save_hint")
 end
 
 local function PostSteps()
@@ -75,6 +75,7 @@ local function PostSteps()
     { id = "payment", title = ns.Locale:Get("highground.coachbounties.pay_in_the_game_then_record_it.846e10"),
       text = ns.Locale:Get("highground.coachbounties.after_paying_the_hunter_through_the_game.c29898"),
       hint = ns.Locale:Get("highground.coachbounties.try_mark_paid_or_next_to_activate.2dd990"), requireAction = true,
+      skip = function() local claim = S.Claim(); return claim ~= nil and claim.state == "rejected" end,
       enter = function()
         Review(); local claim = S.Claim()
         if claim.state == "claimed" then claim.state, claim.reviewedBy = "approved", B.Me(); D.claimsWin:Refresh() end
@@ -92,8 +93,11 @@ local function PostSteps()
   }
 end
 
+-- Ignoring the target goes straight to its status; no sighting or kill follows.
+local function Ignored() return D.state ~= nil and D.state.interest == "ignored" end
+
 local function HuntSteps()
-  local tracking
+  local tracking, start = nil, C.ClickHint(S.PrimaryButton)
   return {
     { id = "browse", title = ns.Locale:Get("highground.coachbounties.find_a_reward_on_the_shared_board.eb6540"),
       text = ns.Locale:Get("highground.coachbounties.shared_board_lists_rewards_offered_by_other.16ad7b"),
@@ -113,7 +117,7 @@ local function HuntSteps()
     { id = "tracking", title = ns.Locale:Get("highground.coachbounties.start_tracking_this_target.50a0d0"),
       text = ns.Locale:Get("highground.coachbounties.choose_start_tracking_the_card_changes_to.b9aa0d"),
       hint = function() return D.state.interest == "tracking" and ns.Locale:Get("highground.coachbounties.already_tracking_this_target_next_continues_to.eb8954")
-        or ns.Locale:Get("highground.coachbounties.click_start_tracking_next_activates_the_highlighted.5f13d4") end, requireAction = true,
+        or start() end, requireAction = true,
       enter = function() S.Board("public"); S.win.search:SetText(""); tracking = D.state.coachInterestVersion or 0 end,
       target = function() return D.state.interest == "tracking" and S.Tab("mine") or S.PrimaryButton() end,
       action = function() return D.state.interest ~= "tracking" and Clickable(S.PrimaryButton()) or nil end,
@@ -123,7 +127,7 @@ local function HuntSteps()
       end },
     { id = "sighting", sound = "bounty", title = ns.Locale:Get("highground.coachbounties.sample_event_your_target_is_nearby.f5e819"),
       text = function() return ns.Locale:Format("highground.coachbounties.a_sighting_detects_value2_the_same_target.a41058", { value2 = Target() }) end,
-      hint = ns.Locale:Get("highground.coachbounties.close_the_wanted_alert_or_next_to.724954"), requireAction = true,
+      hint = ns.Locale:Get("highground.coachbounties.close_the_wanted_alert_or_next_to.724954"), requireAction = true, skip = Ignored,
       enter = function()
         Hunt(); S.Select("nearby"); D.Replay()
         S.ReturnOn(B.Poster.previewWin.close, B.Poster.previewWin)
@@ -132,7 +136,7 @@ local function HuntSteps()
       advance = function() return not V(B.Poster.previewWin) and not Details() and V(S.win) and "kill" end },
     { id = "kill", title = ns.Locale:Get("highground.coachbounties.sample_event_the_target_is_killed.ca18c1"),
       text = ns.Locale:Get("highground.coachbounties.the_addon_creates_the_report_automatically_a.1fa40f"),
-      hint = ns.Locale:Get("highground.coachbounties.click_view_sample_report_copying_proof_is.ecb999"), requireAction = true,
+      hint = ns.Locale:Get("guide.bounty.kill_hint"), requireAction = true, skip = Ignored,
       enter = function() Hunt(); S.Proof("saved") end,
       target = function() local copy, w = V(B.Exchange.previewProofWin), S.Poster(B.Proof); return copy and copy.done or w and w.details end,
       advance = function() return (V(D.claimsWin) or not V(B.Proof.previewWin) and not V(B.Exchange.previewProofWin) and V(S.win) and S.Claim()) and "status" end },

@@ -81,7 +81,7 @@ function HeatPinMixin:OnAcquired(item)
   local dx, dy = math.max(0, (sw - hit * w) / 2), math.max(0, (sh - hit * h) / 2)
   self:SetSize(sw, sh)
   self:SetHitRectInsets(dx, dx, dy, dy)
-  Theme.Tint(self.Blob, item.ring or "mapHeatMid", item.alpha or 0.5)
+  Theme.Tint(self.Blob, item.ring or "hudDanger", item.alpha or 0.5)
   self:SetPosition(item.x, item.y)
 end
 

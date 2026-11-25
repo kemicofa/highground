@@ -83,16 +83,19 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim:assertHealthy()
   end)
 
-  test(build .. ": an enemy raid is full strength and the colour steps up", function()
+  test(build .. ": an enemy raid is full strength, in the enemy faction's colour", function()
     local sim = setup(client, build)
     group(sim, "Lone", 0.1, 0.1)
     for i = 1, 8 do group(sim, "Raider" .. i, 0.71, 0.61, 0) end
     local cells = heat(sim)
     local lone, raid = cells[1].x < 0.5 and cells[1] or cells[2], cells[1].x < 0.5 and cells[2] or cells[1]
     assert(raid.heat > 0.99, "eight enemies, the Enemy raid size: " .. raid.heat)
-    equal(raid.ring, "mapHeatHigh")
-    equal(lone.ring, "mapHeatLow")
+    equal(raid.ring, "mapHeatHorde", "an Alliance player's enemies are Horde red")
+    equal(lone.ring, "mapHeatHorde")
     assert(lone.alpha < raid.alpha, "fewer enemies, fainter")
+    sim.faction = 0
+    equal(heat(sim)[1].ring, "mapHeatAlliance", "a Horde player's enemies are Alliance blue")
+    sim.faction = 1
     sim.ns.Core.SetTuning("option", "nearbyRaidSize", 16)
     local half = heat(sim)[cells[1] == raid and 1 or 2].heat
     assert(half > 0.49 and half <= 0.5, "full strength follows Enemy raid: " .. half)

@@ -146,6 +146,8 @@ function C.NearbySteps()
     { id = "shared", title = ns.Locale:Get("guide.nearby.shared.title"), text = ns.Locale:Get("guide.nearby.shared.text"),
       enter = Panel, target = function() return Row("Ironhide") end, context = function() return Nearby.win end,
       feature = "nearbyShare", settingLabel = ns.Locale:Get("nearby.world.share_label") },
+    { id = "layers", title = ns.Locale:Get("guide.nearby.layers.title"), text = ns.Locale:Get("guide.nearby.layers.text"),
+      enter = Panel, target = function() return Nearby.win end, context = function() return Nearby.win end },
     { id = "marks", title = ns.Locale:Get("guide.nearby.marks.title"), text = ns.Locale:Get("guide.nearby.marks.text"),
       enter = Panel, target = function() return Nearby.win end, context = function() return Nearby.win end,
       feature = "nearbyMarks", settingLabel = ns.Locale:Get("marks.label") },
@@ -177,6 +179,11 @@ function C.NearbySteps()
       enter = function() Form().fields:Scroll(0) end, target = function() return B.Form.previewWin.name end,
       context = function() return B.Form.previewWin end, hint = ns.Locale:Get("highground.coachsamples.the_bounties_guide_covers_posting_tracking_and.08e143") },
   }
+  -- Only games with layers (world/Layer.lua) explain them.
+  local layers = ns.WorldLayer and ns.WorldLayer.Supported()
+  for i = #steps, 1, -1 do
+    if steps[i].id == "layers" and not layers then table.remove(steps, i) end
+  end
   if ns.Modules and not ns.Modules.Active("bounties") then
     for i = #steps, 1, -1 do
       if steps[i].id:match("^bounty") then table.remove(steps, i) end

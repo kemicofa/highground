@@ -265,6 +265,7 @@ features/arena/arena/Specs.lua
 features/arena/arena/Trinkets.lua
 features/arena/arena/CataData.lua
 features/arena/arena/Activity.lua
+libs/world/Layer.lua
 libs/world/Nearby.lua
 libs/world/NearbyEvents.lua
 libs/world/NearbyPreview.lua

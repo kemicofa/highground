@@ -130,7 +130,8 @@ function Share.Local(e, unit)
   e.mapID, e.x, e.y = map, x, y
   e.r = x and Share.Reach(unit) or nil
   e.by, e.via = nil, nil
-  if ns.WorldHeat then ns.WorldHeat.Add(e.name, map, x, y, e.last) end
+  ns.WorldLayer.Stamp(e, "same")
+  if ns.WorldHeat then ns.WorldHeat.Add(e.name, map, x, y, e.last, e) end
   if ns.Tracking then ns.Tracking.Seen(e) end
   if not Share.Active() then return end
   local now = GetTime()
@@ -273,8 +274,9 @@ local function RemoteCount()
   return n
 end
 
--- Keep the newer sighting. Returns true when the list changed.
-function Share.Merge(canon, class, level, guild, map, x, y, r, at, by, via)
+-- Keep the newer sighting. layer: its status (world/Layer.lua). Returns
+-- true when the list changed.
+function Share.Merge(canon, class, level, guild, map, x, y, r, at, by, via, layer)
   local seen = ns.Nearby.seen
   local key = LocalKey(canon)
   local e = seen[key]
@@ -291,8 +293,9 @@ function Share.Merge(canon, class, level, guild, map, x, y, r, at, by, via)
   e.zone = Share.MapName(map) or e.zone
   e.last, e.by, e.via = at, by, via
   e.hidden = nil
+  ns.WorldLayer.Stamp(e, layer)
   Share.stats.merged = Share.stats.merged + 1
-  if ns.WorldHeat then ns.WorldHeat.Add(key, map, x, y, at) end
+  if ns.WorldHeat then ns.WorldHeat.Add(key, map, x, y, at, e) end
   return true
 end
 
@@ -332,6 +335,7 @@ function Share.Receive(text, channel, sender, ...)
   if far and not (ns.WorldHeat and ns.WorldHeat.On()) then return end
   Share.stats.recv = Share.stats.recv + 1
   local now, changed = GetTime(), false
+  local layer = not far and ns.WorldLayer.Of(from, map) or nil
   for token in body:gmatch("[^;]+") do
     local name, class, level, x, y, r, age, guild = token:match("^([^,]+),(%u*),(%d+),(%d+),(%d+),(%d+),(%d+),(.*)$")
     age = tonumber(age)
@@ -352,9 +356,9 @@ function Share.Receive(text, channel, sender, ...)
         level = tonumber(level)
         guild = Clean(guild)
         if Share.Merge(name, class ~= "" and class or nil, level > 0 and level or nil, guild ~= "" and guild or nil,
-          map, x, y, math.min(tonumber(r), 500), at, from, via) then
+          map, x, y, math.min(tonumber(r), 500), at, from, via, layer) then
           changed = true
-          if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via }) end
+          if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via, layer = layer }) end
           if ns.WorldCalls then ns.WorldCalls.Sighting(name, map, from, via) end
         end
       end
@@ -374,6 +378,7 @@ function Share.Status()
     map = Core.On("nearbyMap") and on or off,
     sent = s.sent, recv = s.recv }) .. Comms.RefusedNote(s.unsent)
     .. " · " .. ns.Locale:Format("nearby.world.status_everyone", { everyone = Share.WorldChannel() and on or off })
+    .. (ns.WorldLayer.Supported() and (" · " .. ns.WorldLayer.Summary()) or "")
 end
 
 Util.Every(1, Share.Tick, "world share", "nearby")

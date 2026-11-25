@@ -12,6 +12,9 @@ local PREVIEW = {
   { name = "Ironhide", class = "WARRIOR", level = 60, guild = "Night Watch", ago = 40, by = "Guildmate", via = "guild", sx = 0.62, sy = 0.3 },
   { name = "Bloodfang", class = "ROGUE", level = 60, guild = "Night Watch", zone = "Arathi Highlands", ago = 70, by = "Guildmate", via = "guild",
     tracked = true, r = 70, sx = 0.7, sy = 0.62 },
+  -- A group member's, on another layer: hidden until the map's Layers button shows all.
+  { name = "Duskblade", class = "ROGUE", level = 60, guild = "Night Watch", ago = 30, by = "Partymate", via = "group",
+    layer = "other", sx = 0.56, sy = 0.52 },
   ns.Localization.Define({ name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"), ago = 140, sx = 0.3, sy = 0.66 }, { zone = "shared.nearby.hillsbrad_fields.ead610" }),
 }
 
@@ -39,10 +42,15 @@ function Nearby.SampleOn(mapID, sx, sy)
   return ns.WorldMap.Translate(map, mapID, x, y)
 end
 
--- Sample sightings for the preview, last seen relative to now.
-function Nearby.Samples(now)
-  local list = {}
-  for i, p in ipairs(PREVIEW) do list[i] = setmetatable({ last = now - p.ago }, { __index = p }) end
+-- Sample sightings for the preview, last seen relative to now, judged in
+-- the current layer epoch (world/Layer.lua); the other-layer sample only
+-- where the game has layers. shown: only those your layer setting shows.
+function Nearby.Samples(now, shown)
+  local list, Layer = {}, ns.WorldLayer
+  for _, p in ipairs(PREVIEW) do
+    local e = setmetatable({ last = now - p.ago, epoch = Layer.epoch }, { __index = p })
+    if (not p.layer or Layer.Supported()) and (not shown or Layer.Shown(e)) then list[#list + 1] = e end
+  end
   return list
 end
 

@@ -43,7 +43,7 @@ function Feed.Local(name, counter)
   local mine = counter == "killedThem"
   local e = { killer = mine and me or enemy, victim = mine and enemy or me, at = GetTime(), mapID = map, area = area }
   Add(e)
-  if ns.WorldHeat then ns.WorldHeat.Kill(e.killer, e.victim, map, x, y, e.at, mine) end
+  if ns.WorldHeat then ns.WorldHeat.Kill(e.killer, e.victim, map, x, y, e.at, mine, ns.WorldLayer.Stamp({}, "same")) end
   if not (Feed.On() and map) or Comms.Blocked() then return end
   local function Text(px, py)
     return string.format("1K:%d:%s,%s,0,%d,%d,%s", map, Clean(e.killer), Clean(e.victim),
@@ -75,7 +75,10 @@ function Feed.Receive(text, channel, sender, ...)
   map, x, y = tonumber(map), tonumber(x) / 10000, tonumber(y) / 10000
   if x < 0 or x > 1 or y < 0 or y > 1 then x, y = nil, nil end
   -- The sender is on your side: their kill is yours, their death theirs.
-  if ns.WorldHeat then ns.WorldHeat.Kill(killer, victim, map, x, y, at, killer == from) end
+  if ns.WorldHeat then
+    local layer = via == "group" and ns.WorldLayer.Of(from, map) or nil
+    ns.WorldHeat.Kill(killer, victim, map, x, y, at, killer == from, ns.WorldLayer.Stamp({}, layer))
+  end
   if via == "world" then return end
   -- Both sides of one fight can report it.
   for _, f in ipairs(Feed.list) do

@@ -143,7 +143,7 @@ function Nearby.NoteUnit(unit, aura)
   if not name then return end
   local e = Nearby.seen[name]
   local hidden, fresh = e and e.hidden, false
-  if aura and Recent(e, GetTime()) then e.last, e.by, e.via = GetTime(), nil, nil
+  if aura and Recent(e, GetTime()) then e.last, e.by, e.via = GetTime(), nil, nil; ns.WorldLayer.Stamp(e, "same")
   else
     local _, class = Call(UnitClass, unit)
     local level = Plain(Call(UnitLevel, unit))
@@ -171,7 +171,7 @@ local function Collect(now, out)
   for name, e in pairs(Nearby.seen) do
     if now - e.last > forget then
       Nearby.seen[name] = nil
-    elseif not (e.by and e.mapID ~= zone) or ns.Tracking and ns.Tracking.Get(name) then
+    elseif ns.WorldLayer.Shown(e) and (not (e.by and e.mapID ~= zone) or ns.Tracking and ns.Tracking.Get(name)) then
       n = n + 1
       out[n] = e
     end
@@ -222,6 +222,7 @@ function Nearby.Build()
           if e.guild and e.guild ~= "" then lines[#lines + 1] = { e.guild, "textMuted" } end
           if e.zone and e.zone ~= "" then lines[#lines + 1] = { ns.Locale:Format("shared.nearby.last_seen_e_zone.51d878", { e_zone = e.zone }), "textMuted" } end
           if e.by then lines[#lines + 1] = { Nearby.SeenBy(e), "info" } end
+          if ns.WorldLayer.Line(e) then lines[#lines + 1] = { ns.WorldLayer.Line(e) } end
           if GetTime() - e.last >= 2 then lines[#lines + 1] = { ns.Locale:Get("shared.nearby.the_player_may_have_moved_away.7cd55b"), "textMuted" } end
         end
         if b then
@@ -305,6 +306,8 @@ local function Fill(r, e, now, fade, zone)
   local away = e.zone and e.zone ~= "" and e.zone ~= zone and e.zone or nil
   local detail = e.hidden and e.hidden.spell or tracked and e.by and away or e.by and Nearby.SeenBy(e) or away
   if detail then sub = sub and (sub .. " · " .. detail) or detail end
+  local tag = ns.WorldLayer.Tag(e)
+  if tag then sub = sub and (sub .. " · " .. tag) or tag end
   if tracked then sub = ns.Locale:Get("tracking.row") .. (sub and (" · " .. sub) or "") end
   r.sub:SetText(sub or "")
   r.right:SetText(ago < 2 and ns.Locale:Get("shared.nearby.now.e3b820") or Util.Ago(math.floor(ago)))
@@ -339,7 +342,7 @@ function Nearby.Update()
   local list = Collect(now, live)
   if Nearby.test then list = Nearby.test.rows()
   elseif Nearby.preview then
-    list = Nearby.Samples(now)
+    list = Nearby.Samples(now, true)
   end
   if not Nearby.win then
     Nearby.Build()

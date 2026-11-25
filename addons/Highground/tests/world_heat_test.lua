@@ -35,6 +35,7 @@ end
 
 local function heat(sim, map)
   local out = {}
+  sim.ns.WorldHeat.Refresh()
   for _, item in ipairs(sim.ns.WorldHeat.Pins(map or HILLSBRAD)) do
     if item.heat then out[#out + 1] = item end
   end
@@ -60,7 +61,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     equal(#cells, 2, "one cell for the two close enemies, one apart")
     local busy = cells[1].x == 0.525 and cells[1] or cells[2]
     equal(busy.x, 0.525); equal(busy.y, 0.425, "the cell's centre")
-    equal(tip(busy), "2 enemies seen here\nLatest sighting: now")
+    equal(tip(busy), "2 enemies seen here\nEnemies seen, no kills yet\nLatest sighting: now")
     equal(busy.size, sim.ns.WorldHeat.BLOB / 20, "a blob wider than its cell")
     equal(busy.hit, 1 / 20, "only the cell takes the mouse")
     group(sim, "Near", 0.51, 0.41)
@@ -70,16 +71,16 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     group(sim, "Apart", 0.52, 0.42)
     cells = heat(sim)
     equal(#cells, 1, "an enemy moves with its latest report")
-    equal(tip(cells[1]), "3 enemies seen here\nLatest sighting: now")
+    equal(tip(cells[1]), "3 enemies seen here\nEnemies seen, no kills yet\nLatest sighting: now")
     equal(#heat(sim, HILLSBRAD), 1)
     local fresh = cells[1].heat
     -- Close leaves sight: an enemy still in view stays fresh.
     sim.units.nameplate1 = nil
     sim:event("NAME_PLATE_UNIT_REMOVED", "nameplate1")
-    sim:advance(200)
+    sim:advance(1800)
     assert(heat(sim)[1].heat < fresh, "older heat is fainter")
-    sim:advance(101)
-    equal(#heat(sim), 0, "gone after five minutes")
+    sim:advance(1801)
+    equal(#heat(sim), 0, "gone after an hour")
     sim:assertHealthy()
   end)
 
@@ -179,6 +180,111 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
+-- A group member's kill report: `killer` killed `victim` at x, y.
+local function fight(sim, killer, victim, x, y, channel, sender)
+  sim:event("CHAT_MSG_ADDON", "HighgroundW", string.format("1K:%d:%s-Realm,%s-Realm,1,%d,%d,", HILLSBRAD,
+    killer, victim, x * 10000, y * 10000), channel or "PARTY", (sender or "Ally") .. "-Realm")
+end
+
+local function badge(sim, map)
+  sim.ns.WorldHeat.Refresh()
+  for _, item in ipairs(sim.ns.WorldHeat.Pins(map or HILLSBRAD)) do
+    if item.sortKey and item.sortKey:find("^fight:") then return item end
+  end
+end
+
+for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
+  local client, build = unpack(case)
+
+  test(build .. ": kills mark which side is winning a square", function()
+    local sim = setup(client, build)
+    local H, crests = sim.ns.WorldHeat, sim.ns.Timers.FACTION_ICON
+    group(sim, "Near", 0.51, 0.41)
+    equal(badge(sim), nil, "enemies only: no badge")
+    sim.ns.WorldFeed.Local("Ganker-Realm", "killedThem")
+    fight(sim, "Ally", "Bob", 0.51, 0.41)
+    fight(sim, "Ally", "Bob", 0.51, 0.41, "GUILD")
+    fight(sim, "Evil", "Ally", 0.52, 0.42)
+    local b = badge(sim)
+    assert(b, "a badge where kills happened")
+    equal(b.label, "2–1", "your side's kills, then the enemy's; one fight reported twice counts once")
+    equal(b.icon, crests.A, "an Alliance player's side leads")
+    equal(b.ring, "mapHeatAlliance")
+    equal(heat(sim)[1].ring, "mapHeatAlliance", "the square takes your colour where your side killed more")
+    equal(tip(b), "1 enemy seen here\nKills here: your side 2, enemy 1\nYour side is winning here\nLatest sighting: now")
+    sim.ns.WorldFeed.Local("Ganker-Realm", "killedMe")
+    sim:advance(11)
+    fight(sim, "Evil", "Ally", 0.52, 0.42)
+    b = badge(sim)
+    equal(b.label, "2–3"); equal(b.icon, crests.H); equal(b.ring, "mapHeatHorde")
+    equal(heat(sim)[1].ring, "mapHeatHorde")
+    assert(tip(b):find("The enemy is winning here", 1, true))
+    H.Kill("Old-Realm", "Me-Realm", HILLSBRAD, 0.1, 0.1, sim.now - 3700, false)
+    equal(#heat(sim), 1, "nothing older than an hour")
+    sim:command("nearby clear")
+    equal(badge(sim), nil, "clearing sightings clears kills")
+    sim:assertHealthy()
+  end)
+
+  test(build .. ": an open map reuses its heat until the data changes", function()
+    local sim = setup(client, build)
+    local H = sim.ns.WorldHeat
+    group(sim, "Near", 0.51, 0.41)
+    H.Refresh()
+    local first = H.Pins(HILLSBRAD)
+    local builds = H.stats.builds
+    local item = first[1]
+    H.Pins(HILLSBRAD)
+    equal(H.stats.builds, builds, "no rebuild while nothing changed")
+    group(sim, "Apart", 0.2, 0.7)
+    equal(#H.Pins(HILLSBRAD), 1, "a change waits for the rebuild interval")
+    sim:advance(2.1)
+    local second = H.Pins(HILLSBRAD)
+    equal(#second, 2, "then shows")
+    assert(rawequal(second, first), "in the same list")
+    local reused
+    for _, it in ipairs(second) do if rawequal(it, item) then reused = true end end
+    assert(reused, "a square keeps its item between builds")
+    builds = H.stats.builds
+    sim:advance(5); H.Pins(HILLSBRAD)
+    equal(H.stats.builds, builds, "unchanged data is reused")
+    sim:advance(6); H.Pins(HILLSBRAD)
+    equal(H.stats.builds, builds + 1, "and rebuilt now and then so heat fades")
+    builds = H.stats.builds
+    sim:advance(60)
+    assert(H.stats.builds - builds <= 7, "an idle open map rebuilds at most every 10 seconds: " .. H.stats.builds - builds)
+    sim.env.WorldMapFrame:Hide(); sim.env.BattlefieldMapFrame:Hide()
+    sim:advance(1.1)
+    builds = H.stats.builds
+    H.Pins(HILLSBRAD)
+    equal(H.stats.builds, builds + 1, "closed maps release their items: the next open rebuilds")
+    sim:assertHealthy()
+  end)
+end
+
+-- Everyone's kills from the users channel feed the heatmap, not the feed list.
+for _, build in ipairs({ 120100, 16001 }) do
+  test(build .. ": kills reach everyone as a coarse square and add to their heatmap", function()
+    local sim = setup("retail", build)
+    local F = sim.ns.WorldFeed
+    sim.ns.Peers.ChannelID = function() return 7 end
+    sim.ns.Peers.CHANNEL = sim.ns.Peers.CHANNEL or "HighgroundUsersPvP"
+    F.Local("Ganker-Realm", "killedThem")
+    local out
+    for _, m in ipairs(sim.sent) do
+      if m.channel == "CHANNEL" and m.message:find("^1K:") then out = m end
+    end
+    equal(out and out.message, "1K:1424:Me-Realm,Ganker-Realm,0,5250,4250,Tarren Mill", "the square's centre, not your spot")
+    local listed = #F.list
+    sim:event("CHAT_MSG_ADDON", "HighgroundW", "1K:" .. ARATHI .. ":Evil-Realm,Scout-Realm,2,2250,2250,", "CHANNEL",
+      "Scout-Realm", "", 0, 7, sim.ns.Peers.CHANNEL)
+    equal(#F.list, listed, "not in the kill feed")
+    local b = badge(sim, ARATHI)
+    equal(b and b.label, "0–1", "the enemy's kill, in another zone")
+    sim:assertHealthy()
+  end)
+end
+
 test("Nearby settings show the Enemy heatmap switch under World map sightings", function()
   local sim = setup("retail", 16001)
   sim:command("config nearby")
@@ -226,7 +332,7 @@ for _, build in ipairs({ 120100, 16001 }) do
     local cells = heat(sim, ARATHI)
     equal(#cells, 1)
     equal(cells[1].x, 0.225); equal(cells[1].y, 0.225)
-    equal(tip(cells[1]), "2 enemies seen here\nLatest sighting: 3s")
+    equal(tip(cells[1]), "2 enemies seen here\nEnemies seen, no kills yet\nLatest sighting: 3s")
     hear("1:" .. HILLSBRAD .. ":Here-Realm,MAGE,60,5250,4250,100,3,")
     assert(N.seen.Here, "your zone's are listed as before")
     equal(#heat(sim), 1, "and add heat")

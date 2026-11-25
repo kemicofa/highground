@@ -334,6 +334,32 @@ return function(addon)
     N.Note("SameSecond")
     assert(H.Get("SameSecond"), "an encounter with a tied timestamp is retained")
   end)
+
+  test("tracked enemies and bounty targets are never pruned or forgotten", function()
+    local sim = setup("cata", 40402)
+    local N, H = sim.ns.Nearby, sim.ns.NearbyHistory
+    H.MAX = 3
+    for _, name in ipairs({ "Tracked", "Wanted", "Plain" }) do N.Note(name); sim:advance(2) end
+    assert(sim.ns.Tracking.Set("Tracked", true))
+    assert(sim.ns.Bounty.Add("Wanted", 100))
+    N.Note("Newest"); sim:advance(2)
+    assert(H.Get("Tracked") and H.Get("Wanted") and H.Get("Newest"), "older kept enemies stay")
+    equal(H.Get("Plain"), nil, "the longest unseen enemy that is not kept goes")
+    assert(sim.ns.Tracking.Set("Newest", true))
+    N.Note("Extra")
+    assert(H.Get("Extra") and H.Get("Newest"), "only kept enemies left: the journal grows instead")
+    H.MAX = 2
+    for i = 1, 10 do N.Note("Plain" .. i) end
+    N.Note("Last")
+    assert(H.Get("Tracked") and H.Get("Wanted") and H.Get("Newest") and H.Get("Last"), "a large cut keeps them too")
+    equal(H.Get("Plain10"), nil, "a large cut removes the others")
+    sim:command("nearby forget")
+    local left = {}
+    for name in pairs(H.All()) do left[#left + 1] = name end
+    table.sort(left)
+    equal(table.concat(left, ","), "Newest,Tracked,Wanted", "/hg nearby forget keeps tracked and bounty enemies")
+    sim:assertHealthy()
+  end)
   dofile("../../tests/nearby_taxi.lua")(test, setup, equal)
   t.finish("Nearby controls: " .. t.tests .. " scenarios, " .. t.failures .. " failures")
 end

@@ -260,6 +260,17 @@ function Kit.Sweep(parent, color)
   return f
 end
 
+-- A button's selection strip, built the first time it is selected.
+function Kit.SelectedMark(b)
+  local mark = Theme.Fill(b, "ARTWORK", "accent")
+  mark:SetPoint("TOPLEFT", 2, -b.cornerRadius)
+  mark:SetPoint("BOTTOMLEFT", 2, b.cornerRadius)
+  mark:SetWidth(Theme.Size("strip"))
+  mark:Hide()
+  b.selectedMark = mark
+  return mark
+end
+
 -- A button's halo and glint are built the first time it lights up or
 -- plays one; most controls never do.
 local function Glint(self)

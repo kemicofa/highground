@@ -262,4 +262,3 @@ function Profiles.ShowImport()
     ns.Locale:Get("highground.profiles.paste_a_profile_ctrl_v_apply_replaces.fb3d05"), "")
   share:LayoutProfileShare()
 end
-

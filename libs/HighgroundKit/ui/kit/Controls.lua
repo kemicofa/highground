@@ -73,17 +73,6 @@ Kit.TONES = {
   selected = { fill = "surfaceRaised", text = "accent" },
 }
 
--- A button's selection strip, built the first time it is selected.
-local function SelectedMark(b)
-  local mark = Theme.Fill(b, "ARTWORK", "accent")
-  mark:SetPoint("TOPLEFT", 2, -b.cornerRadius)
-  mark:SetPoint("BOTTOMLEFT", 2, b.cornerRadius)
-  mark:SetWidth(Z("strip"))
-  mark:Hide()
-  b.selectedMark = mark
-  return mark
-end
-
 -- Recolour a Kit.Button. fill: a tone name, a colour token or a colour
 -- table; text: a colour token or table (default: the tone's, else "text").
 function Kit.Paint(b, fill, text)
@@ -92,7 +81,7 @@ function Kit.Paint(b, fill, text)
   Kit.PaintFill(b.bg, tone and tone.fill or fill or "surface", "button")
   Theme.Paint(b.label, text or (tone and tone.text) or "text")
   local marked = fill == "selected" and not b.choiceMark and not b.isTab
-  if b.selectedMark or marked and b.wbMarkable then Motion.Mark(b.selectedMark or SelectedMark(b), marked) end
+  if b.selectedMark or marked and b.wbMarkable and Kit.SelectedMark then Motion.Mark(b.selectedMark or Kit.SelectedMark(b), marked) end
   if b.RefreshFinish then b:RefreshFinish() end
 end
 

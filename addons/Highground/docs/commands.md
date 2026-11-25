@@ -145,6 +145,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby on` · `/hg nearby off` | Enable or disable the nearby enemy list. | Nearby list switch → `nearby` |
 | `/hg nearby map on` · `/hg nearby map off` | Show or hide Nearby's enemy sightings on the world map. | World map sightings switch → `nearby` |
 | `/hg nearby heat on` · `/hg nearby heat off` | Shade the map where enemies were seen in the last hour and mark who is winning the fights there. | Enemy heatmap switch → `nearby` |
+| `/hg nearby layers all` · `/hg nearby layers mine` | Show enemies seen on other layers too, or only your layer's and those whose layer is unknown. (requires layers) | Other layers switch → `nearby` |
 | `/hg nearby share on` · `/hg nearby share off` | Share nearby enemies with your party or raid and list theirs. | Group sharing switch → `nearby` |
 | `/hg nearby share guild on` · `/hg nearby share guild off` | Also share nearby enemies with your guild and list theirs. | Guild sharing switch → `nearby` |
 | `/hg nearby share world on` · `/hg nearby share world off` | Share coarse sightings with every Highground user of your faction on this realm. | Sightings with everyone switch → `nearby` |

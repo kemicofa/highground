@@ -1,6 +1,6 @@
 local _, ns = ...
 
--- Nearby enemies settings (world/Nearby.lua, History.lua, Share.lua, Heat.lua, Map.lua): Highground,
+-- Nearby enemies settings (world/Nearby.lua, History.lua, Share.lua, Heat.lua, Map.lua, Layer.lua): Highground,
 -- Highground Nearby and Highground Bounties. See config/Options.lua.
 ns.OptionsAdd({
   module = "nearby",
@@ -22,6 +22,9 @@ ns.OptionsAdd({
     -- gets a coarse square of what you see, and whom you track.
     ns.Localization.Define({ key = "nearbyShareWorld", page = "nearby", def = true, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("nearby.world.everyone_desc") }, { desc = "nearby.world.everyone_desc" }),
     ns.Localization.Define({ key = "nearbyTrackWorld", page = "nearby", def = true, type = "boolean", caps = "addonChannel", desc = ns.Locale:Get("tracking.world_desc") }, { desc = "tracking.world_desc" }),
+    -- Off: the list, map pins and heat leave out sightings from another
+    -- layer (world/Layer.lua); the world map's Layers button switches it.
+    ns.Localization.Define({ key = "nearbyLayersAll", page = "nearby", def = false, type = "boolean", caps = "layers", desc = ns.Locale:Get("layers.desc") }, { desc = "layers.desc" }),
   },
   features = {
     {

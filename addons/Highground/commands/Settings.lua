@@ -228,13 +228,10 @@ end
 
 Commands.options = Commands.config
 
--- /hg nearby [on | off | map on|off | heat on|off | share on|off | share guild on|off | fights on|off |
--- tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
+-- /hg nearby [on | off | map on|off | heat on|off | layers all|mine | share on|off | share guild on|off |
+-- fights on|off | tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
 -- mark TYPE|clear | marks on|off | marks world on|off | calls on|off | feed on|off |
--- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
--- map pins, heat and shared sightings (world/Map.lua, Heat.lua, Share.lua), tracked
--- enemies (world/Tracking.lua), map marks and calls (world/Marks.lua,
--- world/Calls.lua) and its saved history (world/History.lua).
+-- test | clear | forget]: the open-world enemy list and its world features (libs/world/).
 local NEARBY_SWITCHES = {
   ["on"] = "nearby", ["off"] = "nearby",
   ["map on"] = "nearbyMap", ["map off"] = "nearbyMap",
@@ -291,6 +288,8 @@ function Commands.nearby(arg, msg, say)
     Core.SetTuning("option", "nearbyTrackWorld", arg == "watch on")
   elseif arg == "marks world on" or arg == "marks world off" then
     Core.SetTuning("option", "nearbyMarksWorld", arg == "marks world on")
+  elseif arg == "layers all" or arg == "layers mine" then
+    if not ns.WorldLayer.SetAll(arg == "layers all") then return say(ns.Locale:Get("layers.unsupported")) end
   elseif verb == "mark" then
     return Mark(arg:match("^mark%s+(%S+)") or "", say)
   elseif NEARBY_SWITCHES[arg] then

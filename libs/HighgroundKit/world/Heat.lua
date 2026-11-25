@@ -28,8 +28,11 @@ Heat.REBUILD, Heat.STALE = 2, 10 -- seconds between rebuilds: changed, unchanged
 Heat.stats = { added = 0, kills = 0, builds = 0 }
 
 local Line = ns.Theme.TipLine
-local spots, count = {}, 0 -- [enemy key] = { mapID, x, y, at }
-local kills = {} -- oldest first: { mapID, x, y, at, ours, killer, victim }
+local Layer = ns.WorldLayer
+-- layer, epoch: the sighting's or kill's layer status (world/Layer.lua);
+-- other layers add no heat unless `nearbyLayersAll`.
+local spots, count = {}, 0 -- [enemy key] = { mapID, x, y, at, layer, epoch }
+local kills = {} -- oldest first: { mapID, x, y, at, ours, killer, victim, layer, epoch }
 local rev = 0 -- changes with the data; open maps rebuild on it
 local NONE, cache = {}, {} -- [mapID] = the last build for that map
 
@@ -54,8 +57,9 @@ local function Prune(now)
   end
 end
 
--- A sighting of enemy `key` at a zone position (0-1) at GetTime() `at`.
-function Heat.Add(key, mapID, x, y, at)
+-- A sighting of enemy `key` at a zone position (0-1) at GetTime() `at`;
+-- stamp: what carries its layer status (Layer.Stamp), nil when unknown.
+function Heat.Add(key, mapID, x, y, at, stamp)
   if not (key and mapID and x and y and Heat.On()) then return end
   local s = spots[key]
   if s and s.at > at then return end
@@ -65,13 +69,14 @@ function Heat.Add(key, mapID, x, y, at)
     spots[key], count = s, count + 1
   end
   s.mapID, s.x, s.y, s.at = mapID, x, y, at
+  s.layer, s.epoch = stamp and stamp.layer, stamp and stamp.epoch
   rev = rev + 1
   Heat.stats.added = Heat.stats.added + 1
 end
 
 -- A kill at a zone position: `ours` when your side killed. Kills are rare:
 -- a short list, trimmed from the old end.
-function Heat.Kill(killer, victim, mapID, x, y, at, ours)
+function Heat.Kill(killer, victim, mapID, x, y, at, ours, stamp)
   if not (mapID and x and y and Heat.On()) then return end
   local now = GetTime()
   if now - at > Heat.WINDOW then return end
@@ -81,7 +86,8 @@ function Heat.Kill(killer, victim, mapID, x, y, at, ours)
     if k.killer == killer and k.victim == victim and math.abs(k.at - at) < 10 then return end
   end
   while kills[1] and (#kills >= Heat.MAX_KILLS or now - kills[1].at > Heat.WINDOW) do table.remove(kills, 1) end
-  kills[#kills + 1] = { mapID = mapID, x = x, y = y, at = at, ours = ours and true or false, killer = killer, victim = victim }
+  kills[#kills + 1] = { mapID = mapID, x = x, y = y, at = at, ours = ours and true or false, killer = killer, victim = victim,
+    layer = stamp and stamp.layer, epoch = stamp and stamp.epoch }
   rev = rev + 1
   Heat.stats.kills = Heat.stats.kills + 1
 end
@@ -187,13 +193,13 @@ local function Build(c, mapID, preview)
     end
   else
     for _, s in pairs(spots) do
-      if now - s.at <= Heat.WINDOW then
+      if now - s.at <= Heat.WINDOW and Layer.Shown(s) then
         local x, y = WorldMap.Translate(s.mapID, mapID, s.x, s.y)
         Put(x, y, s.at)
       end
     end
     for _, k in ipairs(kills) do
-      if now - k.at <= Heat.WINDOW then
+      if now - k.at <= Heat.WINDOW and Layer.Shown(k) then
         local x, y = WorldMap.Translate(k.mapID, mapID, k.x, k.y)
         Put(x, y, k.at, k.ours and "ours" or "theirs")
       end
@@ -247,6 +253,7 @@ function Heat.Pins(mapID)
   end
   local t = GetTime()
   local raid, faction = Core.O("nearbyRaidSize"), Util.read(UnitFactionGroup, "player")
+  local layers = Layer.epoch * 2 + (Layer.All() and 1 or 0)
   local c = cache[mapID]
   if not c then
     local maps, oldest = 0, nil
@@ -259,10 +266,10 @@ function Heat.Pins(mapID)
     cache[mapID] = c
   end
   c.seen = t
-  if c.preview ~= preview or c.raid ~= raid or c.faction ~= faction
+  if c.preview ~= preview or c.raid ~= raid or c.faction ~= faction or c.layers ~= layers
     or t - c.at >= (c.rev == rev and Heat.STALE or Heat.REBUILD) then
     c.result = Build(c, mapID, preview)
-    c.at, c.rev, c.preview, c.raid, c.faction = t, rev, preview, raid, faction
+    c.at, c.rev, c.preview, c.raid, c.faction, c.layers = t, rev, preview, raid, faction, layers
   end
   return c.result
 end

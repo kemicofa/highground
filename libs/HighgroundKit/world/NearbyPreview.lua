@@ -5,7 +5,7 @@ local Nearby = ns.Nearby
 -- Nearby's preview (`/hg nearby test`) and clear: sample rows that replace
 -- the shown list while real sightings keep expiring (world/Nearby.lua).
 ---------------------------------------------------------------------------
--- sx, sy: the sample's spot on any open map (world/Map.lua).
+-- sx, sy: the sample's spot, placed around you (Nearby.SampleAt).
 local PREVIEW = {
   ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1, sx = 0.46, sy = 0.42 }, { zone = "shared.preview.tarren_mill.f2b545" }),
   { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25, sx = 0.465, sy = 0.425 },
@@ -14,6 +14,30 @@ local PREVIEW = {
     tracked = true, r = 70, sx = 0.7, sy = 0.62 },
   ns.Localization.Define({ name = "Holyhands", class = "PALADIN", level = 60, guild = "Silver Hand", zone = ns.Locale:Get("shared.nearby.hillsbrad_fields.ead610"), ago = 140, sx = 0.3, sy = 0.66 }, { zone = "shared.nearby.hillsbrad_fields.ead610" }),
 }
+
+-- Samples sit around you, as real sightings near you would: a sample's
+-- offset from the centre of the coarse square holding Sneakypete is applied
+-- to the centre of yours on your zone map (so the sample raid fills your
+-- square), and the map layers translate it like real data, so the zone,
+-- continent and world maps agree. Returns that zone map and position;
+-- without a zone map, nil and the sample's own spot on the shown map.
+Nearby.SAMPLE_X, Nearby.SAMPLE_Y = 0.475, 0.425
+function Nearby.SampleAt(sx, sy)
+  local Share = ns.WorldShare
+  local map, x, y
+  if Share then map, x, y = Share.Here() end
+  if not map then return nil, sx, sy end
+  x, y = Share.Cell(x or 0.5, y or 0.5)
+  x, y = x + sx - Nearby.SAMPLE_X, y + sy - Nearby.SAMPLE_Y
+  return map, math.min(0.99, math.max(0.01, x)), math.min(0.99, math.max(0.01, y))
+end
+
+-- A sample's spot on the shown map, or nil when that map doesn't show it.
+function Nearby.SampleOn(mapID, sx, sy)
+  local map, x, y = Nearby.SampleAt(sx, sy)
+  if not map then return x, y end
+  return ns.WorldMap.Translate(map, mapID, x, y)
+end
 
 -- Sample sightings for the preview, last seen relative to now.
 function Nearby.Samples(now)

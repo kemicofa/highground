@@ -69,7 +69,7 @@ local function Tooltip(members, now)
 end
 
 -- Pin items for the map being shown. sample: Nearby's preview rows,
--- placed at their own spots on whatever map is open.
+-- placed around you (Nearby.SampleAt).
 function WorldMap.Pins(mapID)
   local items = {}
   local Nearby = ns.Nearby
@@ -89,7 +89,7 @@ function WorldMap.Pins(mapID)
   for _, e in pairs(list) do
     local age = now - e.last
     local x, y
-    if Nearby.preview then x, y = e.sx, e.sy
+    if Nearby.preview then x, y = Nearby.SampleOn(mapID, e.sx, e.sy)
     elseif e.x and e.mapID and age <= forget then x, y = WorldMap.Translate(e.mapID, mapID, e.x, e.y) end
     local tracked = Nearby.preview and e.tracked or not Nearby.preview and ns.Tracking and ns.Tracking.Get(e.name)
     if tracked and x and x > 0 and x < 1 and y > 0 and y < 1 then

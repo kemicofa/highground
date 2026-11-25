@@ -135,13 +135,25 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim:event("PLAYER_ENTERING_WORLD")
     sim.grouped = false
     sim:command("nearby test")
-    local sample = heat(sim, ARATHI)
-    assert(#sample > 2, "samples show on whatever map is open")
-    local top = 0
-    for _, c in ipairs(sample) do top = math.max(top, c.heat) end
-    equal(top, 1, "the sample has a raid")
+    local sample = heat(sim)
+    assert(#sample > 2, "samples show around you on your zone map")
+    local raid
+    for _, c in ipairs(sample) do if not raid or c.heat > raid.heat then raid = c end end
+    equal(raid.heat, 1, "the sample has a raid")
+    equal(raid.x, 0.525); equal(raid.y, 0.425, "in the square you stand in")
+    equal(#heat(sim, ARATHI), 0, "not on another zone's map")
+    sim.env.C_Map.GetMapRectOnMap = function(from, to)
+      if from == HILLSBRAD and to == KINGDOMS then return 0.4, 0.5, 0.3, 0.4 end
+    end
+    local continent = heat(sim, KINGDOMS)
+    assert(#continent > 0, "and on the continent, translated like real data")
+    for _, c in ipairs(continent) do
+      assert(c.x >= 0.35 and c.x <= 0.55 and c.y >= 0.25 and c.y <= 0.45, "over Hillsbrad's part of the continent")
+    end
     sim:command("nearby test")
-    equal(#heat(sim, ARATHI), 0, "stopping clears the samples")
+    local left = heat(sim, KINGDOMS)
+    equal(#left, 1, "stopping clears the samples; real heat stays")
+    equal(left[1].x, 0.475); equal(left[1].y, 0.325, "the real sighting, on the continent")
     equal(#heat(sim), 1, "real heat is untouched")
     sim:command("nearby clear")
     equal(#heat(sim), 0, "clearing sightings clears heat")
@@ -284,6 +296,17 @@ for _, build in ipairs({ 120100, 16001 }) do
     sim:assertHealthy()
   end)
 end
+
+test("without a zone map, the preview still shows on the map being viewed", function()
+  local sim = setup("retail", 16001)
+  sim.grouped = false
+  sim.mapID = nil
+  sim:advance(1.1)
+  sim:command("nearby test")
+  assert(#heat(sim, ARATHI) > 2, "samples at their own spots")
+  sim:command("nearby test")
+  sim:assertHealthy()
+end)
 
 test("Nearby settings show the Enemy heatmap switch under World map sightings", function()
   local sim = setup("retail", 16001)

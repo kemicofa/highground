@@ -269,6 +269,7 @@ libs/world/Nearby.lua
 libs/world/NearbyEvents.lua
 libs/world/NearbyPreview.lua
 libs/world/Share.lua
+libs/world/Heat.lua
 libs/world/Map.lua
 libs/world/Deaths.lua
 libs/world/Honor.lua

@@ -1,6 +1,6 @@
 local _, ns = ...
 
--- Nearby enemies settings (world/Nearby.lua, History.lua, Share.lua, Map.lua): Highground,
+-- Nearby enemies settings (world/Nearby.lua, History.lua, Share.lua, Heat.lua, Map.lua): Highground,
 -- Highground Nearby and Highground Bounties. See config/Options.lua.
 ns.OptionsAdd({
   module = "nearby",
@@ -32,6 +32,7 @@ ns.OptionsAdd({
       ns.Localization.Define({ key = "nearbyShareGuild", parent = "nearbyShare", label = ns.Locale:Get("nearby.world.guild_label"), desc = ns.Locale:Get("nearby.world.guild_desc") }, { label = "nearby.world.guild_label", desc = "nearby.world.guild_desc" }),
       ns.Localization.Define({ key = "nearbyFeed", parent = "nearbyShare", label = ns.Locale:Get("feed.label"), desc = ns.Locale:Get("feed.desc") }, { label = "feed.label", desc = "feed.desc" }),
       ns.Localization.Define({ key = "nearbyTrack", parent = "nearby", label = ns.Locale:Get("tracking.label"), desc = ns.Locale:Get("tracking.desc") }, { label = "tracking.label", desc = "tracking.desc" }),
+      ns.Localization.Define({ key = "nearbyHeat", parent = "nearbyMap", label = ns.Locale:Get("nearby.heat.label"), desc = ns.Locale:Get("nearby.heat.desc") }, { label = "nearby.heat.label", desc = "nearby.heat.desc" }),
       ns.Localization.Define({ key = "nearbyMarks", parent = "nearbyMap", label = ns.Locale:Get("marks.label"), desc = ns.Locale:Get("marks.desc") }, { label = "marks.label", desc = "marks.desc" }),
       ns.Localization.Define({ key = "nearbyCalls", parent = "nearby", label = ns.Locale:Get("calls.label"), desc = ns.Locale:Get("calls.desc") }, { label = "calls.label", desc = "calls.desc" }),
       ns.Localization.Define({ key = "worldFights", parent = "nearby", label = ns.Locale:Get("fights.label"), desc = ns.Locale:Get("fights.desc") }, { label = "fights.label", desc = "fights.desc" }),

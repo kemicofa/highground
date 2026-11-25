@@ -33,5 +33,6 @@ end
 
 function ns.NearbyClear()
   wipe(Nearby.seen)
+  if ns.WorldHeat then ns.WorldHeat.Clear() end
   Nearby.Update()
 end

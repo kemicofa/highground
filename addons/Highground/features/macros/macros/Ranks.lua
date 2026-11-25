@@ -90,17 +90,21 @@ local function Tracked()
 end
 
 -- Remember the highest rank of each tracked spell; returns the spells whose
--- highest rank went up: { [name] = { from, fromID, to, toID } }.
+-- highest rank went up: { [name] = { from, fromID, to, toID } }. Runs on
+-- every SPELLS_CHANGED: records change in place, and nothing moved returns
+-- one shared empty table (read only).
+local NONE = {}
 function Ranks.Update()
-  local moved = {}
+  local moved = NONE
   for name in pairs(Tracked()) do
     local id, rank = Ranks.Highest(name)
     local seen = Ranks.top[name]
     if rank then
       if seen and rank > seen.rank then
+        if moved == NONE then moved = {} end
         moved[name] = { from = seen.rank, fromID = seen.id, to = rank, toID = id }
       end
-      Ranks.top[name] = { id = id, rank = rank }
+      if seen then seen.id, seen.rank = id, rank else Ranks.top[name] = { id = id, rank = rank } end
     end
   end
   return moved

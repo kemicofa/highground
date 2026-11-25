@@ -59,11 +59,15 @@ class PackageTests(TempTestCase):
                                  (ROOT / 'libs/HighgroundKit/locale' / f'{code}.lua').resolve())
                 self.assertNotIn(f'Highground/libs/locale/{code}.lua', sources, 'only its own addon ships it')
 
-    def test_bundled_language_must_load_on_demand(self):
+    def test_bundled_language_must_load_on_demand_after_highground(self):
         copies = self.copy_addons()
         toc = copies['Highground'].path.parent / 'HighgroundLocaleDeDE/HighgroundLocaleDeDE.toc'
-        toc.write_text(toc.read_text().replace('## LoadOnDemand: 1\n', ''))
+        original = toc.read_text()
+        toc.write_text(original.replace('## LoadOnDemand: 1\n', ''))
         with self.assertRaisesRegex(ValueError, 'Invalid optional bundled language: HighgroundLocaleDeDE'):
+            build.package_sources(copies['Highground'])
+        toc.write_text(original.replace('## Dependencies: Highground', '## Dependencies: HighgroundBountyData'))
+        with self.assertRaisesRegex(ValueError, 'Invalid optional bundled load-on-demand addon: HighgroundLocaleDeDE'):
             build.package_sources(copies['Highground'])
 
     def test_package_is_complete_installable_and_reproducible(self):

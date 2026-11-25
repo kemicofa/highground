@@ -22,9 +22,16 @@ dofile("../../tests/ui_lists.lua")(s, t)
 
 t.test("rounded buttons share corner artwork within a fixed widget budget", function()
   local originalTheme = s.ns.Theme.Current()
+  local toggle = K.Toggle(env.UIParent, "Off")
+  t.equal(toggle.glow, nil, "an unchecked toggle builds no halo")
+  toggle:SetChecked(true)
+  assert(toggle.glow and toggle.glow.active, "checking builds the halo")
   local before = #s.frames
   local button = K.Button(env.UIParent, "Apply", 120, 24)
-  assert(#s.frames - before <= 64, "a button must not allocate a texture for every corner pixel")
+  assert(#s.frames - before <= 32, "a button must not allocate a texture for every corner pixel")
+  for _, key in ipairs({ "hover", "pressed", "glow", "sweep", "selectedMark" }) do
+    t.equal(button[key], nil, "an idle button builds no " .. key)
+  end
   local methods = getmetatable(env.UIParent).__index
   local colorTexture = methods.SetColorTexture
   methods.SetColorTexture = function(self, ...)
@@ -33,6 +40,11 @@ t.test("rounded buttons share corner artwork within a fixed widget budget", func
   end
   K.Paint(button, "accent")
   fire(button, "OnEnter"); fire(button, "OnMouseDown"); fire(button, "OnMouseUp"); fire(button, "OnLeave")
+  K.Paint(button, "selected"); K.Paint(button, "accent")
+  for _, key in ipairs({ "hover", "pressed", "glow", "sweep", "selectedMark" }) do
+    assert(button[key], "first use builds " .. key)
+  end
+  assert(#s.frames - before <= 64, "a used button stays within the old budget")
   s:advance(1)
   local count = #s.frames
   for _, name in ipairs({ "ember", "parchment", "highground" }) do

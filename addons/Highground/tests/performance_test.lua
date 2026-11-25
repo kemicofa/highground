@@ -9,17 +9,20 @@ for _, client in ipairs({ "cata", "retail" }) do
   t.test(client .. " startup leaves scoring controls unallocated and pages build once", function()
     local sim = new(client)
     local O, C = sim.ns.Options, sim.ns.Core
-    assert(#sim.frames < 15000, "startup widget budget includes frames, textures and font strings")
-    for _, page in pairs(O.pointPages) do
-      assert(page.build and not page.rows, "unvisited scoring pages remain lazy")
-    end
+    -- About 2,600 at this change; 2,000 are the secure enemy rows.
+    assert(#sim.frames < 3000, "startup widget budget includes frames, textures and font strings")
+    for _, page in ipairs(O.pages) do assert(page.build and not page.rows, page.key .. " builds on first open") end
+    assert(not O.panel.built and not O.Profiles.share, "profile workspace and share window wait for first use")
     C.SetTuning("point", "killPer", 9)
     local page = O.pointPages.priority
     sim.ns.Hub.Open("priority")
     local row
     for _, candidate in ipairs(page.rows) do if candidate.key == "killPer" then row = candidate end end
     t.equal(row.box:GetText(), "9", "first open reads current settings")
-    sim.ns.Hub.Open("general")
+    C.SetFeature("minimap", false); sim.ns.Hub.Open("general")
+    for _, cb in ipairs(O.featureBoxes) do
+      if cb.key == "minimap" then t.equal(cb:GetChecked(), false, "a switch changed before the first open shows it") end
+    end
     C.SetTuning("point", "killPer", 10)
     local count = #sim.frames
     sim.ns.Hub.Open("priority")
@@ -31,6 +34,14 @@ for _, client in ipairs({ "cata", "retail" }) do
     row.stepper.plus:Click()
     t.equal(row.box:GetText(), "11", "the edited row refreshes immediately")
     t.equal(unrelated, 0, "editing scoring does not repaint the appearance page")
+  end)
+
+  t.test(client .. " settings of disabled addons are never built", function()
+    local sim = new(client, {}, dofile("tests/modules/fixture.lua").configure({ nearby = true, bounties = true }))
+    sim.ns.Hub.Open("nearby"); sim.ns.Hub.Open("bounty")
+    local pages = sim.ns.Options.byKey
+    assert(pages.nearby.build and pages.bounty.build, "navigating to them opens their overview instead")
+    sim:assertHealthy()
   end)
 
   t.test(client .. " Addons reuses Visit controls and static sidebar markers without idle work", function()

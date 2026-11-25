@@ -38,7 +38,7 @@ end
 
 local tools = {
   history = { label = "tools.open.history", open = function() ns.MatchHistory.Open() end },
-  journal = { label = "tools.open.journal", open = function() ns.EnemyJournal.Open() end },
+  journal = { label = "tools.open.journal", open = function(filter) ns.EnemyJournal.Open(nil, filter) end },
   activity = { label = "tools.open.activity", open = function() ns.WorldActivity.Open() end },
   bountyboard = { label = "tools.open.bountyboard", open = function() ns.Bounty.Board.Open() end },
   reputation = { label = "tools.open.reputation", open = function() ns.Reputation.Open() end },
@@ -52,9 +52,9 @@ function O.ToolOwner(key)
   return catalog and catalog.owners[key == "bountyboard" and "bounty" or key]
 end
 function O.ToolAvailable(key) return ns.Modules.Active(O.ToolOwner(key)) end
-function O.OpenTool(key)
+function O.OpenTool(key, arg)
   if not ns.Modules.Require(O.ToolOwner(key)) then return end
-  return tools[key].open()
+  return tools[key].open(arg)
 end
 function O.ToolLink(page, key)
   local button = O.Link(page, O.ToolLabel(key), function() O.OpenTool(key) end)

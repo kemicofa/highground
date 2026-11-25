@@ -20,9 +20,10 @@ function C.Link(command, description, page, label, options)
   row.ui.command, row.ui.page = nil, page
   return row
 end
+-- options.toolArg is passed to the tool's opener (a journal filter).
 function C.Tool(command, description, tool, label, options)
   local row = C.Action(command, description, label, options)
-  row.ui.command, row.ui.tool = nil, tool
+  row.ui.command, row.ui.tool, row.ui.toolArg = nil, tool, row.toolArg
   return row
 end
 function C.Register(owner, label, rows, previews)

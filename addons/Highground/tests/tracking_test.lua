@@ -90,6 +90,49 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim:assertHealthy()
   end)
 
+  test(build .. ": the journal filters tracked and bounty enemies and never deletes them", function()
+    local sim = setup(client, build)
+    local T, J, B, H = sim.ns.Tracking, sim.ns.EnemyJournal, sim.ns.Bounty, sim.ns.NearbyHistory
+    local function click(button) button.scripts.OnClick(button) end
+    local function keys(w)
+      local out = {}
+      for i, e in ipairs(w.items) do out[i] = e.key end
+      table.sort(out)
+      return table.concat(out, ",")
+    end
+    for i, name in ipairs({ "Ganker", "Wanted", "Plain" }) do plate(sim, name, "nameplate" .. i) end
+    assert(T.Set("Ganker-Realm", true))
+    assert(B.Add("Wanted-Realm", 100))
+    sim:command("journal tracked")
+    local w = J.win
+    assert(w:IsVisible(), "/hg journal tracked opens the journal")
+    equal(w.filter:GetValue(), "tracked"); equal(keys(w), "Ganker-Realm")
+    sim:command("journal bounty"); equal(keys(w), "Wanted-Realm", "/hg journal bounty")
+    click(w.filter.byKey.all); equal(keys(w), "Ganker-Realm,Plain-Realm,Wanted-Realm", "the All choice")
+    click(w.filter.byKey.tracked); equal(keys(w), "Ganker-Realm", "the Tracked choice")
+    click(w.routeBack); equal(w.filter:GetValue(), "all", "Back returns to the previous filter")
+    click(w.routeForward); equal(w.filter:GetValue(), "tracked")
+    local delete
+    for _, b in ipairs(w.actions) do if b.action.label == "Delete entry" then delete = b end end
+    click(delete)
+    assert(H.All()["Ganker-Realm"], "a tracked enemy is never deleted")
+    assert(w.status:GetText():find("Ganker is tracked", 1, true), "Delete says why: " .. w.status:GetText())
+    click(w.filter.byKey.bounty); click(delete)
+    assert(H.All()["Wanted-Realm"], "a bounty target is never deleted")
+    assert(w.status:GetText():find("Wanted has a bounty", 1, true), "Delete says why: " .. w.status:GetText())
+    assert(B.Add("Plain-Realm", 50)); sim:advance(1.1)
+    equal(keys(w), "Plain-Realm,Wanted-Realm", "a new bounty joins the open filter within a second")
+    assert(T.Set("Ganker-Realm", false))
+    sim:command("journal tracked"); equal(#w.items, 0)
+    assert(w.detail:GetText():find("No tracked enemies", 1, true), "an empty filter says how to fill it")
+    sim:command("journal"); equal(w.filter:GetValue(), "all", "/hg journal shows everyone")
+    sim:command("journal later"); assert(said(sim, "Usage: /hg journal [all|tracked|bounty]"))
+    w:Hide()
+    sim.ns.Options.OpenCommand(sim.ns.CommandCatalog.byId["nearby tracked"])
+    assert(w:IsVisible() and w.filter:GetValue() == "tracked", "the tracked list's control opens the Tracked filter")
+    sim:assertHealthy()
+  end)
+
   test(build .. ": alerts say where a tracked enemy is, once per zone and gap, never when muted", function()
     local sim = setup(client, build)
     local T, H = sim.ns.Tracking, sim.ns.NearbyHistory

@@ -163,11 +163,13 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg guide nearby` · `/hg nearby guide` · `/hg checklist nearby` | Start or resume the Nearby walkthrough: sightings, sharing, marks, tracking and the journal, with sample data. | Start Nearby guide |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |
-| `/hg nearby forget` | Forget saved enemy encounter history. | Forget enemy history |
+| `/hg nearby forget` | Forget saved enemy encounter history, except tracked enemies and bounty targets. | Forget enemy history |
 | `/hg nearby feed on` · `/hg nearby feed off` | Share kills and deaths with your group and guild, or stop. | Kill feed switch → `nearby` |
 | `/hg activity` | Open World activity: zones with recent enemies, marks and kills. | Open world activity (separate window) |
 | `/hg activity test` | Start or stop the World activity sample: two zones with enemies, a mark and kills. | World activity preview controls → `nearby-previews` |
-| `/hg journal` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal (separate window) |
+| `/hg journal` · `/hg journal all` | Search encounters, write notes, mute alerts or place a bounty. | Open enemy journal (separate window) |
+| `/hg journal tracked` | Open the enemy journal showing only tracked enemies. | Journal: tracked enemies (separate window) |
+| `/hg journal bounty` | Open the enemy journal showing only enemies with a bounty. | Journal: bounty targets (separate window) |
 
 ## Bounties
 

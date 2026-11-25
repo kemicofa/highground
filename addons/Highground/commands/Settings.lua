@@ -305,7 +305,7 @@ function Commands.nearby(arg, msg, say)
     return
   elseif arg == "forget" and ns.NearbyHistory then
     ns.NearbyHistory.Clear()
-    say(ns.Locale:Get("highground.settings.enemy_history_forgotten.8eb942"))
+    say(ns.Locale:Get("journal.forgotten"))
     return
   end
   local n = 0
@@ -382,7 +382,7 @@ function Commands.alerts(arg, msg, say)
   ns.Alerts.Open()
 end
 function Commands.history() ns.MatchHistory.Open() end
-function Commands.journal() ns.EnemyJournal.Open() end
+function Commands.journal(arg, _, say) ns.EnemyJournal.Command(arg, say) end
 -- /hg activity: zones with recent enemies, marks and kills (world/Activity.lua);
 -- /hg activity test: its sample.
 function Commands.activity(arg, _, say)

@@ -77,7 +77,11 @@ function C.NearbySteps()
       times = 3, killedThem = 1, killedMe = 2, first = time() - 86400, last = time() - 1 },
     ["Holyhands-Sample"] = { class = "PRIEST", zone = "Hillsbrad Foothills", times = 1,
       killedThem = 0, killedMe = 0, first = time() - 3600, last = time() - 300 },
+    -- Tracked, with a sample bounty: shown by both journal filters.
+    ["Grimtusk-Sample"] = { class = "WARRIOR", level = 60, zone = "Alterac Mountains", times = 6,
+      killedThem = 1, killedMe = 4, first = time() - 4 * 86400, last = time() - 7200, tracked = true },
   }
+  data.wanted = function(entry) return entry.key == "Grimtusk-Sample" and (not ns.Modules or ns.Modules.Active("bounties")) end
   data.entries = function()
     local entries = {}
     for key, record in pairs(data.records) do
@@ -105,12 +109,14 @@ function C.NearbySteps()
     w:Open(); N.Track(w); N.Fit(w)
     return w
   end
-  local function History()
+  -- The sample journal under All, or the filter a step shows.
+  local function Journal(filter)
     if activity.win and activity.win:IsShown() then ns.Kit.Windows.Close(activity.win) end
     local w = ns.EnemyJournal.Build(data)
-    w:Open(); N.Track(w); N.Fit(w)
+    w:Open(); w:SetFilter(filter or "all"); N.Track(w); N.Fit(w)
     return w
   end
+  local function History() return Journal() end
   local function Panel()
     if data.win then ns.Kit.Windows.Close(data.win) end
     if not ns.Setup.placement then ns.Setup.BeginPlacement(true) end
@@ -162,6 +168,8 @@ function C.NearbySteps()
     { id = "track", title = ns.Locale:Get("guide.nearby.track.title"), text = ns.Locale:Get("guide.nearby.track.text"),
       enter = History, target = function() return data.win.actions[5] end, context = Context,
       feature = "nearbyTrack", settingLabel = ns.Locale:Get("tracking.label") },
+    { id = "filter", title = ns.Locale:Get("guide.nearby.filter.title"), text = ns.Locale:Get("guide.nearby.filter.text"),
+      enter = function() Journal("tracked") end, target = function() return data.win.filter end, context = Context },
     { id = "activity", title = ns.Locale:Get("guide.nearby.activity.title"), text = ns.Locale:Get("guide.nearby.activity.text"),
       enter = Activity, target = function() return activity.win and activity.win.rows[1] end, context = function() return activity.win end },
     { id = "bounty", title = ns.Locale:Get("highground.coachsamples.add_a_bounty_from_this_enemy_record.f804f8"), text = ns.Locale:Get("highground.coachsamples.select_the_enemy_then_click_add_bounty.2f3947"),

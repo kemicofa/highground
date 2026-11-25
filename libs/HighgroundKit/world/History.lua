@@ -12,7 +12,7 @@ local History = ns.NearbyHistory
 -- log: your honorable kills count when the game names them, and a death
 -- counts when fatal damage names an enemy player (world/Deaths.lua).
 ---------------------------------------------------------------------------
-History.MAX = 1000 -- players kept; the longest unseen go first
+History.MAX = 1000 -- players kept; the longest unseen go first, never tracked or bounty enemies
 
 local Util, Core = ns.Util, ns.Core
 
@@ -104,8 +104,25 @@ end
 
 local function Last(h) return type(h) == "table" and tonumber(h.last) or 0 end
 
--- Room for one more: drop the longest unseen. Counting allocates nothing;
--- a full journal usually loses a single entry per new enemy.
+-- A bounty you can see on this name, while the Bounties addon is on.
+function History.HasBounty(name)
+  local B = ns.Bounty
+  return type(name) == "string" and B ~= nil and (not ns.Modules or ns.Modules.Active("bounties"))
+    and B.Find(name) ~= nil
+end
+
+-- Tracked enemies and bounty targets are never deleted: not by the size
+-- limit, forgetting the history or the journal's Delete.
+function History.Kept(name, h)
+  if type(h) ~= "table" then return false end
+  return h.tracked == true or History.HasBounty(name)
+end
+local Kept = History.Kept
+
+-- Room for one more: drop the longest unseen that is not kept. Counting
+-- allocates nothing; a full journal usually loses a single entry per new
+-- enemy. Only an older candidate is checked for a bounty. When only kept
+-- enemies remain, the journal grows past MAX.
 local function Prune(all)
   local count = 0
   for _ in pairs(all) do count = count + 1 end
@@ -115,14 +132,19 @@ local function Prune(all)
     local list = {}
     for name, h in pairs(all) do list[#list + 1] = { name, Last(h) } end
     table.sort(list, function(a, b) return a[2] < b[2] end)
-    for i = 1, excess do all[list[i][1]] = nil end
+    for _, item in ipairs(list) do
+      if excess <= 0 then return end
+      if not Kept(item[1], all[item[1]]) then all[item[1]], excess = nil, excess - 1 end
+    end
     return
   end
   for _ = 1, excess do
     local oldest, at
     for name, h in pairs(all) do
-      if not oldest or Last(h) < at then oldest, at = name, Last(h) end
+      local last = Last(h)
+      if (not oldest or last < at) and not Kept(name, h) then oldest, at = name, last end
     end
+    if not oldest then return end
     all[oldest] = nil
   end
 end
@@ -252,9 +274,14 @@ local function OnHonor(_, msg)
   if name then RecordKill(name, "killedThem") end
 end
 
+-- Forget everyone except tracked enemies and bounty targets.
 function History.Clear()
-  wipe(History.All())
+  local all = History.All()
+  for name, h in pairs(all) do
+    if not Kept(name, h) then all[name] = nil end
+  end
   mutedIn = nil
+  if ns.Tracking then ns.Tracking.Changed() end
   if ns.EnemyJournal then
     ns.Scope.Close(ns.EnemyJournal.noteWindow)
     local w = ns.EnemyJournal.win

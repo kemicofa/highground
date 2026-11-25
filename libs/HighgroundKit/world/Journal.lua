@@ -3,6 +3,7 @@ local H, Kit, U = ns.NearbyHistory, ns.Kit, ns.Util
 local Core, T = ns.Core, ns.Theme
 local J = {}
 ns.EnemyJournal = J
+J.FILTERS = { all = true, tracked = true, bounty = true } -- /hg journal FILTER
 
 local function Class(h)
   return (h.level and h.level > 0 and (ns.Locale:Format("shared.journal.level_h_level.bafbe1", { h_level = h.level })) or "")
@@ -163,7 +164,13 @@ local function RenderDetail(entry, w, width, sample)
   return y + Place(w.emptyGuide, EmptyMessage(sample), pad, y, inner) + pad
 end
 
-local function RenderRow(row, entry)
+-- Whether an entry has a bounty. Samples name their own (hub/CoachSamples.lua).
+local function Wanted(entry, provider)
+  if provider then return provider.wanted ~= nil and provider.wanted(entry) or false end
+  return H.HasBounty(entry.key)
+end
+
+local function RenderRow(row, entry, provider)
   if not row.icon then
     row.icon = row:CreateTexture(nil, "ARTWORK")
     row.identity = Text(row, "note", "textMuted"); row.identity:SetWordWrap(false)
@@ -189,18 +196,34 @@ local function RenderRow(row, entry)
   row.summary:SetWidth(row:GetWidth() - x - 12); row.summary:SetWordWrap(false)
   row.summary:SetText(Ago(entry.record.last) .. (entry.record.muted and ns.Locale:Get("shared.journal.muted.b6a778") or "")
     .. (entry.record.tracked and (" · " .. ns.Locale:Get("tracking.row")) or ""))
-  if ns.Bounty then ns.Bounty.MarkRow(row, entry.key) end
+  if provider then
+    if ns.Bounty then ns.Bounty.PaintRowMark(row, Wanted(entry, provider) or nil) end
+  elseif ns.Bounty then ns.Bounty.MarkRow(row, entry.key) end
 end
 
-local function RefreshJournal()
-  if not (J.win and J.win:IsVisible()) then return end
-  if J.win.emptyGuide and J.win.emptyGuide:IsShown() and J.win.emptyGuide:GetText() ~= EmptyMessage() then
-    J.win:Refresh()
-  end
+local function PaintMarks()
   if not ns.Bounty then return end
   for _, row in ipairs(J.win.rows) do
     if row:IsShown() then ns.Bounty.MarkRow(row, row.entry and row.entry.key) end
   end
+end
+
+-- A bounty change can add or remove an entry under the Bounty filter.
+-- Bounty syncs can send many events: the list is rebuilt once a second.
+local bountyChanged = false
+local function RefreshJournal()
+  if not (J.win and J.win:IsVisible()) then return end
+  local relist = bountyChanged and J.win.filterKey == "bounty"
+  bountyChanged = false
+  if relist or J.win.emptyGuide and J.win.emptyGuide:IsShown() and J.win.emptyGuide:GetText() ~= EmptyMessage() then
+    J.win:Refresh()
+  end
+  PaintMarks()
+end
+
+local function OnBounty()
+  bountyChanged = true
+  if J.win and J.win:IsVisible() then PaintMarks() end
 end
 
 function J.Entries()
@@ -245,9 +268,19 @@ function J.Build(provider)
   if not owner.win then
     owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "EnemyJournal" .. (provider and "Sample" or ""), {
       title = ns.Locale:Get("shared.journal.enemy_journal.49d951"), hint = ns.Locale:Get("shared.journal.this_character_s_encounters_on_the_current.f9ab1f"),
-      width = 800, height = 640, listRatio = 0.38, rowHeight = 62, renderRow = RenderRow,
+      width = 800, height = 640, listRatio = 0.38, rowHeight = 62,
+      renderRow = function(row, entry) RenderRow(row, entry, provider) end,
       renderDetail = function(entry, w, width) return RenderDetail(entry, w, width, provider) end,
       data = provider and provider.entries or J.Entries, empty = ns.Locale:Get("shared.journal.no_enemies_recorded.c9f1af"),
+      filters = { choices = {
+          { key = "all", label = { key = "journal.filter.all" } },
+          { key = "tracked", label = { key = "journal.filter.tracked" }, tooltip = { key = "journal.filter.tracked_tip" } },
+          { key = "bounty", label = { key = "journal.filter.bounty" }, tooltip = { key = "journal.filter.bounty_tip" } } },
+        match = function(e, key)
+          if key == "tracked" then return e.record.tracked == true end
+          return Wanted(e, provider)
+        end,
+        empty = function(key) return ns.Locale:Get(key == "tracked" and "journal.filter.no_tracked" or "journal.filter.no_bounty") end },
       actions = {
         { label = ns.Locale:Get("shared.journal.edit_note.9751b2"), tone = "accent", run = function(e) Note(e, owner) end },
         { label = ns.Locale:Get("shared.journal.mute_alerts.d2c70d"), text = function(e) return e and e.record.muted and ns.Locale:Get("shared.journal.unmute_alerts.3292ea") or ns.Locale:Get("shared.journal.mute_alerts.d2c70d") end,
@@ -258,7 +291,11 @@ function J.Build(provider)
           b.Board.Open(e.key)
           return true, ns.Locale:Get("shared.journal.set_a_reward_on_the_bounty_board.ad8f1d")
         end },
+        -- Tracked enemies and bounty targets are never deleted (world/History.lua).
         { label = ns.Locale:Get("shared.matchwindow.delete_entry.ccaf75"), run = function(e)
+          local name = Core.DisplayName(e.key)
+          if e.record.tracked then return false, ns.Locale:Format("journal.keep.tracked", { name = name }) end
+          if Wanted(e, provider) then return false, ns.Locale:Format("journal.keep.bounty", { name = name }) end
           local records = provider and provider.records or H.All()
           local record, scope = records[e.key], ns.Scope.Character(); records[e.key] = nil
           if not provider and ns.Tracking then ns.Tracking.Changed() end
@@ -281,11 +318,12 @@ function J.Build(provider)
           end },
       },
     })
+    owner.win.filter:SetEnabled("bounty", not ns.Modules or ns.Modules.Active("bounties"))
     T.OnChange(function() if owner.win:IsShown() then owner.win:Refresh() end end)
     if not provider then
       -- Bounties load after the journal; subscribe when the window is built.
       if ns.Bounty then
-        for _, event in ipairs({ "added", "updated", "changed" }) do ns.Bounty.Listen(event, RefreshJournal) end
+        for _, event in ipairs({ "added", "updated", "changed" }) do ns.Bounty.Listen(event, OnBounty) end
       end
       -- Recording settings, bounty expiry and markers can change while open.
       local refresh = U.Every(1, RefreshJournal, "enemy journal", "nearby")
@@ -297,8 +335,19 @@ function J.Build(provider)
   return owner.win
 end
 
-function J.Open(embedded)
+-- filter: one of J.FILTERS, or nil to keep the current one.
+function J.Open(embedded, filter)
+  -- Like the disabled Bounty choice: the addon's page explains how to turn it on.
+  if filter == "bounty" and ns.Modules and not ns.Modules.Require("bounties") then return end
   J.Build()
+  if filter then J.win:SetFilter(filter) end
   if not embedded then J.win:Open() end
   return J.win
+end
+
+-- /hg journal [all|tracked|bounty]: the journal under that filter, All by default.
+function J.Command(arg, say)
+  local filter = arg ~= "" and arg or "all"
+  if not J.FILTERS[filter] then return say(ns.Locale:Get("journal.commands.usage"), "error") end
+  J.Open(nil, filter)
 end

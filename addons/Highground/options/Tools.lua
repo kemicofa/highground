@@ -85,7 +85,7 @@ function O.OpenCommand(row)
     if row.owner ~= "shared" then ns.Modules.Require(row.owner) end
     return
   end
-  if row.ui.tool then return O.OpenTool(row.ui.tool) end
+  if row.ui.tool then return O.OpenTool(row.ui.tool, row.ui.toolArg) end
   if row.ui.page then return ns.Hub.Open(row.ui.page) end
   if row.fields or row.confirm then return Form(row) end
   return Run(row)

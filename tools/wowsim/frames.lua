@@ -103,6 +103,8 @@ return function(sim, env)
     f.clicks = {}; for i = 1, select("#", ...) do f.clicks[select(i, ...)] = true end
   end
   methods.EnableMouse = function(f, enabled) f.mouseEnabled = enabled end
+  methods.SetHitRectInsets = function(f, left, right, top, bottom) f.hitInsets = { left, right, top, bottom } end
+  methods.GetHitRectInsets = function(f) return unpack(f.hitInsets or { 0, 0, 0, 0 }) end
   methods.SetPoint = function(f, ...) mutable(f, "SetPoint"); f.points[#f.points + 1] = { ... } end
   methods.GetPoint = function(f, index)
     local point = f.points[index or 1]

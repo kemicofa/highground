@@ -15,7 +15,7 @@ ASSETS = {
        for name in ("BarlowCondensed-Bold.ttf", "BarlowCondensed-SemiBold.ttf",
                     "BarlowCondensed-Medium.ttf", "JetBrainsMono-Bold.ttf",
                     "HighgroundCrest.tga", "HighgroundIcon.tga", "ControlCorners.tga", "ProgressCircle.tga",
-                    "MapRing.tga")},
+                    "MapRing.tga", "HeatBlob.tga")},
     **{f"libs/HighgroundKit/sounds/{name}.ogg": (("libs/HighgroundKit/core/Stealth.lua", name),)
        for name in ("stealth-enter", "stealth-exit")},
     "libs/HighgroundKit/sounds/nearby.ogg": (("libs/HighgroundKit/world/Nearby.lua", "nearby.ogg"),),

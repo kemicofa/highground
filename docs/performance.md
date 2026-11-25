@@ -151,6 +151,37 @@ from `addons/Highground/` (one roster event per second), the second
 minute fell from **3.2 to 1.7 MiB allocated**. Separate lookups still read live
 rank flags; a full guild listing reads each rank once instead of twice per member.
 
+## Reputation, macro and profile-link memory
+
+Frames are never freed, and some caches waited for the next use to shrink.
+Simulator figures (Highground, Retail client unless noted):
+
+| Case | Before | After |
+| --- | ---: | ---: |
+| Details for a player with 200 reports and 100 decisions | 2,093 widgets kept for the session | 14 on open; 46 more after scrolling the whole record, then none |
+| One chat message through 7 chat windows, one-player blacklist | 1.1 KB (sender unlisted), 2.9 KB (listed) | 7 B, 4 B |
+| Chat with senders alternating every message | 2.0 KB per message | 0.4 KB |
+| `SPELLS_CHANGED` with 30 tracked ranked spells, nothing moved | 3.4 KB | 0 |
+| Macro builder, one change to a 157-byte macro | 21 KiB | 19 KiB |
+
+- Reputation Details renders the record through `Kit.VirtualList`'s measured
+  rows: only the rows in view exist (seven in the default dialog). Heights are
+  measured on open, width and text-size changes, never while scrolling, and
+  idle with the record open makes no resize events or text writes.
+- Every chat window filters the same message. The last sender's answer is kept
+  on the blacklist index, which every change rebuilds.
+- Spell rank records change in place; a check where nothing moved returns one
+  shared empty table.
+- `Kit.ColorEditBox` colours each change once instead of twice.
+- A shared profile's export (3 KB by default, at most 32 KB, eight links) was
+  held until the next share. It is now released a second after its 30-minute
+  link expires.
+
+Budgets: `tests/reputation_forms_test.lua` (bounded Details rows, every entry
+reachable), `tests/reputation_filtering_test.lua` (one parse per sender),
+the `macroedges` and `profileshare` simulations, and `tests/ui_lists.lua`
+(measured lists, colour edit boxes).
+
 ## In-game capture
 
 When the live client still grows or stutters after a simulated fix, reload so the changed code is loaded, then run `/hg perf start` with the affected UI state. It records 60 seconds of sampled FPS, guarded callback CPU and allocations, addon memory at start and end, buffer sizes and roster-work counts, then stops and restores the original functions. `/hg perf` prints the largest sources and `/hg perf stop` ends early. `/reload` after it finishes writes `HighgroundDB.lastPerformance` to SavedVariables.

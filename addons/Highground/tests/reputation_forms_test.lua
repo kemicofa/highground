@@ -102,7 +102,7 @@ test("demotion retires private history while preserving report and reason drafts
     target = target, categories = { toxic = true }, note = "Private reporter note", revision = 1, at = W.Now() }, "Member-Realm"))
   W.Open(); W.OpenDetails(c, W.FindCase(c, target))
   local details = W.UI.details
-  local entry = details.view.reports[1]
+  local entry = F.detailsRow(details, details.model.reports[1]).card
   equal(entry.body:GetText(), "Private reporter note", "moderator can review private notes")
   local approve, revoke, dismiss = s.bounds(details.approve), s.bounds(details.revoke), s.bounds(details.dismiss)
   assert(approve[1] + approve[3] < revoke[1] and revoke[1] + revoke[3] < dismiss[1], "moderator actions sit in one row without overlap")
@@ -130,6 +130,9 @@ test("demotion retires private history while preserving report and reason drafts
   s:event("CLUB_SELF_MEMBER_ROLE_UPDATED", 42)
   assert(W.UI.report:IsVisible(), "demotion preserves active report")
   assert(entry.body:GetText() == "" and not entry:IsShown(), "hidden history no longer contains private notes")
+  for _, r in ipairs({ details.view.probe, unpack(details.list.rows) }) do
+    assert(not (r.card and r.card.body:GetText():find("Private", 1, true)), "no row or measurement keeps a private note")
+  end
   W.UI.report:Hide()
   assert(not details:IsShown(), "closing report cannot return to obsolete moderator history")
   s.native[42].members[W.Me()].role = 1
@@ -241,7 +244,7 @@ test("moderation history names each decision instead of its internal kind", func
   assert(W.Decide(c, target, "ban", { toxic = true }, "Public explanation"))
   W.Open(); W.OpenDetails(c, W.FindCase(c, target))
   local v = W.UI.details.view
-  equal(v.entries[1].title:GetText(), "Blacklisted", "decision label")
+  equal(F.detailsRow(W.UI.details, W.UI.details.model.history[1]).card.title:GetText(), "Blacklisted", "decision label")
   equal(v.state:GetText(), "BLACKLISTED", "case state label")
   equal(W.UI.details.header.sub:GetText(), W.Name(c), "subtitle names the organization only")
 end)
@@ -264,22 +267,34 @@ test("details stack the record into cards that fit any width and text size", fun
   equal(v.state:GetText(), "BLACKLISTED", "the hero names the state")
   equal(v.metrics[1].value:GetText() .. "/" .. v.metrics[2].value:GetText() .. "/" .. v.metrics[3].value:GetText(), "2/1/1",
     "reporters, awaiting review and decisions")
-  assert(v.reports[1].meta:GetText():find("^Awaiting review"), "unreviewed reports come first")
-  equal(v.reports[1].body:GetText(), "No note.", "an empty note says so")
-  equal(v.reports[2].body:GetText(), note, "a reviewed report keeps its note")
-  assert(v.class:GetText():find("Night Watch", 1, true) and v.met:GetText():find("Killed you: 3", 1, true),
+  local m = f.model
+  local order = {}
+  for _, item in ipairs(f.list.items) do order[#order + 1] = item.key or "card" end
+  equal(table.concat(order, " "), "explanation reports card card encounters history card", "the record's reading order")
+  local first = F.detailsRow(f, m.reports[1]).card
+  assert(first.meta:GetText():find("^Awaiting review"), "unreviewed reports come first")
+  equal(first.body:GetText(), "No note.", "an empty note says so")
+  equal(F.detailsRow(f, m.reports[2]).card.body:GetText(), note, "a reviewed report keeps its note")
+  assert(v.class:GetText():find("Night Watch", 1, true) and F.detailsRow(f, "encounters").text:GetText():find("Killed you: 3", 1, true),
     "your Nearby history adds class, guild and encounters")
+  -- Rows exist only in view: each block is measured from the body's top.
   local function Check(label)
-    local body = s.bounds(v)
-    local bottom = body[2]
-    for i, r in ipairs({ v.hero, v.stats, v.sections.explanation.label, v.explanation, v.sections.reports.label, v.reports[1],
-      v.reports[2], v.sections.encounters.label, v.met, v.lastSeen, v.sections.history.label, v.entries[1] }) do
-      local b = s.bounds(r)
-      assert(r:IsShown() and b[2] >= bottom - 0.5, label .. ": block " .. i .. " starts below the one before")
+    local bottom = 0
+    local function Block(r, i)
+      local body, b = s.bounds(v), s.bounds(r)
+      assert(r:IsShown() and b[2] - body[2] >= bottom - 0.5, label .. ": block " .. i .. " starts below the one before")
       assert(b[1] >= body[1] - 0.5 and b[1] + b[3] <= body[1] + body[3] + 0.5, label .. ": block " .. i .. " fits the width")
-      bottom = b[2] + b[4]
+      bottom = b[2] - body[2] + b[4]
     end
-    assert(bottom <= body[2] + body[4] + 0.5, label .. ": the scroll body holds every block")
+    Block(v.hero, "hero"); Block(v.stats, "stats")
+    for i, item in ipairs(f.list.items) do
+      local r = F.detailsRow(f, item)
+      if not item.key then Block(r.card, i) else
+        Block(r.label, i)
+        for _, key in ipairs({ "large", "text", "note" }) do if item[key] then Block(r[key], i .. key) end end
+      end
+    end
+    assert(bottom <= s.bounds(v)[4] + 0.5, label .. ": the scroll body holds every block")
     local hero = s.bounds(v.hero)
     for _, badge in ipairs(v.badges) do
       local b = s.bounds(badge)
@@ -293,6 +308,46 @@ test("details stack the record into cards that fit any width and text size", fun
   s.ns.Core.SetFontScale(1.5)
   Check("large text")
   s.ns.Core.SetFontScale(1)
+end)
+
+test("a long record reuses a few rows and still reaches every report and decision", function()
+  local native, names = F.native("Owner"), {}
+  for i = 1, 60 do
+    names[i] = "Mem" .. string.char(97 + math.floor(i / 26), 97 + i % 26) .. "-Realm"
+    native[42].members[names[i]] = { name = names[i], role = 4, memberId = 100 + i, presence = 1 }
+  end
+  local s = F.new("Owner", { native = native, configure = function(sim) dofile("../../tools/wowsim/geometry.lua")(sim) end })
+  local W, c = F.W(s), F.community(s)
+  local target, quiet = F.target(s), F.target(s, "Quiet-Realm", "Player-1-Quiet")
+  for i, name in ipairs(names) do
+    assert(W.MergeReport(c, { id = "m" .. i .. ".report", account = "m" .. i, by = name, target = target,
+      categories = { toxic = true }, note = "Report " .. i, revision = 1, at = W.Now() - i }, name))
+  end
+  for i = 1, 40 do assert(W.Decide(c, target, i % 2 == 1 and "ban" or "revoke", i % 2 == 1 and { toxic = true } or {}, "Decision " .. i)) end
+  assert(W.Decide(c, quiet, "ban", { toxic = true }, "Quiet decision"))
+  W.Open(); W.OpenDetails(c, W.FindCase(c, target))
+  local f = W.UI.details
+  equal(#f.list.items, 102, "two headings, every report and every decision")
+  assert(#f.list.rows <= 12, "only the rows in view exist, got " .. #f.list.rows)
+  local function Sweep()
+    local seen = {}
+    for y = 0, f.history.range + 40, 40 do
+      f.history:Scroll(y)
+      for _, r in ipairs(f.list.rows) do if r:IsShown() and r.card and r.card:IsShown() then seen[r.card.body:GetText()] = true end end
+    end
+    return seen
+  end
+  local seen = Sweep()
+  for i = 1, 60 do assert(seen["Report " .. i], "report " .. i .. " is reachable") end
+  for i = 1, 40 do assert(seen["Decision " .. i], "decision " .. i .. " is reachable") end
+  local widgets = #s.frames
+  Sweep()
+  equal(#s.frames, widgets, "scrolling again makes no widgets")
+  W.OpenDetails(c, W.FindCase(c, quiet))
+  local shown = 0
+  for _, r in ipairs(f.list.rows) do if r:IsShown() then shown = shown + 1 end end
+  equal(shown, #f.list.items, "a short record hides the rows it does not need")
+  equal(#s.frames, widgets, "and reuses the long record's widgets")
 end)
 
 t.finish("Reputation forms: " .. t.tests .. " scenarios")

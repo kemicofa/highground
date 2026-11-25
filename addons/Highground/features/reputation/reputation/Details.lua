@@ -128,6 +128,81 @@ local function RenderEntry(e, spec, y, width)
   return h
 end
 
+
+-- One row of the record below the hero: a section heading with its lines,
+-- or a report or decision card. The list keeps only the visible rows; a
+-- row makes each part the first time it shows one.
+local LINES = { "large", "text", "note" }
+local function Heading(r)
+  if r.rule then return end
+  r.rule = T.Fill(r, "ARTWORK", "border"); r.rule:SetHeight(1)
+  r.label = Text(r, "caption", "accent")
+  r.large = Text(r, "bodyLarge", "text")
+  r.text = Text(r, "body", "text")
+  r.note = Text(r, "note", "textMuted")
+end
+
+-- Lays out an item at width; returns its height and the space after it.
+local function Block(r, item, width)
+  local inner = width - PAD * 2
+  if not item.label then
+    if r.rule then r.rule:Hide(); r.label:Hide(); for _, key in ipairs(LINES) do r[key]:Hide() end end
+    r.card = r.card or Entry(r)
+    return RenderEntry(r.card, item, 0, inner) + 8 + item.after
+  end
+  if r.card then r.card:Hide() end
+  Heading(r)
+  r.rule:ClearAllPoints(); r.rule:SetPoint("TOPLEFT", PAD, 0); r.rule:SetWidth(inner); r.rule:Show()
+  local y, gap = 16 + Place(r.label, item.label, PAD, 16, inner) + 10, 0
+  for _, key in ipairs(LINES) do
+    local fs, line = r[key], item[key]
+    if line then
+      if key ~= "note" then T.Paint(fs, item.muted and "textMuted" or "text") end
+      y, gap = y + gap + Place(fs, line, PAD, y + gap, inner), 5
+    else fs:Hide() end
+  end
+  return y + item.after
+end
+
+local function Section(items, key, label, item)
+  item.key, item.label = key, ns.Text.Upper(label)
+  items[#items + 1] = item
+end
+
+local function Cards(items, specs, after)
+  for _, spec in ipairs(specs) do spec.after = 0; items[#items + 1] = spec end
+  if #specs > 0 then items[#items].after = after end
+end
+
+-- The record in reading order, built once per OpenDetails.
+local function Items(m)
+  local items = {}
+  if m.approved then
+    local note = m.explanation ~= ""
+    Section(items, "explanation", ns.Locale:Get("reputation.details.explanation"), { muted = not note, after = 18,
+      large = note and m.explanation or ns.Locale:Get("reputation.details.no_public_explanation_added.1df262") })
+  end
+  if m.moderator or #m.reports > 0 then
+    local title = m.moderator and ns.Locale:Format("reputation.details.reports", { count = #m.reports }) or ns.Locale:Get("reputation.details.your_report")
+    local none = #m.reports == 0
+    Section(items, "reports", title, { text = none and ns.Locale:Get("reputation.details.no_reports") or nil, muted = true, after = none and 18 or 0 })
+  end
+  Cards(items, m.reports, 10)
+  local h = m.encounter
+  if h then
+    local seen = h.last and (h.zone and ns.Locale:Format("reputation.details.last_seen_in", { zone = h.zone, ago = Ago(h.last) })
+      or ns.Locale:Format("shared.previewsamples.last_seen_value2.b31bec", { value2 = Ago(h.last) }))
+    Section(items, "encounters", ns.Locale:Get("reputation.details.encounters"), { note = seen, after = 23,
+      text = ns.Locale:Format("reputation.details.encounter_counts", { times = h.times or 0, killed = h.killedThem or 0, deaths = h.killedMe or 0 }) })
+  end
+  local none = #m.history == 0
+  Section(items, "history", ns.Locale:Get("reputation.details.history"), { text = none and ns.Locale:Get("reputation.details.no_decisions") or nil, muted = true, after = none and 10 or 0 })
+  Cards(items, m.history, 0)
+  items[#items].after = items[#items].after + PAD
+  return items
+end
+
+local Header -- after Hero and Stats
 local function Build(f)
   local v = f.history.body
   f.view = v
@@ -159,23 +234,13 @@ local function Build(f)
     end
     v.metrics[i] = cell
   end
-  v.sections, v.reports, v.entries = {}, {}, {}
-  for _, key in ipairs({ "explanation", "reports", "encounters", "history" }) do
-    local s = { rule = T.Fill(v, "ARTWORK", "border"), label = Text(v, "caption", "accent") }
-    s.rule:SetHeight(1)
-    v.sections[key] = s
-  end
-  v.explanation = Text(v, "bodyLarge", "text")
-  v.met = Text(v, "body", "text")
-  v.lastSeen = Text(v, "note", "textMuted")
-  v.noReports = Text(v, "body", "textMuted")
-  v.noHistory = Text(v, "body", "textMuted")
-end
-
-local function Section(v, key, text, y, width)
-  local s = v.sections[key]
-  s.rule:ClearAllPoints(); s.rule:SetPoint("TOPLEFT", PAD, -y); s.rule:SetWidth(width - PAD * 2); s.rule:Show()
-  return y + 16 + Place(s.label, ns.Text.Upper(text), PAD, y + 16, width - PAD * 2) + 10
+  -- Measures rows for the list: drawn, but never seen.
+  v.probe = CreateFrame("Frame", nil, v)
+  v.probe:SetPoint("TOPLEFT"); v.probe:SetSize(1, 1); v.probe:SetAlpha(0)
+  f.list = K.VirtualList(f.history, { max = 24, create = function(body) return CreateFrame("Frame", nil, body) end,
+    header = function(width) return Header(f, width) end,
+    measure = function(item, _, width) return Block(v.probe, item, width) end,
+    render = function(row, item, _, width) row.item = item; Block(row, item, width) end })
 end
 
 local function Hero(v, m, width)
@@ -232,59 +297,22 @@ local function Stats(v, m, y, width)
   return y + height
 end
 
-local function Entries(v, pool, specs, y, width)
-  for i, spec in ipairs(specs) do
-    pool[i] = pool[i] or Entry(v)
-    y = y + RenderEntry(pool[i], spec, y, width - PAD * 2) + 8
-  end
-  for i = #specs + 1, #pool do pool[i]:Hide() end
-  return y
-end
-
-local function Render(f, width)
+-- The hero and officers' counts above the record.
+function Header(f, width)
   local v, m = f.view, f.model
-  if not m then return 1 end
-  for _, s in pairs(v.sections) do s.rule:Hide(); s.label:Hide() end
-  for _, fs in ipairs({ v.explanation, v.met, v.lastSeen, v.noReports, v.noHistory }) do fs:Hide() end
-  local inner = width - PAD * 2
-  local y = Stats(v, m, Hero(v, m, width), width) + 10
-  if m.approved then
-    y = Section(v, "explanation", ns.Locale:Get("reputation.details.explanation"), y, width)
-    local note = m.explanation ~= ""
-    T.Paint(v.explanation, note and "text" or "textMuted")
-    y = y + Place(v.explanation, note and m.explanation or ns.Locale:Get("reputation.details.no_public_explanation_added.1df262"), PAD, y, inner) + 18
-  end
-  if m.moderator or #m.reports > 0 then
-    local title = m.moderator and ns.Locale:Format("reputation.details.reports", { count = #m.reports }) or ns.Locale:Get("reputation.details.your_report")
-    y = Section(v, "reports", title, y, width)
-    if #m.reports == 0 then y = y + Place(v.noReports, ns.Locale:Get("reputation.details.no_reports"), PAD, y, inner) + 18 end
-  end
-  y = Entries(v, v.reports, m.reports, y, width) + (#m.reports > 0 and 10 or 0)
-  local h = m.encounter
-  if h then
-    y = Section(v, "encounters", ns.Locale:Get("reputation.details.encounters"), y, width)
-    y = y + Place(v.met, ns.Locale:Format("reputation.details.encounter_counts", { times = h.times or 0, killed = h.killedThem or 0, deaths = h.killedMe or 0 }), PAD, y, inner) + 5
-    local seen = h.last and (h.zone and ns.Locale:Format("reputation.details.last_seen_in", { zone = h.zone, ago = Ago(h.last) })
-      or ns.Locale:Format("shared.previewsamples.last_seen_value2.b31bec", { value2 = Ago(h.last) }))
-    v.lastSeen:SetShown(seen ~= nil)
-    if seen then y = y + Place(v.lastSeen, seen, PAD, y, inner) + 5 end
-    y = y + 18
-  end
-  y = Section(v, "history", ns.Locale:Get("reputation.details.history"), y, width)
-  if #m.history == 0 then
-    y = y + Place(v.noHistory, ns.Locale:Get("reputation.details.no_decisions"), PAD, y, inner) + 10
-  end
-  return Entries(v, v.entries, m.history, y, width) + PAD
+  if not m then return 0 end
+  return Stats(v, m, Hero(v, m, width), width) + 10
 end
 
 -- A suspended window must not keep private notes after access ends.
+local NONE = {}
 local function Clear(f)
   f.model, f.row = nil, nil
-  for _, pool in ipairs({ f.view.reports, f.view.entries }) do
-    for _, e in ipairs(pool) do
-      for _, fs in ipairs({ e.title, e.meta, e.tags, e.body }) do fs:SetText("") end
-      e:Hide()
-    end
+  f.list:SetItems(NONE)
+  for _, r in ipairs(f.list.rows) do r.item = nil end
+  for _, r in ipairs({ f.view.probe, unpack(f.list.rows) }) do
+    local e = r.card
+    if e then for _, fs in ipairs({ e.title, e.meta, e.tags, e.body }) do fs:SetText("") end; e:Hide() end
   end
 end
 
@@ -299,10 +327,6 @@ function W.OpenDetails(c, row, source)
     f.history:SetPoint("TOPLEFT", 0, -6); f.history:SetPoint("BOTTOMRIGHT", -10, 54)
     f.scroll = f.history.view
     Build(f)
-    function f.history.onLayout(area, width)
-      local height = math.max(1, Render(f, width))
-      if math.abs(area.body:GetHeight() - height) > 0.001 then area.body:SetHeight(height) end
-    end
     f.Clear = Clear
     -- Moderator actions share one toolbar; hidden actions leave no gap and
     -- longer translations wrap inside taller buttons.
@@ -317,8 +341,8 @@ function W.OpenDetails(c, row, source)
     -- the record; a theme change repaints it.
     local function Reflow() if f:IsShown() then f.actions:Layout(math.max(1, f:GetWidth() - 36)) end end
     f:HookScript("OnSizeChanged", Reflow)
-    ns.Core.OnFontScaleChange(function() Reflow(); if f:IsShown() then f.history:Refresh() end end)
-    T.OnChange(function() if f:IsShown() then f.history:Refresh() end end)
+    ns.Core.OnFontScaleChange(function() Reflow(); if f:IsShown() then f.list:Refresh() end end)
+    T.OnChange(function() if f:IsShown() then f.list:Refresh() end end)
   end
   row = W.FindCase(c, row.target) or row
   local f = UI.details
@@ -332,6 +356,6 @@ function W.OpenDetails(c, row, source)
   f.revoke:SetEnabled(row.active ~= nil); f.dismiss:SetEnabled(row.pending > 0)
   f.actions:SetShown(mod)
   f:Show()
-  f.history:Refresh(); f.history:Scroll(0)
+  f.list:SetItems(Items(f.model)); f.history:Scroll(0)
   f.actions:Layout(math.max(1, f:GetWidth() - 36))
 end

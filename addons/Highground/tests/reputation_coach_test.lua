@@ -84,18 +84,21 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     action(C, U.window.openReports, "details_open")
     action(C, U.window.rows[1].action, "review")
     local v = U.details.view
-    t.equal(v.reports[1].body:GetText(), "Observed example encounter", "the report shows its note")
-    t.equal(v.reports[1].meta:GetText():match("^[^·]+"), "Awaiting review ", "an unreviewed report says so")
+    local function Row(match) return F.detailsRow(U.details, match == "report" and U.details.model.reports[1]
+      or match == "decision" and U.details.model.history[1] or match) end
+    t.equal(Row("report").card.body:GetText(), "Observed example encounter", "the report shows its note")
+    t.equal(Row("report").card.meta:GetText():match("^[^·]+"), "Awaiting review ", "an unreviewed report says so")
     t.equal(v.state:GetText(), "AWAITING REVIEW", "the hero names the case state")
     assert(v.stats:IsShown() and v.metrics[2].value:GetText() == "1", "officers see the pending count")
-    assert(v.met:IsShown() and v.met:GetText():find("Encounters: 3", 1, true), "sample encounters come from the sample record")
+    local met = Row("encounters").text
+    assert(met:IsShown() and met:GetText():find("Encounters: 3", 1, true), "sample encounters come from the sample record")
     action(C, U.details.approve, "approve")
     t.equal(report.note:GetText(), "Observed example encounter", "native review preserves the report note")
     action(C, report.submit, "history")
     assert(R.data.row.active and R.data.row.pending == 0)
     t.equal(v.state:GetText(), "BLACKLISTED", "actual history renders the decision")
-    t.equal(v.entries[1].title:GetText(), "Blacklisted", "the timeline names the decision")
-    t.equal(v.reports[1].meta:GetText():match("^[^·]+"), "Reviewed ", "the decision reviewed the report")
+    t.equal(Row("decision").card.title:GetText(), "Blacklisted", "the timeline names the decision")
+    t.equal(Row("report").card.meta:GetText():match("^[^·]+"), "Reviewed ", "the decision reviewed the report")
     assert(v.badges[1]:IsShown() and v.badges[1].label:GetText() == "Other", "approved categories are badges")
     action(C, U.details.close, "blacklist_open")
     action(C, U.window.tabs.blacklist, "pause")

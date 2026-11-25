@@ -100,6 +100,19 @@ function F.native(name)
   end
   return { [42] = { name = "Test community", members = members } }
 end
+-- The Details row for an item: a report or decision from the dialog's
+-- model, or a section by key ("explanation", "reports", "encounters",
+-- "history"). Rows exist only in view, so this scrolls to the item first.
+function F.detailsRow(f, match)
+  local list, area = f.list, f.history
+  for i, item in ipairs(list.items) do
+    if item == match or item.key == match then
+      local top = list.top + list.tops[i]
+      if top < area.offset or top + list.heights[i] > area.offset + area.view:GetHeight() then area:Scroll(top) end
+      for _, r in ipairs(list.rows) do if r:IsShown() and r.item == item then return r end end
+    end
+  end
+end
 function F.community(s)
   local org = s.env.C_Club and "club:42" or assert(s.ns.Organizations.Guild()).id
   local W = F.W(s)

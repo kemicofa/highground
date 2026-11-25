@@ -163,8 +163,10 @@ end
 function Rings.Draw(map, mapID, wanted, radius)
   local set = Rings.frames[map]
   if not set then return end
-  if radius and (set.dirty or set.mapID ~= mapID or math.abs(2 * radius * map:GetCanvas():GetWidth() - (set.size or 0)) > 1) then
-    Rebuild(map, set, mapID, math.max(8, 2 * radius * map:GetCanvas():GetWidth()))
+  -- Compare the clamped size: small rings would otherwise rebuild every refresh.
+  local size = radius and math.max(8, 2 * radius * map:GetCanvas():GetWidth())
+  if size and (set.dirty or set.mapID ~= mapID or math.abs(size - (set.size or 0)) > 1) then
+    Rebuild(map, set, mapID, size)
   end
   local r, g, b = Theme.Color("mapZone")
   for _, unit in ipairs(set.units) do

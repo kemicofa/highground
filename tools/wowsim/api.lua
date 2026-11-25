@@ -143,10 +143,26 @@ return function(sim, env)
     GetSpellName = function(id) return "Spell " .. id end,
     GetSpellInfo = function(name) if sim.known[name] then return { name = name } end end,
   }
+  -- Like the game, every read builds a new AuraData table with its own
+  -- points list, so profilers and budgets see what the client allocates.
+  local function Aura(a)
+    if type(a) ~= "table" or env.issecretvalue(a) then return a end
+    local copy, points = {}, {}
+    for key, value in pairs(a) do copy[key] = value end
+    for i, value in ipairs(type(a.points) == "table" and a.points or EMPTY) do points[i] = value end
+    copy.points = points
+    return copy
+  end
   env.C_UnitAuras = {
-    GetAuraDataByIndex = function(token, i, filter) return read(token, filter == "HARMFUL" and "debuffs" or "buffs", EMPTY)[i] end,
-    -- Like the game, returns a new table the caller may keep or change.
-    GetUnitAuras = function(token, filter) return read(token, "categories", EMPTY)[filter] or {} end,
+    GetAuraDataByIndex = function(token, i, filter)
+      return Aura(read(token, filter == "HARMFUL" and "debuffs" or "buffs", EMPTY)[i])
+    end,
+    -- A new list of new auras the caller may keep or change.
+    GetUnitAuras = function(token, filter)
+      local list = {}
+      for i, a in ipairs(read(token, "categories", EMPTY)[filter] or EMPTY) do list[i] = Aura(a) end
+      return list
+    end,
   }
   -- As in the game, your target's token also finds its nameplate.
   env.C_NamePlate = { GetNamePlateForUnit = function(token)

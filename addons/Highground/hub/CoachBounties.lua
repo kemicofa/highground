@@ -156,10 +156,9 @@ function C.BountySteps(role)
   if type(progress) == "table" and retired[progress[key]] then progress[key] = retired[progress[key]] end
   local steps = role == "hunt" and HuntSteps() or PostSteps()
   for _, step in ipairs(steps) do
-    local enter, target = step.enter, step.target
+    local enter = step.enter
     step.enter = function(...) S.Ensure(role); if enter then return enter(...) end end
     step.context = S.Context
-    if step.requireAction and not step.action then step.action = function() return Clickable(target()) end end
   end
   return steps
 end

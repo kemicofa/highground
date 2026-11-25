@@ -92,6 +92,11 @@ function C.Clickable(button)
   return button and button.Click and button.IsEnabled and button:IsVisible() and button:IsEnabled() and button or nil
 end
 local Clickable = C.Clickable
+-- Next can't choose from a menu, so a menu opener never stands in for a step's click.
+local function Assist(target)
+  local button = Clickable(target)
+  return button and not button.opensMenu and button or nil
+end
 
 -- C.status: "idle" before any guide, "entering" while a step prepares, then
 -- each update derives "missing" (target closed), "clipped" (scrolled out of
@@ -149,9 +154,8 @@ function C.Update()
       for i, candidate in ipairs(C.steps) do if candidate.id == nextStep and i ~= C.index then return C.Go(i) end end
     end
   end
-  local ready = not step.requireAction or C.observed == true or Clickable(Value(step.action)) ~= nil
-  C.status = hidden or C.observed and "done" or not ready and "waiting" or "ready"
-  C.win.next:SetEnabled(ready)
+  local waiting = step.requireAction and C.observed ~= true
+  C.status = hidden or C.observed and "done" or waiting and "waiting" or "ready"
   local hint = Value(step.hint) or (C.observed and ns.Locale:Get("highground.coach.done_use_next_when_you_re_ready.8b0590")
     or "")
   if hidden == "clipped" then hint = ns.Locale:Get("guide.coach.clipped")
@@ -233,17 +237,15 @@ function C.Step(delta)
   end
 end
 
--- Only explicit sample actions opt in. The native button owns validation,
--- side effects and hooks; the coach never replaces its click handler.
+-- Next never waits on a hint the player didn't read: it clicks the step's
+-- sample action, or moves on and the next step sets up its own sample. The
+-- native button owns validation, side effects and hooks; the coach never
+-- replaces its click handler.
 function C.Continue()
   if not C.running or C.pendingAction then return end
   local step, router = C.steps[C.index], C.router
   local button = Value(step.action)
-  if not button then
-    if not step.requireAction or C.observed then return C.Step(1) end
-    return
-  end
-  if not Clickable(button) then return end
+  if not Clickable(button) then return C.Step(1) end
   if not button.highgroundCoachAction then
     button.highgroundCoachAction = true
     button:HookScript("OnClick", function()
@@ -274,6 +276,14 @@ function C.Start(key, steps)
   if not steps or #steps == 0 then return O.Return() end
   C.Stop(); C.Build()
   if type(O.State().samples) ~= "table" then O.State().samples = {} end
+  -- A step that asks for a click lets Next make it on the highlighted control.
+  -- Only sample controls are required; real saves and sends stay optional.
+  for _, step in ipairs(steps) do
+    if step.requireAction and step.action == nil then
+      local target = step.target
+      step.action = function() return Assist(target and target()) end
+    end
+  end
   C.key, C.steps, C.running = key, steps, true
   C.router = ns.Router.New()
   C.router:Register("stopped")

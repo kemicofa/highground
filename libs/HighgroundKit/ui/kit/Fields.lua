@@ -151,6 +151,7 @@ function Kit.Select(parent, opts)
     s.caption:SetPoint("BOTTOMLEFT", s, "TOPLEFT", 1, S("xs") + 1)
   end
   s.choices = opts.choices or {}
+  s.opensMenu = opts.menu and true or nil -- a click alone selects nothing (guides)
   local function Index(key)
     if key == nil then return end
     for i, c in ipairs(s.choices) do if c.key == key then return i end end

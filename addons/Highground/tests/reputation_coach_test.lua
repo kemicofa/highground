@@ -78,7 +78,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local W = s.ns.Reputation
     local core, network, sent, chat = W.Copy(s.ns.Core.db), W.Copy(W.db), #s.sent, #s.chat
     local C, R, U = start(s)
-    expect(C, "organization"); assert(not C.win.next:IsEnabled())
+    expect(C, "organization"); assert(C.win.next:IsEnabled(), "Next can open the organization")
     action(C, U.window.rows[1].action, "participation"); resume(s, C, U)
     assert(not U.report, "form waits for its actual opener")
     action(C, U.window.add, "proposal")
@@ -133,7 +133,9 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     action(C, U.window.rows[1].action, "participation"); resume(s, C, U); action(C, U.window.add, "proposal")
     U.report.categories.other:SetChecked(false, true)
     action(C, U.report.submit, "proposal")
-    assert(U.report.status:GetText():find("category", 1, true) and not C.win.next:IsEnabled())
+    assert(U.report.status:GetText():find("category", 1, true))
+    s.ns.Core.db.reducedMotion = true; action(C, C.win.next, "proposal"); s.ns.Core.db.reducedMotion = nil
+    assert(U.report:IsVisible() and U.report.status:GetText():find("category", 1, true), "Next resubmits; the form keeps its error")
     U.report.categories.other:SetChecked(true, true)
     action(C, U.report.submit, "proposals_open"); action(C, U.window.tabs.proposals, "moderation"); action(C, U.window.openReports, "details_open")
     action(C, U.window.rows[1].action, "review")

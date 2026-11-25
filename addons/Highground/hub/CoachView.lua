@@ -58,7 +58,9 @@ function C.Build()
   Kit.Tooltip(w.back, function() return { ns.Locale:Get("highground.coachview.back.b52b36"), ns.Locale:Get("highground.coachview.return_to_the_previous_step_or_the.c9dd2c") } end)
   Kit.Tooltip(w.next, function()
     local step = C.running and C.steps[C.index]
-    return { ns.Locale:Get("highground.coach.next.bc9819"), step and step.action and ns.Locale:Get("highground.coachview.follows_the_highlighted_sample_action_you_can.a2b562")
+    local action = step and step.action
+    if type(action) == "function" then action = action() end
+    return { ns.Locale:Get("highground.coach.next.bc9819"), C.Clickable(action) and ns.Locale:Get("highground.coachview.follows_the_highlighted_sample_action_you_can.a2b562")
       or ns.Locale:Get("highground.coachview.continue_to_the_next_step.e9c768") }
   end)
   w.done = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.guides.929a28"), 70, 30, { onClick = function() O.Return(true) end }), "highground.coachview.guides.929a28")

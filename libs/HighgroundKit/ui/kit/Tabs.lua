@@ -74,6 +74,7 @@ function Kit.TabGroup(parent, opts)
     end
     Kit.Dropdown.Open(self, items, function(item) group:Request(item.value) end, { selected = selected })
   end }), "shared.tabs.choose_page.f59fc6")
+  group.menu.opensMenu = true -- a click alone selects nothing (guides)
   group.menu.label:ClearAllPoints()
   group.menu.label:SetPoint("LEFT", S("md"), 0); group.menu.label:SetPoint("RIGHT", -S("xl") - S("sm"), 0)
   group.menu.label:SetJustifyH("LEFT"); group.menu.label:SetWordWrap(false)

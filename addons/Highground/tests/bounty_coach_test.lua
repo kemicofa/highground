@@ -66,7 +66,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
           assert(target and target:IsVisible(), role .. "/" .. step.id .. " visible target")
           assert(context and context:IsVisible(), "native context"); inside(s, target, role .. "/" .. step.id)
           if step.requireAction then
-            local button = step.action()
+            local button = step.action and step.action() or C.Clickable(target)
             assert(button and button:IsVisible() and button:IsEnabled() or step.complete and step.complete(), role .. "/" .. step.id .. " required stage is actionable")
           end
           assert(not B.Preview.win, "no fake tour shell"); B.Preview.Stop()
@@ -215,6 +215,8 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     t.equal(C.target, group.buttons.public, "a fitting strip highlights the tab")
     S.win:SetWidth(360); B.Board.preview.Refresh(); C.Update()
     assert(group.compact and C.target == group.menu and C.target:IsVisible(), "a compact strip highlights its page menu")
+    nextStep(C, "reward"); assert(not s.ns.Kit.Dropdown.IsShown(), "Next moves on instead of opening the menu")
+    t.equal(B.Board.preview.tab, "public", "the next stage opens the Shared board itself")
     S.win:SetWidth(760); B.Board.preview.Refresh(); s.ns.Onboarding.Return(); s:assertHealthy()
   end)
 

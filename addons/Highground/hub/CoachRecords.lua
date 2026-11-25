@@ -34,8 +34,12 @@ function C.RecordSteps()
       requireAction = true, advance = function() return data.timeline and data.timeline:IsVisible() end, hint = ns.Locale:Get("highground.coachrecords.click_full_timeline.66d8b7") },
     { id = "events", title = ns.Locale:Get("highground.coachrecords.follow_what_happened.8a200e"), text = ns.Locale:Get("highground.coachrecords.times_are_measured_from_joining_the_match.2d3547"),
       enter = function()
-        if data.timeline and data.timeline:IsVisible() then N.Track(data.timeline); N.Fit(data.timeline)
-        else Open() end
+        -- Resumed or reached with Next: open the timeline this step explains.
+        if not (data.timeline and data.timeline:IsVisible()) then
+          local full = C.Clickable(Open().actions[1])
+          if full then full:Click("LeftButton") end
+        end
+        if data.timeline and data.timeline:IsVisible() then N.Track(data.timeline); N.Fit(data.timeline) end
       end,
       target = function() return data.timeline and data.timeline:IsVisible() and data.timeline.box or data.win.actions[1] end,
       context = function() return data.timeline and data.timeline:IsVisible() and data.timeline or data.win end },

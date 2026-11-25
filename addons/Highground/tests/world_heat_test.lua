@@ -176,6 +176,24 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
+test("Nearby settings show the Enemy heatmap switch under World map sightings", function()
+  local sim = setup("retail", 16001)
+  sim:command("config nearby")
+  local box
+  for _, cb in ipairs(sim.ns.Options.featureBoxes or {}) do
+    if cb.key == "nearbyHeat" then box = cb end
+  end
+  assert(box and box:IsVisible(), "a visible switch")
+  equal(box.option.parent, "nearbyMap", "nested under World map sightings")
+  equal(box.label:GetText(), "Enemy heatmap")
+  assert(box:GetChecked(), "on by default")
+  box:Click()
+  assert(not sim.ns.Core.On("nearbyHeat"), "clicking turns heat off, as /hg nearby heat off")
+  box:Click()
+  assert(sim.ns.Core.On("nearbyHeat"), "and on again")
+  sim:assertHealthy()
+end)
+
 test("a busy realm keeps the newest sightings up to the cap", function()
   local sim = setup("retail", 16001)
   local H = sim.ns.WorldHeat

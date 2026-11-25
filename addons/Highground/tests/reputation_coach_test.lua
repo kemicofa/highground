@@ -87,6 +87,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local function Row(match) return F.detailsRow(U.details, match == "report" and U.details.model.reports[1]
       or match == "decision" and U.details.model.history[1] or match) end
     t.equal(Row("report").card.body:GetText(), "Observed example encounter", "the report shows its note")
+    t.equal(U.details.history.offset, 0, "the step's report is in view without scrolling")
     t.equal(Row("report").card.meta:GetText():match("^[^·]+"), "Awaiting review ", "an unreviewed report says so")
     t.equal(v.state:GetText(), "AWAITING REVIEW", "the hero names the case state")
     assert(v.stats:IsShown() and v.metrics[2].value:GetText() == "1", "officers see the pending count")

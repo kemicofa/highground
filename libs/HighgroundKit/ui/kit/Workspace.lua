@@ -117,7 +117,8 @@ end
 -- measured on SetItems, Refresh and width changes, never while scrolling;
 -- scrolling finds the first visible row by binary search.
 local function Measured(list, area, opts)
-  local tops, heights = list.tops, list.heights
+  local tops, heights = {}, {}
+  list.tops, list.heights, list.top, list.total = tops, heights, 0, 0
   local layout = area.onLayout
   function area:onLayout(width)
     if layout then layout(self, width) end
@@ -175,7 +176,7 @@ end
 -- the items hide. Existing onScroll observers keep running.
 function Kit.VirtualList(area, opts)
   assert(opts and opts.create and opts.render, "VirtualList needs create and render")
-  local list = { area = area, rows = {}, items = {}, tops = {}, heights = {}, top = 0, total = 0 }
+  local list = { area = area, rows = {}, items = {} }
   local observe = area.onScroll
   local function Step()
     local h = opts.rowHeight

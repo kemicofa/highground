@@ -66,7 +66,7 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
           assert(target and target:IsVisible(), role .. "/" .. step.id .. " visible target")
           assert(context and context:IsVisible(), "native context"); inside(s, target, role .. "/" .. step.id)
           if step.requireAction then
-            local button = step.action()
+            local button = step.action and step.action() or C.Clickable(target)
             assert(button and button:IsVisible() and button:IsEnabled() or step.complete and step.complete(), role .. "/" .. step.id .. " required stage is actionable")
           end
           assert(not B.Preview.win, "no fake tour shell"); B.Preview.Stop()
@@ -156,9 +156,10 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local s = new(build)
     local C, D = start(s, "post"); go(C, "save")
     local f = s.ns.Bounty.Form.previewWin
-    f.gold:SetText("invalid"); nextStep(C, "save")
+    f.gold:SetText("invalid"); action(C, f.action, "save")
     assert(f.error:GetText():find("whole gold", 1, true) and C.win.next:IsEnabled())
-    f.gold:SetText("999999"); D.state.requireGold = true; nextStep(C, "save")
+    t.equal(C.win.hint:GetText(), f.error:GetText(), "the coach repeats the form's error")
+    f.gold:SetText("999999"); D.state.requireGold = true; action(C, f.action, "save")
     assert(f.error:GetText():find("Not enough", 1, true)); f.gold:SetText("500"); D.state.requireGold = false
     for _, mode in ipairs({ "personal", "guild" }) do
       s.ns.Bounty.Form.Step(f, 1); click(f.modes[mode]); flow.save(f); expect(C, "target"); assert(#D.claims == 0, "no fictional claim")
@@ -166,8 +167,10 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     end
     go(C, "reward"); f.note:SetText("Keep this draft"); click(f.goldDetails)
     assert(s.ns.Bounty.GoldView.previewWin:IsVisible())
-    nextStep(C, "reward"); assert(f:IsVisible() and f.note:GetText() == "Keep this draft")
-    nextStep(C, "save"); s.ns.Onboarding.Return(); s:assertHealthy()
+    nextStep(C, "save"); assert(f:IsVisible() and f.note:GetText() == "Keep this draft", "Next leaves gold details and keeps the draft")
+    f.gold:SetText("invalid"); nextStep(C, "posted")
+    t.equal(D.state.coachBounty.gold, D.state.draft.gold, "a refused save moves on with the sample reward")
+    assert(type(D.state.draft.gold) == "number"); s.ns.Onboarding.Return(); s:assertHealthy()
   end)
   t.test(build .. ": rejection and ignoring skip payment and claim creation", function()
     local s = new(build)
@@ -175,10 +178,12 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     local C, D = start(s, "post"); go(C, "review")
     action(C, D.claimsWin.actions[3], "finish"); action(C, C.win.back, "review")
     nextStep(C, "finish"); t.equal(D.claims[1].state, "rejected", "rejected path never pays")
+    assert(C.win.caption:GetText():find("7 / 7", 1, true), "the count leaves out the skipped payment")
     s.ns.Onboarding.Return(); local S
     C, D, S = start(s, "hunt"); go(C, "tracking"); click(S.win.rows[1].details)
     action(C, S.DetailButton("Ignore bounty alerts"), "status")
     assert(D.state.interest == "ignored" and #D.claims == 0 and #S.Rows("mine") == 0)
+    assert(C.win.caption:GetText():find("5 / 5", 1, true), "an ignored target has no sighting or kill to count")
     click(C.win.next); unchanged(s, before)
   end)
   t.test(build .. ": persistent hooks do not capture a later Nearby sample form", function()
@@ -215,6 +220,8 @@ for _, build in ipairs({ 40402, 120100, 16001 }) do
     t.equal(C.target, group.buttons.public, "a fitting strip highlights the tab")
     S.win:SetWidth(360); B.Board.preview.Refresh(); C.Update()
     assert(group.compact and C.target == group.menu and C.target:IsVisible(), "a compact strip highlights its page menu")
+    nextStep(C, "reward"); assert(not s.ns.Kit.Dropdown.IsShown(), "Next moves on instead of opening the menu")
+    t.equal(B.Board.preview.tab, "public", "the next stage opens the Shared board itself")
     S.win:SetWidth(760); B.Board.preview.Refresh(); s.ns.Onboarding.Return(); s:assertHealthy()
   end)
 

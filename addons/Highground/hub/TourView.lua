@@ -58,6 +58,8 @@ local function GuideCard(w, step)
   end
   card.name = GuideText(card, "label", "text", step, "label")
   card.name:SetJustifyH("CENTER")
+  card.progress = Text(card, "caption", "textMuted")
+  card.progress:SetJustifyH("CENTER"); card.progress:Hide()
   if module and Kit.STAGES[step.module] then card.stage = Kit.StageBadge(card, Kit.STAGES[step.module]) end
   card.start = ns.Localization.BindWidget(Kit.Button(card, ns.Locale:Get("highground.tourview.start.952f37"), 88, 28, { tone = "accent", onClick = function()
     O.Go(step.key); O.Explore(step.actions[1])
@@ -73,6 +75,8 @@ local function GuideCard(w, step)
   end
   card.summary = GuideText(card, "body", "textMuted", step, "summary")
   card.summary:SetJustifyH("CENTER")
+  card.refusal = Text(card, "body", "danger")
+  card.refusal:SetJustifyH("CENTER"); card.refusal:Hide()
   if module then
     card.addon = ns.Localization.BindWidget(Kit.Toggle(card, ns.Locale:Get("highground.tourview.enable_addon.8a375e"), { onChange = function(_, on)
       local ok, problem = module.SetEnabled(step.module, on)
@@ -112,6 +116,14 @@ local function GuideCard(w, step)
     end
     self.name:ClearAllPoints(); self.name:SetPoint("TOP", 0, -y)
     y = y + Measure(self.name, width - 28) + 8
+    local status = O.GuideStatus(step.key)
+    self.progress:SetShown(status ~= "new")
+    if status ~= "new" then
+      Kit.StatusText(self.progress, ns.Locale:Get(status == "completed" and "guide.progress.completed" or "guide.progress.started"),
+        status == "completed" and "success" or "accent")
+      self.progress:ClearAllPoints(); self.progress:SetPoint("TOP", 0, -y)
+      y = y + Measure(self.progress, width - 28) + 8
+    end
     if self.stage then
       self.stage:Layout(); self.stage:ClearAllPoints(); self.stage:SetPoint("TOP", 0, -y)
       y = y + self.stage:GetHeight() + 8
@@ -135,6 +147,13 @@ local function GuideCard(w, step)
       end
     end
     y = y + self.start:GetHeight() + 8
+    local refusal = w.refusal and w.refusal.key == step.key and w.refusal.text or nil
+    self.refusal:SetShown(refusal ~= nil)
+    if refusal then
+      Kit.StatusText(self.refusal, refusal, "danger")
+      self.refusal:ClearAllPoints(); self.refusal:SetPoint("TOP", 0, -y)
+      y = y + Measure(self.refusal, width - 28) + 6
+    end
     if self.addon then
       local selected = module.Selected(step.module)
       self.addon:SetChecked(selected == true, true)
@@ -202,8 +221,9 @@ function O.Build()
     self:SetTitle(group and O.Text(group, "pathTitle") or ns.Locale:Get("highground.tourview.addons.7ef91f"))
     self:SetSub(group and O.Text(group, "pathHint") or ns.Locale:Get("highground.tourview.visit_enable_or_explore_an_addon.3b715b"))
     self.header:SetStage(group and Kit.STAGES[group.module])
-    self.status:SetText(self.problem or (pending and ns.Locale:Get("highground.tourview.addon_changes_apply_after_reload_your_settings.816060")
-      or group and ns.Locale:Get("highground.tourview.each_path_saves_its_own_place.97ac31") or ns.Locale:Get("highground.tourview.each_guide_saves_its_own_place.505697")))
+    Kit.StatusText(self.status, self.problem or self.finished or (pending and ns.Locale:Get("highground.tourview.addon_changes_apply_after_reload_your_settings.816060")
+      or group and ns.Locale:Get("highground.tourview.each_path_saves_its_own_place.97ac31") or ns.Locale:Get("highground.tourview.each_guide_saves_its_own_place.505697")),
+      self.finished and not self.problem and "success" or nil)
     self.later:ClearAllPoints(); self.later:SetPoint("BOTTOMRIGHT", -24, 18)
     Fit(self.later); self.later:SetHeight(math.max(30, self.later.label:GetStringHeight() + 12))
     self.reload:SetShown(pending); self.reload:SetEnabled(not InCombatLockdown())
@@ -270,7 +290,7 @@ function O.Build()
   function w:Refresh() self:Layout() end
   ns.Localization.Watch(w, function(self) if self:IsShown() then self:Refresh() end end)
   w:HookScript("OnSizeChanged", function() w:Layout() end)
-  w:HookScript("OnShow", function() w.problem = nil; w:Refresh() end)
+  w:HookScript("OnShow", function() w.problem, w.refusal, w.finished = nil, nil, nil; w:Refresh() end)
   Core.OnFontScaleChange(function() w:Layout() end)
   Theme.OnChange(function() w:Layout() end)
   return w

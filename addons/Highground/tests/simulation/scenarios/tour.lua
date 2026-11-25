@@ -242,7 +242,14 @@ test("disabled panels can be learned and combat guards remain clear", function()
   end
   equal(sim.ns.Core.On("nearby"), false); equal(sim.ns.Core.On("killorder"), false)
   sim:setCombat(true); sim:command("guide panels")
-  assert(O.win:IsVisible() and O.win.status.text:find("outside a match", 1, true))
+  local card = O.win.cards.panels
+  assert(O.win:IsVisible() and card:IsVisible() and card.refusal:IsVisible()
+    and card.refusal.text:find("outside a match", 1, true), "the reason shows on the guide's own card")
+  assert(not O.win.status.text:find("outside a match", 1, true), "not in the footer")
+  for key, other in pairs(O.win.cards) do
+    if key ~= "panels" then assert(not other.refusal:IsShown(), key .. " shows no other guide's reason") end
+  end
+  sim:setCombat(false); assert(not card.refusal:IsVisible(), "the reason clears once combat ends")
   assert(not sim.ns.Setup.placement)
 end)
 

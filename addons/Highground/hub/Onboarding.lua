@@ -167,16 +167,36 @@ function O.Visit(page)
   return ns.Hub.Open(page)
 end
 
+-- A finished guide says so where the player lands: on Addons, or in chat
+-- when the guide returns to another page.
+function O.Finished(key)
+  local step = O.Find(key)
+  if not step then return end
+  local text = ns.Locale:Format("guide.complete", { guide = O.Text(step, "label") })
+  if O.win and O.win:IsVisible() then O.win.finished = text; O.win:Refresh()
+  else ns.Util.Say(text) end
+end
+
 function O.Reviewed(key)
   O.Mark(key)
   if O.active == key then O.Return() end
 end
 
+-- Why a guide couldn't start, shown on its own card beside the Start button
+-- that was pressed, not in the window's footer.
+local function Refuse(text)
+  local w, step = O.win, O.Current()
+  w.refusal = { key = step.key, text = text }
+  if step.extra then w.expanded = true end
+  w:Refresh()
+end
+
 function O.Explore(action)
   if not action then return end
+  if O.win then O.win.refusal, O.win.finished = nil, nil end
   local modules = ns.Modules
   if modules then
-    local owner = O.Current().module or action.feature and modules.featureOwners[action.feature]
+    local owner = O.Current().module
       or (action.bounties and "bounties") or (action.map or action.quickCalls) and "battlegrounds"
       or action.tool and ns.Options.ToolOwner(action.tool) or action.page and ns.Hub.ModuleRoutes[action.page]
     if owner and not modules.Require(owner) then return end
@@ -184,17 +204,14 @@ function O.Explore(action)
   if action.paths then return O.win:Refresh() end
   if action.preview or action.map or action.bounties or action.quickCalls or action.native then
     local allowed, problem = ns.Setup.CanArrange()
-    if not allowed then O.win.status:SetText(problem); return end
-    if action.feature and not Core.On(action.feature) then
-      ns.Localization.Bind(O.win.status, "highground.onboarding.this_panel_is_off_check_enable_in.102b57"); return
-    end
+    if not allowed then return Refuse(problem) end
     if action.preview == "bg" and not (Core.On("killorder") or Core.On("timers")
       or Core.On("flags") or Core.On("quickCalls")) then
-      ns.Localization.Bind(O.win.status, "highground.onboarding.battleground_panels_are_off_enable_a_panel.fb475b"); return
+      return Refuse(ns.Locale:Get("highground.onboarding.battleground_panels_are_off_enable_a_panel.fb475b"))
     end
   end
   if action.bounties and not (ns.Bounty and ns.Bounty.Preview and ns.Bounty.Preview.StartGuided) then
-    ns.Localization.Bind(O.win.status, "highground.onboarding.the_bounty_tour_is_unavailable_open_bounties.b0fa39"); return
+    return Refuse(ns.Locale:Get("highground.onboarding.the_bounty_tour_is_unavailable_open_bounties.b0fa39"))
   end
   if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   O.active = action.review or O.Current().key
@@ -296,6 +313,7 @@ ns.Util.Events({
     ScheduleOffer()
   end,
   PLAYER_REGEN_ENABLED = function()
+    if O.win then O.win.refusal = nil end
     if O.win and O.win:IsVisible() then O.win:Refresh() end
     ScheduleOffer()
   end,

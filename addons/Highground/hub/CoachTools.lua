@@ -23,8 +23,9 @@ local function MacroStep(id, title, text, enter, target, hint)
 end
 function C.MacroSteps()
   local library = ns.Localization.Define(MacroStep("library", ns.Locale:Get("highground.coachtools.find_your_saved_macros.a022e5"), ns.Locale:Get("highground.coachtools.click_my_macros_to_see_the_macros.e3ce90"),
-    Catalog, function() return Win.TabTarget("mine") end, ns.Locale:Get("highground.coachtools.click_my_macros.6f7313")), { title = "highground.coachtools.find_your_saved_macros.a022e5", text = "highground.coachtools.click_my_macros_to_see_the_macros.e3ce90", hint = "highground.coachtools.click_my_macros.6f7313" })
+    Catalog, function() return Win.TabTarget("mine") end), { title = "highground.coachtools.find_your_saved_macros.a022e5", text = "highground.coachtools.click_my_macros_to_see_the_macros.e3ce90" })
   library.requireAction = true; library.advance = function() return Win.tab == "mine" end
+  library.hint = C.TabHint(function() return Win.win.tabGroup end, "mine")
   local open = ns.Localization.Define(MacroStep("wow", ns.Locale:Get("highground.coachtools.open_wow_s_macro_window.42985e"), ns.Locale:Get("highground.coachtools.this_button_opens_the_game_s_own.386d0c"),
     function() MacroWindow(); if Win.tab ~= "mine" then Win.SetTab("mine") end end,
     function() return Win.win.open end, ns.Locale:Get("highground.coachtools.click_open_wow_macros_or_continue_to.2d0cfe")), { title = "highground.coachtools.open_wow_s_macro_window.42985e", text = "highground.coachtools.this_button_opens_the_game_s_own.386d0c", hint = "highground.coachtools.click_open_wow_macros_or_continue_to.2d0cfe" })
@@ -78,7 +79,7 @@ function C.CallSteps()
       enter = Enter("destinations"), context = Context, target = function() return Quick.win.destination end,
       feature = "quickCallsDestinations", settingLabel = ns.Locale:Get("highground.coachtools.enable_destination_calls_in_game.a15323"),
       advance = function() return Quick.win.destination:GetValue() ~= "" end, requireAction = true,
-      hint = ns.Locale:Get("highground.coachtools.click_choose_destination_then_pick_a_base.0fc09d") },
+      hint = ns.Locale:Get("guide.hint.destination") },
     { id = "count", title = ns.Locale:Get("highground.coachtools.send_the_destination_and_count.ff0796"),
       text = ns.Locale:Get("highground.coachtools.click_1_2_or_3_below_the.2f268e"),
       enter = function()

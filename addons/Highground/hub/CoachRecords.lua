@@ -31,11 +31,15 @@ function C.RecordSteps()
       enter = Open, target = function() return data.win.profile and data.win.profile.hero end, context = Context },
     { id = "timeline", title = ns.Locale:Get("highground.coachrecords.open_the_recorded_timeline.0c1d7f"), text = ns.Locale:Get("highground.coachrecords.full_timeline_lists_the_objective_events_observed.333047"),
       enter = Open, target = function() return data.win.actions[1] end, context = Context,
-      requireAction = true, advance = function() return data.timeline and data.timeline:IsVisible() end, hint = ns.Locale:Get("highground.coachrecords.click_full_timeline.66d8b7") },
+      requireAction = true, advance = function() return data.timeline and data.timeline:IsVisible() end, hint = C.ClickHint(function() return data.win.actions[1] end) },
     { id = "events", title = ns.Locale:Get("highground.coachrecords.follow_what_happened.8a200e"), text = ns.Locale:Get("highground.coachrecords.times_are_measured_from_joining_the_match.2d3547"),
       enter = function()
-        if data.timeline and data.timeline:IsVisible() then N.Track(data.timeline); N.Fit(data.timeline)
-        else Open() end
+        -- Resumed or reached with Next: open the timeline this step explains.
+        if not (data.timeline and data.timeline:IsVisible()) then
+          local full = C.Clickable(Open().actions[1])
+          if full then full:Click("LeftButton") end
+        end
+        if data.timeline and data.timeline:IsVisible() then N.Track(data.timeline); N.Fit(data.timeline) end
       end,
       target = function() return data.timeline and data.timeline:IsVisible() and data.timeline.box or data.win.actions[1] end,
       context = function() return data.timeline and data.timeline:IsVisible() and data.timeline or data.win end },
@@ -187,7 +191,15 @@ local function DetailsClosed() return not Visible(U.details) and not Visible(U.r
 local function Context()
   for _, key in ipairs({ "reason", "report", "details", "window" }) do if Visible(U[key]) then return U[key] end end
 end
+-- A form left open by a refused click doesn't follow the guide to the next step.
+local function CloseForms(...)
+  for _, key in ipairs({ ... }) do
+    local f = U[key]
+    if Visible(f) then K.Windows.Forget(f); f:Hide() end
+  end
+end
 local function Open(mode, moderator)
+  CloseForms("report", "reason")
   R.Ensure()
   R.data.moderator = moderator == true
   if mode ~= "organizations" then P.Enable() end
@@ -209,94 +221,90 @@ local function Details(approved)
   if approved then Decision() else Proposal() end
   P.OpenDetails(P.Get(), R.data.row)
 end
+-- Saved places in steps this guide no longer has resume nearby.
+local RETIRED = { updates = "report_open", proposals_open = "moderation", ["return"] = "history",
+  decision = "pause", overview_open = "pause", settings_open = "settings", settings_return = "settings" }
 function C.ReputationSteps()
+  local progress = ns.Onboarding.State().samples
+  if type(progress) == "table" and RETIRED[progress.reputation] then progress.reputation = RETIRED[progress.reputation] end
   local function Tab(key)
     local group = (key == "settings" or key == "organizations") and U.window.workspaceTabs or U.window.pageTabs
     return group:Target(key)
   end
   local function Step(id, title, text, enter, target, advance, hint)
     return { id = id, title = title, text = text, enter = enter, target = target, context = Context,
-      requireAction = advance ~= nil, advance = advance, hint = hint }
+      requireAction = advance ~= nil, advance = advance, hint = hint or C.ClickHint(target) }
   end
-  return {
+  local Hint = C.ClickHint
+  local function Reason(fallback)
+    return function()
+      if Visible(U.reason) then return ns.Locale:Get("highground.coachrecords.enter_a_reason_then_save_or_close.f18b52") end
+      return fallback()
+    end
+  end
+  -- A dismissed proposal never reaches a blacklist decision.
+  local function Dismissed() return R.data ~= nil and R.data.row ~= nil and R.data.row.state == "dismissed" end
+  local steps = {
     ns.Localization.Define(Step("organization", ns.Locale:Get("highground.coachrecords.choose_your_guild_or_community.30ffee"), ns.Locale:Get("guide.reputation.window"),
       function() Open("organizations"); P.Disable() end, function() return U.window.rows[1].action end,
-      function() return U.mode == "overview" end, ns.Locale:Get("highground.coachrecords.click_open_this_sample_never_sends_reports.e73433")), { title = "highground.coachrecords.choose_your_guild_or_community.30ffee", text = "guide.reputation.window" }),
+      function() return U.mode == "overview" end), { title = "highground.coachrecords.choose_your_guild_or_community.30ffee", text = "guide.reputation.window" }),
     ns.Localization.Define(Step("participation", ns.Locale:Get("highground.coachrecords.choose_when_to_participate.9f3f08"), ns.Locale:Get("highground.coachrecords.overview_keeps_participation_controls_together_this_sample.6c5705"),
       function() Open("overview"); P.Disable() end, function() return U.window.disable end,
-      function() return P.Joined(P.Get()) end, ns.Locale:Get("highground.coachrecords.click_enable_on_this_account.1f09c9")), { title = "highground.coachrecords.choose_when_to_participate.9f3f08", text = "highground.coachrecords.overview_keeps_participation_controls_together_this_sample.6c5705" }),
-    ns.Localization.Define(Step("updates", ns.Locale:Get("highground.coachrecords.wait_for_an_update_check.da8d86"), ns.Locale:Get("highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2"),
-      function() Open("overview"); U.window.updateCheck:Cancel(); U.window.updateCheck.state = "idle"; U.window.sync:RefreshBusy() end,
-      function() return U.window.sync end,
-      function() return U.window.updateCheck.state == "succeeded" end, ns.Locale:Get("highground.coachrecords.click_check_for_updates_and_wait_for.1e42f3")), { title = "highground.coachrecords.wait_for_an_update_check.da8d86", text = "highground.coachrecords.check_for_updates_shows_a_loader_and.ecb9e2" }),
+      function() return P.Joined(P.Get()) end), { title = "highground.coachrecords.choose_when_to_participate.9f3f08", text = "highground.coachrecords.overview_keeps_participation_controls_together_this_sample.6c5705" }),
     ns.Localization.Define(Step("report_open", ns.Locale:Get("highground.coachrecords.open_the_report_form.7db0de"), ns.Locale:Get("highground.coachrecords.report_player_opens_the_same_form_used.1b3e97"),
       function() Open("blacklist") end, function() return U.window.add end,
-      function() return Visible(U.report) end, ns.Locale:Get("highground.coachrecords.click_report_player.a03a47")), { title = "highground.coachrecords.open_the_report_form.7db0de", text = "highground.coachrecords.report_player_opens_the_same_form_used.1b3e97" }),
+      function() return Visible(U.report) end), { title = "highground.coachrecords.open_the_report_form.7db0de", text = "highground.coachrecords.report_player_opens_the_same_form_used.1b3e97" }),
     ns.Localization.Define(Step("proposal", ns.Locale:Get("highground.coachrecords.submit_a_proposal.5b9a99"), ns.Locale:Get("highground.coachrecords.check_the_player_category_and_note_then.309f30"),
       function()
         R.Ensure(); R.submissionStart = R.data.submissions
         if not Visible(U.report) then Open("blacklist"); P.OpenReport(nil, P.Get()) end
       end, function() return U.report.submit end,
       function()
-        if not Visible(U.report) then return R.data.submissions > R.submissionStart and "proposals_open" or "report_open" end
-      end, ns.Locale:Get("highground.coachrecords.edit_the_sample_report_then_click_submit.445d86")), { title = "highground.coachrecords.submit_a_proposal.5b9a99", text = "highground.coachrecords.check_the_player_category_and_note_then.309f30" }),
-    ns.Localization.Define(Step("proposals_open", ns.Locale:Get("highground.coachrecords.find_pending_reports.448e9a"), ns.Locale:Get("highground.coachrecords.the_proposals_tab_lists_reports_awaiting_review.f792b8"),
-      function() Open("blacklist"); Proposal() end, function() return Tab("proposals") end,
-      function() return U.mode == "proposals" end, ns.Locale:Get("highground.coachrecords.choose_proposals_in_the_tabs_or_page.725998")), { title = "highground.coachrecords.find_pending_reports.448e9a", text = "highground.coachrecords.the_proposals_tab_lists_reports_awaiting_review.f792b8" }),
+        if not Visible(U.report) then return R.data.submissions > R.submissionStart and "moderation" or "report_open" end
+      end), { title = "highground.coachrecords.submit_a_proposal.5b9a99", text = "highground.coachrecords.check_the_player_category_and_note_then.309f30" }),
     ns.Localization.Define(Step("moderation", ns.Locale:Get("highground.coachrecords.enable_moderation_when_you_are_ready.1ef1b7"), ns.Locale:Get("highground.coachrecords.sample_officer_view_if_you_already_participate.dc1f5a"),
       function() Open("overview", true); P.Get().activated = false; P.Changed() end,
       function() return U.window.openReports end,
-      function() return P.CanModerate(P.Get()) and U.mode == "proposals" end, ns.Locale:Get("highground.coachrecords.click_enable_moderation_your_real_role_stays.9c4ac2")), { title = "highground.coachrecords.enable_moderation_when_you_are_ready.1ef1b7", text = "highground.coachrecords.sample_officer_view_if_you_already_participate.dc1f5a" }),
+      function() return P.CanModerate(P.Get()) and U.mode == "proposals" end), { title = "highground.coachrecords.enable_moderation_when_you_are_ready.1ef1b7", text = "highground.coachrecords.sample_officer_view_if_you_already_participate.dc1f5a" }),
     ns.Localization.Define(Step("details_open", ns.Locale:Get("highground.coachrecords.inspect_the_proposal.78f73b"), ns.Locale:Get("highground.coachrecords.sample_officer_view_details_opens_the_player.387e1f"),
       function() Open("proposals", true); Proposal() end, function() return U.window.rows[1].action end,
-      function() return Visible(U.details) end, ns.Locale:Get("highground.coachrecords.click_details.96898c")), { title = "highground.coachrecords.inspect_the_proposal.78f73b", text = "highground.coachrecords.sample_officer_view_details_opens_the_player.387e1f" }),
+      function() return Visible(U.details) end), { title = "highground.coachrecords.inspect_the_proposal.78f73b", text = "highground.coachrecords.sample_officer_view_details_opens_the_player.387e1f" }),
     ns.Localization.Define(Step("review", ns.Locale:Get("highground.coachrecords.review_before_approving.2cea1b"), ns.Locale:Get("highground.coachrecords.read_the_report_and_its_note_review.8aa605"),
       function() Details(false) end, function() return Visible(U.reason) and U.reason.submit or U.details.approve end,
       function()
         if Visible(U.report) then return "approve" end
-        if DetailsClosed() then return R.data.row.pending == 0 and "overview_open" or "details_open" end
-      end, function() return Visible(U.reason) and ns.Locale:Get("highground.coachrecords.enter_a_reason_then_save_or_close.f18b52") or ns.Locale:Get("highground.coachrecords.click_review_blacklist.fb943a") end), { title = "highground.coachrecords.review_before_approving.2cea1b", text = "highground.coachrecords.read_the_report_and_its_note_review.8aa605" }),
+        if DetailsClosed() then return R.data.row.pending == 0 and "pause" or "details_open" end
+      end, Reason(Hint(function() return U.details.approve end))), { title = "highground.coachrecords.review_before_approving.2cea1b", text = "highground.coachrecords.read_the_report_and_its_note_review.8aa605" }),
     ns.Localization.Define(Step("approve", ns.Locale:Get("highground.coachrecords.save_the_decision.6d54c0"), ns.Locale:Get("highground.coachrecords.an_officer_chooses_the_approved_categories_and.42ee1f"),
       function()
-        R.Ensure(); R.decisionStart = R.data.decisions
+        R.Ensure(); R.decisionStart = R.data.decisions; CloseForms("reason")
         if not Visible(U.report) then Details(false); P.OpenReport(R.data.row.target, P.Get()) end
       end, function() return U.report.submit end,
       function()
-        if not Visible(U.report) then return R.data.decisions > R.decisionStart and "return" or "review" end
-      end, ns.Locale:Get("highground.coachrecords.click_save_blacklist_decision.24f82e")), { title = "highground.coachrecords.save_the_decision.6d54c0", text = "highground.coachrecords.an_officer_chooses_the_approved_categories_and.42ee1f" }),
-    ns.Localization.Define(Step("return", ns.Locale:Get("highground.coachrecords.return_to_the_list.9ec75d"), ns.Locale:Get("highground.coachrecords.the_sample_decision_is_recorded_close_this.926c96"),
-      function()
-        R.Ensure(); if not Visible(U.details) then Open("proposals", true); Decision() end
-        Details(true); P.OpenDetails(P.Get(), R.data.row)
-      end, function() return Visible(U.reason) and U.reason.submit or U.details.close end,
-      function() if DetailsClosed() then return R.data.row.active and "blacklist_open" or "overview_open" end end,
-      ns.Locale:Get("highground.coachrecords.click_the_window_s_close_button.eb02ad")), { title = "highground.coachrecords.return_to_the_list.9ec75d", text = "highground.coachrecords.the_sample_decision_is_recorded_close_this.926c96" }),
+        if not Visible(U.report) then return R.data.decisions > R.decisionStart and "history" or "review" end
+      end), { title = "highground.coachrecords.save_the_decision.6d54c0", text = "highground.coachrecords.an_officer_chooses_the_approved_categories_and.42ee1f" }),
+    ns.Localization.Define(Step("history", ns.Locale:Get("highground.coachrecords.decisions_keep_their_history.7db17a"), ns.Locale:Get("highground.coachrecords.the_history_records_who_approved_the_entry.c4ced1"),
+      -- Reopened so the history shows the decision just saved.
+      function() Details(true); P.OpenDetails(P.Get(), R.data.row) end, function() return Visible(U.reason) and U.reason.submit or U.details.close end,
+      DetailsClosed, Reason(function() return ns.Locale:Get("guide.hint.close_or_next") end)), { title = "highground.coachrecords.decisions_keep_their_history.7db17a", text = "highground.coachrecords.the_history_records_who_approved_the_entry.c4ced1" }),
     ns.Localization.Define(Step("blacklist_open", ns.Locale:Get("highground.coachrecords.find_approved_entries.fb5abc"), ns.Locale:Get("highground.coachrecords.blacklist_contains_approved_decisions_a_proposal_alone.6f4aee"),
       function() Open("proposals", true); Decision() end, function() return Tab("blacklist") end,
-      function() return U.mode == "blacklist" end, ns.Locale:Get("highground.coachrecords.choose_blacklist_in_the_tabs_or_page.a761fc")), { title = "highground.coachrecords.find_approved_entries.fb5abc", text = "highground.coachrecords.blacklist_contains_approved_decisions_a_proposal_alone.6f4aee" }),
-    ns.Localization.Define(Step("decision", ns.Locale:Get("highground.coachrecords.read_the_approved_record.b6067f"), ns.Locale:Get("highground.coachrecords.open_details_to_see_the_public_reason.cc88a4"),
-      function() Open("blacklist", true); Decision() end, function() return U.window.rows[1].action end,
-      function() return Visible(U.details) end, ns.Locale:Get("highground.coachrecords.click_details.96898c")), { title = "highground.coachrecords.read_the_approved_record.b6067f", text = "highground.coachrecords.open_details_to_see_the_public_reason.cc88a4" }),
-    ns.Localization.Define(Step("history", ns.Locale:Get("highground.coachrecords.decisions_keep_their_history.7db17a"), ns.Locale:Get("highground.coachrecords.the_history_records_who_approved_the_entry.c4ced1"),
-      function() Details(true) end, function() return Visible(U.reason) and U.reason.submit or U.details.close end,
-      DetailsClosed, function() return Visible(U.reason) and ns.Locale:Get("highground.coachrecords.enter_a_reason_then_save_or_close.f18b52") or ns.Locale:Get("highground.coachrecords.close_the_player_history.0bfe71") end), { title = "highground.coachrecords.decisions_keep_their_history.7db17a", text = "highground.coachrecords.the_history_records_who_approved_the_entry.c4ced1" }),
-    ns.Localization.Define(Step("overview_open", ns.Locale:Get("highground.coachrecords.manage_participation_in_one_place.5d3765"), ns.Locale:Get("highground.coachrecords.return_to_overview_to_pause_this_organization.69eaa8"),
-      function() Open("blacklist", true) end, function() return Tab("overview") end,
-      function() return U.mode == "overview" end, ns.Locale:Get("highground.coachrecords.choose_overview_in_the_tabs_or_page.38f079")), { title = "highground.coachrecords.manage_participation_in_one_place.5d3765", text = "highground.coachrecords.return_to_overview_to_pause_this_organization.69eaa8" }),
+      function() return U.mode == "blacklist" end, C.TabHint(function() return U.window.pageTabs end, "blacklist")), { title = "highground.coachrecords.find_approved_entries.fb5abc", text = "highground.coachrecords.blacklist_contains_approved_decisions_a_proposal_alone.6f4aee" }),
     ns.Localization.Define(Step("pause", ns.Locale:Get("highground.coachrecords.turn_participation_off_without_losing_records.898411"), ns.Locale:Get("highground.coachrecords.disabling_stops_this_organization_s_sharing_and.c5cfe6"),
       function() Open("overview", true) end, function() return U.window.disable end,
-      function() return not P.Joined(P.Get()) end, ns.Locale:Get("highground.coachrecords.click_disable_on_this_account.ade7e5")), { title = "highground.coachrecords.turn_participation_off_without_losing_records.898411", text = "highground.coachrecords.disabling_stops_this_organization_s_sharing_and.c5cfe6" }),
+      function() return not P.Joined(P.Get()) end), { title = "highground.coachrecords.turn_participation_off_without_losing_records.898411", text = "highground.coachrecords.disabling_stops_this_organization_s_sharing_and.c5cfe6" }),
     ns.Localization.Define(Step("resume", ns.Locale:Get("highground.coachrecords.turn_participation_back_on_when_you_choose.477fe0"), ns.Locale:Get("highground.coachrecords.the_same_control_turns_participation_back_on.58c9f3"),
       function() Open("overview", true); P.Disable() end, function() return U.window.disable end,
-      function() return P.Joined(P.Get()) end, ns.Locale:Get("highground.coachrecords.click_enable_on_this_account.1f09c9")), { title = "highground.coachrecords.turn_participation_back_on_when_you_choose.477fe0", text = "highground.coachrecords.the_same_control_turns_participation_back_on.58c9f3" }),
-    ns.Localization.Define(Step("settings_open", ns.Locale:Get("highground.coachrecords.choose_your_personal_preferences.c4b70b"), ns.Locale:Get("highground.coachrecords.the_preferences_tab_controls_chat_filtering_whisper.f9bdd7"),
-      function() Open("blacklist", true); if not R.data.row then Decision() end end, function() return Tab("settings") end,
-      function() return U.mode == "settings" end, ns.Locale:Get("highground.coachrecords.choose_preferences_in_the_top_tabs_or.0f1f00")), { title = "highground.coachrecords.choose_your_personal_preferences.c4b70b", text = "highground.coachrecords.the_preferences_tab_controls_chat_filtering_whisper.f9bdd7" }),
+      function() return P.Joined(P.Get()) end), { title = "highground.coachrecords.turn_participation_back_on_when_you_choose.477fe0", text = "highground.coachrecords.the_same_control_turns_participation_back_on.58c9f3" }),
     ns.Localization.Define(Step("settings", ns.Locale:Get("highground.coachrecords.try_the_display_settings.2f58e9"), ns.Locale:Get("highground.coachrecords.these_are_the_real_settings_controls_with.05a843"),
       function() Open("settings", true); U.window.settings:SetVerticalScroll(0) end,
-      function() return U.window.toggles.filter end, nil, ns.Locale:Get("highground.coachrecords.try_preferences_again_the_page_and_your.4c90f3")), { title = "highground.coachrecords.try_the_display_settings.2f58e9", text = "highground.coachrecords.these_are_the_real_settings_controls_with.05a843" }),
-    ns.Localization.Define(Step("settings_return", ns.Locale:Get("highground.coachrecords.return_to_your_organization.170575"), ns.Locale:Get("highground.coachrecords.choose_organizations_to_return_to_the_page.cc33a5"),
-      function() Open("blacklist", true); Open("settings", true) end, function() return Tab("organizations") end,
-      function() return U.mode ~= "settings" end, ns.Locale:Get("highground.coachrecords.choose_organizations_finishing_closes_the_sample_nothing.45341c")), { title = "highground.coachrecords.return_to_your_organization.170575", text = "highground.coachrecords.choose_organizations_to_return_to_the_page.cc33a5" }),
+      function() return U.window.toggles.filter end, nil, ns.Locale:Get("guide.reputation.settings_hint")), { title = "highground.coachrecords.try_the_display_settings.2f58e9", text = "highground.coachrecords.these_are_the_real_settings_controls_with.05a843", hint = "guide.reputation.settings_hint" }),
   }
+  -- A revoked decision leaves nothing on the blacklist to find.
+  local function Revoked() return Dismissed() or R.data ~= nil and R.data.row ~= nil and R.data.row.state == "revoked" end
+  for _, step in ipairs(steps) do
+    if step.id == "approve" or step.id == "history" then step.skip = Dismissed end
+    if step.id == "blacklist_open" then step.skip = Revoked end
+  end
+  return steps
 end

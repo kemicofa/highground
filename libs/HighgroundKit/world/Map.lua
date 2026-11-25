@@ -156,10 +156,13 @@ local function Item(p, kind, name)
   return item
 end
 
+-- Items not drawn this time keep no sightings; forgotten enemies' go.
 local function Sweep(p, seen)
   for _, kind in ipairs(KINDS) do
     for name, item in pairs(p[kind]) do
-      if item.stamp ~= p.stamp and not (seen and seen[name]) then p[kind][name] = nil end
+      if item.stamp ~= p.stamp then
+        if seen and seen[name] then wipe(item.members) else p[kind][name] = nil end
+      end
     end
   end
 end

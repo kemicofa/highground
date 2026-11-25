@@ -98,18 +98,21 @@ local kill = "1K:" .. HILLSBRAD .. ":Ally-Realm,Shared%d-Realm,2,4800,4200,Tarre
 -- Per second: one group batch; every 10 s a guild batch, a watch report
 -- and a request; every 20 s everyone's batches; every 30 s a mark and a kill.
 local step = 0
+local USERS = ns.Peers.CHANNEL
 local function Traffic()
   step = step + 1
   Index()
+  -- The simulator never joins the users channel: keep its name.
+  ns.Peers.CHANNEL = USERS
   Fire("CHAT_MSG_ADDON", "HighgroundW", group[step % #group + 1], "PARTY", "Ally-Realm")
   if step % 10 == 0 then
     Fire("CHAT_MSG_ADDON", "HighgroundW", guild[step / 10 % #guild + 1], "GUILD", "Guildie-Realm")
-    Fire("CHAT_MSG_ADDON", "HighgroundW", report, "CHANNEL", "Scout-Realm", "", 0, CHANNEL, ns.Peers.CHANNEL)
-    Fire("CHAT_MSG_ADDON", "HighgroundW", watch, "CHANNEL", "Asker" .. step .. "-Realm", "", 0, CHANNEL, ns.Peers.CHANNEL)
+    Fire("CHAT_MSG_ADDON", "HighgroundW", report, "CHANNEL", "Scout-Realm", "", 0, CHANNEL, USERS)
+    Fire("CHAT_MSG_ADDON", "HighgroundW", watch, "CHANNEL", "Asker" .. step .. "-Realm", "", 0, CHANNEL, USERS)
   end
   if step % 20 == 0 then
     for i, text in ipairs(world) do
-      Fire("CHAT_MSG_ADDON", "HighgroundW", text, "CHANNEL", "User" .. i .. "-Realm", "", 0, CHANNEL, ns.Peers.CHANNEL)
+      Fire("CHAT_MSG_ADDON", "HighgroundW", text, "CHANNEL", "User" .. i .. "-Realm", "", 0, CHANNEL, USERS)
     end
   end
   if step % 30 == 0 then

@@ -213,15 +213,16 @@ open, after a minute of the same traffic:
 
 | `performance_world_map.lua <client> 60` | Cata | Retail | Forever |
 | --- | ---: | ---: | ---: |
-| World map refreshes | 6,708 → 376 KiB | 6,836 → 394 KiB | 6,708 → 376 KiB |
-| Received sightings, maps open | 480 → 60 KiB | 501 → 70 KiB | 484 → 63 KiB |
-| Everything | 7,868 → 1,116 KiB | 8,669 → 1,796 KiB | 7,617 → 864 KiB |
+| World map refreshes | 6,708 → 376 KiB | 6,836 → 395 KiB | 6,836 → 395 KiB |
+| Received sightings, maps open | 480 → 60 KiB | 501 → 70 KiB | 501 → 70 KiB |
+| Everything | 7,868 → 1,116 KiB | 8,669 → 1,796 KiB | 7,751 → 879 KiB |
 
 | `performance_pvp.lua bg <client> 60 map` | Cata | Retail | Forever |
 | --- | ---: | ---: | ---: |
 | Battleground map refreshes | 4,921 → 523 KiB | 4,921 → 525 KiB | 5,326 → 523 KiB |
 
-What remains is the simulator's own widget work (heat pins' hit
+With both maps closed, received sightings on WoW Forever fell from 279 to
+63 KiB. What remains is the simulator's own widget work (heat pins' hit
 rectangles, layout geometry); the layers allocate nothing in a steady
 state. Fight rings below their 8 px minimum were also rebuilt on every
 refresh. Pins appear, fade and group as before.
@@ -232,9 +233,10 @@ rectangles and widths are capped at 256 entries each. Watch requests and
 reports expire during chat lockdown too and go when watching stops;
 remembered sightings expire while Nearby is paused or off; heat older than
 the hour goes once a minute, and all of it when the heatmap is switched
-off. `tests/performance/maps.lua` budgets both maps' layers on Cata and
-Retail and received batches; `tests/world_maps_test.lua` covers the item
-reuse, unknown maps, caps and expiry.
+off. `tests/performance/maps.lua` budgets both maps' layers in the open
+world and in a battleground, received batches and small fight rings;
+`tests/world_maps_test.lua` covers the item reuse, unknown maps, caps and
+expiry.
 
 ## In-game capture
 

@@ -14,6 +14,7 @@ local WorldMap = ns.WorldMap
 -- Zone positions also show on the continent map. Open world only.
 ---------------------------------------------------------------------------
 local Line = ns.Theme.TipLine
+local Layer = ns.WorldLayer
 local GRID = 0.025 -- map share of one cluster cell
 
 -- Where a zone's position falls on another map (a continent above it).
@@ -61,6 +62,8 @@ local function Tooltip(members, now)
       local bounty = ns.Bounty and ns.Bounty.Enabled() and ns.Bounty.Find(e.name)
       if bounty then Line(tt, ns.Locale:Format("shared.journal.bounty_value2.b4abd7", { value2 = ns.Bounty.GoldText(bounty) }), "gold") end
       Line(tt, Who(e) .. " · " .. Util.Ago(math.floor(now - e.last)), "textMuted")
+      local layer, color = Layer.Line(e)
+      if layer then Line(tt, layer, color) end
     end
     if #members == 1 and members[1].r then
       Line(tt, ns.Locale:Format("nearby.world.map_within", { yards = members[1].r }), "textDim")
@@ -69,7 +72,8 @@ local function Tooltip(members, now)
 end
 
 -- Pin items for the map being shown. sample: Nearby's preview rows,
--- placed around you (Nearby.SampleAt).
+-- placed around you (Nearby.SampleAt). Other layers' sightings only show
+-- with `nearbyLayersAll`, greyed and clustered apart (world/Layer.lua).
 function WorldMap.Pins(mapID)
   local items = {}
   local Nearby = ns.Nearby
@@ -89,22 +93,25 @@ function WorldMap.Pins(mapID)
   for _, e in pairs(list) do
     local age = now - e.last
     local x, y
-    if Nearby.preview then x, y = Nearby.SampleOn(mapID, e.sx, e.sy)
+    local other = Layer.Status(e) == "other"
+    if not Layer.Shown(e) then x = nil
+    elseif Nearby.preview then x, y = Nearby.SampleOn(mapID, e.sx, e.sy)
     elseif e.x and e.mapID and age <= forget then x, y = WorldMap.Translate(e.mapID, mapID, e.x, e.y) end
     local tracked = Nearby.preview and e.tracked or not Nearby.preview and ns.Tracking and ns.Tracking.Get(e.name)
     if tracked and x and x > 0 and x < 1 and y > 0 and y < 1 then
       local tooltip = Tooltip({ e }, now)
+      local dim = other and 0.5 or 1
       if width and e.r then
-        items[#items + 1] = { x = x, y = y, radius = e.r / width, ring = "danger", alpha = age > fade and 0.6 or 1, tooltip = tooltip }
+        items[#items + 1] = { x = x, y = y, radius = e.r / width, ring = "danger", alpha = (age > fade and 0.6 or 1) * dim, tooltip = tooltip }
       end
       items[#items + 1] = { sortKey = "tracked:" .. e.name, x = x, y = y, size = 30, mark = true,
-        icon = "classicon-" .. (e.class or "warrior"):lower(), ring = "danger", alpha = age > fade and 0.7 or 1,
-        label = Core.DisplayName(e.name), labelColor = "danger", tooltip = tooltip }
+        icon = "classicon-" .. (e.class or "warrior"):lower(), ring = "danger", alpha = (age > fade and 0.7 or 1) * dim,
+        desat = other and 1 or 0, label = Core.DisplayName(e.name), labelColor = "danger", tooltip = tooltip }
     elseif x and x > 0 and x < 1 and y > 0 and y < 1 then
-      local key = math.floor(x / GRID) .. ":" .. math.floor(y / GRID)
+      local key = (other and "o" or "") .. math.floor(x / GRID) .. ":" .. math.floor(y / GRID)
       local cell = cells[key]
       if not cell then
-        cell = { members = {}, sx = 0, sy = 0 }
+        cell = { members = {}, sx = 0, sy = 0, other = other }
         cells[key], order[#order + 1] = cell, cell
       end
       cell.members[#cell.members + 1] = e
@@ -120,7 +127,7 @@ function WorldMap.Pins(mapID)
     local age = now - top.last
     local old = age > fade
     local c = Util.ClassColor(top.class)
-    local alpha = old and 0.45 or (age < 5 and 1 or 0.8)
+    local alpha = (old and 0.45 or (age < 5 and 1 or 0.8)) * (cell.other and 0.5 or 1)
     local tooltip = Tooltip(members, now)
     if width and n == 1 and top.r and not old then
       items[#items + 1] = { x = x, y = y, radius = top.r / width, ring = "mapZone", alpha = alpha, tooltip = tooltip }
@@ -128,8 +135,8 @@ function WorldMap.Pins(mapID)
     items[#items + 1] = {
       sortKey = "world:" .. top.name, x = x, y = y, size = n > 1 and 26 or 22,
       icon = "classicon-" .. (top.class or "warrior"):lower(),
-      ring = n > 1 and "mapMark" or (c and { c.r, c.g, c.b } or "textDim"),
-      desat = old and 0.6 or 0, alpha = alpha,
+      ring = n > 1 and "mapMark" or (c and not cell.other and { c.r, c.g, c.b } or "textDim"),
+      desat = cell.other and 1 or old and 0.6 or 0, alpha = alpha,
       label = n > 1 and ("×" .. n) or (age >= 5 and Util.Ago(math.floor(age)) or ""),
       labelColor = "mapLabel", tooltip = tooltip,
     }
@@ -148,6 +155,7 @@ end
 -- Open maps redraw once a second while Nearby tracks or previews.
 function WorldMap.Tick()
   local Nearby = ns.Nearby
+  Layer.Tick()
   if not Showing() then
     if ns.WorldHeat then ns.WorldHeat.Release() end
     return

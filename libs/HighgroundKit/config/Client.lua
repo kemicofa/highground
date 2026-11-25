@@ -23,6 +23,7 @@ local GAMES = {
     orbs = true,             -- Temple of Kotmogu's orbs exist
     spellRanks = false,      -- spells have ranks (each rank its own spell ID)
     inspectTalents = false,  -- inspected teammates' talent points name their healers
+    layers = false,          -- open-world layers: SHARD_TRANSFER moves, group phase marks (world/Layer.lua)
   },
   -- Midnight client, classic content, no rated play.
   forever = {
@@ -54,6 +55,9 @@ local GAMES = {
     -- Every teammate's group role is DAMAGER in a match; an inspect reads
     -- their talent points there (live, 2026-11-24).
     inspectTalents = true,
+    -- Layers since launch; creature GUIDs stopped naming them in build 71037
+    -- (LayerSwap's measurements, docs/forever-api.md).
+    layers = true,
   },
   cata = {
     addonChannel = false,   -- discover on custom chat, send data by whisper
@@ -69,6 +73,7 @@ local GAMES = {
     orbs = false,
     spellRanks = false, -- ranks were removed in 4.0
     inspectTalents = false,
+    layers = false,
   },
   classic = {
     addonChannel = false,
@@ -84,6 +89,7 @@ local GAMES = {
     orbs = false,
     spellRanks = true,
     inspectTalents = false,
+    layers = false,
   },
 }
 GAMES.tbc = GAMES.classic

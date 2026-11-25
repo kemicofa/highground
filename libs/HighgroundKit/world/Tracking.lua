@@ -118,15 +118,18 @@ local function Where(report)
 end
 Tracking.Where = Where
 
+-- report.layer "other": a group member on another layer saw it (world/Layer.lua).
 function Tracking.Describe(key, report)
   local name = Core.DisplayName(key)
   if not report.by then return ns.Locale:Format("tracking.alert.near", { name = name, where = Where(report) }) end
-  return ns.Locale:Format(report.via == "world" and "tracking.alert.reported" or report.via == "guild"
+  local text = ns.Locale:Format(report.via == "world" and "tracking.alert.reported" or report.via == "guild"
     and "tracking.alert.guild" or "tracking.alert.group", { name = name, where = Where(report), by = Core.DisplayName(report.by) })
+  if report.layer == "other" then text = ns.Locale:Format("layers.alert", { alert = text }) end
+  return text
 end
 
 -- A sighting of a tracked enemy: yours (report.by nil) or someone else's.
--- report: { at (GetTime), mapID, zone, area, by, via }.
+-- report: { at (GetTime), mapID, zone, area, by, via, layer }.
 local alerted = {}
 function Tracking.Spotted(name, report)
   if not Tracking.On() then return end

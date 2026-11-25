@@ -19,6 +19,11 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local C, O, T = s.ns.Core, s.ns.Options, s.ns.Theme
     s:command("enemy")
     local p = O.byKey["battlegrounds-appearance"]
+    -- The card switch leads Enemy rows, above the presets.
+    assert(p.heroCard:IsVisible() and not p.heroCard:GetChecked(), "card switch visible and off")
+    assert(select(2, p.heroCard:GetCenter()) > select(2, p.enemyPreset:GetCenter()), "card switch above the presets")
+    click(p.heroCard); assert(C.ShowsElement("hero"), "switch shows the card")
+    click(p.heroCard); assert(not C.ShowsElement("hero"), "switch hides the card")
     click(p.preview); click(p.applyEnemyPreset)
     assert(not C.hero:IsShown() and C.rows[1].rank:IsShown(), "preset preserves default visibility")
     equal(C.rows[1]:GetHeight(), 38, "readable row stays close to normal density")

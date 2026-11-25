@@ -18,6 +18,7 @@ dofile("../../tests/ui_tabs.lua")(s, t, fire)
 dofile("../../tests/ui_action_rows.lua")(s, t, fire)
 dofile("../../tests/ui_blocks.lua")(s, t, fire)
 dofile("../../tests/ui_locale.lua")(s, t, fire)
+dofile("../../tests/ui_lists.lua")(s, t)
 
 t.test("rounded buttons share corner artwork within a fixed widget budget", function()
   local originalTheme = s.ns.Theme.Current()

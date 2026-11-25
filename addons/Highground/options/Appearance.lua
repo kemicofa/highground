@@ -194,11 +194,8 @@ Stepper("highground.appearance.text_size.3cc6e1", Core.FontScale, Core.SetFontSc
 end
 
 if owner == "battlegrounds" then
-Options.Section(page, ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), nil, "highground.appearance.enemy_rows.26dea1")
+Options.Section(page, ns.Locale:Get("enemy.appearance.style_section"), nil, "enemy.appearance.style_section")
 page.enemyControls = {}
--- First on the page: the card sits on the enemy list, not with panel sizes.
-page.heroCard = Check("highground.appearance.suggested_target_card.12115b", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
-  function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
 Label("enemy.appearance.preset")
 page.enemyPreset = Kit.Select(P, { choices = A.enemyPresets, width = 220, menu = true })
 page.enemyPreset:SetPoint("TOPLEFT", CONTROL_X, page.y)
@@ -337,6 +334,9 @@ if owner then
 end
 if owner == "battlegrounds" then
   Options.Section(page, ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), nil, "highground.appearance.enemy_rows.26dea1", nil)
+  -- The hero card heads the row switches; it uses hide.hero but is opt-in.
+  page.heroCard = Check("enemy.appearance.hero_card", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
+    function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
   for _, el in ipairs(A.elements) do
     if ns.OptionAvailable(el) then
       local box = Check(ns.Localization.Key(el, "label"), ns.Localization.Key(el, "desc"), function() return Core.ShowsElement(el.key) end,

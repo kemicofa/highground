@@ -2,7 +2,7 @@
 
 For a clearer enemy list, open **Battlegrounds → Appearance** (`/hg enemy`), start the **Enemy list** preview, choose **Readable cards** and **Apply preset**. It uses 38-pixel normal rows with 12-pixel health bars and 2-pixel gaps, stronger backgrounds and brighter unseen names. In compact layout it uses 26-pixel rows, 6-pixel bars and 1-pixel gaps. Larger fonts or bars may need taller rows. The roster, sort order, enemy limit and target/focus bindings stay the same.
 
-Presets preserve every element visibility choice, including the **Suggested target card**, plus panel width, scale, padding, position, shared styling and the inactive layout’s dimensions. The hero card is **off by default** and only its own switch or `/hg enemy hero on|off` changes it. **Compact bars** explicitly enables the docked compact layout; **Readable cards** and **Default** retain the selected layout. **Default** restores bar styling and row spacing in that layout. Presets apply only when requested.
+Presets preserve every element visibility choice, including the **Hero card** (suggested target), plus panel width, scale, padding, position, shared styling and the inactive layout’s dimensions. The hero card is **off by default** and only its own switch or `/hg enemy hero on|off` changes it. **Compact bars** explicitly enables the docked compact layout; **Readable cards** and **Default** retain the selected layout. **Default** restores bar styling and row spacing in that layout. Presets apply only when requested.
 
 If the earlier Readable preset enabled the hero or widened the panel, those saved choices remain until you change them: use `/hg enemy hero off` and, if wanted, `/hg enemy width 320` for the usual normal width, then apply Readable again for the smaller rows.
 

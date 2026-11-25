@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("ptBR", {
   ["reputation.history.ban"] = "Na lista negra",
   ["reputation.history.revoke"] = "Revogado",
   ["reputation.history.dismiss"] = "Propostas descartadas",
+  ["reputation.details.state.proposed"] = "Aguardando revisão",
   ["macros.window.presets.pvp"] = "PREDEFINIÇÕES JXJ",
   ["macros.window.presets.pve"] = "PREDEFINIÇÕES JXA",
   ["macros.window.presets.ranks"] = "PREDEFINIÇÕES DE GRAUS DE FEITIÇO",

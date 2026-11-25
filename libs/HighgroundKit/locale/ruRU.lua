@@ -5053,6 +5053,7 @@ assert(ns.Locale:Register("ruRU", {
   ["reputation.history.ban"] = "В чёрном списке",
   ["reputation.history.revoke"] = "Отменено",
   ["reputation.history.dismiss"] = "Предложения отклонены",
+  ["reputation.details.state.proposed"] = "Ожидается рассмотрение",
   ["macros.window.presets.pvp"] = "ШАБЛОНЫ PVP",
   ["macros.window.presets.pve"] = "ШАБЛОНЫ PVE",
   ["macros.window.presets.ranks"] = "ШАБЛОНЫ РАНГОВ ЗАКЛИНАНИЙ",

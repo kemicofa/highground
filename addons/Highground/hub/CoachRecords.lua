@@ -48,7 +48,7 @@ local W, K = ns.Reputation, ns.Kit
 local R = { provider = { ready = true, UI = { mode = "organizations", page = 1 } } }
 C.ReputationSample = R
 local P, U = R.provider, R.provider.UI
-for _, key in ipairs({ "CATEGORIES", "REPLY_INTERVALS", "DEFAULT_REPLY", "Text", "Copy", "Target", "CategoryText" }) do P[key] = W[key] end
+for _, key in ipairs({ "CATEGORIES", "REPLY_INTERVALS", "DEFAULT_REPLY", "Text", "Copy", "Target", "CategoryText", "StateText" }) do P[key] = W[key] end
 U.Label = W.UI.Label
 function U.Dialog(key, title, width, height)
   local f = W.UI.Dialog(key, title, width, height, true)

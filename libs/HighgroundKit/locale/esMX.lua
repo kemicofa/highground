@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("esMX", {
   ["reputation.history.ban"] = "En lista negra",
   ["reputation.history.revoke"] = "Revocado",
   ["reputation.history.dismiss"] = "Propuestas desestimadas",
+  ["reputation.details.state.proposed"] = "Esperando revisión",
   ["macros.window.presets.pvp"] = "PREDEFINIDAS JCJ",
   ["macros.window.presets.pve"] = "PREDEFINIDAS JCE",
   ["macros.window.presets.ranks"] = "PREDEFINIDAS DE RANGOS DE HECHIZO",

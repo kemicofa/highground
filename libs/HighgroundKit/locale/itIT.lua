@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("itIT", {
   ["reputation.history.ban"] = "In lista nera",
   ["reputation.history.revoke"] = "Revocato",
   ["reputation.history.dismiss"] = "Proposte rifiutate",
+  ["reputation.details.state.proposed"] = "In attesa di revisione",
   ["macros.window.presets.pvp"] = "PREDEFINITE PVP",
   ["macros.window.presets.pve"] = "PREDEFINITE PVE",
   ["macros.window.presets.ranks"] = "PREDEFINITE PER GRADI DEGLI INCANTESIMI",

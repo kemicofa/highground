@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("zhCN", {
   ["reputation.history.ban"] = "已列入黑名单",
   ["reputation.history.revoke"] = "已撤销",
   ["reputation.history.dismiss"] = "已驳回提案",
+  ["reputation.details.state.proposed"] = "等待审查",
   ["macros.window.presets.pvp"] = "PvP 预设",
   ["macros.window.presets.pve"] = "PvE 预设",
   ["macros.window.presets.ranks"] = "法术等级预设",

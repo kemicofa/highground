@@ -8,6 +8,13 @@ local function OperationLabel(kind)
     or kind == "dismiss" and ns.Locale:Get("reputation.history.dismiss") or tostring(kind)
 end
 
+-- A case's state (Moderation.lua W.Cases) as players read it.
+local STATES = { blacklisted = "reputation.history.ban", revoked = "reputation.history.revoke",
+  dismissed = "reputation.history.dismiss", proposed = "reputation.details.state.proposed" }
+function W.StateText(state)
+  return STATES[state] and ns.Locale:Get(STATES[state]) or tostring(state)
+end
+
 function W.OpenDetails(c, row, source)
   local W = source or W
   local UI = W.UI
@@ -36,7 +43,7 @@ function W.OpenDetails(c, row, source)
   local f, lines = UI.details, {}
   f.community, f.row = c, row
   f:SetTitle(row.target.name)
-  f:SetSub(W.Name(c) .. " - " .. row.state)
+  f:SetSub(W.Name(c) .. " - " .. W.StateText(row.state))
   if row.active then
     lines[#lines + 1] = W.CategoryText(row.active.categories)
     lines[#lines + 1] = row.active.note ~= "" and row.active.note or ns.Locale:Get("reputation.details.no_public_explanation_added.1df262")

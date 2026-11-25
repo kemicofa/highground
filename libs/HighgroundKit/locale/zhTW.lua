@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("zhTW", {
   ["reputation.history.ban"] = "已列入黑名單",
   ["reputation.history.revoke"] = "已撤銷",
   ["reputation.history.dismiss"] = "已駁回提案",
+  ["reputation.details.state.proposed"] = "等待審查",
   ["macros.window.presets.pvp"] = "PvP 預設",
   ["macros.window.presets.pve"] = "PvE 預設",
   ["macros.window.presets.ranks"] = "法術等級預設",

@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("deDE", {
   ["reputation.history.ban"] = "Auf schwarzer Liste",
   ["reputation.history.revoke"] = "Widerrufen",
   ["reputation.history.dismiss"] = "Vorschläge abgelehnt",
+  ["reputation.details.state.proposed"] = "Warten auf Überprüfung",
   ["macros.window.presets.pvp"] = "PVP-VORLAGEN",
   ["macros.window.presets.pve"] = "PVE-VORLAGEN",
   ["macros.window.presets.ranks"] = "ZAUBERRANG-VORLAGEN",

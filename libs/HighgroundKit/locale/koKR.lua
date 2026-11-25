@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("koKR", {
   ["reputation.history.ban"] = "블랙리스트 등록",
   ["reputation.history.revoke"] = "취소됨",
   ["reputation.history.dismiss"] = "제안 취소됨",
+  ["reputation.details.state.proposed"] = "검토 대기 중",
   ["macros.window.presets.pvp"] = "PvP 프리셋",
   ["macros.window.presets.pve"] = "PvE 프리셋",
   ["macros.window.presets.ranks"] = "주문 레벨 프리셋",

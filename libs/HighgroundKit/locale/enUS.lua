@@ -5027,6 +5027,7 @@ assert(ns.Locale:Register("enUS", {
   ["reputation.history.ban"] = "Blacklisted",
   ["reputation.history.revoke"] = "Revoked",
   ["reputation.history.dismiss"] = "Proposals dismissed",
+  ["reputation.details.state.proposed"] = "Awaiting review",
   ["macros.window.presets.pvp"] = "PVP PRESETS",
   ["macros.window.presets.pve"] = "PVE PRESETS",
   ["macros.window.presets.ranks"] = "SPELL RANK PRESETS",

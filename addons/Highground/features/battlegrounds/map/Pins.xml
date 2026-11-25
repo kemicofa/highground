@@ -1,6 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <!-- Map pin template for Pins.lua (same shape as Blizzard's flag pins). -->
   <Script file="Pins.lua"/>
+  <Script file="AreaPins.lua"/>
   <Frame name="HighgroundPinTemplate" hidden="true" enableMouse="true" mixin="HighgroundPinMixin" virtual="true">
     <Size x="22" y="22"/>
     <Layers>
@@ -48,6 +49,19 @@
         <FontString parentKey="Count" inherits="GameFontNormalOutline">
           <Anchors><Anchor point="CENTER"/></Anchors>
         </FontString>
+      </Layer>
+    </Layers>
+  </Frame>
+  <!-- Where enemies gathered (world/Heat.lua): a soft tinted blob in map
+       units. Hover shows the count; clicks pass through to the map. -->
+  <Frame name="HighgroundHeatPinTemplate" hidden="true" enableMouse="true" mixin="HighgroundHeatPinMixin" virtual="true">
+    <Size x="40" y="40"/>
+    <Layers>
+      <!-- The blob (HeatBlob.tga) is set in Pins.lua: its path depends on the addon. -->
+      <Layer level="BACKGROUND">
+        <Texture parentKey="Blob">
+          <Anchors><Anchor point="TOPLEFT"/><Anchor point="BOTTOMRIGHT"/></Anchors>
+        </Texture>
       </Layer>
     </Layers>
   </Frame>

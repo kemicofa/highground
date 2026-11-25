@@ -7,6 +7,7 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Action("nearby", "nearby.commands.show_the_nearby_enemy_list_status_and.82e814", "nearby.commands.show_nearby_status.0fea08"),
   C.Link("nearby on", "nearby.commands.enable_or_disable_the_nearby_enemy_list.ad7940", "nearby", "nearby.commands.nearby_list_switch.c254c2", { aliases = { "nearby off" } }),
   C.Link("nearby map on", "nearby.commands.map", "nearby", "nearby.commands.map_label", { aliases = { "nearby map off" } }),
+  C.Link("nearby heat on", "nearby.commands.heat", "nearby", "nearby.commands.heat_label", { aliases = { "nearby heat off" } }),
   C.Link("nearby share on", "nearby.commands.share", "nearby", "nearby.commands.share_label", { aliases = { "nearby share off" } }),
   C.Link("nearby share guild on", "nearby.commands.guild", "nearby", "nearby.commands.guild_label", { aliases = { "nearby share guild off" } }),
   C.Link("nearby share world on", "nearby.commands.everyone", "nearby", "nearby.commands.everyone_label", { aliases = { "nearby share world off" } }),

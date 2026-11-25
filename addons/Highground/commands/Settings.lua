@@ -228,16 +228,17 @@ end
 
 Commands.options = Commands.config
 
--- /hg nearby [on | off | map on|off | share on|off | share guild on|off | fights on|off |
+-- /hg nearby [on | off | map on|off | heat on|off | share on|off | share guild on|off | fights on|off |
 -- tracking on|off | track NAME | untrack NAME | tracked | watch on|off |
 -- mark TYPE|clear | marks on|off | marks world on|off | calls on|off | feed on|off |
 -- test | clear | forget]: the open-world enemy list (world/Nearby.lua), its
--- map pins and shared sightings (world/Map.lua, world/Share.lua), tracked
+-- map pins, heat and shared sightings (world/Map.lua, Heat.lua, Share.lua), tracked
 -- enemies (world/Tracking.lua), map marks and calls (world/Marks.lua,
 -- world/Calls.lua) and its saved history (world/History.lua).
 local NEARBY_SWITCHES = {
   ["on"] = "nearby", ["off"] = "nearby",
   ["map on"] = "nearbyMap", ["map off"] = "nearbyMap",
+  ["heat on"] = "nearbyHeat", ["heat off"] = "nearbyHeat",
   ["share on"] = "nearbyShare", ["share off"] = "nearbyShare",
   ["share guild on"] = "nearbyShareGuild", ["share guild off"] = "nearbyShareGuild",
   ["tracking on"] = "nearbyTrack", ["tracking off"] = "nearbyTrack",

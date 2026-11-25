@@ -24,9 +24,10 @@ Share.GROUP_EVERY, Share.GUILD_EVERY, Share.WORLD_EVERY = 3, 10, 20 -- seconds b
 -- you have moved (MOVED of the zone map). Hearing someone else send it
 -- counts as sent: a raid reports each enemy about once, not once per member.
 Share.REPEAT = { group = 15, guild = 30, world = 60 }
--- Everyone (`nearbyShareWorld`, opt-in): the realm/faction users channel
+-- Everyone (`nearbyShareWorld`, on by default): the realm/faction users channel
 -- (core/Peers) gets a 20 x 20 map cell, never where you stood, and only
--- sightings from the reader's own zone are kept.
+-- sightings from the reader's own zone are kept; other zones' only add
+-- heat (world/Heat.lua).
 Share.CELLS = 20
 Share.MOVED = 0.01
 Share.FRESH = 10 -- only sightings this recent are sent
@@ -129,6 +130,7 @@ function Share.Local(e, unit)
   e.mapID, e.x, e.y = map, x, y
   e.r = x and Share.Reach(unit) or nil
   e.by, e.via = nil, nil
+  if ns.WorldHeat then ns.WorldHeat.Add(e.name, map, x, y, e.last) end
   if ns.Tracking then ns.Tracking.Seen(e) end
   if not Share.Active() then return end
   local now = GetTime()
@@ -285,6 +287,7 @@ function Share.Merge(canon, class, level, guild, map, x, y, r, at, by, via)
   e.last, e.by, e.via = at, by, via
   e.hidden = nil
   Share.stats.merged = Share.stats.merged + 1
+  if ns.WorldHeat then ns.WorldHeat.Add(key, map, x, y, at) end
   return true
 end
 
@@ -318,8 +321,10 @@ function Share.Receive(text, channel, sender, ...)
   local ver, map, body = text:match("^(%d+):(%d+):(.*)$")
   if ver ~= "1" then return end
   map = tonumber(map)
-  -- Everyone's sightings from other zones would only fill the list.
-  if via == "world" and map ~= Share.Here() then return end
+  -- Everyone's sightings from other zones would only fill the list: they
+  -- only add heat.
+  local far = via == "world" and map ~= Share.Here()
+  if far and not (ns.WorldHeat and ns.WorldHeat.On()) then return end
   Share.stats.recv = Share.stats.recv + 1
   local now, changed = GetTime(), false
   for token in body:gmatch("[^;]+") do
@@ -330,19 +335,23 @@ function Share.Receive(text, channel, sender, ...)
       if not Valid(x, y) then x, y = nil, nil end
       local at = now - age
       local key = LocalKey(name)
-      -- Someone told this audience already: don't repeat it.
-      local mine = ns.Nearby.seen[key]
-      if mine and not mine.by and mine.last <= at + 1 then
-        queues[via][key] = nil
-        Sent(via, key, mine.x, mine.y, now)
-      end
-      level = tonumber(level)
-      guild = Clean(guild)
-      if Share.Merge(name, class ~= "" and class or nil, level > 0 and level or nil, guild ~= "" and guild or nil,
-        map, x, y, math.min(tonumber(r), 500), at, from, via) then
-        changed = true
-        if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via }) end
-        if ns.WorldCalls then ns.WorldCalls.Sighting(name, map, from, via) end
+      if far then
+        ns.WorldHeat.Add(key, map, x, y, at)
+      else
+        -- Someone told this audience already: don't repeat it.
+        local mine = ns.Nearby.seen[key]
+        if mine and not mine.by and mine.last <= at + 1 then
+          queues[via][key] = nil
+          Sent(via, key, mine.x, mine.y, now)
+        end
+        level = tonumber(level)
+        guild = Clean(guild)
+        if Share.Merge(name, class ~= "" and class or nil, level > 0 and level or nil, guild ~= "" and guild or nil,
+          map, x, y, math.min(tonumber(r), 500), at, from, via) then
+          changed = true
+          if ns.Tracking then ns.Tracking.Spotted(name, { at = at, mapID = map, by = from, via = via }) end
+          if ns.WorldCalls then ns.WorldCalls.Sighting(name, map, from, via) end
+        end
       end
     end
   end

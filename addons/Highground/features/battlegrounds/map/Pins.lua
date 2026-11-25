@@ -11,7 +11,9 @@ local Util, Theme = ns.Util, ns.Theme
 --   { x, y (0-1), ring = colour | nil, icon = atlas | texture, desat,
 --     alpha, label, labelColor = colour, mark, size, tooltip = fn(lines),
 --     zone = zone item it sits in }
--- or a zone { x, y, radius (0-1 of the map width), ring, alpha, tooltip }.
+-- or a zone { x, y, radius (0-1 of the map width), ring, alpha, tooltip }
+-- or heat { x, y, heat (0-1), size and hit (0-1 of the map's width and
+-- height), ring, alpha, tooltip }.
 -- desat: true or a grey amount 0-1.
 -- A colour is a theme token name or { r, g, b } (see Theme.Paint).
 local MapPins = { stats = { draws = 0, pins = 0 } }
@@ -26,6 +28,10 @@ end
 -- own (<Folder>PinTemplate, <Folder>PinMixin, in its own Pins.xml).
 local TEMPLATE = (ns.FRAME_PREFIX or "Highground") .. "PinTemplate"
 local ZONE_TEMPLATE = (ns.FRAME_PREFIX or "Highground") .. "ZonePinTemplate"
+local HEAT_TEMPLATE = (ns.FRAME_PREFIX or "Highground") .. "HeatPinTemplate"
+local function Template(item)
+  return item.heat and HEAT_TEMPLATE or item.radius and ZONE_TEMPLATE or TEMPLATE
+end
 local stats = MapPins.stats
 
 local PinMixin = CreateFromMixins(MapCanvasPinMixin)
@@ -94,62 +100,6 @@ end
 
 function PinMixin:OnMouseLeave()
   Highlight(self.item, false)
-  GameTooltip_Hide()
-end
-
--- Zone pins live in map units: no scaling limits, so they grow and shrink
--- with the map while enemy pins keep their screen size. A faint fill inside a
--- thin outline in the theme's map colour (mapZone).
-local ZonePinMixin = CreateFromMixins(MapCanvasPinMixin)
-_G[(ns.FRAME_PREFIX or "Highground") .. "ZonePinMixin"] = ZonePinMixin
-
-function ZonePinMixin:OnLoad()
-  self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
-  self.Rim:SetTexture(ns.Core.MAP_RING)
-  -- How many enemies were last seen here; digits only, the map's font.
-  self.Count:SetFont("Fonts\\ARIALN.TTF", ns.UIConfig.map.fontSize + 4, "OUTLINE")
-  if self.SetMouseClickEnabled then self:SetMouseClickEnabled(false) end
-end
-
-function ZonePinMixin:OnAcquired(item)
-  self.item, item.pin = item, self
-  local canvas = self:GetMap():GetCanvas()
-  local size = math.max(8, 2 * item.radius * canvas:GetWidth())
-  self:SetSize(size, size)
-  Theme.Tint(self.Disc, item.ring or "mapZone", 1)
-  Theme.Tint(self.Rim, item.ring or "mapZone", 1)
-  self.Count:SetText(item.count and item.count > 1 and tostring(item.count) or "")
-  Theme.Paint(self.Count, "white")
-  self:SetHighlight(false)
-  self:SetPosition(item.x, item.y)
-end
-
--- Subtle even when hovered, older circles fainter still (item.alpha).
--- Hovering also brings the enemies inside to full strength.
-function ZonePinMixin:SetHighlight(on)
-  local item = self.item
-  local base = item and item.alpha or 1
-  self.highlighted = on
-  self.Disc:SetAlpha(on and 0.1 or 0.06 * base)
-  self.Rim:SetAlpha(on and 0.7 or 0.45 * base)
-  self.Count:SetAlpha(on and 1 or base)
-  for _, m in ipairs(item and item.members or {}) do
-    if m.pin and m.pin.item == m then m.pin:SetAlpha(on and 1 or m.alpha or 1) end
-  end
-end
-
-function ZonePinMixin:OnMouseEnter()
-  self:SetHighlight(true)
-  local item = self.item
-  if not (item and item.tooltip) then return end
-  GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-  if Util.Guard("map zone tooltip", item.tooltip, GameTooltip) then
-    GameTooltip:Show()
-  end
-end
-
-function ZonePinMixin:OnMouseLeave()
-  self:SetHighlight(false)
   GameTooltip_Hide()
 end
 
@@ -236,6 +186,8 @@ local providers = {}
 local HighgroundDataProviderMixin = CreateFromMixins(MapCanvasDataProviderMixin)
 
 function HighgroundDataProviderMixin:RemoveAllData()
+  -- Heat pins exist only after a heat layer drew some (world/Heat.lua).
+  if self.heat then self:GetMap():RemoveAllPinsByTemplate(HEAT_TEMPLATE); self.heat = nil end
   self:GetMap():RemoveAllPinsByTemplate(ZONE_TEMPLATE)
   self:GetMap():RemoveAllPinsByTemplate(TEMPLATE)
   self.pins, self.shown = self.pins or {}, self.shown or {}
@@ -289,11 +241,11 @@ function HighgroundDataProviderMixin:RefreshAllData()
   -- Enemies first take back their own pin.
   for i, item in ipairs(items) do
     local pin = item.sortKey and previousKeys[item.sortKey]
-    if Usable(pin, item.radius and ZONE_TEMPLATE or TEMPLATE) then used[pin], claimed[i] = true, pin end
+    if Usable(pin, Template(item)) then used[pin], claimed[i] = true, pin end
   end
-  cursor[TEMPLATE], cursor[ZONE_TEMPLATE] = 1, 1
+  cursor[TEMPLATE], cursor[ZONE_TEMPLATE], cursor[HEAT_TEMPLATE] = 1, 1, 1
   for i, item in ipairs(items) do
-    local template = item.radius and ZONE_TEMPLATE or TEMPLATE
+    local template = Template(item)
     local pin = claimed[i]
     while not pin and cursor[template] <= #previous do
       local candidate = previous[cursor[template]]
@@ -305,6 +257,7 @@ function HighgroundDataProviderMixin:RefreshAllData()
     else
       pin = map:AcquirePin(template, item)
       pin.hgTemplate, used[pin] = template, true
+      if template == HEAT_TEMPLATE then self.heat = true end
     end
     self.shown[#self.shown + 1] = pin
     if item.sortKey then self.pins[item.sortKey] = pin end

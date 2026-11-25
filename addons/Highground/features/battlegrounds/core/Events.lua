@@ -29,6 +29,7 @@ local function OnZone(event)
   if event == "PLAYER_ENTERING_WORLD" and not Core.testMode then
     ns.MatchSerial = (ns.MatchSerial or 0) + 1
     if Core.ClearEarlySpecTags then Core.ClearEarlySpecTags() end
+    if Core.ReleaseDruidModel then Core.ReleaseDruidModel() end
     Core.rosterAt = nil
     wipe(Core.enemies)
     wipe(Core.order)
@@ -154,7 +155,12 @@ end)
 if Core.ListenCapProbe then Core.ListenCapProbe() end
 
 -- The combat log (Cata) only while a live battleground is tracked.
+local function Live() return Core.active and not Core.testMode end
 if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Core.OnCombatLog() end }, "combatlog",
-    function() return Core.active and not Core.testMode end, "battlegrounds")
+    Live, "battlegrounds", Core.LOG_SUBEVENTS)
+end
+-- Aura changes by token for the unit scan (core/Units.lua).
+if ns.Caps.enemyAuras then
+  ns.PvPEvents.Listen({ UNIT_AURA = function(_, unit) Core.AuraEvent(unit) end }, "scan auras", Live, "battlegrounds")
 end

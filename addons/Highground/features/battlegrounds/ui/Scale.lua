@@ -29,7 +29,8 @@ function ns.SetUIScale(value)
 end
 
 -- Execute curve (retail secret health): only its alpha is read (ui/Health.lua),
--- 1 below executePct and 0 above.
+-- 1 below executePct and 0 above. The float curve gives that alpha without
+-- a colour object per row; the colour curve stays as the fallback.
 function Core.BuildCurve()
   if not (C_CurveUtil and C_CurveUtil.CreateColorCurve) then
     return
@@ -39,6 +40,13 @@ function Core.BuildCurve()
   Core.execCurve:SetType(Enum.LuaCurveType.Step)
   Core.execCurve:AddPoint(0, CreateColor(r, g, b, 1))
   Core.execCurve:AddPoint(Core.db.executePct, CreateColor(r, g, b, 0))
+  Core.execAlpha = nil
+  if C_CurveUtil.CreateCurve then
+    Core.execAlpha = C_CurveUtil.CreateCurve()
+    Core.execAlpha:SetType(Enum.LuaCurveType.Step)
+    Core.execAlpha:AddPoint(0, 1)
+    Core.execAlpha:AddPoint(Core.db.executePct, 0)
+  end
   -- Green to red bar colour from secret health, the same bands as
   -- Core.BarColor reads from plain health: red to 30%, amber to 60%.
   Core.healthCurve = C_CurveUtil.CreateColorCurve()

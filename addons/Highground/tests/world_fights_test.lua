@@ -49,6 +49,11 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     local p = prefixes(sim)
     assert(not p.HighgroundS and not p.HighgroundI and not p.HighgroundT and not p.HighgroundC,
       "no spec tags, map intel, timers or captures are sent")
+    if sim.ns.Caps.combatLog then
+      sim:combatLog("SPELL_CAST_START", "Looter-Realm", "", 6477, { spellName = "Opening" })
+      equal(sim.env.HighgroundDB.capLog, nil, "an Opening cast near a world fight is no capture")
+      equal(next(Core.recentCasts), nil, "nor a remembered cast")
+    end
     -- A shared sighting in your zone joins the board.
     sim:event("CHAT_MSG_ADDON", "HighgroundW", "1:1424:Healer-Realm,PRIEST,60,4000,4000,60,1,", "PARTY", "Ally-Realm")
     sim:advance(1)

@@ -96,6 +96,7 @@ local function models(s)
         if self.file and self.scripts.OnModelLoaded then self.scripts.OnModelLoaded(self) end
       end
       function f:GetModelFileID() return self.file end
+      function f:ClearModel() self.file, self.clears = nil, (self.clears or 0) + 1 end
     end
     return f
   end
@@ -117,6 +118,12 @@ test("WoW Forever: a druid seen in Moonkin form is Balance at once; other models
   equal(sim.env.HighgroundDB.liveStats.druidModels[1234] > 0, true, "unknown model IDs are counted")
   druid.powerType = 3; sim:advance(15)
   equal(owl.specID, C.classSpecs.DRUID[1], "Moonkin stays Balance through cat form")
+  local model
+  for _, f in ipairs(sim.frames) do if f.ClearModel then model = f end end
+  equal(model:GetModelFileID(), nil, "no druid model stays loaded between reads")
+  local clears = model.clears
+  sim:leave()
+  assert(model.clears > clears, "leaving the match clears the model again")
   sim:assertHealthy()
 end)
 

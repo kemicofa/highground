@@ -66,7 +66,7 @@ test("Retail restricted health displays without influencing target scores", func
     __le = function() error("secret comparison") end,
     __div = function() error("secret arithmetic") end,
   })
-  local enemy = sim:enemy("Hidden", { health = secret, maxHealth = secret, maxMana = secret, mana = secret })
+  local enemy, token = sim:enemy("Hidden", { health = secret, maxHealth = secret, maxMana = secret, mana = secret })
   sim.scores[2].talentSpec = secret
   sim:join()
   local entry = sim:entry("Hidden")
@@ -75,6 +75,7 @@ test("Retail restricted health displays without influencing target scores", func
   equal(sim.env.HighgroundRow1.hp.value, secret, "raw health reaches display boundary")
   local score = entry.live
   enemy.categories = { ["HARMFUL|CROWD_CONTROL"] = { { spellId = 853 } } }
+  sim:event("UNIT_AURA", token)
   sim:advance(0.5)
   equal(entry.live, score, "generic crowd control does not invent a breakable-CC penalty")
   equal(entry.crowdControlled, true, "category remains visible")

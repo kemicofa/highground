@@ -6,9 +6,17 @@ local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local equal = t.equal
 
 -- Score widgets: sim.widgetText[id] is the widget's text; sim.topWidgets
--- lists the top-center widget set for maps without fixed widget IDs.
+-- lists the top-center widget set for maps without fixed widget IDs. Like
+-- the game, a changed text or bar reports UPDATE_UI_WIDGET.
+local function Changes(sim)
+  local store = {}
+  return setmetatable({}, { __index = store, __newindex = function(_, id, value)
+    store[id] = value
+    sim:event("UPDATE_UI_WIDGET", { widgetID = id })
+  end })
+end
 local function widgets(sim, env)
-  sim.widgetText, sim.bars = {}, {}
+  sim.widgetText, sim.bars = Changes(sim), Changes(sim)
   env.C_UIWidgetManager = {
     GetIconAndTextWidgetVisualizationInfo = function(id)
       local text = sim.widgetText[id]
@@ -133,6 +141,31 @@ t.test("steady score ticks teach this map's rate for a base count", function()
   equal(forecast(sim).time, "3:20", "prediction uses the learned rate")
 end)
 
+t.test("score widgets are read on changes, at most once a second otherwise", function()
+  local sim = new("cata", {}, widgets)
+  sim:enemy("Foe")
+  sim:join(93, 529, "Arathi Basin")
+  sim.widgetText[1893], sim.widgetText[1894] = "Bases: 3  Resources: 900/1500", "Bases: 2  Resources: 1000/1500"
+  sim:advance(1)
+  local env, reads = sim.env, 0
+  local info = env.C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
+  env.C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo = function(id) reads = reads + 1; return info(id) end
+  for _ = 1, 20 do
+    sim:event("UPDATE_UI_WIDGET", { widgetID = 999 }) -- another widget, such as a timer
+    sim:advance(0.25)
+  end
+  -- Four refreshes a second used to read both widgets each time: 40 reads.
+  assert(reads <= 12, "the forecast reuses its reading between changes: " .. reads)
+  sim.widgetText[1893] = "Bases: 3  Resources: 960/1500"
+  equal(sim.ns.Timers.Forecast(sim.now).A, 960, "a widget change is read at once")
+  local w = sim.ns.Timers.foreWin
+  local writes, set = 0, w.block.time.SetText
+  w.block.time.SetText = function(self, text) writes = writes + 1; return set(self, text) end
+  sim:advance(3)
+  assert(writes <= 4, "the countdown text is written when it changes: " .. writes)
+  w.block.time.SetText = set
+end)
+
 t.test("maps without fixed score widgets read the first two at the top of the screen", function()
   local sim = new("retail", {}, widgets)
   sim:enemy("Foe")
@@ -147,6 +180,7 @@ t.test("maps without fixed score widgets read the first two at the top of the sc
   equal(sc.max, 1500, "limit from the widget")
   equal(sc.n.A, 3, "base counts from the widgets")
   sim.topWidgets = { { widgetID = 51 } }
+  sim:event("UPDATE_UI_WIDGET", { widgetID = 52 })
   equal(sim.ns.Timers.Scores(sim.now), nil, "one readable score is not enough")
 end)
 

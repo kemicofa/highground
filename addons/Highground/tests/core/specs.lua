@@ -54,6 +54,7 @@ test("Retail crowd-control category remains neutral in scoring", function()
   core.Score(enemy)
   local baseline = enemy.live
   s.auras = { { spellId = 853 } } -- Hammer of Justice: non-breakable stun
+  core.AuraEvent("target") -- its UNIT_AURA (core/Events.lua)
   core.ScanUnits()
   core.Score(enemy)
   assert(enemy.crowdControlled and enemy.cc == false and enemy.stun == false)

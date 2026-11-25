@@ -184,6 +184,23 @@ test("damaged battleground, profile, match and macro records load without errors
   sim:assertHealthy()
 end)
 
+test("unread max-mana fingerprints are removed once; the mana model's samples stay", function()
+  local sample = { mana = 25000, level = 85 }
+  local saved = { fingerprints = { ["MAGE/Arcane"] = { { mana = 1, hp = 2 } }, ["cata/MAGE/1"] = { sample } },
+    scoped = { rules = { cata = { fingerprints = { ["DRUID/Feral Combat"] = { { mana = 3 } }, ["cata/DRUID/2"] = { sample },
+      [7] = "damaged" } }, broken = "damaged" } } }
+  local sim = new("cata", saved)
+  local db = sim.env.HighgroundDB
+  local scoped = db.scoped.rules.cata.fingerprints
+  equal(scoped["DRUID/Feral Combat"], nil, "class and spec lists go")
+  equal(scoped[7], nil, "damaged keys go")
+  equal(scoped["cata/DRUID/2"][1], sample, "mana samples stay")
+  equal(db.fingerprints["MAGE/Arcane"], nil, "also in the unscoped table of older versions")
+  equal(db.fingerprints["cata/MAGE/1"][1], sample, "whose samples stay too")
+  equal(db.fingerprintsVersion, 2, "once")
+  sim:assertHealthy()
+end)
+
 test("pvp unit tokens and Util.UnitTokens share one set of lists", function()
   local sim = new("cata", {})
   local T, U = sim.ns.UnitTokens, sim.ns.Util

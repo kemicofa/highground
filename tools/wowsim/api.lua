@@ -154,8 +154,11 @@ return function(sim, env)
     return copy
   end
   env.C_UnitAuras = {
+    -- Category filters ("HELPFUL|BIG_DEFENSIVE") read the unit's categories.
     GetAuraDataByIndex = function(token, i, filter)
-      return Aura(read(token, filter == "HARMFUL" and "debuffs" or "buffs", EMPTY)[i])
+      local list = (filter == nil or filter == "HELPFUL") and read(token, "buffs", EMPTY)
+        or filter == "HARMFUL" and read(token, "debuffs", EMPTY) or read(token, "categories", EMPTY)[filter] or EMPTY
+      return Aura(list[i])
     end,
     -- A new list of new auras the caller may keep or change.
     GetUnitAuras = function(token, filter)

@@ -248,29 +248,31 @@ end
 -- HISTORY_DAYS; the most recently seen are kept. Damaged entries go first.
 Core.HISTORY_MAX, Core.HISTORY_DAYS = 4000, 120
 local function Seen(h) return type(h) == "table" and tonumber(h.t) or -math.huge end
-local function OldestFirst(a, b) return a[2] < b[2] end
 local prunedMatch
 -- WoW Forever's scoreboard names the class where the spec goes, and
 -- earlier versions saved that as history: it is no spec, so it goes too.
+local function Named(spec, name) return type(name) == "string" and spec == name:lower() end
 local function ClassOnly(h)
   if type(h) ~= "table" or type(h.spec) ~= "string" or type(h.class) ~= "string" then return false end
   local spec = h.spec:lower()
   local female = LOCALIZED_CLASS_NAMES_FEMALE and LOCALIZED_CLASS_NAMES_FEMALE[h.class]
-  for _, name in ipairs({ ns.Util.ClassName(h.class), female or false }) do
-    if type(name) == "string" and spec == name:lower() then return true end
-  end
-  return false
+  return Named(spec, ns.Util.ClassName(h.class)) or Named(spec, female)
 end
+-- Over the cap, keys sort oldest first (one list, no table per entry).
+local pruning
+local function OldestFirst(a, b) return Seen(pruning[a]) < Seen(pruning[b]) end
 function Core.PruneHistory(history, now)
   local cutoff, count = now - Core.HISTORY_DAYS * 86400, 0
   for key, h in pairs(history) do
     if Seen(h) < cutoff or ClassOnly(h) then history[key] = nil else count = count + 1 end
   end
   if count <= Core.HISTORY_MAX then return end
-  local list = {}
-  for key, h in pairs(history) do list[#list + 1] = { key, Seen(h) } end
-  table.sort(list, OldestFirst)
-  for i = 1, count - Core.HISTORY_MAX do history[list[i][1]] = nil end
+  local keys = {}
+  for key in pairs(history) do keys[#keys + 1] = key end
+  pruning = history
+  table.sort(keys, OldestFirst)
+  pruning = nil
+  for i = 1, count - Core.HISTORY_MAX do history[keys[i]] = nil end
 end
 
 -- After the match, specs are no longer secret: remember them for next time.
@@ -287,16 +289,6 @@ function Core.HarvestHistory()
         ns.Scope.Saved("history", "social")[key] = { class = class, spec = spec, t = time() }
         local e = Core.enemies[key]
         if e then Core.RecordSpecMana(e, id) end
-        if e and (e.maxMana or e.maxHP) and not e.fingerprinted then
-          e.fingerprinted = true
-          local fingerprints = ns.Scope.Saved("fingerprints", "rules")
-          local fp = class .. "/" .. spec
-          local list = ns.Saved.Table(fingerprints, fp)
-          list[#list + 1] = { mana = e.maxMana, hp = e.maxHP }
-          if #list > 50 then
-            table.remove(list, 1)
-          end
-        end
       end
     end
   end
@@ -305,5 +297,6 @@ function Core.HarvestHistory()
     prunedMatch = ns.MatchSerial or 0
     Core.PruneHistory(ns.Scope.Saved("history", "social"), time())
     Core.PruneHistory(ns.Scope.Saved("specTags", "social"), time())
+    Core.PruneHistory(ns.Scope.Saved("healerTags", "social"), time())
   end
 end

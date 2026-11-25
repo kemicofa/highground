@@ -5,6 +5,7 @@ local TEAM_NAME = ns.Localization.Define({}, { A = "shared.copy.alliance.a21193"
 
 -- Row models and working lists reused on every refresh (Timers.RowPool).
 local pool = Timers.RowPool()
+local NONE = {}
 local clicks, caps, phases = {}, {}, {}
 -- Format arguments, refilled on every refresh (translated text is formatted
 -- each time, so a language change shows on the next refresh).
@@ -26,7 +27,7 @@ function Timers.ObjectiveRows(now)
   Timers.UpdateNodePhases(now)
   -- Enemies clicking a banner right now (their capture cast).
   wipe(clicks)
-  for _, e in pairs(ns.enemies or {}) do
+  for _, e in pairs(ns.enemies or NONE) do
     local c = ns.Capping and ns.Capping(e)
     if c then Click(e, c) end
   end
@@ -70,7 +71,7 @@ function Timers.ObjectiveRows(now)
     row.left = n.capEnd and n.capEnd - now
     row.total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or Timers.CapTime()
   end
-  local capture = rules.capture or {}
+  local capture = rules.capture or NONE
   wipe(phases)
   for _, n in pairs(Timers.nodes) do
     if n.holdEnd or n.resetEnd then phases[#phases + 1] = n end

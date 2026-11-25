@@ -373,7 +373,8 @@ function Timers.ShowRows(w, rows, info)
     end
     r.bar:SetValue(frac or 0)
     Timers.BarColor(r.bar, c, row.est and BAR_EST or BAR_LIVE)
-    r.time:SetText(row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--")
+    local time = row.time or (row.left and ((row.est and "~" or "") .. Timers.Clock(row.left))) or "--"
+    if r.timeText ~= time then r.timeText = time; r.time:SetText(time) end -- the clock changes once a second
     local urgent = row.die or (row.left and row.left > 0 and row.left <= 5)
     r.edge:SetColor(urgent and "warning" or "border")
     r.glow:SetActive(urgent, urgent)

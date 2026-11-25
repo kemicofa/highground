@@ -3,12 +3,13 @@ local test, new, equal = ...
 test("known immunities and preserved CC override markers, scores and target stickiness", function()
   for _, spell in ipairs({ 45438, 642, 33786, 710, 118 }) do
     local sim = new("cata")
-    local protected = sim:enemy("Protected", { marker = 8 })
+    local protected, token = sim:enemy("Protected", { marker = 8 })
     sim:enemy("Available")
     sim:join()
     equal(sim.ns.GetKillNow().key, "Protected-Realm", "marker initially selects the target")
     local field = (spell == 45438 or spell == 642) and "buffs" or "debuffs"
     protected[field] = { { spellId = spell, icon = 1 } }
+    sim:event("UNIT_AURA", token)
     sim:advance(0.5)
     equal(sim.ns.GetKillNow().key, "Available-Realm", "blocked incumbent switches immediately")
     equal(sim.env.HighgroundTargetButton.attrs.macrotext, "/targetexact Available", "binding follows eligibility")

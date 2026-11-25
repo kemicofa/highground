@@ -167,8 +167,11 @@ end
 local GUIDE_TEAM = { ["13116"] = "A", ["13117"] = "H" }
 -- Feign Death fakes a death; Reincarnation revives in place.
 local NO_GUIDE = { [5384] = true, [20608] = true, [21169] = true }
+-- The subevents read below; others skip the guarded call (timers/Driver.lua).
+Timers.LOG_SUBEVENTS = { SPELL_RESURRECT = true, SPELL_CAST_SUCCESS = true, SPELL_CAST_START = true,
+  SPELL_AURA_APPLIED = true, UNIT_DIED = true }
 function Timers.OnCombatLog()
-  local _, sub, _, srcGUID, srcName, _, _, _, dstName, _, _, spellID = CombatLogGetCurrentEventInfo()
+  local _, sub, _, srcGUID, srcName, _, _, _, dstName, _, _, spellID = ns.PvPEvents.Log()
   -- Up without a spirit guide: that death is not a wave (EnemyBack).
   local revived = sub == "SPELL_RESURRECT" and dstName
     or (sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_AURA_APPLIED") and Timers.plain(spellID)

@@ -59,6 +59,9 @@ test("fresh aura evidence replaces history but conflicting auras stay unknown", 
   assert(enemy.specID == 8003 and enemy.specSrc == "aura")
   s.buffs[2] = { spellId = 12042, sourceUnit = "target" }
   core.ScanUnits()
+  assert(enemy.specID == 8003, "the reading stands until the client reports a change")
+  core.AuraEvent("target")
+  core.ScanUnits()
   assert(enemy.specID == nil and enemy.specSrc == nil)
 end)
 
@@ -151,6 +154,9 @@ test("post-match confirmed specs can train recent previously unknown observation
   s.scores = { { name = "Enemy", faction = 0, classToken = "DRUID", talentSpec = "Feral Combat" } }
   core.HarvestHistory()
   assert(#env.ns.Scope.Store("rules").fingerprints["cata/DRUID/2"] == 1)
+  for key in pairs(env.ns.Scope.Store("rules").fingerprints) do
+    assert(key:find("^cata/"), "only the mana model's samples are saved: " .. key)
+  end
 end)
 
 test("remembered specs stay bounded, age out and tolerate damaged entries", function()
@@ -178,7 +184,33 @@ test("remembered specs stay bounded, age out and tolerate damaged entries", func
   env.ns.MatchSerial = (env.ns.MatchSerial or 0) + 1
   core.HarvestHistory()
   core.PruneHistory = prune
-  assert(runs == 2, "the next match prunes history and spec tags once each")
+  assert(runs == 3, "the next match prunes history, spec tags and healer marks once each")
+end)
+
+test("pruning a full history and repeated talent casts build no table per entry", function()
+  local _, ns, env, core = client("cata")
+  jit.off() -- trace compilation would count as allocation
+  local history, now = {}, env.time and env.time() or os.time()
+  for i = 1, core.HISTORY_MAX + 50 do history["Old" .. i .. "-Realm"] = { class = "MAGE", spec = "MAGE1", t = now - i } end
+  collectgarbage("collect"); collectgarbage("stop")
+  local before = collectgarbage("count")
+  core.PruneHistory(history, now)
+  local kib = collectgarbage("count") - before
+  collectgarbage("restart")
+  assert(history.Old1 == nil and history["Old1-Realm"] and not history["Old" .. (core.HISTORY_MAX + 1) .. "-Realm"],
+    "the newest are kept")
+  -- A { key, time } pair per entry used to cost about 250 KiB here.
+  assert(kib < 128, "one list of keys: " .. kib .. " KiB")
+  local class, spell = next(ns.SpecInferenceConfig.casts)
+  spell = next(ns.SpecInferenceConfig.casts[class])
+  local _, reason = ns.SpecFromCast(class, spell)
+  collectgarbage("collect"); collectgarbage("stop")
+  before = collectgarbage("count")
+  for _ = 1, 200 do assert(select(2, ns.SpecFromCast(class, spell)) == reason) end
+  kib = collectgarbage("count") - before
+  collectgarbage("restart")
+  jit.on()
+  assert(kib < 1, "a repeated cast reuses its reason: " .. kib .. " KiB")
 end)
 
 test("Retail never infers specs or trains the Cata mana samples", function()

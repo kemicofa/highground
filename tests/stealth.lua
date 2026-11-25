@@ -215,6 +215,47 @@ return function(addon, contexts)
       end)
     end
 
+    if context == "pvp" then
+      test(context .. ": aura updates that remove nothing skip the stealth scan; a removal checks at once", function()
+        local sim = setup("retail", 120100, context)
+        local S, P = sim.ns.Stealth, sim.ns.PvPStealth
+        local enemy = { name = "Sneak", classID = 11, enemy = true, buffs = { { spellId = 5215 } } }
+        sim.units.nameplate1 = enemy
+        local lookups, key = 0, S.UnitKey
+        S.UnitKey = function(unit) lookups = lookups + 1; return key(unit) end
+        for _ = 1, 10 do sim:event("UNIT_AURA", "nameplate1") end
+        equal(lookups, 0, "nobody seen hiding: aura updates look nobody up")
+        S.UnitKey = key
+        cast(sim, "nameplate1")
+        sim:advance(3)
+        equal(#sim.sounds, 1, "a readable Prowl keeps the enemy hidden")
+        local reads, get = 0, sim.env.C_UnitAuras.GetAuraDataByIndex
+        sim.env.C_UnitAuras.GetAuraDataByIndex = function(...) reads = reads + 1; return get(...) end
+        for _ = 1, 20 do sim:event("UNIT_AURA", "nameplate1", { isFullUpdate = false, addedAuras = {} }) end
+        equal(reads, 0, "updates that removed nothing cannot end the stealth")
+        enemy.buffs = {}
+        sim:event("UNIT_AURA", "nameplate1", { isFullUpdate = false, removedAuraInstanceIDs = { 7 } })
+        assert(reads > 0, "a removal is checked")
+        equal(P.seen["Sneak-Realm"].hidden, nil, "and ends the stealth at once")
+        sim:advance(0.2)
+        equal(sim.sounds[2], exit, "with the exit cue")
+        sim.env.C_UnitAuras.GetAuraDataByIndex = get
+        local records, e = {}, P.seen["Sneak-Realm"]
+        for _ = 1, 3 do
+          enemy.buffs = { { spellId = 5215 } }
+          cast(sim, "nameplate1")
+          records[e.hidden] = true
+          sim:advance(S.REPEAT + 1)
+          enemy.buffs = {}
+          sim:event("UNIT_AURA", "nameplate1")
+        end
+        local count = 0
+        for _ in pairs(records) do count = count + 1 end
+        assert(count <= 2, "hiding again reuses the enemy's two records: " .. count)
+        sim:assertHealthy()
+      end)
+    end
+
     if context ~= "world" then
       test(context .. ": leaving a match discards hidden opponents", function()
         local sim = setup("retail", 120100, context)

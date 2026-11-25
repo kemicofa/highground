@@ -70,11 +70,14 @@ function P.Repair(db)
   local keep = {}
   for _, s in ipairs(list) do
     if type(s) == "table" and type(s.rows) == "table" and type(s.t0) == "number" and #keep < P.KEEP then
-      local rows = {}
-      for _, row in ipairs(s.rows) do
-        if type(row) == "string" and #rows < P.MAX_ROWS then rows[#rows + 1] = row end
+      -- Compacted in place: thousands of rows, read at every login.
+      local rows, n = s.rows, 0
+      for _, row in ipairs(rows) do
+        if type(row) == "string" and n < P.MAX_ROWS then n = n + 1; rows[n] = row end
       end
-      s.rows = rows
+      for key in pairs(rows) do
+        if type(key) ~= "number" or key < 1 or key > n or key % 1 ~= 0 then rows[key] = nil end
+      end
       for _, key in ipairs({ "counts", "stages", "errors", "map" }) do
         if type(s[key]) ~= "table" then s[key] = {} end
       end

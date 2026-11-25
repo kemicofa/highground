@@ -58,10 +58,14 @@ local handlers = {
   CHAT_MSG_BG_SYSTEM_HORDE = NodeChat,
 }
 Util.Events(handlers, "timers events", "battlegrounds")
+-- Score widgets and the scoreboard: the win forecast reads them again.
+local function ScoresChanged(_, widget) Timers.ScoresChanged(widget) end
+ns.PvPEvents.Listen({ UPDATE_UI_WIDGET = ScoresChanged, UPDATE_ALL_UI_WIDGETS = ScoresChanged,
+  UPDATE_BATTLEFIELD_SCORE = ScoresChanged }, "timers scores", Live, "battlegrounds")
 -- Only clients that deliver the combat log to addons (ns.Caps.combatLog).
 if ns.Caps.combatLog then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Timers.OnCombatLog() end }, "timers combatlog",
-    Live, "battlegrounds")
+    Live, "battlegrounds", Timers.LOG_SUBEVENTS)
 end
 ns.Comms.Listen(Timers.PREFIX, function(text, channel, sender)
   if Live() and ns.Comms.FromGroup(channel) then Timers.Receive(text, sender) end

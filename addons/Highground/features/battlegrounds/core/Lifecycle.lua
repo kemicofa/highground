@@ -60,6 +60,7 @@ function Core.Tick()
     Core.Guard("roster", Core.RefreshWorldRoster)
     Core.Guard("scan", Core.ScanUnits)
     Core.Guard("allies", Core.ScanAllyTargets)
+    Core.Guard("capture", Core.PruneCasts)
   elseif not Core.testMode then
     if Core.DetectMap() then
       Core.ObjectiveStart()
@@ -75,6 +76,7 @@ function Core.Tick()
     Core.Guard("allies", Core.ScanAllyTargets)
     Core.Guard("capture", Core.ScanGroupCasts)
     Core.Guard("capture", Core.ExpireCaptures)
+    Core.Guard("capture", Core.PruneCasts)
   end
   for _, stage in ipairs(Core.TICK_STAGES) do
     local fn = Core[stage[2]]
@@ -203,6 +205,7 @@ function Core.CheckZone()
     wipe(Core.recentCasts)
     wipe(Core.ownCast)
     wipe(Core.logCaps)
+    if Core.ReleaseDruidModel then Core.ReleaseDruidModel() end
     Core.allyFaction = nil
     Core.currentBG, Core.currentProfile, Core.mapKey = nil, nil, nil
     Core.obj.mode, Core.obj.assaultStart = nil, nil

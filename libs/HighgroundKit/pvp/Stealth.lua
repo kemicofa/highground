@@ -22,8 +22,10 @@ local function Watched(unit)
     or unit == "target" or unit == "focus" or unit == "mouseover")
 end
 
-function P.NoteUnit(unit)
-  if not (P.Enabled() and Watched(unit) and S.Hostile(unit)) then return end
+-- info: UNIT_AURA's update details, when the call comes from one.
+function P.NoteUnit(unit, info)
+  -- Only enemies seen hiding are followed: nothing to look up otherwise.
+  if not next(P.seen) or not (P.Enabled() and Watched(unit) and S.Hostile(unit)) then return end
   if U.read(UnitIsVisible, unit) == false then return end
   local name = S.UnitKey(unit)
   local e = name and P.seen[name]
@@ -31,7 +33,7 @@ function P.NoteUnit(unit)
     e.last = GetTime()
     -- Cata has exact removals; Retail/Forever infer the end only when the
     -- enemy is visible again after an observed cast.
-    if not ns.Caps.combatLog then S.Shown(e, unit) end
+    if not ns.Caps.combatLog then S.Shown(e, unit, nil, nil, info) end
   end
 end
 
@@ -46,7 +48,7 @@ end
 
 function P.OnCombatLog()
   if not P.Enabled() then return end
-  local _, sub, _, src, srcName, srcFlags, _, dst, dstName, dstFlags, _, id = CombatLogGetCurrentEventInfo()
+  local _, sub, _, src, srcName, srcFlags, _, dst, dstName, dstFlags, _, id = ns.PvPEvents.Log()
   local spell = S.spells[id]
   if not spell then return end
   local guid, name, flags
@@ -69,7 +71,7 @@ U.Events({ PLAYER_ENTERING_WORLD = Reset, ZONE_CHANGED_NEW_AREA = Reset }, "pvp 
 local hot = {
   NAME_PLATE_UNIT_ADDED = function(_, unit) P.NoteUnit(unit) end,
   ARENA_OPPONENT_UPDATE = function(_, unit) P.NoteUnit(unit) end,
-  UNIT_AURA = function(_, unit) P.NoteUnit(unit) end,
+  UNIT_AURA = function(_, unit, info) P.NoteUnit(unit, info) end,
   PLAYER_TARGET_CHANGED = function() P.NoteUnit("target") end,
   PLAYER_FOCUS_CHANGED = function() P.NoteUnit("focus") end,
   UPDATE_MOUSEOVER_UNIT = function() P.NoteUnit("mouseover") end,
@@ -79,7 +81,8 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
 else
   hot.UNIT_SPELLCAST_SUCCEEDED = function(_, unit, _, id) P.OnUnitCast(unit, id) end
 end
-ns.PvPEvents.Listen(hot, "pvp stealth", P.Enabled, OWNERS)
+ns.PvPEvents.Listen(hot, "pvp stealth", P.Enabled, OWNERS,
+  { SPELL_CAST_SUCCESS = true, SPELL_AURA_APPLIED = true, SPELL_AURA_REMOVED = true })
 
 -- Retail/Forever infer a stealth end from the enemy being visible again.
 local WATCHED = { "target", "focus", "mouseover" }

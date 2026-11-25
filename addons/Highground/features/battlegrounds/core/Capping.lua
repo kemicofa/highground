@@ -209,7 +209,9 @@ local function LogDiag(sub, who, spell, name)
 end
 
 function Core.CaptureFromLog(sub, srcName, spellId, spellName)
-  if type(srcName) ~= "string" or not Core.IsCaptureCast(spellId, spellName) then return end
+  -- Bases are battleground objectives: in a world fight, "Opening" is a
+  -- chest or a mailbox (core/World.lua).
+  if Core.context == "world" or type(srcName) ~= "string" or not Core.IsCaptureCast(spellId, spellName) then return end
   LogDiag(sub, srcName, spellId, spellName)
   local short, now = srcName:match("^[^-]+"), GetTime()
   local e = Core.enemies[Core.Canon(srcName) or ""]
@@ -228,6 +230,23 @@ function Core.CaptureFromLog(sub, srcName, spellId, spellName)
   local recent = Core.recentCasts[short]
   if recent and recent.spell == spellId and sub == "SPELL_CAST_SUCCESS" then recent.finish = now end
   Core.CaptureEnded(srcName)
+end
+
+-- Casts and capture estimates by short name otherwise stay until a loading
+-- screen, and a long world fight sees many players: a cast a minute old or
+-- an estimate past its end goes, checked every ten seconds.
+Core.CAST_KEEP = 60
+local prunedAt = -math.huge
+function Core.PruneCasts()
+  local now = GetTime()
+  if now - prunedAt < 10 then return end
+  prunedAt = now
+  for short, c in pairs(Core.recentCasts) do
+    if not (type(c.finish) == "number" and now - c.finish < Core.CAST_KEEP) then Core.recentCasts[short] = nil end
+  end
+  for short, c in pairs(Core.logCaps) do
+    if not (type(c.finish) == "number" and now - c.finish < 10) then Core.logCaps[short] = nil end
+  end
 end
 
 -- Succeeded, failed or interrupted: drop any estimate for that player.

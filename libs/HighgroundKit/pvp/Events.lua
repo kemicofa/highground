@@ -25,17 +25,36 @@ local byEvent, wanted = {}, {}
 local fn, ev, a1, a2, a3, a4
 local function Run() return fn(ev, a1, a2, a3, a4) end
 
+-- The combat-log row, read once per event for every listener: E.Log()
+-- returns its first sixteen fields. Outside a dispatch it asks the game.
+local CLEU = "COMBAT_LOG_EVENT_UNFILTERED"
+local logging, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16 = false
+function E.Log()
+  if not logging then return CombatLogGetCurrentEventInfo() end
+  return l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16
+end
+
 frame:SetScript("OnEvent", function(_, event, p1, p2, p3, p4)
   local list = byEvent[event]
   if not list then return end
+  local log = event == CLEU
+  if log then
+    l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16 = CombatLogGetCurrentEventInfo()
+    logging = true
+  end
   for i = 1, #list do
     local entry = list[i]
-    if entry.listener.live then
+    -- A listener's subevent set skips the rows it ignores.
+    if entry.listener.live and not (log and entry.subs and not entry.subs[l2]) then
       fn, ev, a1, a2, a3, a4 = entry.fn, event, p1, p2, p3, p4
       U.RunGuarded(entry.listener.stage, Run)
     end
   end
   fn, a1, a2, a3, a4 = nil, nil, nil, nil, nil
+  if log then
+    logging, l1, l2, l3, l4, l5, l6, l7, l8 = false, nil, nil, nil, nil, nil, nil, nil, nil
+    l9, l10, l11, l12, l13, l14, l15, l16 = nil, nil, nil, nil, nil, nil, nil, nil
+  end
 end)
 
 -- Guarded fn(...) (up to six arguments) for hot paths: like Util.Guard,
@@ -57,14 +76,15 @@ end
 
 -- handlers[event](event, ...) while live() is true, like Util.Events (at
 -- most four event arguments). Disabled modules and standby hosts never
--- register. Returns the listener.
-function E.Listen(handlers, stage, live, module)
+-- register. subevents: a set of combat-log subevents the combat-log
+-- handler reads (E.Log); other rows skip it. Returns the listener.
+function E.Listen(handlers, stage, live, module, subevents)
   local l = { stage = stage, check = live, events = {}, live = false, allowed = U.ModuleEnabled(module) }
   E.listeners[#E.listeners + 1] = l
   for event, handler in pairs(handlers) do
     l.events[#l.events + 1] = event
     byEvent[event] = byEvent[event] or {}
-    table.insert(byEvent[event], { listener = l, fn = handler })
+    table.insert(byEvent[event], { listener = l, fn = handler, subs = event == CLEU and subevents or nil })
   end
   return l
 end

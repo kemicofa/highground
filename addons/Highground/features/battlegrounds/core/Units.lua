@@ -99,6 +99,41 @@ function Core.TickKey(unit)
   return key or nil
 end
 
+-- Auras are read again only when they may have changed: an enemy newly in
+-- view or on another token, or an aura change. Cata's combat log names the
+-- enemy (core/CombatLog.lua). Target, focus, arena and nameplate tokens get
+-- UNIT_AURA (core/Events.lua), else every two seconds; raid targets,
+-- mouseover and the soft target get none, so at least once a second.
+local AURA_EVENTS = { target = true, focus = true }
+for i = 1, 4 do AURA_EVENTS[ns.UnitTokens.arena[i]] = true end
+for i = 1, 40 do AURA_EVENTS[ns.UnitTokens.nameplate[i]] = true end
+Core.AURA_EVERY, Core.AURA_RECHECK = 1, 2
+local auraTokens = {} -- [token] = true after its UNIT_AURA
+function Core.AuraEvent(unit) auraTokens[unit] = true end
+local function AurasStale(e, unit, now)
+  if not e.wasVisible or e.auraUnit ~= unit or e.auraDirty then return true end
+  local age = now - (e.auraAt or -math.huge)
+  if AURA_EVENTS[unit] then return auraTokens[unit] or age >= Core.AURA_RECHECK end
+  return age >= Core.AURA_EVERY
+end
+local function AurasRead(e, unit, now)
+  e.auraUnit, e.auraAt, e.auraDirty = unit, now, nil
+  auraTokens[unit] = nil
+end
+
+-- Green to red on the Midnight client: the curve's colour at the unit's
+-- health, only handed to the bar. Read once per tick by the rows and the
+-- hero card that draw it (ui/Health.lua).
+function Core.HealthTint(e, unit)
+  local now = GetTime()
+  if e.hpTintAt ~= now then
+    e.hpTintAt = now
+    e.hpTint = SCALE_100 and Core.healthCurve and Core.EnemyColorMode() == "health"
+      and Util.call(UnitHealthPercent, unit, true, Core.healthCurve) or nil
+  end
+  return e.hpTint
+end
+
 local function Claim(unit)
   local key = Core.TickKey(unit)
   if key and Core.enemies[key] and not Core.unitFor[key] then
@@ -109,6 +144,7 @@ local function Claim(unit)
 end
 
 function Core.ScanUnits()
+  local now = GetTime()
   for _, e in pairs(Core.enemies) do ns.FilterCooldownState(e, Core.db) end
   wipe(Core.unitFor)
   local visible = 0
@@ -145,64 +181,67 @@ function Core.ScanUnits()
       end
       if ns.Defensives then
         -- Cata: classify auras by spellId (config/cata/Auras.lua lists).
-        local hadDef = e.def and e.wasVisible
-        local defSpell = e.defSpell
-        local a = Core.ReadAurasByList(unit, e.class, e)
-        specAuras = a
-        if a.readable then
-          -- Swap the active-cooldown buffers: the reading becomes current.
-          a.activeCooldowns, e.activeCooldowns = e.activeCooldowns, a.activeCooldowns
-          e.immune = a.immune or false
-          e.def, e.cc, e.stun, e.burst = a.def or false, a.cc or false, a.stun or false, a.burst or false
-          e.defScale = a.defScale
-          e.defIcon, e.burstIcon = a.defIcon, a.burstIcon
-          e.defSpell, e.burstSpell = a.defSpell, a.burstSpell
-          e.bursts = a.bursts
-          if hadDef and not e.def then
-            e.burnedAt = GetTime()
-            e.burnedSpell = defSpell
+        local a = e.auraReading
+        if not (a and a.readable) or AurasStale(e, unit, now) or not Core.ReadingCurrent(a) then
+          local hadDef = e.def and e.wasVisible
+          local defSpell = e.defSpell
+          a = Core.ReadAurasByList(unit, e.class, e)
+          if a.readable then
+            AurasRead(e, unit, now)
+            -- Swap the active-cooldown buffers: the reading becomes current.
+            a.activeCooldowns, e.activeCooldowns = e.activeCooldowns, a.activeCooldowns
+            e.immune = a.immune or false
+            e.def, e.cc, e.stun, e.burst = a.def or false, a.cc or false, a.stun or false, a.burst or false
+            e.defScale = a.defScale
+            e.defIcon, e.burstIcon = a.defIcon, a.burstIcon
+            e.defSpell, e.burstSpell = a.defSpell, a.burstSpell
+            e.bursts = a.bursts
+            if hadDef and not e.def then
+              e.burnedAt = now
+              e.burnedSpell = defSpell
+            end
           end
         end
+        specAuras = a
       else
         -- WoW Forever refuses enemy auras in a match: don't ask (each call
         -- would error), the loss-of-control count below stands in for CC.
-        local nDef, defList, nExt, extList, nCC, nBurst, burstList
-        if ns.Caps.enemyAuras then
-          nDef, defList = Core.CountAuras(unit, "HELPFUL|BIG_DEFENSIVE")
-          nExt, extList = Core.CountAuras(unit, "HELPFUL|EXTERNAL_DEFENSIVE")
-          nCC = Core.CountAuras(unit, "HARMFUL|CROWD_CONTROL")
-          -- "Important" buffs minus defensives are mostly offensive cooldowns.
-          nBurst, burstList = Core.CountAuras(unit, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE")
+        if not ns.Caps.enemyAuras then
+          e.def, e.burst, e.defIcon, e.burstIcon, e.auraCC = false, false, nil, nil, nil
+        elseif AurasStale(e, unit, now) then
+          AurasRead(e, unit, now)
+          -- A refused first read refuses the rest: one error, not four.
+          local def, defIcon = Core.FirstAura(unit, "HELPFUL|BIG_DEFENSIVE")
+          local ext, extIcon, burst, burstIcon, cc
+          if def ~= nil then
+            ext, extIcon = Core.FirstAura(unit, "HELPFUL|EXTERNAL_DEFENSIVE")
+            -- "Important" buffs minus defensives are mostly offensive cooldowns.
+            burst, burstIcon = Core.FirstAura(unit, "HELPFUL|IMPORTANT|!BIG_DEFENSIVE|!EXTERNAL_DEFENSIVE")
+            cc = Core.FirstAura(unit, "HARMFUL|CROWD_CONTROL")
+          end
+          local hadDef = e.def and e.wasVisible
+          e.def = def == true or ext == true
+          -- Defensive aura faded while we watched: they just spent it.
+          if hadDef and not e.def and def ~= nil then e.burnedAt = now end
+          e.burst = burst == true
+          -- Icons may be secret: never truth-tested, only handed on.
+          e.burstIcon, e.defIcon = nil, nil
+          if e.burst then e.burstIcon = burstIcon end
+          if def then e.defIcon = defIcon elseif ext then e.defIcon = extIcon end
+          e.auraCC = cc
         end
-        local hadDef = e.def and e.wasVisible
-        e.def = ((nDef or 0) + (nExt or 0)) > 0
         -- The Retail category includes stuns as well as breakable CC. A
         -- category alone cannot justify a "do not break" score penalty.
         -- Auras refused (WoW Forever): the loss-of-control count says the
         -- same, with the same unknown kind.
         local was = e.crowdControlled
-        if nCC == nil then
+        if e.auraCC == nil then
           e.crowdControlled = LossOfControl(unit) or false
           if e.crowdControlled ~= was and ns.LossOfControlChanged then ns.LossOfControlChanged(e) end -- bg profiler
         else
-          e.crowdControlled = nCC > 0
+          e.crowdControlled = e.auraCC
         end
         e.cc, e.stun = false, false
-        -- Defensive aura faded while we watched: they just spent it.
-        if hadDef and not e.def and nDef ~= nil then
-          e.burnedAt = GetTime()
-        end
-        e.burst = (nBurst or 0) > 0
-        -- Icons may be secret: never truth-tested, only handed on.
-        e.burstIcon = nil
-        if e.burst then
-          e.burstIcon = burstList and burstList[1] and burstList[1].icon
-        end
-        e.defIcon = nil
-        if e.def then
-          local list = (nDef or 0) > 0 and defList or extList
-          e.defIcon = list and list[1] and list[1].icon
-        end
       end
       -- Readable max health supports the gear proxy. Cata's max mana can
       -- support a spec estimate once confirmed examples have been collected.
@@ -233,10 +272,13 @@ function Core.ScanUnits()
       else
         e.hpSeen = e.hpPct and e.hpPct * 100
       end
-      -- Green to red on the Midnight client: the curve's colour, kept with
-      -- the reading and only handed to the bar.
-      e.hpTint = not e.dead and SCALE_100 and Core.healthCurve and Core.EnemyColorMode() == "health"
-        and Util.call(UnitHealthPercent, unit, true, Core.healthCurve) or nil
+      -- Green to red: drawn rows read it (Core.HealthTint). An enemy without
+      -- a row keeps a reading at most a second old for its last seen bar.
+      if e.dead then
+        e.hpTint = nil
+      elseif SCALE_100 and now - (e.hpTintAt or -math.huge) >= 1 then
+        Core.HealthTint(e, unit)
+      end
       -- Mana (plain on Cata). Only while mana is their shown power: a
       -- shapeshifted druid reports 0 mana in cat/bear form.
       local ptype = Util.read(UnitPowerType, unit)

@@ -208,7 +208,7 @@ test("capture probe saves what was seen of an assaulter before the announcement"
   equal(sim.env.HighgroundDB.capProbe, nil, "diagnostics cleared")
 end)
 
-test("cast and capture records do not outlive the match", function()
+test("cast and capture records age out during a match and end with it", function()
   local sim = new("cata")
   local active = casts(sim)
   local Core = sim.ns.Core
@@ -223,6 +223,14 @@ test("cast and capture records do not outlive the match", function()
   -- A teammate's capture whose end never arrives (they left the group).
   sim:combatLog("SPELL_CAST_START", "Stranger", "", 21651)
   assert(Core.logCaps.Stranger, "capture estimate kept")
+  sim:advance(20)
+  equal(Core.logCaps.Stranger, nil, "an estimate goes once it is over")
+  assert(Core.recentCasts.Buddy, "a recent cast stays for /hg cap why")
+  sim:advance(Core.CAST_KEEP)
+  equal(Core.recentCasts.Buddy, nil, "an old cast goes")
+  active.party1 = { name = "Frostbolt", spell = 116, start = sim.now, finish = sim.now + 2 }
+  sim:combatLog("SPELL_CAST_START", "Stranger", "", 21651)
+  sim:advance(1)
   sim:leave()
   equal(next(Core.recentCasts), nil, "casts forgotten after the match")
   equal(next(Core.logCaps), nil, "unfinished captures forgotten after the match")

@@ -6,6 +6,7 @@
 
 - [Getting started](getting-started.md): install, supported clients, first steps and moving from a standalone addon.
 - [User guide](user-guide.md): the Highground window, panels, profiles, alerts, bounties and macros.
+- [Configuration map](configuration.md): where settings live and how shared and per-addon controls relate.
 - [Commands](commands.md): every `/hg` command, preview and key binding.
 - [Player reputation](reputation.md): organizations, reports, moderation and chat filtering.
 - [Script macros](macro-scripts.md): utility presets, builder actions and API checks.

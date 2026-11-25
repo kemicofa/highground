@@ -63,6 +63,20 @@ Do not improve timings by suppressing membership/permission checks, retaining st
 
 Guides with sample panels start panel placement. Starting and ending it ran the full `Core.ApplyStyle()`, which repaints every themed region; on Retail and WoW Forever each gradient repaint built two `CreateColor` tables. Enemy-list steps also stopped and restarted test mode, so Quick callouts hid until its next update. With a `CreateColor` stand-in, the Forever simulator's Battlegrounds guide (both paths) made about 22,800 colour tables, 18 MiB at LuaJIT table sizes. Placement now restyles only frameless panels and the lock, each gradient keeps one colour pair, and a shown context swaps its samples in place: a second run makes none. `tests/performance_test.lua` budgets repaints, colour tables and panel visibility across the guide.
 
+## Settings pages on demand
+
+The game never frees a frame, so every widget made at login is kept for the whole session. Login built every settings page, the profile workspace, the profile share window and their footers, about 10,000 of the 12,700 simulated regions, including the Nearby and Bounties pages when those modules were off and could never be shown. They now build on first show; `Options.BuildPage(page or key)` builds one for a guide, command or test that needs its controls first. Controls read saved values when shown, so changes made while a page is unbuilt still appear.
+
+Kit buttons built their hover and press layers, halo, glint and selection strip up front, 26 of a button's 55 regions, though most buttons are never hovered or selected. They are built on first use, and toggles build their halo when first checked. From `addons/Highground/`, `luajit ../../tools/performance.lua cata` (frames, textures and font strings in the simulator):
+
+| Simulated regions | Cata before → after | Retail before → after |
+| --- | ---: | ---: |
+| Login | 12,710 → 2,605 | 12,596 → 2,572 |
+| Login, then every page the profiler opens | 20,743 → 10,964 | 17,281 → 8,189 |
+| One idle button | 55 → 29 | 55 → 29 |
+
+WoW Forever logs in with 2,532 instead of 12,100. About 2,000 of what remains are the secure enemy rows, which must exist before combat. The simulator's retained heap after login fell from 48.8 to 31.1 MiB on Cata; it includes simulated widgets and is not WoW's memory meter. Idle allocations (`tools/performance_idle.lua`) are unchanged. `tests/performance_test.lua` keeps login under 3,000 regions and every page unbuilt until opened, and `tests/ui_components.lua` budgets an idle button.
+
 ## Bounty lookups near many players
 
 Nameplate, Nearby and battleground-roster scans ask whether each visible player

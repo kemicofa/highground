@@ -62,6 +62,10 @@ local function Build(page, owner)
     -- A window, so not part of /hg test: it would replace the Highground window.
     Add(ns.Localization.Define({ cmd = "healers test", label = ns.Locale:Get("battlegrounds.commands.team_healers.68a1c6"), desc = ns.Locale:Get("battlegrounds.commands.sample_teammates_to_mark_and_unmark_as.da5545"),
       active = function() return ns.TeamHealers.IsSample() end }, { label = "battlegrounds.commands.team_healers.68a1c6", desc = "battlegrounds.commands.sample_teammates_to_mark_and_unmark_as.da5545" }))
+  elseif owner == "nearby" and ns.WorldActivity then
+    -- A window too, like Team healers.
+    Add(ns.Localization.Define({ cmd = "activity test", label = ns.Locale:Get("activity.title"), desc = ns.Locale:Get("activity.preview.desc"),
+      active = function() return ns.WorldActivity.PreviewShown() end }, { label = "activity.title", desc = "activity.preview.desc" }))
   elseif owner == "bounties" then
     for _, scene in ipairs(ns.Bounty.Preview.scenes) do
       Add(ns.Localization.Define({ label = scene.label, desc = scene.description, cmd = "bounty test " .. scene.key,

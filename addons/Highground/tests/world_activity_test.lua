@@ -118,22 +118,28 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
 end
 
 for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
-  test(case[2] .. ": /hg nearby test opens World activity with sample zones and closes it with the preview", function()
+  test(case[2] .. ": /hg activity test and its Previews button show sample zones, outside /hg test", function()
     local sim = setup(case[1], case[2])
-    local A = sim.ns.WorldActivity
-    sim:command("nearby test")
-    local w = A.Preview(true)
-    assert(w and w:IsShown(), "sample zones open with the preview")
+    local A, H, O = sim.ns.WorldActivity, sim.ns.Hub, sim.ns.Options
+    sim:command("activity test")
+    local w = sim.env.HighgroundWorldActivityPreview
+    assert(A.PreviewShown() and w:IsShown(), "the command opens the sample")
     equal(#w.items, 2)
     equal(#A.Entries(), 0, "live data untouched")
     assert(not (A.win and A.win:IsShown()), "the live window stays closed")
-    sim:command("nearby test")
-    assert(not w:IsShown(), "stopping the preview closes it")
-    sim:command("nearby test")
-    assert(w:IsShown())
-    sim.ns.Nearby.preview = false -- placement or combat ending the preview
-    sim:advance(1)
-    assert(not w:IsShown(), "any end of the preview closes it")
+    sim:command("activity test")
+    assert(not w:IsShown(), "the command closes it again")
+    -- A window would replace the Highground window, so /hg test leaves it out.
+    H.Open("nearby-previews")
+    sim.ns.PreviewTests.StartAll()
+    assert(H.win:IsVisible() and not w:IsShown(), "/hg test keeps the Highground window")
+    sim.ns.PreviewTests.StopAll()
+    local button
+    for _, b in ipairs(O.byKey["nearby-previews"].previews) do if b.cmd == "activity test" then button = b end end
+    assert(button and button:IsEnabled(), "Nearby's Previews page offers the sample")
+    button:Click()
+    assert(w:IsShown(), "Start opens it")
+    w:Hide()
     sim:assertHealthy()
   end)
 end

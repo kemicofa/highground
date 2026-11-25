@@ -383,9 +383,14 @@ function Commands.alerts(arg, msg, say)
 end
 function Commands.history() ns.MatchHistory.Open() end
 function Commands.journal() ns.EnemyJournal.Open() end
--- /hg activity: zones with recent enemies, marks and kills (world/Activity.lua).
-function Commands.activity(_, _, say)
+-- /hg activity: zones with recent enemies, marks and kills (world/Activity.lua);
+-- /hg activity test: its sample.
+function Commands.activity(arg, _, say)
   if not ns.WorldActivity then return say(ns.Locale:Get("tracking.unavailable")) end
+  if arg == "test" then
+    if ns.WorldActivity.Preview() then return say(ns.Locale:Get("activity.preview.on")) end
+    return say(ns.Locale:Get("activity.preview.off"))
+  end
   ns.WorldActivity.Open()
 end
 function Commands.users(arg)

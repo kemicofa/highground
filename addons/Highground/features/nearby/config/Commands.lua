@@ -32,6 +32,7 @@ C.Register("nearby", "highground.modules.nearby.f1536c", {
   C.Action("nearby forget", "nearby.commands.forget_saved_enemy_encounter_history.dca8f5", "nearby.commands.forget_enemy_history.d2bf57", ns.Localization.Define({ confirm = ns.Locale:Get("nearby.commands.forget_all_saved_enemy_encounter_history.49c687") }, { confirm = "nearby.commands.forget_all_saved_enemy_encounter_history.49c687" })),
   C.Link("nearby feed on", "feed.commands.switch", "nearby", "feed.commands.switch_label", { aliases = { "nearby feed off" } }),
   C.Tool("activity", "activity.commands.open", "activity", "activity.commands.open_label"),
+  C.Link("activity test", "activity.commands.test", "nearby-previews", "activity.commands.test_label"),
   C.Tool("journal", "nearby.commands.search_encounters_write_notes_mute_alerts_or.4997c6", "journal", "highground.toursteps.open_enemy_journal.87d457"),
 }, {
   ns.Localization.Define({ cmd = "nearby test", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df"), desc = ns.Locale:Get("nearby.commands.open_world_enemy_list.3aeeb3") }, { label = "highground.profilesummary.nearby_enemies.85f5df", desc = "nearby.commands.open_world_enemy_list.3aeeb3" }),

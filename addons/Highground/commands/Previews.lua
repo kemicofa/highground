@@ -68,7 +68,6 @@ local function SetPreview(command, on)
       ns.Arena.preview = false; ns.Arena.Update()
     elseif not on and command == "nearby test" then
       ns.Nearby.preview = false; ns.Nearby.Update()
-      if ns.WorldActivity then ns.WorldActivity.Preview(false) end
     elseif command == "bounty test" then
       ns.Bounty.Preview.Command(on and "poster" or "stop")
     else

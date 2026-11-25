@@ -52,11 +52,16 @@ Each pattern caused a measured regression; [performance history](performance-his
 | Idle tests without a saved profile | Compare empty, named, edited and imported profiles; status polling must not rebuild or normalize setup copies. |
 | Hidden UI refreshes and per-frame polling | Check effective visibility, callback frequency and what keeps running after closing previews (`tools/performance_idle.lua`). |
 | Rebuilding controls, geometry or fonts | Build pages on first use, reuse widgets and repaint only what changed. Count native widget calls and allocations, not lines of Lua. |
+| Full restyle for one change | `Core.ApplyStyle()` without a change repaints every themed region and resets every font. Pass the change (`"frameless"`, `"layout"`, ...) unless the theme, profile or whole style changed. |
 | Layout in text or resize handlers | The game reports `OnSizeChanged` on the next frame and `OnTextChanged` when an edit box's width changes. A handler that lays out and resizes its own control runs every frame. React to changed text or size only (`Kit.OnTextChange`), write each size once per pass, and test open windows with `tools/wowsim/resize.lua`. |
 
 For each changed hot path, identify the trigger, its frequency, the maximum queue/roster size, and the work or allocations per invocation. Pay attention to nested calls that hide an enumeration or sort. A new default-enabled caller can make an old expensive helper into a release regression.
 
 Do not improve timings by suppressing membership/permission checks, retaining stale authorization, disabling existing features, or forcing garbage collection in the addon. Native-ID lookup indexes are only hints: validate their current identity and permissions before use. Keep tests for loading data, demotion, departure, ID reuse and scope changes.
+
+## Guide sample panels
+
+Guides with sample panels start panel placement. Starting and ending it ran the full `Core.ApplyStyle()`, which repaints every themed region; on Retail and WoW Forever each gradient repaint built two `CreateColor` tables. Enemy-list steps also stopped and restarted test mode, so Quick callouts hid until its next update. With a `CreateColor` stand-in, the Forever simulator's Battlegrounds guide (both paths) made about 22,800 colour tables, 18 MiB at LuaJIT table sizes. Placement now restyles only frameless panels and the lock, each gradient keeps one colour pair, and a shown context swaps its samples in place: a second run makes none. `tests/performance_test.lua` budgets repaints, colour tables and panel visibility across the guide.
 
 ## Bounty lookups near many players
 

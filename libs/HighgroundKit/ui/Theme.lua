@@ -114,8 +114,15 @@ local function Apply(region, c, alpha, mode)
     local gradient = region.wbGradient
     if region.SetGradient and CreateColor then
       if mode == "gradient" then region:SetColorTexture(unpack(Tokens.color.white)) end
-      region:SetGradient(gradient[1], CreateColor(r, g, b, a * gradient[2]),
-        CreateColor(r, g, b, a * gradient[3]))
+      -- One colour pair per region: SetGradient copies the values, and a
+      -- repaint of every region must not build two mixin tables for each.
+      local from, to = gradient.fromColor, gradient.toColor
+      if not from then
+        from, to = CreateColor(r, g, b, a), CreateColor(r, g, b, a)
+        gradient.fromColor, gradient.toColor = from, to
+      end
+      from:SetRGBA(r, g, b, a * gradient[2]); to:SetRGBA(r, g, b, a * gradient[3])
+      region:SetGradient(gradient[1], from, to)
     elseif region.SetGradientAlpha then
       if mode == "gradient" then region:SetColorTexture(unpack(Tokens.color.white)) end
       region:SetGradientAlpha(gradient[1], r, g, b, a * gradient[2], r, g, b, a * gradient[3])

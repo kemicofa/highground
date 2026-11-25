@@ -119,9 +119,8 @@ function C.NearbySteps()
   local function History() return Journal() end
   local function Panel()
     if data.win then ns.Kit.Windows.Close(data.win) end
-    if not ns.Setup.placement then ns.Setup.BeginPlacement(true) end
     Nearby.guide = { history = History }
-    ns.Setup.PreviewContext("world")
+    ns.Setup.BeginPlacement(true, "world")
     Nearby.preview = true; Nearby.Update()
   end
   local function Context() return data.win end

@@ -221,9 +221,7 @@ function O.Explore(action)
   if O.exploring ~= "page" then ns.Hub.Suspend() end
   if action.preview then
     -- Placement owns cleanup, combat protection and lock restoration.
-    ns.Setup.BeginPlacement(true)
-    ns.Setup.PreviewContext(action.preview)
-    ns.Setup.layoutBar.context:SetValue(action.preview, true)
+    ns.Setup.BeginPlacement(true, action.preview)
     O.Coach.Start(O.Current().key, O.Coach.PanelSteps(action.preview, O.Current().key))
   elseif action.native then
     O.Coach.Start(action.native, O.Coach.Native.Start(action.native))

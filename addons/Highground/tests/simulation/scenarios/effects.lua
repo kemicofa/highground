@@ -112,9 +112,15 @@ test("modern and legacy gradient APIs preserve theme colour and alpha endpoints"
   local T = sim.ns.Theme
   local legacy = T.Gradient(sim.env.UIParent, "BACKGROUND", "accent", "glow", "HORIZONTAL", 0.2, 0.8)
   local methods = getmetatable(sim.env.UIParent).__index
-  sim.env.CreateColor = function(...) return { ... } end
+  -- ColorMixin objects; SetGradient copies their values, as the game does.
+  local colors = 0
+  sim.env.CreateColor = function(r, g, b, a)
+    colors = colors + 1
+    return { r = r, g = g, b = b, a = a, SetRGBA = function(c, ...) c.r, c.g, c.b, c.a = ... end }
+  end
   methods.SetGradient = function(self, direction, first, last)
-    self.gradient = { direction = direction, from = first, to = last }
+    self.gradient = { direction = direction, from = { first.r, first.g, first.b, first.a },
+      to = { last.r, last.g, last.b, last.a } }
   end
   local modern = T.Gradient(sim.env.UIParent, "BACKGROUND", "accent", "glow", "HORIZONTAL", 0.2, 0.8)
   for i = 1, 4 do
@@ -126,6 +132,9 @@ test("modern and legacy gradient APIs preserve theme colour and alpha endpoints"
   equal(modern.gradient.to[3], 0.8, "modern colour repaints")
   near(modern.gradient.from[4], 0.1, "start follows the live alpha token")
   near(modern.gradient.to[4], 0.4, "end follows the live alpha token")
+  local made = colors
+  T.Repaint()
+  equal(colors, made, "repaints reuse each gradient's colour objects")
   local button = sim.ns.Kit.Button(sim.env.UIParent, "Apply", 120, 24)
   for _, part in ipairs(button.sheen.parts) do
     if part.wbCorner then

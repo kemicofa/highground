@@ -125,15 +125,18 @@ test("claim review permissions follow the originating guild across character cha
 end)
 
 test("localized node messages resolve declined names through client area identifiers", function()
-  local sim = new("cata", {})
-  sim:join()
-  sim.ns.Timers.nodes = { ["Écurie"] = { name = "Écurie" } }
-  sim.env.GetLocale = function() return "frFR" end
-  sim.env.C_Map.GetAreaInfo = function(id) if id == 3424 then return "Écurie" end end
-  equal(sim.ns.LocalizedChat("Porteur a attaqué les écuries !"), "Porteur has assaulted the Écurie!")
-  sim.ns.Timers.nodes = { ["Ферма"] = { name = "Ферма" } }
-  sim.env.GetLocale = function() return "ruRU" end
-  sim.env.C_Map.GetAreaInfo = function(id) if id == 3420 then return "Ферма" end end
+  -- Only the client language's recorded formats are kept, so each language needs its own client.
+  local function client(locale, area, name)
+    local sim = new("cata", {}, function(_, env) env.GetLocale = function() return locale end end)
+    sim:join()
+    sim.ns.Timers.nodes = { [name] = { name = name } }
+    sim.env.C_Map.GetAreaInfo = function(id) if id == area then return name end end
+    return sim
+  end
+  local french = client("frFR", 3424, "Écurie")
+  equal(french.ns.LocalizedChat("Porteur a attaqué les écuries !"), "Porteur has assaulted the Écurie!")
+  equal(french.ns.LocalizedChat("Враг штурмует ферму!"), "Враг штурмует ферму!", "other languages' formats are not kept")
+  local sim = client("ruRU", 3420, "Ферма")
   equal(sim.ns.LocalizedChat("Враг штурмует ферму!"), "Враг has assaulted the Ферма!")
   sim:event("CHAT_MSG_BG_SYSTEM_HORDE", "Орда захватила ферму!")
   equal(sim.ns.Timers.chatTaken["Ферма"], sim.now, "localized objective reaches the timer parser")

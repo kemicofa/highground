@@ -4,6 +4,8 @@ import unittest
 
 from support import ROOT, addons
 
+LANGUAGES = ("deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW")
+
 
 class LayoutTests(unittest.TestCase):
     def test_only_highground_is_a_public_addon(self):
@@ -11,6 +13,7 @@ class LayoutTests(unittest.TestCase):
         expected = {"Highground", "HighgroundBountyData", "HighgroundReputationData"}
         expected.update("HighgroundModule" + name for name in
                         ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation"))
+        expected.update("HighgroundLocale" + code[0].upper() + code[1:] for code in LANGUAGES)
         self.assertEqual({p.name for p in (ROOT / "addons").iterdir() if p.is_dir()}, expected)
 
     def test_library_is_not_an_addon_or_a_legacy_host(self):
@@ -32,14 +35,20 @@ class LayoutTests(unittest.TestCase):
         for path in features.rglob("*"):
             self.assertFalse(path.is_symlink(), str(path))
 
-    def test_bundle_folders_link_only_license_and_declared_icon(self):
+    def test_bundle_folders_link_only_license_declared_icon_and_their_catalog(self):
         for directory in (ROOT / "addons").iterdir():
             if directory.name == "Highground":
                 continue
+            # A language addon (HighgroundLocaleDeDE) loads its catalog (deDE) from the locale folder.
+            name = directory.name
+            catalog = name[-4:-2].lower() + name[-2:] if name.startswith("HighgroundLocale") else None
+            allowed = {"LICENSE", "Icon.tga"} | ({f"{catalog}.lua"} if catalog else set())
             for path in directory.rglob("*"):
                 if path.is_symlink():
-                    self.assertIn(path.name, {"LICENSE", "Icon.tga"})
+                    self.assertIn(path.name, allowed)
                     self.assertTrue(path.is_file(), str(path))
+                    if path.suffix == ".lua":
+                        self.assertEqual(os.readlink(path), f"../../libs/HighgroundKit/locale/{catalog}.lua")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("itIT", {
+assert((ns.Locale or HighgroundLocale):Register("itIT", {
   ["appearance.font.locale_fallback"] = "La lingua attuale usa un carattere di gioco compatibile. La scelta del carattere torna disponibile quando questo ripiego non serve più; la tua scelta salvata viene mantenuta.",
   ["enemy.appearance.shared"] = "Stile condiviso",
   ["enemy.appearance.readable"] = "Schede leggibili",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("itIT", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Dice {text} nella chat degli ufficiali.",
   ["locale.client"] = "Usa la lingua del gioco",
   ["locale.coverage"] = "{language}: {translated} messaggi su {total} tradotti. Il resto del testo è in inglese.",
+  ["locale.unavailable"] = "{language} non è installato o è disattivato, quindi Highground è in inglese. Installa il download completo di Highground oppure attiva “Highground language: {language}” nell'elenco AddOn di WoW, poi ricarica l'interfaccia.",
   ["macros.scripts.quiet_trinket_description"] = "Monile superiore senza suono di errore né testo rosso; metti qualsiasi lancio dopo la riga /run",
   ["shared.copy.secret.3c3b27"] = "SEGRETO",
   ["shared.copy.selected.835f3b"] = "Selezionato",

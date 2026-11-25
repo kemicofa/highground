@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("koKR", {
+assert((ns.Locale or HighgroundLocale):Register("koKR", {
   ["appearance.font.locale_fallback"] = "현재 언어에는 호환되는 게임 글꼴이 사용됩니다. 이 대체 글꼴이 더 이상 필요하지 않으면 글꼴을 선택할 수 있으며, 저장된 선택은 유지됩니다.",
   ["enemy.appearance.shared"] = "공유 스타일",
   ["enemy.appearance.readable"] = "읽기 쉬운 카드",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("koKR", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "장교 채팅에서 {text}이라고 하네요",
   ["locale.client"] = "게임 언어 사용",
   ["locale.coverage"] = "{language}: 카탈로그 메시지 {total}개 중 {translated}개 번역됨.",
+  ["locale.unavailable"] = "{language}이(가) 설치되지 않았거나 꺼져 있어 Highground가 영어로 표시됩니다. Highground 전체 다운로드를 설치하거나 WoW 애드온 목록에서 “Highground language: {language}”을(를) 켠 다음 UI를 다시 불러오세요.",
   ["macros.scripts.quiet_trinket_description"] = "오류 소리 또는 빨간색 텍스트가 없는 상단 트린켓; /run 줄 이후에 어떤 캐스트를 넣어",
   ["shared.copy.secret.3c3b27"] = "비밀",
   ["shared.copy.selected.835f3b"] = "선택됨",

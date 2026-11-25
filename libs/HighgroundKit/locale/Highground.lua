@@ -8,6 +8,19 @@ local views = setmetatable({}, { __mode = "k" })
 local writing
 for _, def in ipairs(ns.LocaleDefinitions) do definitions[def.key] = def end
 local database
+-- Other clients' text is matched in every language, and the picker reports
+-- coverage, without the catalogs that are not loaded (generated Index.lua).
+if ns.LocaleIndex then L:SetVariants(ns.LocaleIndex.variants) end
+
+-- Language addons run in their own namespace and register through this
+-- global, which accepts only the catalogs of languages other than English.
+HighgroundLocale = {
+  Register = function(_, locale, messages)
+    local def = definitions[L:Canonical(locale)]
+    if not def or not def.addon then return nil, "not a language addon: " .. tostring(locale) end
+    return L:Register(locale, messages)
+  end,
+}
 
 local function Preference(value)
   if value == "auto" then return value end
@@ -17,6 +30,20 @@ end
 
 local function ClientLocale()
   return L:Canonical(GetLocale and GetLocale() or "enUS")
+end
+
+local function Wanted()
+  return Localization.preference == "auto" and ClientLocale() or Localization.preference
+end
+
+-- English is always registered. Another language's addon loads the first
+-- time it is selected; when it is missing or disabled, English stays.
+local function Load(locale)
+  if L:Has(locale) then return true end
+  local def = definitions[locale]
+  if not def or not def.addon or not ns.Api then return false end
+  ns.Api.LoadAddOn(def.addon)
+  return L:Has(locale)
 end
 
 -- Latin faces cannot display every script. Cache this choice at startup or
@@ -91,7 +118,9 @@ function Localization.Key(source, field)
 end
 
 local function Apply()
-  L:SetLocale(Localization.preference == "auto" and ClientLocale() or Localization.preference)
+  local wanted = Wanted()
+  Load(wanted)
+  L:SetLocale(wanted)
   local previous = font
   font = Font()
   for target, fields in pairs(displayTables) do
@@ -140,7 +169,12 @@ function Localization.Choices()
 end
 
 function Localization.Status()
-  local locale = L:GetLocale()
+  local wanted, locale = Wanted(), L:GetLocale()
+  if definitions[wanted] and wanted ~= locale then
+    return L:Format("locale.unavailable", { language = L:Get("locale.name." .. wanted) })
+  end
   local translated, total = L:Coverage(locale)
+  local counts = ns.LocaleIndex and ns.LocaleIndex.coverage
+  if counts and counts[locale] then translated, total = counts[locale], counts.enUS end
   return L:Format("locale.coverage", { language = L:Get("locale.name." .. locale), translated = translated, total = total })
 end

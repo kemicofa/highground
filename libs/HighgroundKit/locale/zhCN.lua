@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("zhCN", {
+assert((ns.Locale or HighgroundLocale):Register("zhCN", {
   ["appearance.font.locale_fallback"] = "当前语言使用兼容的游戏字体。不再需要替代字体时，即可选择字体；已保存的选择会保留。",
   ["enemy.appearance.shared"] = "共享样式",
   ["enemy.appearance.readable"] = "清晰卡片",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("zhCN", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "说{text}在官员聊天。",
   ["locale.client"] = "使用游戏语言",
   ["locale.coverage"] = "{language}：已翻译目录中的 {translated}/{total} 条消息。",
+  ["locale.unavailable"] = "{language} 未安装或已关闭，因此 Highground 显示英文。请安装完整的 Highground 下载包，或在魔兽世界插件列表中启用“Highground language: {language}”，然后重新加载界面。",
   ["macros.scripts.quiet_trinket_description"] = "没有错误声音或红色文本的顶部饰品；在/run行后放置任何铸件",
   ["shared.copy.secret.3c3b27"] = "机密",
   ["shared.copy.selected.835f3b"] = "选定",

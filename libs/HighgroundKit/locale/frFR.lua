@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("frFR", {
+assert((ns.Locale or HighgroundLocale):Register("frFR", {
   ["appearance.font.locale_fallback"] = "La langue actuelle utilise une police compatible du jeu. Le choix de police redevient disponible lorsque ce remplacement n’est plus nécessaire ; votre choix est conservé.",
   ["enemy.appearance.shared"] = "Style partagé",
   ["enemy.appearance.readable"] = "Fiches lisibles",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("frFR", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Dit {text} dans le chat d'officier.",
   ["locale.client"] = "Utiliser la langue du jeu",
   ["locale.coverage"] = "{language} : {translated} messages préparés sur {total} traduits. Le reste du texte est en anglais.",
+  ["locale.unavailable"] = "{language} n'est pas installé ou est désactivé : Highground s'affiche donc en anglais. Installez le téléchargement complet de Highground ou activez « Highground language: {language} » dans la liste des AddOns de WoW, puis rechargez l'interface.",
   ["macros.scripts.quiet_trinket_description"] = "Bijou du haut sans le son d'erreur ni le texte rouge ; placez toute incantation après la ligne /run",
   ["shared.copy.secret.3c3b27"] = "SECRET",
   ["shared.copy.selected.835f3b"] = "sélectionné",

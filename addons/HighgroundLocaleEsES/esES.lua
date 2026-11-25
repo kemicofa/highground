@@ -1,0 +1,1 @@
+../../libs/HighgroundKit/locale/esES.lua

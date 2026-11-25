@@ -89,6 +89,30 @@ t.test("source text and every language's variant ignore the selected locale", fu
   t.equal(l:GetLocale(), "deDE", "selection unchanged")
 end)
 
+t.test("supplied variants stand in for catalogs that are not registered", function()
+  local l = catalog()
+  assert(l:Register("deDE", { title = "Titel" }))
+  l:SetVariants({ title = { "Title", "Titel", "Titolo" }, missing = { "Absent" } })
+  local variants = l:Variants("title")
+  t.equal(#variants, 3, "registered and supplied texts appear once")
+  t.equal(variants[1], "Title", "source text first")
+  t.equal(l:Variants("missing")[1], "Absent", "a key only supplied")
+  t.equal(l:Has("frFR"), true)
+  t.equal(l:Has("ptPT"), true, "aliases resolve")
+  t.equal(l:Has("itIT"), false, "supplied variants register nothing")
+  t.equal(l:Has(nil), false)
+  t.equal(l:SetLocale("itIT"), "enUS", "an unregistered language selects English")
+end)
+
+t.test("messages without named arguments share one argument table", function()
+  local l = catalog()
+  t.equal(l.tokens.title, l.tokens.percent, "shared")
+  t.equal(next(l.tokens.title), nil, "and empty")
+  assert(l.tokens.hello ~= l.tokens.title and l.tokens.hello.name and l.tokens.hello.count, "own arguments")
+  assert(not l:Register("frFR", { title = "Titre {name}" }), "added arguments are still rejected")
+  t.equal(l:Format("percent"), "100%")
+end)
+
 t.test("plural categories follow CLDR and missing forms fall back", function()
   local l = Library.New("enUS")
   assert(l:Register("enUS", { ["err.one"] = "{count} error", ["err.other"] = "{count} errors" }))
@@ -165,5 +189,17 @@ t.test("all shipped catalogs validate and share one English fallback", function(
     t.equal(count, total, "each shipped catalog covers every English message")
   end
   t.equal(#ns.LocaleDefinitions, 11)
+  -- The generated index matches the catalogs it stands in for.
+  assert(loadfile("libs/locale/Index.lua"))("Fixture", ns)
+  for _, def in ipairs(ns.LocaleDefinitions) do
+    t.equal(ns.LocaleIndex.coverage[def.key], (ns.Locale:Coverage(def.key)), def.key .. " coverage")
+  end
+  for key, texts in pairs(ns.LocaleIndex.variants) do
+    local registered, listed = ns.Locale:Variants(key), {}
+    t.equal(#registered, #texts, key)
+    t.equal(registered[1], texts[1], "source text first")
+    for _, text in ipairs(texts) do listed[text] = true end
+    for _, text in ipairs(registered) do assert(listed[text], key .. ": " .. text) end
+  end
 end)
 t.finish()

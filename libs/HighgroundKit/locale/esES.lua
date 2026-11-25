@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("esES", {
+assert((ns.Locale or HighgroundLocale):Register("esES", {
   ["appearance.font.locale_fallback"] = "El idioma actual usa una fuente compatible del juego. Podrás elegir otra fuente cuando ya no se necesite esta alternativa; se conserva tu elección guardada.",
   ["enemy.appearance.shared"] = "Estilo compartido",
   ["enemy.appearance.readable"] = "Tarjetas legibles",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("esES", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Dice {text} en el chat de oficiales.",
   ["locale.client"] = "Usar el idioma del juego",
   ["locale.coverage"] = "{language}: {translated} de {total} mensajes preparados traducidos. El resto del texto está en inglés.",
+  ["locale.unavailable"] = "{language} no está instalado o está desactivado, así que Highground se muestra en inglés. Instala la descarga completa de Highground o activa «Highground language: {language}» en la lista de accesorios de WoW y vuelve a cargar la interfaz.",
   ["macros.scripts.quiet_trinket_description"] = "Abalorio superior sin el sonido de error ni el texto rojo; pon cualquier lanzamiento después de la línea /run",
   ["shared.copy.secret.3c3b27"] = "SECRETO",
   ["shared.copy.selected.835f3b"] = "seleccionadas",

@@ -34,6 +34,7 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_reputation_discovery.lua guild 1000 20 5` | `addons/Highground/` | Unanswered discovery: payload bytes, frames, roster work and allocations |
 | `luajit ../../tools/performance_reputation_idle.lua followed never Highground quiet` | `addons/Highground/` | Saved organizations with offline moderators and no traffic; see the file header for the other modes |
 | `luajit ../../tools/performance_background.lua 1000 20 community idle 5` | `addons/Highground/` | Large roster with the UI closed; `presence` and `units` replay event bursts |
+| `luajit ../../tools/performance_login.lua retail enUS` | `addons/Highground/` | Retained Lua heap after login for a client (`cata`, `retail`, `forever`), its game language and an optional saved language (`deDE`, `auto`) |
 
 ## Failures to check for
 
@@ -237,6 +238,31 @@ off. `tests/performance/maps.lua` budgets both maps' layers in the open
 world and in a battleground, received batches and small fight rings;
 `tests/world_maps_test.lua` covers the item reuse, unknown maps, caps and
 expiry.
+
+## Languages load on demand
+
+Highground kept all eleven message catalogs after login, about 7.3 MiB of
+the locale library's heap, although a player reads one language. English now
+loads with Highground and each other language is a load-on-demand addon loaded
+when it is in use ([localization](localization.md)). Messages without named
+arguments share one argument table, and the battleground announcement formats
+of other client languages are dropped once loaded (184 KiB to 15 KiB on an
+English client). From `addons/Highground/`,
+`luajit ../../tools/performance_login.lua <client> <game language> [saved language]`,
+median of five runs (simulator heap, not WoW's memory meter):
+
+| Login | Before | After |
+| --- | ---: | ---: |
+| Retail, English client | 36.2 MiB | 29.8 MiB |
+| Retail, German client, **Use game language** | 36.5 MiB | 30.4 MiB |
+| Retail, English client, German selected | 36.2 MiB | 30.5 MiB |
+| WoW Forever, English client | 35.3 MiB | 28.8 MiB |
+| WoW Forever, German client, **Use game language** | 35.4 MiB | 29.8 MiB |
+| Cataclysm Classic, English client | 36.5 MiB | 29.9 MiB |
+| Cataclysm Classic, German client, **Use game language** | 36.6 MiB | 30.6 MiB |
+
+Choosing another language later adds that catalog (about 0.6 MiB) for the rest
+of the session; switching back does not load anything again.
 
 ## In-game capture
 

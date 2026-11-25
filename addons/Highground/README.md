@@ -18,7 +18,7 @@ Standalone addons are deprecated: Highground includes all of these. If you still
 
 ## Install
 
-Install **Highground** from [CurseForge](https://www.curseforge.com/projects/1749115) or [Wago](https://addons.wago.io/addons/b6Xy3OKp), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). For a manual install, extract every folder: `Highground`, its two data addons and the six `HighgroundModule*` folders. Turn modules on or off in WoW's AddOn List or `/hg` → **Addons**, then reload; switches apply to the current character and keep settings and records. See [getting started](docs/getting-started.md).
+Install **Highground** from [CurseForge](https://www.curseforge.com/projects/1749115) or [Wago](https://addons.wago.io/addons/b6Xy3OKp), or download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). For a manual install, extract every folder: `Highground`, its two data addons, the six `HighgroundModule*` folders and the ten `HighgroundLocale*` language folders. Turn modules on or off in WoW's AddOn List or `/hg` → **Addons**, then reload; switches apply to the current character and keep settings and records. See [getting started](docs/getting-started.md).
 
 ## Use
 

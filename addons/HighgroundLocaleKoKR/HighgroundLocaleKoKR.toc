@@ -1,0 +1,14 @@
+## Interface: 120100, 120105, 16001, 40402
+## Title: Highground language: Korean
+## IconTexture: Interface\AddOns\HighgroundLocaleKoKR\Icon.tga
+## Group: Highground
+## Notes: Highground's Korean text. Loads only while Highground shows Korean. Keep it beside Highground.
+## Author: kemicofa
+## Version: 1.0.0
+## Dependencies: Highground
+## LoadOnDemand: 1
+## X-Internal: true
+## X-Highground-Locale: koKR
+## X-Package-Files: README.md LICENSE
+
+koKR.lua

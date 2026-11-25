@@ -128,9 +128,13 @@ def package_sources(addon):
         if not path.is_dir() or not addons.tocs(path) or addons.field(path, "X-Internal") != "true":
             raise ValueError(f"Missing internal bundled addon: {name}")
         module = addons.field(path, "X-Highground-Module")
-        if module:
+        # A language addon loads on demand, when Highground selects its language.
+        language = addons.field(path, "X-Highground-Locale")
+        if module or language:
             if addon.name != "Highground" or addons.field(path, "Dependencies") != addon.name or name in dependencies:
-                raise ValueError(f"Invalid optional bundled module: {name}")
+                raise ValueError(f"Invalid optional bundled {'module' if module else 'language'}: {name}")
+            if language and (module or addons.field(path, "LoadOnDemand") != "1"):
+                raise ValueError(f"Invalid optional bundled language: {name}")
         elif name not in dependencies:
             raise ValueError(f"Invalid bundled addon dependency: {name}")
         if addons.field(path, "X-Bundled-Addons"):

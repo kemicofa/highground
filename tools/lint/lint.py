@@ -243,10 +243,13 @@ def check_sources(root, max_lines=MAX_LINES):
         # Translation catalogs are flat data, with one reviewable message per
         # line. Keep the runtime-module budget; exempt only this exact data
         # grammar, never arbitrary code placed in the locale directory.
+        # Language addons register through HighgroundLocale (their own
+        # namespace has no Locale); English loads with Highground.
+        register = r"ns\.Locale" if path.stem == "enUS" else r"\(ns\.Locale or HighgroundLocale\)"
         catalog = (path.parent.name == "locale"
                    and path.stem in {"enUS", "deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW"}
                    and re.fullmatch(
-                       r'local _, ns = \.\.\.\nassert\(ns\.Locale:Register\("' + path.stem
+                       r'local _, ns = \.\.\.\nassert\(' + register + r':Register\("' + path.stem
                        + r'", \{\n(?:  \["[\w.]+"\] = "(?:[^"\\\n]|\\.)*",\n)*\}\)\)\n', text))
         assert count <= max_lines or catalog, f"{path.relative_to(root)} has {count} lines (maximum {max_lines})"
         if path.suffix == ".lua":

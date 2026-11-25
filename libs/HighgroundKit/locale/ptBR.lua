@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("ptBR", {
+assert((ns.Locale or HighgroundLocale):Register("ptBR", {
   ["appearance.font.locale_fallback"] = "O idioma atual usa uma fonte compatível do jogo. A escolha da fonte fica disponível quando essa alternativa não for mais necessária; sua escolha salva é mantida.",
   ["enemy.appearance.shared"] = "Estilo compartilhado",
   ["enemy.appearance.readable"] = "Cartões legíveis",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("ptBR", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Diz {text} no bate-papo dos oficiais.",
   ["locale.client"] = "Usar o idioma do jogo",
   ["locale.coverage"] = "{language}: {translated} de {total} mensagens preparadas traduzidas. O restante do texto usa inglês.",
+  ["locale.unavailable"] = "{language} não está instalado ou está desativado, então o Highground aparece em inglês. Instale o download completo do Highground ou ative “Highground language: {language}” na lista de AddOns do WoW e recarregue a interface.",
   ["macros.scripts.quiet_trinket_description"] = "Usa o berloque superior sem o som de erro nem o texto vermelho; coloque qualquer lançamento depois da linha /run",
   ["shared.copy.secret.3c3b27"] = "SECRETO",
   ["shared.copy.selected.835f3b"] = "selecionado",

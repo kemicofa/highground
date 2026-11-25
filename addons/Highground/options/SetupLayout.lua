@@ -35,8 +35,22 @@ local function Contexts()
   return choices
 end
 
+-- Whether a context's samples are still on screen.
+local function Showing(context)
+  if context == "enemies" then return Core.testMode and Core.active end
+  if context == "world" then return ns.Nearby.preview == true end
+  return false
+end
+
+-- Guides call this on every step. A context that is already shown keeps
+-- its panels and tickers: stopping it first would hide them until their
+-- next update. New sample enemies replace the shown ones in place.
 function S.PreviewContext(context, enemies)
   if not S.placement or not S.CanArrange() then return end
+  if context == S.placement.context and Showing(context) then
+    if enemies then Core.StartTest(S.guided, enemies) end
+    return
+  end
   StopPreviews()
   S.placement.context = context
   if context == "bg" then
@@ -89,10 +103,18 @@ local function BuildBar()
   return w
 end
 
-function S.BeginPlacement(guided)
+-- context: the preview to start with (default: the first the bar offers);
+-- enemies: sample enemies for the "enemies" context.
+function S.BeginPlacement(guided, context, enemies)
   local allowed, problem = S.CanArrange()
   if not allowed then return false, problem end
-  if S.placement then return true end
+  if S.placement then
+    if context then
+      S.layoutBar.context:SetValue(context, true)
+      S.PreviewContext(context, enemies)
+    end
+    return true
+  end
   if ns.PreviewTests and ns.PreviewTests.managed then ns.PreviewTests.StopAll() end
   local w, style = S.win, Core.StyleDB()
   local hub = ns.Hub and ns.Hub.win
@@ -104,17 +126,19 @@ function S.BeginPlacement(guided)
   S.transitioning = nil
   S.placement, S.stage, S.guided = state, "place", guided == true
   Core.db.locked, style.frameless = false, false
-  Core.ApplyStyle()
+  -- Unlocked headers and frames. A full ApplyStyle would repaint every
+  -- themed region in the addon.
+  Core.ApplyStyle("frameless")
   local bar, choices = BuildBar(), Contexts()
   bar.context:SetChoices(choices)
   bar.context:SetShown(#choices > 1)
-  local context = choices[1] and choices[1].key
+  context = context or choices[1] and choices[1].key
   bar.context:SetValue(context, true)
-  bar.hint:SetText(context and (#choices > 1
+  bar.hint:SetText(choices[1] and (#choices > 1
     and ns.Locale:Get("highground.setuplayout.these_panels_show_example_data_drag_their.73c66c")
     or ns.Locale:Get("highground.setuplayout.these_panels_show_example_data_drag_their.7326d1"))
     or ns.Locale:Get("highground.setuplayout.your_panels_are_switched_off_finish_setup.501a91"))
-  S.PreviewContext(context)
+  S.PreviewContext(context, enemies)
   bar:SetShown(not S.guided)
   return true
 end
@@ -128,7 +152,7 @@ function S.EndPlacement(done, keepBackup)
   if done then Core.db.setupDone = true end
   if Core.StyleDB() == state.style then state.style.frameless = state.frameless end
   StopPreviews()
-  Core.ApplyStyle(); Core.ApplyKillOrder()
+  Core.ApplyStyle("frameless"); Core.ApplyKillOrder()
   S.layoutBar:Hide()
 end
 

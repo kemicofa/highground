@@ -100,6 +100,9 @@ end
 -- Secure actions stay empty while the panel contains invented identities.
 function Core.StartTest(guided, enemies)
   if ns.Modules and not ns.Modules.Require("battlegrounds") then return false end
+  -- Samples already shown are replaced in place: turning the panel off and
+  -- on would hide it and restart every ticker that follows test mode.
+  local swap = Core.testMode and Core.active and Core.guidedTest == (guided == true)
   Core.testMode, Core.guidedTest = true, guided == true
   Core.killNow = nil
   wipe(Core.enemies)
@@ -109,6 +112,7 @@ function Core.StartTest(guided, enemies)
   else
     SeedEnemies(guided)
   end
+  if swap then return Core.Tick() end
   Core.SetActive(false)
   Core.SetActive(true)
 end

@@ -28,8 +28,7 @@ local function Panel(cue)
   E.Hide()
   Core.HideSpecPicker()
   -- Placement owns lock restoration and protected-frame cleanup on combat.
-  if not ns.Setup.placement then ns.Setup.BeginPlacement(true) end
-  ns.Setup.PreviewContext("enemies", Samples(cue))
+  ns.Setup.BeginPlacement(true, "enemies", Samples(cue))
   -- The picker normally opens on hover; the guide holds it open on Lunara.
   if cue == "spectag" then Core.ShowSpecPicker(Core.rows[1], true) end
 end

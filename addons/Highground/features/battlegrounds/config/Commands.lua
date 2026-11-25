@@ -54,7 +54,7 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   L("enemy background", "enemy.appearance.background", "battlegrounds-appearance", "enemy.appearance.background", { usage = "PCT" }),
   L("enemy opacity", "enemy.appearance.opacity", "battlegrounds-appearance", "enemy.appearance.opacity", { usage = "PCT" }),
   L("enemy names", "enemy.appearance.names", "battlegrounds-appearance", "enemy.appearance.names", { usage = "PCT" }),
-  L("enemy hero", "highground.appearance.suggested_target_card.12115b", "battlegrounds-appearance", "highground.appearance.suggested_target_card.12115b", { usage = "on|off" }),
+  L("enemy hero", "enemy.appearance.hero_card", "battlegrounds-appearance", "enemy.appearance.hero_card", { usage = "on|off" }),
   L("rows", "battlegrounds.commands.set_the_number_of_enemies_shown.14bfc4", "battlegrounds-appearance", "battlegrounds.commands.choose_enemy_row_count.af0eee", { usage = "N" }),
   L("compact", "battlegrounds.commands.toggle_the_slim_one_line_enemy_layout.eb33f2", "battlegrounds-settings", "battlegrounds.commands.compact_layout_switch.f2aada", { usage = "[on|off]" }),
   L("nameplates", "battlegrounds.commands.show_the_game_s_nameplate_settings_that.603f51", "battlegrounds-settings", "battlegrounds.commands.nameplate_settings.cd8473"),

@@ -88,7 +88,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg enemy background PCT` | Row background opacity | Row background opacity → `battlegrounds-appearance` |
 | `/hg enemy opacity PCT` | Health bar opacity | Health bar opacity → `battlegrounds-appearance` |
 | `/hg enemy names PCT` | Unseen name brightness | Unseen name brightness → `battlegrounds-appearance` |
-| `/hg enemy hero on\|off` | Suggested target card | Suggested target card → `battlegrounds-appearance` |
+| `/hg enemy hero on\|off` | Hero card | Hero card → `battlegrounds-appearance` |
 | `/hg rows N` | Set the number of enemies shown. | Choose enemy row count → `battlegrounds-appearance` |
 | `/hg compact [on\|off]` | Toggle the slim one-line enemy layout. | Compact layout switch → `battlegrounds-settings` |
 | `/hg nameplates` | Show the game's nameplate settings that healer marks need. | Nameplate settings → `battlegrounds-settings` |

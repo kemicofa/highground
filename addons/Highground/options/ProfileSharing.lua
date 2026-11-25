@@ -60,6 +60,8 @@ function Share.ToChat(name)
     return false, problem == "full" and ns.Locale:Get("highground.profilesharing.not_enough_room_in_chat_send_or.7f1b2d") or ns.Locale:Get("highground.profilesharing.chat_is_not_available.9a9d1b")
   end
   cache[id] = { text = text, at = GetTime() }
+  -- Release the export just after its link expires, not at the next share.
+  C_Timer.After(TTL + 1, Prune)
   return true, ns.Locale:Get("highground.profilesharing.link_added_to_chat_press_enter_to.b98ca4")
 end
 

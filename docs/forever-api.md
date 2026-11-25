@@ -114,6 +114,18 @@ In a party, with an enemy player as target, run `/hgprobe world` out of combat, 
 
 Also still to check: whether a character of the other faction can read addon messages in a custom channel (two accounts needed).
 
+### Layers
+
+WoW Forever runs several copies (layers) of a zone; players on different layers cannot see each other. The game calls a layer change a shard transfer. Sources: our probes on 2026-11-25 and the measurements in the comments of the LayerSwap addon (1.14.56).
+
+- No API names your layer. `SHARD_TRANSFER_IMMINENT`, `SHARD_TRANSFER` and `SHARD_TRANSFER_CANCELLED` fire around a move; `GetEvictionTimeRemaining()` counts down to it.
+- Until build 71037 (2026-11-20) a creature GUID's server field was the layer. Since then every creature carries its own server and zone fields: five NPCs in Sun Rock Retreat and over ten Venture Co. Loggers in Windshear Crag, all on one layer, had different values (2026-11-25). The same creature on another layer has another GUID.
+- NPC GUIDs are plain in the open world out of combat, from `target`, nameplates and `C_TooltipInfo.GetUnit`.
+- Joining a group whose leader is on another layer in the same zone moves you about 1.3 s later; leaving keeps the new layer. Moves are limited per hour. A login can move you too.
+- `UnitPhaseReason(partyN)` returns `Enum.PhaseReason.Sharding` (1) for a group member on another layer and nil for one on yours; it is the party frame's phase icon. Only meaningful in the same zone. Raid tokens are unverified.
+
+Highground judges each shared sighting's layer from these signals (`world/Layer.lua`).
+
 ## Leads to try
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.

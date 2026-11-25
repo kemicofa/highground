@@ -252,7 +252,7 @@ end
 -- Hover lines of a value row: what it sets, its default and range, and how
 -- the tuning and battleground multipliers combine.
 local function RowLines(row)
-  local lines = { { row.desc, "text", true } }
+  local lines = { { row.source and row.source.desc or row.desc, "text", true } }
   local function Add(text, token, wrap) lines[#lines + 1] = { text, token, wrap } end
   if row.detail then Add(row.detail, "textMuted", true) end
   local def = Core.SettingDefs[row.kind == "kitspell" and "point" or row.kind][row.key]
@@ -281,7 +281,7 @@ function Options.Row(page, row)
   page.child:SetHeight(-page.y + 10)
   row.label = Theme.Text(f, "bodyLarge")
   row.label:SetPoint("LEFT", S("md"), 0)
-  ns.Localization.BindField(row.label, row, "desc")
+  ns.Localization.BindField(row.label, row.source or row, "desc")
   row.label:SetWordWrap(false)
   f:EnableMouse(true)
   Kit.Tooltip(f, function() return RowLines(row) end, { anchor = "ANCHOR_RIGHT" })

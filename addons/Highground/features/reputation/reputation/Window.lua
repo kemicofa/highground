@@ -78,18 +78,20 @@ local function BuildSettings(f, source)
   local W = source or W
   local UI = W.UI
   f.toggles = {}
-  for i, option in ipairs({ { "filter", ns.Locale:Get("reputation.window.hide_chat_from_blacklisted_players.549198") },
-    { "reply", ns.Locale:Get("reputation.window.reply_to_whispers_from_blacklisted_players.bc4674") },
-    { "tooltip", ns.Locale:Get("reputation.window.show_community_reasons_on_player_tooltips.879b94") } }) do
+  for i, option in ipairs({ { "filter", "reputation.window.hide_chat_from_blacklisted_players.549198" },
+    { "reply", "reputation.window.reply_to_whispers_from_blacklisted_players.bc4674" },
+    { "tooltip", "reputation.window.show_community_reasons_on_player_tooltips.879b94" } }) do
     local key = option[1]
-    local toggle = K.Toggle(f.settingsBody, option[2], { width = 650, onChange = function(_, checked)
+    local toggle = K.Toggle(f.settingsBody, ns.Locale:Get(option[2]), { width = 650, onChange = function(_, checked)
       if W.ready then W.db.settings[key] = checked; W.Changed() end
     end })
+    ns.Localization.Bind(toggle.label, option[2])
     toggle:SetPoint("TOPLEFT", 0, -(i - 1) * 48); f.toggles[key] = toggle
   end
   f.replyInterval = K.Select(f.settingsBody, { width = 380, label = ns.Locale:Get("reputation.window.automatic_reply_frequency.1db7de"), menu = true,
     choices = W.REPLY_INTERVALS, onChange = function(_, value) if W.ready then W.db.settings.replyInterval = value; W.Changed() end end })
   f.replyInterval:SetPoint("TOPLEFT", 0, -174)
+  ns.Localization.Bind(f.replyInterval.caption, "reputation.window.automatic_reply_frequency.1db7de")
   f.replyText = ns.Localization.BindWidget(K.Input(f.settingsBody, 650, ns.Locale:Get("reputation.window.automatic_reply_message_200_characters.6bf328")), { caption = "reputation.window.automatic_reply_message_200_characters.6bf328" })
   f.replyText:SetPoint("TOPLEFT", 0, -238); f.replyText:SetMaxLetters(200)
   f.replyText:SetScript("OnTextChanged", function(self)
@@ -103,6 +105,7 @@ local function BuildSettings(f, source)
     onConfirm = function() if W.ready then W.db.settings.replyText = nil; W.Changed() end end })
   f.resetReply:SetPoint("LEFT", f.replyInterval, "RIGHT", 20, 0)
   f.replyHelp = UI.Label(f.settingsBody, ns.Locale:Get("reputation.window.use_organization_for_the_guild_or_community.507da7"), 0, -278, 650)
+  ns.Localization.Bind(f.replyHelp, "reputation.window.use_organization_for_the_guild_or_community.507da7")
   f.settingsHelp = UI.Label(f.settingsBody, "", 0, -374, 650)
   ns.Localization.Bind(f.settingsHelp, "reputation.preferences.help")
   f.replyHelp:SetWordWrap(true); f.settingsHelp:SetWordWrap(true)

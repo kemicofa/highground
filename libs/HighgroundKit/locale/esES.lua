@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("esES", {
+  ["appearance.font.locale_fallback"] = "El idioma actual usa una fuente compatible del juego. Podrás elegir otra fuente cuando ya no se necesite esta alternativa; se conserva tu elección guardada.",
   ["enemy.appearance.shared"] = "Estilo compartido",
   ["enemy.appearance.readable"] = "Tarjetas legibles",
   ["enemy.appearance.compact"] = "Barras compactas",
@@ -812,7 +813,6 @@ assert(ns.Locale:Register("esES", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Desvanecido significa visto por última vez antes",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands es un avistamiento más antiguo. Estar en esta lista no demuestra que el enemigo todavía esté cerca.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Elegir si Nearby emite un sonido",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "Este botón activa o desactiva los sonidos de avistamiento y sigilo. Tus ajustes globales de alertas siguen aplicándose.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "Esta es tu preferencia de sonido real.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Abrir el historial de encuentros",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "El historial conserva a los enemigos después de que salgan de la lista de cercanos. Haz clic en Historial debajo de los avistamientos.",

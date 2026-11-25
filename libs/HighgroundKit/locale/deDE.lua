@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("deDE", {
+  ["appearance.font.locale_fallback"] = "Die aktuelle Sprache verwendet eine passende Spielschrift. Die Schriftauswahl ist wieder verfügbar, wenn dieser Ersatz nicht mehr nötig ist; deine Auswahl bleibt gespeichert.",
   ["enemy.appearance.shared"] = "Gemeinsamer Stil",
   ["enemy.appearance.readable"] = "Lesbare Karten",
   ["enemy.appearance.compact"] = "Kompakte Balken",
@@ -812,7 +813,6 @@ assert(ns.Locale:Register("deDE", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Verblasst bedeutet: früher zuletzt gesehen",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands ist eine ältere Sichtung. Auf dieser Liste zu stehen, beweist nicht, dass der Feind immer noch in der Nähe ist.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Auswählen, ob Nearby einen Ton abspielt",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "Diese Schaltfläche schaltet Sichtungs- und Tarnungsgeräusche um. Ihre globalen Benachrichtigungseinstellungen gelten weiterhin.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "Dies ist Ihre echte Toneinstellung.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Begegnungsverlauf öffnen",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "Der Verlauf behält Feinde, nachdem sie die Liste der Feinde in der Nähe verlassen haben. Klicken Sie unterhalb der Sichtungen auf Verlauf.",

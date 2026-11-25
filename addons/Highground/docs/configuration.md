@@ -27,6 +27,21 @@ does not seem to affect that panel. Master HUD scale multiplies individual panel
 scales. A feature's child switches may be unavailable until its parent is on;
 unsupported client features are omitted.
 
+Some controls depend on what they can affect:
+
+- Target lock and GO alerts are sound cues, so they have a Sound switch only.
+- Nearby map visibility controls drawing. Map marks can still be shared while
+  the map overlay is off; use the Map marks switch to stop that feature.
+- Languages requiring a script-compatible font use that font automatically.
+  The decorative font selector is unavailable while this fallback is active;
+  its saved choice returns when the fallback is no longer needed.
+
+Profiles compare effective settings, including inherited appearance and sound
+defaults. Returning a setting to its default should clear its contribution to
+the Edited status. Older profiles preserve feature switches they did not include
+and do not count those switches as edits. Profile names are separate from the
+activity editor's Keep current settings choice, including a profile named `none`.
+
 The Macros and Reputation sections open their full tools for editing macros,
 reports and organizations. Their settings pages configure preferences; they do
 not replace those workspaces. Data addons hold records rather than presenting

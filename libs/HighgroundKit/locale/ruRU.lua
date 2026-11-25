@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("ruRU", {
+  ["appearance.font.locale_fallback"] = "Для текущего языка используется совместимый игровой шрифт. Выбор шрифта станет доступен, когда замена больше не понадобится; ваш выбор сохранён.",
   ["enemy.appearance.shared"] = "Общий стиль",
   ["enemy.appearance.readable"] = "Чёткие карточки",
   ["enemy.appearance.compact"] = "Компактные полосы",
@@ -816,7 +817,6 @@ assert(ns.Locale:Register("ruRU", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Тусклые — замечены раньше",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands — более старое обнаружение. Присутствие в этом списке не доказывает, что противник все еще рядом.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Выберите, издает ли Nearby звук",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "Эта кнопка переключает звуки обнаружения и скрытности. Ваши общие настройки оповещений по-прежнему действуют.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "Это ваша настоящая настройка звука.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Открыть историю встреч",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "История сохраняет противников после того, как они пропадают из списка ближайших. Нажмите «История» под обнаружениями.",

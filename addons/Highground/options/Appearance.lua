@@ -16,18 +16,22 @@ local function Populate()
 local P = page.child
 Options.AddAppearancePreview(page, owner)
 local refreshers = {}
-local CONTROL_X, stacked = 250, false
+-- Put labels above their controls so translations and enlarged text keep
+-- the full page width instead of competing with the value column.
+local CONTROL_X = 24
 
 local function Label(text)
   local fs = Theme.Text(P, "bodyLarge")
   fs:SetPoint("TOPLEFT", 24, page.y - S("sm"))
+  fs:SetPoint("TOPRIGHT", -24, page.y - S("sm"))
+  fs:SetJustifyH("LEFT"); fs:SetWordWrap(true)
   ns.Localization.Bind(fs, text)
-  if stacked then page.y = page.y - 30 end
+  page.y = page.y - 30
   return fs
 end
 
 local function Next()
-  page.y = page.y - (stacked and 34 or 26)
+  page.y = page.y - 34
   P:SetHeight(-page.y + 10)
 end
 
@@ -50,6 +54,7 @@ local function Stepper(text, get, set, step, format, def)
   reset:SetScript("OnClick", function() set(def()); Options.RefreshPage(page) end)
   row.refresh = function(off)
     stepper.box:SetText(format(get()))
+    Kit.FitButton(reset, 70, 20)
     stepper.minus:SetEnabled(not off)
     stepper.plus:SetEnabled(not off)
     reset:SetEnabled(not off and math.abs(get() - def()) > 0.0001)
@@ -68,11 +73,12 @@ local function Pixels(v) return ns.Locale:Format("highground.appearance.v_px.1a6
 -- previous one.
 local function Cycle(text, kind, list)
   local label = Label(text)
-  local select = Kit.Select(P, { choices = list, width = stacked and 220 or 160, onChange = function(_, key)
+  local select = Kit.Select(P, { choices = list, width = 220, onChange = function(_, key)
     Core.SetStyleChoice(kind, key)
     Options.RefreshPage(page)
   end })
   select:SetPoint("TOPLEFT", CONTROL_X, page.y)
+  select:SetPoint("TOPRIGHT", -24, page.y)
   select.kind = kind
   refreshers[#refreshers + 1] = { label = label, select = select,
     refresh = function() select:SetValue(Core.StyleChoice(kind).key, true) end }
@@ -123,6 +129,8 @@ local function CustomColor(enemy)
     local c, on = Core.BarCustomColor(enemy), Core.StyleChoice(enemy and "enemyColor" or "barColor").key == "custom"
     Theme.Paint(swatch, { c.r, c.g, c.b })
     button:SetText(Hex(c))
+    Kit.FitButton(button, enemy and 160 or 120, 42)
+    Kit.FitButton(reset, 70, 20)
     button:SetEnabled(on)
     reset:SetEnabled(on and Core.StyleDB()[enemy and "enemyCustom" or "barCustom"] ~= nil)
     label:SetAlpha(on and 1 or Theme.Alpha("disabled"))
@@ -138,8 +146,8 @@ local function ThemeChoices()
   return list
 end
 if owner then
-  page.shared = Options.Link(page, ns.Locale:Get("highground.appearance.shared_theme_and_accessibility.7f65ce"), function() ns.Hub.Open("appearance") end)
-  Options.Link(page, ns.Locale:Get("highground.hub.previews_and_guide.e53405"), function() ns.Hub.Open(Options.addonPages[owner].previews) end)
+  page.shared = ns.Localization.Bind(Options.Link(page, "", function() ns.Hub.Open("appearance") end), "highground.appearance.shared_theme_and_accessibility.7f65ce")
+  ns.Localization.Bind(Options.Link(page, "", function() ns.Hub.Open(Options.addonPages[owner].previews) end), "highground.hub.previews_and_guide.e53405")
 else
 Options.Section(page, ns.Locale:Get("highground.appearance.theme.a797e3"), nil, "highground.appearance.theme.a797e3", nil)
 do
@@ -174,7 +182,13 @@ Options.Section(page, ns.Locale:Get("highground.appearance.accessibility.d66004"
 Check("highground.appearance.reduced_motion.789804", "highground.appearance.steady_indicators_and_instant_transitions_no_flashes.fb18f6",
   Core.ReducedMotion, Core.SetReducedMotion)
 page.y = page.y - S("lg")
-Cycle("highground.appearance.font.b97c4d", "font", A.fonts)
+page.font = Cycle("highground.appearance.font.b97c4d", "font", A.fonts)
+refreshers[#refreshers + 1] = { refresh = function()
+  local forced = ns.Localization.Font() ~= nil
+  page.font:SetEnabled(not forced)
+  page.hint:SetText(ns.OptionsConfig.pages.appearance.hint
+    .. (forced and "\n" .. ns.Locale:Get("appearance.font.locale_fallback") or ""))
+end }
 Stepper("highground.appearance.text_size.3cc6e1", Core.FontScale, Core.SetFontScale, A.fontScale.step, Percent, function() return 1 end)
 
 end
@@ -185,7 +199,6 @@ page.enemyControls = {}
 -- First on the page: the card sits on the enemy list, not with panel sizes.
 page.heroCard = Check("highground.appearance.suggested_target_card.12115b", "highground.appearance.off_by_default_show_the_recommended_enemy.cff9f5",
   function() return Core.ShowsElement("hero") end, function(on) Core.SetElement("hero", on) end)
-CONTROL_X, stacked = 24, true
 Label("enemy.appearance.preset")
 page.enemyPreset = Kit.Select(P, { choices = A.enemyPresets, width = 220, menu = true })
 page.enemyPreset:SetPoint("TOPLEFT", CONTROL_X, page.y)
@@ -207,10 +220,9 @@ page.enemyControls.texture = Cycle("highground.appearance.bar_texture.5592a1", "
 page.enemyControls.color = Cycle("highground.appearance.health_bar_color.0e69b9", "enemyColor", A.enemyColors)
 CustomColor(true)
 for _, def in ipairs(A.enemyNumbers) do
-  page.enemyControls[def.key] = Stepper(def.label, function() return Core.EnemyNumber(def.key) end,
+  page.enemyControls[def.key] = Stepper(ns.Localization.Key(def, "label"), function() return Core.EnemyNumber(def.key) end,
     function(value) Core.SetEnemyNumber(def.key, value) end, 0.05, Percent, function() return def.default end)
 end
-CONTROL_X, stacked = 250, false
 page.y = page.y - S("md")
 Options.Section(page, ns.Locale:Get("highground.appearance.sniper_marker.2ac0d6"), nil, "highground.appearance.sniper_marker.2ac0d6", nil)
 do
@@ -240,14 +252,14 @@ do
   local note = Theme.Text(P, "body", "textMuted")
   note:SetPoint("TOPLEFT", 24, page.y); note:SetPoint("TOPRIGHT", -24, page.y)
   note:SetJustifyH("LEFT"); note:SetWordWrap(true); note:SetHeight(48)
-  note:SetText(ns.Locale:Get("highground.appearance.head_area_is_approximate_and_follows_the.2efb31"))
+  ns.Localization.Bind(note, "highground.appearance.head_area_is_approximate_and_follows_the.2efb31")
   page.y = page.y - 56
   page.sniperRows = {}
   for _, def in ipairs({
-    { key = "sniperPadding", label = ns.Locale:Get("highground.appearance.gap_from_nameplate.fc5321"), step = 2 },
-    { key = "sniperX", label = ns.Locale:Get("highground.appearance.horizontal_offset.2cfb8a"), step = 2 },
-    { key = "sniperY", label = ns.Locale:Get("highground.appearance.vertical_offset.669530"), step = 2 },
-    { key = "sniperScale", label = ns.Locale:Get("highground.appearance.marker_size.56315e"), step = 0.05 },
+    { key = "sniperPadding", label = "highground.appearance.gap_from_nameplate.fc5321", step = 2 },
+    { key = "sniperX", label = "highground.appearance.horizontal_offset.2cfb8a", step = 2 },
+    { key = "sniperY", label = "highground.appearance.vertical_offset.669530", step = 2 },
+    { key = "sniperScale", label = "highground.appearance.marker_size.56315e", step = 0.05 },
   }) do
     local row = Stepper(def.label, function() return Core.db[def.key] end,
       function(value) Core.SetSniperNumber(def.key, value) end, def.step,
@@ -287,7 +299,8 @@ elseif owner == "bounties" then
 end
 for _, panel in ipairs(A.panels) do
   if owner and panel.module == owner then
-    Stepper(panel.key == "timers" and ns.Locale:Get("highground.appearance.timer_panels_scale.621a38") or ns.Locale:Format("highground.appearance.panel_label_scale.87b0f5", { panel_label = panel.label }), function() return Core.PanelScale(panel.key) end,
+    Stepper(panel.key == "timers" and "highground.appearance.timer_panels_scale.621a38" or { key = "highground.appearance.panel_label_scale.87b0f5",
+      values = function() return { panel_label = panel.label } end }, function() return Core.PanelScale(panel.key) end,
       function(v) Core.SetPanelScale(panel.key, v) end, A.panelScale.step, Percent, function() return 1 end)
   end
 end
@@ -303,7 +316,7 @@ end
 if owner ~= "bounties" then
 -- Detailed controls continue below the panel choices in the same scroll area.
 local basic, detailsTop = P, page.y - 12
-page.detailHeading = Kit.Section(basic, owner and ns.Locale:Get("highground.appearance.sizes_and_spacing.8d69d8") or ns.Locale:Get("highground.appearance.text_and_bars.5c20f9"))
+page.detailHeading = ns.Localization.Bind(Kit.Section(basic, ""), owner and "highground.appearance.sizes_and_spacing.8d69d8" or "highground.appearance.text_and_bars.5c20f9")
 page.detailHeading:SetPoint("TOPLEFT", 24, detailsTop)
 page.detailHeading:SetPoint("RIGHT", -24, 0)
 page.detailBody = CreateFrame("Frame", nil, basic)
@@ -315,7 +328,7 @@ if owner then
   layoutNote = Label(""); Theme.Paint(layoutNote, "textMuted"); Next()
   for _, m in ipairs(A.metrics) do
     if m.module == owner then
-      local row = Stepper(m.label, function() return Core.Metric(m.key, Compact()) end,
+      local row = Stepper(ns.Localization.Key(m, "label"), function() return Core.Metric(m.key, Compact()) end,
         function(v) Core.SetMetric(m.key, v, Compact()) end, m.step, Pixels,
         function() return Core.MetricDefault(m.key, Compact()) end)
       row.metric = m; metricRows[#metricRows + 1] = row
@@ -326,7 +339,7 @@ if owner == "battlegrounds" then
   Options.Section(page, ns.Locale:Get("highground.appearance.enemy_rows.26dea1"), nil, "highground.appearance.enemy_rows.26dea1", nil)
   for _, el in ipairs(A.elements) do
     if ns.OptionAvailable(el) then
-      local box = Check(el.label, el.desc, function() return Core.ShowsElement(el.key) end,
+      local box = Check(ns.Localization.Key(el, "label"), ns.Localization.Key(el, "desc"), function() return Core.ShowsElement(el.key) end,
         function(on) Core.SetElement(el.key, on) end)
       box.key = el.key; elementBoxes[#elementBoxes + 1] = box
     end

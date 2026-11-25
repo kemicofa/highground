@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("zhCN", {
+  ["appearance.font.locale_fallback"] = "当前语言使用兼容的游戏字体。不再需要替代字体时，即可选择字体；已保存的选择会保留。",
   ["enemy.appearance.shared"] = "共享样式",
   ["enemy.appearance.readable"] = "清晰卡片",
   ["enemy.appearance.compact"] = "紧凑血条",
@@ -812,7 +813,6 @@ assert(ns.Locale:Register("zhCN", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "消失意味着最后看到的早些时候",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "圣手是一个较老的观察。被列入这份名单并不能证明敌人仍然在附近。",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "选择\"附近\"是否发出声音",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "此按钮切换目标和隐身声音。你的全局警报设置仍然适用。",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "这是你真正的声音偏好。",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "打开遇见历史记录",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "历史保留敌人后，他们离开附近的列表。点击观测下方的历史记录。",

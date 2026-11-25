@@ -18,12 +18,14 @@ for _, def in ipairs(ns.OptionsConfig.behavior) do
         Options.Set({ kind = "option", key = def.key }, on)
         Options.RefreshAllRows()
       end)
+      ns.Localization.BindField(check.label, def, "desc")
+      Kit.Tooltip(check, function() return { { def.desc, "text", true } } end, { anchor = "ANCHOR_RIGHT" })
       check:SetPoint("TOPLEFT", S("xl"), page.y - S("xs"))
       toggles[def.key] = check
       page.y = page.y - 28
     else
       Options.Row(page, { kind = "option", key = def.key, def = def.def, step = def.step,
-        desc = def.desc, detail = ns.Locale:Format("highground.nearby.unit_def_unit.cb8056", { def_unit = ns.OptionUnit(def) }) })
+        source = def, desc = def.desc })
     end
   end
 end

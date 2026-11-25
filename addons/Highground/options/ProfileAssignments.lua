@@ -18,7 +18,7 @@ function P.CreateAssignments(parent)
     local label = Theme.Text(a, "body", "textMuted")
     label:SetText(L:Get(def[2])); label:SetJustifyH("LEFT"); label:SetWordWrap(true)
     local select = Kit.Select(a, { width = 180, menu = true, choices = {}, onChange = function(_, name)
-      if P.Assign(name, key) then P.lastAssignment = nil; P.Automatic() end
+      if P.Assign(name ~= "" and name or nil, key) then P.lastAssignment = nil; P.Automatic() end
       parent.RefreshProfiles()
     end })
     Kit.Tooltip(select, function() return { { select.label:GetText(), "text", true },
@@ -43,7 +43,8 @@ function P.CreateAssignments(parent)
     self:SetHeight(y - 8)
   end
   function a:Refresh()
-    local choices = { { key = "none", label = L:Get("profiles.switching.keep") } }
+    -- Empty names cannot be saved, so this never shadows a named profile.
+    local choices = { { key = "", label = L:Get("profiles.switching.keep") } }
     for name in P.SortedPairs(Core.db.profiles or {}) do choices[#choices + 1] = { key = name, label = name } end
     self.enabled:SetChecked(Core.pos.autoProfiles, true)
     local info = Core.specInfo[Core.me.specID]
@@ -56,7 +57,7 @@ function P.CreateAssignments(parent)
       local name = Core.db.profileAssignments and Core.db.profileAssignments[who] and Core.db.profileAssignments[who][context]
       local select = self.activities[def[1]]
       select:SetChoices(choices)
-      select:SetValue(name and Core.db.profiles[name] and name or "none", true)
+      select:SetValue(name and Core.db.profiles[name] and name or "", true)
     end
   end
   return a

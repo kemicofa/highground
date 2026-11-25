@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("enUS", {
+  ["appearance.font.locale_fallback"] = "The current language uses a compatible game font. Font choice becomes available when this fallback is no longer needed; your saved choice is kept.",
   ["enemy.appearance.shared"] = "Shared styling",
   ["enemy.appearance.readable"] = "Readable cards",
   ["enemy.appearance.compact"] = "Compact bars",
@@ -812,7 +813,6 @@ assert(ns.Locale:Register("enUS", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Faded means last seen earlier",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands is an older sighting. Being on this list does not prove the enemy is still nearby.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Choose whether Nearby makes a sound",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "This button toggles sighting and stealth sounds. Your global alert settings still apply.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "This is your real sound preference.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Open the encounter history",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "History keeps enemies after they leave the nearby list. Click History below the sightings.",

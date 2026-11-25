@@ -58,13 +58,14 @@ end
 
 function Options.SniperColorControls(page, controlX)
   local parent, rows = page.child, {}
+  local stacked = controlX <= 24
   page.sniperColors = rows
   for _, layer in ipairs({ "ring", "skull", "aim" }) do
     local def = Core.SNIPER_COLOR_LAYERS[layer]
     local label = Theme.Text(parent, "bodyLarge")
     label:SetPoint("TOPLEFT", 24, page.y - Theme.Space("sm")); ns.Localization.BindField(label, def, "label")
     local button = Kit.Button(parent, "", 120, Theme.Size("control"))
-    button:SetPoint("TOPLEFT", controlX, page.y)
+    button:SetPoint("TOPLEFT", controlX, page.y - (stacked and 30 or 0))
     button.label:ClearAllPoints(); button.label:SetPoint("LEFT", 28, 0)
     local swatch = Theme.Fill(button, "OVERLAY", "white")
     swatch:SetSize(14, 14); swatch:SetPoint("LEFT", 8, 0)
@@ -75,7 +76,7 @@ function Options.SniperColorControls(page, controlX)
     button:HookScript("OnHide", function() Options.ClosePickerFor(button) end)
     Kit.Tooltip(button, function() return { def.label, ns.Locale:Get("highground.snipercolors.choose_any_colour_custom_colours_also_remain.d324d5") } end)
     rows[layer] = { button = button, reset = reset, swatch = swatch }
-    page.y = page.y - 26
+    page.y = page.y - (stacked and 64 or 26)
   end
   parent:SetHeight(-page.y + 10)
   function page.RefreshSniperColors()
@@ -84,6 +85,8 @@ function Options.SniperColorControls(page, controlX)
       local color = Core.SniperLayerColor(layer, false)
       Theme.Paint(row.swatch, color)
       row.button:SetText("#" .. Core.SniperHex(color))
+      Kit.FitButton(row.button, 120, 42)
+      Kit.FitButton(row.reset, 70, 20)
       local enabled = layer ~= "skull" or Core.db.sniperStyle ~= "legacy"
       row.button:SetEnabled(enabled)
       row.reset:SetEnabled(enabled and (Core.db[def.key] or "") ~= "")

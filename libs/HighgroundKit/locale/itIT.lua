@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("itIT", {
+  ["appearance.font.locale_fallback"] = "La lingua attuale usa un carattere di gioco compatibile. La scelta del carattere torna disponibile quando questo ripiego non serve più; la tua scelta salvata viene mantenuta.",
   ["enemy.appearance.shared"] = "Stile condiviso",
   ["enemy.appearance.readable"] = "Schede leggibili",
   ["enemy.appearance.compact"] = "Barre compatte",
@@ -812,7 +813,6 @@ assert(ns.Locale:Register("itIT", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Sbiadito significa visto l'ultima volta in precedenza",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands è un avvistamento più vecchio. Essere in questa lista non dimostra che il nemico è ancora nelle vicinanze.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Scegli se Nearby emette un suono",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "Questo pulsante attiva o disattiva i suoni di avvistamento e furtività. Le tue impostazioni globali degli avvisi restano valide.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "Questa è la tua vera preferenza sonora.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Apri la cronologia degli incontri",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "Cronologia conserva i nemici dopo che escono dall'elenco dei nemici vicini. Fai clic su Cronologia sotto gli avvistamenti.",

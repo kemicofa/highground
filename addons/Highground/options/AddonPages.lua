@@ -80,9 +80,20 @@ reputation.build = function()
   reputation.preferences = controls
   controls.settingsBody:SetPoint("TOPLEFT", 24, top)
   W.UI.BuildSettings(controls)
+  reputation.problem = ns.Theme.Text(reputation.child, "body", "warning")
+  reputation.problem:SetPoint("TOPLEFT", 24, top); reputation.problem:SetPoint("RIGHT", -24, 0)
+  reputation.problem:SetJustifyH("LEFT"); reputation.problem:SetWordWrap(true)
   function reputation.RefreshBehavior()
-    if reputation.refreshing or not W.ready then return end
+    if reputation.refreshing then return end
     reputation.refreshing = true
+    controls.settingsBody:SetShown(W.ready == true)
+    reputation.problem:SetShown(not W.ready)
+    if not W.ready then
+      reputation.problem:SetText(W.loadError or ns.Locale:Get("reputation.forms.reputation_is_loading.ebdd24"))
+      reputation.child:SetHeight(-top + reputation.problem:GetStringHeight() + 12)
+      reputation.refreshing = nil
+      return
+    end
     W.UI.RefreshSettings(controls, math.max(352, reputation.child:GetWidth() - 48))
     reputation.child:SetHeight(-top + controls.settingsBody:GetHeight() + 12)
     reputation.refreshing = nil
@@ -208,9 +219,13 @@ function O.AddAlertControls(page, owner)
     label:SetPoint("TOPLEFT", 24, page.y - 4); label:SetPoint("TOPRIGHT", -404, page.y - 4)
     label:SetJustifyH("LEFT"); label:SetWordWrap(true); ns.Localization.BindField(label, def, "label")
     for _, channel in ipairs({ "text", "sound" }) do
-      row[channel] = Kit.Toggle(page.child, channel == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = channel == "text" and 90 or 104,
-        onChange = function(_, on) ns.Alerts.SetChannel(def.key, channel, on) end })
-      row[channel]:SetPoint("TOPRIGHT", channel == "text" and -294 or -174, page.y)
+      if ns.Alerts.Supports(def.key, channel) then
+        local labelKey = channel == "text" and "highground.addonpages.text.c3328c" or "highground.addonpages.sound.b4e3ef"
+        row[channel] = Kit.Toggle(page.child, ns.Locale:Get(labelKey), { width = channel == "text" and 90 or 104,
+          onChange = function(_, on) ns.Alerts.SetChannel(def.key, channel, on) end })
+        ns.Localization.Bind(row[channel].label, labelKey)
+        row[channel]:SetPoint("TOPRIGHT", channel == "text" and -294 or -174, page.y)
+      end
     end
     row.play = ns.Alerts.SoundButton(page.child, def)
     row.play:SetPoint("TOPRIGHT", -24, page.y)
@@ -245,7 +260,7 @@ function O.AddAlertControls(page, owner)
     local sounds = Core.On("sound")
     page.alertNote:SetText(sounds and "" or ns.Locale:Get("alerts.master_off"))
     for _, row in ipairs(page.alertRows) do
-      row.text:SetChecked(ns.Alerts.ChannelOn(row.key, "text"), true)
+      if row.text then row.text:SetChecked(ns.Alerts.ChannelOn(row.key, "text"), true) end
       row.sound:SetChecked(ns.Alerts.ChannelOn(row.key, "sound"), true)
       row.sound:SetEnabled(sounds)
       if row.cue then

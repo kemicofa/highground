@@ -195,10 +195,12 @@ end
 ns.Scope.Listen(function() P.pending, P.lastAssignment = nil, nil end)
 
 function P.Assign(name, activity)
-  if name ~= "none" and not (Core.db.profiles and Core.db.profiles[name]) then return false, ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b") end
+  -- Keep the old clearing argument for callers unless it names a real profile.
+  if name == "none" and not (Core.db.profiles and Core.db.profiles[name]) then name = nil end
+  if name ~= nil and not (Core.db.profiles and Core.db.profiles[name]) then return false, ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b") end
   if not ({ bg = true, arena = true, world = true })[activity] then return false, ns.Locale:Get("highground.profilesetup.choose_an_activity.609d3d") end
   local who, context = P.Context(activity)
-  ns.Saved.Table(ns.Saved.Table(Core.db, "profileAssignments"), who)[context] = name ~= "none" and name or nil
+  ns.Saved.Table(ns.Saved.Table(Core.db, "profileAssignments"), who)[context] = name
   return true, ns.Locale:Get("highground.profilesetup.assignment_saved_for_this_character_and_specialization.c4e1b1")
 end
 

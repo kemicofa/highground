@@ -31,7 +31,8 @@ function Options.FeaturePage(key, owner)
       end }), { label = ns.Localization.Key(def, "label"), desc = ns.Localization.Key(def, "desc") })
       cb.label:SetWordWrap(true); cb.desc:SetWordWrap(true)
       cb.key, cb.option, cb.page = def.key, def, page
-      Options.Tip(cb, def.label, def.desc)
+      Kit.Tooltip(cb, function() return { { cb.label:GetText(), "text" }, { cb.desc:GetText(), "textMuted", true } } end,
+        { anchor = "ANCHOR_RIGHT" })
       Options.featureBoxes[#Options.featureBoxes + 1] = cb
       if group then group.rows[#group.rows + 1] = cb end
       items[#items + 1] = { frame = cb, option = def }

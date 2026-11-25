@@ -94,11 +94,10 @@ ns.Themes = {
       mapLabel = C("bbc9dd"),
       -- Enemy map circles: the theme's hue, light enough for any map art.
       mapZone = C("f4bb48"),
-      -- Enemy heatmap (world/Heat.lua): warm to hot, alike in every theme
-      -- so heat reads the same on any map art.
-      mapHeatLow = C("ffd34d"),
-      mapHeatMid = C("ff8c32"),
-      mapHeatHigh = C("ff3b30"),
+      -- Enemy heatmap (world/Heat.lua): the enemy faction's colour as the
+      -- game shows it (PLAYER_FACTION_COLORS), alike in every theme.
+      mapHeatHorde = C("e60d12"),
+      mapHeatAlliance = C("4a54e8"),
       dead = C("a8b8cd"),
       -- The default "theme" marker ring. Colour themes give it their hue.
       sniperTheme = C("ffd36b"),

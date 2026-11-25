@@ -8,8 +8,9 @@ local Heat = ns.WorldHeat
 -- minutes, shaded on the world, zone and continent maps under the pins
 -- (world/Map.lua). Each enemy counts once, at its latest spot: your
 -- sightings, your group's and guild's, and everyone's coarse squares from
--- any zone (world/Share.lua). Heat fades with age; a cell is at full
--- strength with an enemy raid (`nearbyRaidSize`) in it. Open world only.
+-- any zone (world/Share.lua). Heat is the enemy faction's colour and fades
+-- with age; a cell is at full strength with an enemy raid
+-- (`nearbyRaidSize`) in it. Open world only.
 ---------------------------------------------------------------------------
 Heat.WINDOW = 300 -- seconds a sighting adds heat
 Heat.CELLS = 20 -- across the shown map: Share's coarse squares on a zone map
@@ -99,6 +100,12 @@ local function Put(x, y, at)
   if at > cell.latest then cell.latest = at end
 end
 
+-- Every sighting is an enemy: the other faction's colour.
+local function Colour()
+  local faction = Util.read(UnitFactionGroup, "player")
+  return faction == "Alliance" and "mapHeatHorde" or faction == "Horde" and "mapHeatAlliance" or "hudDanger"
+end
+
 -- Heat items for the map being shown (world/Map.lua's pin layer).
 function Heat.Pins(mapID)
   local Nearby, WorldMap = ns.Nearby, ns.WorldMap
@@ -118,7 +125,7 @@ function Heat.Pins(mapID)
     end
   end
   if not any then return NONE end
-  local items, n = {}, Heat.CELLS
+  local items, n, colour = {}, Heat.CELLS, Colour()
   local hot = math.max(1, Core.O("nearbyRaidSize") or 8)
   for i in pairs(used) do
     local cell = cells[i]
@@ -126,8 +133,7 @@ function Heat.Pins(mapID)
     items[#items + 1] = {
       sortKey = "heat:" .. i, x = (math.floor(i / n) + 0.5) / n, y = (i % n + 0.5) / n,
       heat = heat, size = Heat.BLOB / n, hit = 1 / n,
-      ring = heat >= 0.6 and "mapHeatHigh" or heat >= 0.3 and "mapHeatMid" or "mapHeatLow",
-      alpha = 0.35 + 0.5 * heat, tooltip = Tooltip({ count = cell.count, latest = cell.latest }, now),
+      ring = colour, alpha = 0.3 + 0.6 * heat, tooltip = Tooltip({ count = cell.count, latest = cell.latest }, now),
     }
   end
   return items

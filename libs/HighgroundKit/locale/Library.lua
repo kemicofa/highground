@@ -30,10 +30,14 @@ Library.PLURAL_EXTRA = { ru = { "few", "many" } }
 -- English's list joiners, used when a catalog does not supply its own.
 local LIST_DEFAULT = { pair = "{first} and {second}", middle = "{first}, {second}" }
 
+-- Most messages have no named arguments; they share EMPTY (never modified).
 local function Tokens(text)
-  local result = {}
-  for name in text:gmatch(TOKEN) do result[name] = true end
-  return result
+  local result
+  for name in text:gmatch(TOKEN) do
+    result = result or {}
+    result[name] = true
+  end
+  return result or EMPTY
 end
 
 local function SameTokens(a, b)

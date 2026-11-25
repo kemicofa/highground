@@ -117,4 +117,51 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   end)
 end
 
+for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
+  test(case[2] .. ": /hg activity test and its Previews button show sample zones, outside /hg test", function()
+    local sim = setup(case[1], case[2])
+    local A, H, O = sim.ns.WorldActivity, sim.ns.Hub, sim.ns.Options
+    sim:command("activity test")
+    local w = sim.env.HighgroundWorldActivityPreview
+    assert(A.PreviewShown() and w:IsShown(), "the command opens the sample")
+    equal(#w.items, 2)
+    equal(#A.Entries(), 0, "live data untouched")
+    assert(not (A.win and A.win:IsShown()), "the live window stays closed")
+    sim:command("activity test")
+    assert(not w:IsShown(), "the command closes it again")
+    -- A window would replace the Highground window, so /hg test leaves it out.
+    H.Open("nearby-previews")
+    sim.ns.PreviewTests.StartAll()
+    assert(H.win:IsVisible() and not w:IsShown(), "/hg test keeps the Highground window")
+    sim.ns.PreviewTests.StopAll()
+    local button
+    for _, b in ipairs(O.byKey["nearby-previews"].previews) do if b.cmd == "activity test" then button = b end end
+    assert(button and button:IsEnabled(), "Nearby's Previews page offers the sample")
+    button:Click()
+    assert(w:IsShown(), "Start opens it")
+    w:Hide()
+    sim:assertHealthy()
+  end)
+end
+
+for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 16001 } }) do
+  test(case[2] .. ": /hg nearby guide starts the Nearby walkthrough and every step opens", function()
+    local sim = setup(case[1], case[2])
+    sim:event("PLAYER_LOGIN"); sim:advance(1)
+    local C = sim.ns.Onboarding.Coach
+    sim:command("nearby guide")
+    assert(C.running, "the walkthrough runs")
+    equal(C.steps[1].id, "nearby")
+    local seen = {}
+    for i, step in ipairs(C.steps) do
+      C.Go(i); sim:advance(0.3)
+      equal(C.steps[C.index].id, step.id, "step " .. step.id .. " opens")
+      seen[step.id] = true
+    end
+    for _, id in ipairs({ "shared", "fights", "marks", "activity", "track" }) do assert(seen[id], "has the " .. id .. " step") end
+    sim.ns.Onboarding.Return()
+    sim:assertHealthy()
+  end)
+end
+
 t.finish("World activity: " .. t.tests .. " scenarios, " .. t.failures .. " failures")

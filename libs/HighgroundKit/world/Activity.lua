@@ -116,7 +116,7 @@ end
 function A.Build(provider)
   local owner = provider or A
   if owner.win then return owner.win end
-  owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "WorldActivity" .. (provider and "Sample" or ""), {
+  owner.win = Kit.Browser((ns.FRAME_PREFIX or "Highground") .. "WorldActivity" .. (provider and (provider.suffix or "Sample") or ""), {
     title = ns.Locale:Get("activity.title"), hint = ns.Locale:Get("activity.hint"),
     width = 760, height = 560, listRatio = 0.4, rowHeight = 52,
     data = provider and provider.entries or A.Entries, empty = ns.Locale:Get("activity.empty"),
@@ -148,7 +148,17 @@ function A.Changed()
   if A.win and A.win:IsShown() then A.win:Refresh() end
 end
 
--- Guide samples: two zones, one with a mark and kills.
+-- `/hg activity test`: the sample zones in their own window. A window, so
+-- it has its own preview button and stays out of `/hg test`.
+local preview = { suffix = "Preview", entries = function() return A.Samples() end }
+function A.PreviewShown() return preview.win ~= nil and preview.win:IsShown() end
+function A.Preview()
+  if A.PreviewShown() then preview.win:Hide(); return false end
+  A.Build(preview):Open()
+  return true
+end
+
+-- Guide and preview samples: two zones, one with a mark and kills.
 function A.Samples()
   local now = GetTime()
   local busy = { mapID = 0, enemies = 9, now = 6, classes = { ROGUE = 4, MAGE = 3, PRIEST = 2 }, guilds = { ["Night Watch"] = 5 },

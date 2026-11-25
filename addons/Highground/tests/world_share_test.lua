@@ -251,7 +251,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
 end
 
 for _, build in ipairs({ 120100, 16001 }) do
-  test(build .. ": everyone in the users channel gets coarse sightings only with the opt-in", function()
+  test(build .. ": everyone in the users channel gets coarse sightings, on by default", function()
     local sim = setup("retail", build)
     local N = sim.ns.Nearby
     sim.ns.Peers.ChannelID = function() return 7 end
@@ -263,9 +263,11 @@ for _, build in ipairs({ 120100, 16001 }) do
       end
       return out
     end
+    assert(sim.ns.Core.O("nearbyShareWorld"), "on by default")
+    sim:command("nearby share world off")
     plate(sim, "Sneaky")
     sim:advance(25)
-    equal(#channel(), 0, "off by default")
+    equal(#channel(), 0, "nothing while it is off")
     sim:command("nearby share world on")
     sim:event("NAME_PLATE_UNIT_ADDED", "nameplate1")
     sim:advance(25)
@@ -290,7 +292,7 @@ for _, build in ipairs({ 120100, 16001 }) do
     equal(N.seen.Trader, nil, "only the users channel")
     sim:command("nearby share world off")
     hear("1:" .. HILLSBRAD .. ":Late-Realm,MAGE,60,2250,2250,100,3,")
-    equal(N.seen.Late, nil, "nothing is read with the opt-in off")
+    equal(N.seen.Late, nil, "nothing is read while it is off")
     sim:assertHealthy()
   end)
 end

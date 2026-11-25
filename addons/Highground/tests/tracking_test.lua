@@ -153,7 +153,8 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
       local T, N = sim.ns.Tracking, sim.ns.Nearby
       sim:command("nearby track Bob")
       sim:advance(2)
-      equal(#sent(sim, "1T:"), 0, "off by default: nothing tells others whom you track")
+      assert(sim.ns.Core.O("nearbyTrackWorld"), "on by default")
+      equal(#sent(sim, "1T:"), 0, "nothing tells others whom you track before the users channel is joined")
       joinWorld(sim)
       sim:advance(2)
       local asks = sent(sim, "1T:")

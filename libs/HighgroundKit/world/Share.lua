@@ -24,7 +24,7 @@ Share.GROUP_EVERY, Share.GUILD_EVERY, Share.WORLD_EVERY = 3, 10, 20 -- seconds b
 -- you have moved (MOVED of the zone map). Hearing someone else send it
 -- counts as sent: a raid reports each enemy about once, not once per member.
 Share.REPEAT = { group = 15, guild = 30, world = 60 }
--- Everyone (`nearbyShareWorld`, opt-in): the realm/faction users channel
+-- Everyone (`nearbyShareWorld`, on by default): the realm/faction users channel
 -- (core/Peers) gets a 20 x 20 map cell, never where you stood, and only
 -- sightings from the reader's own zone are kept.
 Share.CELLS = 20

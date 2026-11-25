@@ -10,7 +10,7 @@ local function DeferRows(page, kind)
   page.build = function()
     for _, def in ipairs(definitions) do
       Options.Row(page, { kind = kind, key = def.key, def = kind == "weight" and 1 or def.def,
-        step = kind == "weight" and 0.1 or def.step, desc = def.desc })
+        step = kind == "weight" and 0.1 or def.step, source = def, desc = def.desc })
     end
   end
   return definitions
@@ -49,8 +49,8 @@ function Options.SpecStepper(f, offset, row)
 end
 local specs = Options.MakePage("specs")
 specs.build = function()
-  for i, title in ipairs({ ns.Locale:Get("highground.profilesummary.killability.7d81d0"), ns.Locale:Get("highground.profilesummary.impact.62036a") }) do
-    local label = Kit.Caption(specs.child, title)
+  for i, key in ipairs({ "highground.profilesummary.killability.7d81d0", "highground.profilesummary.impact.62036a" }) do
+    local label = ns.Localization.Bind(Kit.Caption(specs.child, ns.Locale:Get(key)), key)
     label:SetPoint("TOPRIGHT", -S("md") - (2 - i) * 130, specs.y - S("sm"))
     label:SetWidth(108)
     label:SetJustifyH("CENTER")

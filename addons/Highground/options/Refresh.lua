@@ -13,3 +13,12 @@ Options.panel.RefreshAll = function()
   Options.RefreshAllRows()
   RefreshProfiles()
 end
+
+-- Slash commands can change values while a settings page is already open.
+-- Refresh that view without building or redrawing hidden settings pages.
+function Options.RefreshVisible()
+  for _, page in ipairs(Options.pages) do
+    if page.frame:IsVisible() then Options.RefreshPage(page) end
+  end
+  if Options.panel:IsVisible() then RefreshProfiles() end
+end

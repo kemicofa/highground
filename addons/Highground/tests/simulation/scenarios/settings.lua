@@ -1,5 +1,79 @@
 local test, new, equal = ...
 
+test("slash edits update open settings without refreshing hidden pages", function()
+  local s = new("cata")
+  local O = s.ns.Options
+  s.ns.Hub.Open("multipliers"); s.ns.Hub.Open("priority"); s:advance(0.02)
+  local row
+  for _, candidate in ipairs(O.rows) do if candidate.key == "killPer" then row = candidate end end
+  assert(row, "the visible priority input exists")
+  local hidden = 0
+  local refresh = O.byKey.multipliers.RefreshBehavior
+  O.byKey.multipliers.RefreshBehavior = function() hidden = hidden + 1; if refresh then refresh() end end
+  s:command("points killPer 9")
+  equal(s.ns.Core.P("killPer"), 9, "command changes runtime score")
+  equal(row.box:GetText(), "9", "open input reflects command")
+  s:command("points killPer reset")
+  equal(row.box:GetText(), "6", "open input reflects command reset")
+  equal(hidden, 0, "hidden settings stay idle")
+  s:assertHealthy()
+end)
+
+test("target tuning labels follow saved and live language choices", function()
+  local s = new("cata", { locale = "frFR" })
+  local O, L = s.ns.Options, s.ns.Locale
+  s.ns.Hub.Open("behavior")
+  s.ns.Hub.Open("priority")
+  s.ns.Hub.Open("multipliers")
+  local rows = {}
+  for _, row in ipairs(O.rows) do
+    if row.key == "switchMargin" or row.key == "killPer" or row.key == "kill" then rows[#rows + 1] = row end
+  end
+  equal(#rows, 3, "behavior, points and multipliers have real controls")
+  for _, locale in ipairs({ "frFR", "ruRU", "enUS" }) do
+    s.ns.Localization.SetPreference(locale)
+    for _, row in ipairs(rows) do
+      equal(row.label:GetText(), L:Get(s.ns.Localization.Key(row.source, "desc")), "translated row " .. row.key)
+    end
+  end
+  s:assertHealthy()
+end)
+
+test("cooldown tracking search and bulk controls clear translated help at large text sizes", function()
+  local s = new("cata", nil, function(s) dofile("../../tools/wowsim/geometry.lua")(s) end)
+  s.ns.Hub.Open("tracking")
+  s.ns.Core.SetFontScale(1.5)
+  local page = s.ns.Options.byKey.tracking
+  local frameCount = #s.frames
+  for _, locale in ipairs({ "enUS", "frFR", "ruRU", "deDE" }) do
+    s.ns.Localization.SetPreference(locale); s:advance(0.02)
+    local hint, caption, bar, body = s.bounds(page.hint), s.bounds(page.search.caption), s.bounds(page.toolbar), s.bounds(page.scroll)
+    assert(hint[2] + hint[4] <= caption[2], "search caption clears wrapped help in " .. locale)
+    assert(bar[2] + bar[4] <= body[2], "scrolling spells clear all toolbar rows in " .. locale)
+    for _, button in ipairs({ page.trackShown, page.untrackShown }) do
+      local b = s.bounds(button)
+      assert(b[1] >= bar[1] and b[1] + b[3] <= bar[1] + bar[3] + 0.01, "bulk action fits translated toolbar")
+    end
+  end
+  equal(#s.frames, frameCount, "language/layout changes reuse existing controls")
+  local offensive = s.ns.Locale:Get("highground.tracking.offensive.d05a4a")
+  page.search:SetText(offensive)
+  local matches = 0
+  for _, cb in ipairs(page.trackingBoxes) do
+    if cb.matches then matches = matches + 1; equal(cb.entry[3], "burst", "search uses current translated kind") end
+  end
+  assert(matches > 0, "translated category search finds spells")
+  page.untrackShown:GetScript("OnClick")(page.untrackShown)
+  for _, cb in ipairs(page.trackingBoxes) do
+    if cb.matches then equal(s.ns.Core.db.disabledCooldowns[cb.spellID], true, "bulk action reaches saved tracking") end
+  end
+  page.trackShown:GetScript("OnClick")(page.trackShown)
+  for _, cb in ipairs(page.trackingBoxes) do
+    if cb.matches then equal(s.ns.Core.db.disabledCooldowns[cb.spellID], nil, "track restores runtime default") end
+  end
+  s:assertHealthy()
+end)
+
 test("invalid profile imports are rejected atomically across all setting types", function()
   local sim = new("cata")
   sim:command("points killPer 9")

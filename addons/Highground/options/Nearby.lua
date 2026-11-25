@@ -7,6 +7,7 @@ local S = Theme.Space
 local function Build(key)
   local page = Options.FeaturePage(key, key == "bounty" and "bounties" or "nearby")
   local toggles = {}
+  page.behaviorToggles = toggles
   local open = Options.ToolLink(page, key == "bounty" and "bountyboard" or "journal")
   if key == "bounty" then page.openBoard = open end
   for _, def in ipairs(ns.OptionsConfig.behavior) do
@@ -15,12 +16,15 @@ local function Build(key)
         local check = Options.Toggle(page.child, def.desc, nil, function(_, on)
           Options.Set({ kind = "option", key = def.key }, on)
         end)
+        ns.Localization.BindField(check.label, def, "desc")
+        ns.Kit.Tooltip(check, function() return { { def.desc, "text", true } } end, { anchor = "ANCHOR_RIGHT" })
         check:SetPoint("TOPLEFT", S("xl"), page.y - S("xs"))
         toggles[def.key] = check
         page.y = page.y - 28
       else
-        Options.Row(page, { kind = "option", key = def.key, def = def.def, step = def.step,
-          desc = def.desc, detail = ns.Locale:Format("highground.nearby.unit_def_unit.cb8056", { def_unit = ns.OptionUnit(def) }) })
+        Options.Row(page, ns.Localization.Define({ kind = "option", key = def.key, def = def.def, step = def.step }, {
+          desc = ns.Localization.Key(def, "desc"), detail = { key = "highground.nearby.unit_def_unit.cb8056",
+            values = function() return { def_unit = ns.OptionUnit(def) } end } }))
       end
     end
   end

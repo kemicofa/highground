@@ -306,7 +306,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
           equal(H.current, key, "shortcut selects its owning settings page")
           local p = O.byKey[key]
           equal(H.activeFrame, p.frame)
-          for _, row in ipairs(p.alertRows) do inside(row.text, p.scroll); inside(row.sound, p.scroll) end
+          for _, row in ipairs(p.alertRows) do if row.text then inside(row.text, p.scroll) end; inside(row.sound, p.scroll) end
           if owner == "battlegrounds" then assert(p.scroll:GetVerticalScroll() > 0, "long page opens at its alerts") end
           if embedded then
             H.Back(); equal(H.current, "alerts", "Back returns to the shortcuts")

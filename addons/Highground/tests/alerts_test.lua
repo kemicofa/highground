@@ -143,4 +143,25 @@ t.test("old alert levels and sound options fold into the switches once", functio
   t.equal(A.Preset(alerts), "quiet", "Text only stays Text only")
 end)
 
+t.test("sound-only categories ignore legacy text switches and still mute their cues", function()
+  local s = Fixture()
+  local A = s.ns.Alerts
+  assert(A.SetMode("everything"))
+  for _, category in ipairs({ "go", "lockon" }) do
+    t.equal(A.Supports(category, "text"), false, "no written alert for " .. category)
+    t.equal(A.SetChannel(category, "text", true), false, "unused preference cannot be edited")
+    t.equal(A.Settings().channels[category].text, nil, "presets store only useful switches")
+    A.Settings().channels[category].text = false -- an old profile
+    t.equal(A.Preset(A.Settings()), "everything", "legacy text does not make a preset Custom")
+    assert(A.SetChannel(category, "sound", false))
+    A.Emit(category, category, nil, s:sound(category))
+    s:advance(2)
+    t.equal(#s.played, 0, "Sound off mutes " .. category)
+    assert(A.SetChannel(category, "sound", true))
+  end
+  assert(A.SetMode("quiet"))
+  t.equal(A.Preset(A.Settings()), "quiet", "Text only recognizes sound-only categories")
+  t.equal(A.Allowed("go", "sound"), false, "Text only mutes the kill window")
+end)
+
 t.finish("Alerts: " .. t.tests .. " tests, " .. t.checks .. " checks")

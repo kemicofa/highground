@@ -15,9 +15,11 @@ for _, d in ipairs({
   ns.Localization.Define({ "worldcall", ns.Locale:Get("calls.alert.label"), 2 }, { [2] = "calls.alert.label" }),
   ns.Localization.Define({ "lockon", ns.Locale:Get("shared.alerts.target_lock.c964c3"), 1 }, { [2] = "shared.alerts.target_lock.c964c3" }),
 }) do
-  A.categories[#A.categories + 1] = { key = d[1], label = d[2], priority = d[3], objective = d[4],
+  A.categories[#A.categories + 1] = ns.Localization.Define({ key = d[1], label = d[2], priority = d[3], objective = d[4],
+    soundOnly = d[1] == "go" or d[1] == "lockon",
     module = d[1] == "bounty" and "bounties" or d[1] == "stealth" and "shared"
-      or (d[1] == "nearby" or d[1] == "tracked" or d[1] == "worldcall") and "nearby" or "battlegrounds" }
+      or (d[1] == "nearby" or d[1] == "tracked" or d[1] == "worldcall") and "nearby" or "battlegrounds" },
+    { label = ns.Localization.Key(d, 2) })
 end
 -- Notify's sound for each category, created once: plays the chosen cue.
 for _, def in ipairs(A.categories) do
@@ -160,6 +162,13 @@ local function Category(key)
   for _, def in ipairs(A.categories) do if def.key == key then return def end end
 end
 
+-- Target lock and kill-window cues have no written alert. Keep unused text
+-- preferences out of controls, presets and profile comparisons.
+local function Supports(def, channel)
+  return def ~= nil and (channel == "sound" or channel == "text" and not def.soundOnly)
+end
+function A.Supports(category, channel) return Supports(Category(category), channel) end
+
 local function Switch(settings, category, channel)
   local channels = type(settings.channels) == "table" and settings.channels[category]
   return not (type(channels) == "table" and channels[channel] == false)
@@ -167,7 +176,7 @@ end
 
 -- Evaluate an isolated preference set as well as the live settings.
 function A.AllowedFor(settings, category, channel, sounds)
-  if not Category(category) or not Switch(settings, category, channel) then return false end
+  if not A.Supports(category, channel) or not Switch(settings, category, channel) then return false end
   return channel ~= "sound" or sounds ~= false
 end
 
@@ -180,12 +189,13 @@ end
 
 -- One alert's switch, ignoring the master sound switch.
 function A.ChannelOn(category, channel)
+  if not A.Supports(category, channel) then return false end
   local db = ns.GetDB and ns.GetDB() or ns.Core.db
   return Switch(db and type(db.alerts) == "table" and db.alerts or EMPTY, category, channel)
 end
 
 function A.SetChannel(category, channel, on)
-  if not Category(category) or (channel ~= "text" and channel ~= "sound") then return false end
+  if not A.Supports(category, channel) then return false end
   local channels = A.Settings().channels
   channels[category] = type(channels[category]) == "table" and channels[category] or {}
   channels[category][channel] = on and true or false
@@ -198,7 +208,7 @@ function A.Preset(settings)
     local allows, match = PRESETS[key], true
     for _, def in ipairs(A.categories) do
       for _, channel in ipairs(CHANNELS) do
-        if Switch(settings, def.key, channel) ~= allows(def, channel) then match = false end
+        if Supports(def, channel) and Switch(settings, def.key, channel) ~= allows(def, channel) then match = false end
       end
     end
     if match then return key end
@@ -214,7 +224,7 @@ function A.ApplyPreset(settings, mode)
   if type(settings.channels) == "table" then wipe(settings.channels) else settings.channels = {} end
   for _, def in ipairs(A.categories) do
     local channel = {}
-    for _, key in ipairs(CHANNELS) do channel[key] = allows(def, key) end
+    for _, key in ipairs(CHANNELS) do if Supports(def, key) then channel[key] = allows(def, key) end end
     settings.channels[def.key] = channel
   end
   return true
@@ -249,7 +259,7 @@ function A.Upgrade(owner, prefs)
   if allows then
     for _, def in ipairs(A.categories) do
       for _, channel in ipairs(CHANNELS) do
-        if not allows(def, channel) then Off(def.key, channel) end
+        if Supports(def, channel) and not allows(def, channel) then Off(def.key, channel) end
       end
     end
   end

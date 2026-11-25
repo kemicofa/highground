@@ -146,7 +146,7 @@ function C.NearbySteps()
     { id = "fights", title = ns.Locale:Get("guide.nearby.fights.title"), text = ns.Locale:Get("guide.nearby.fights.text"),
       enter = Panel, target = function() return Nearby.win end, context = function() return Nearby.win end,
       feature = "worldFights", settingLabel = ns.Locale:Get("fights.label") },
-    { id = "sound", sound = "nearby", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"),
+    { id = "sound", sound = "nearby", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("nearby.sound.tooltip"),
       enter = Panel, target = function() return Nearby.win.sound end, context = function() return Nearby.win end,
       hint = ns.Locale:Get("highground.coachsamples.this_is_your_real_sound_preference.c14faf") },
     { id = "history", title = ns.Locale:Get("highground.coachsamples.open_the_encounter_history.fa7844"), text = ns.Locale:Get("highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"),

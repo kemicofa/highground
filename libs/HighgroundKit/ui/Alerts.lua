@@ -117,11 +117,15 @@ function A.Open(embedded)
         label:SetPoint("TOPLEFT", 0, -y - 4); label:SetPoint("TOPRIGHT", -380, -y - 4)
         label:SetJustifyH("LEFT"); label:SetWordWrap(true); ns.Localization.BindField(label, def, "label")
         for _, channel in ipairs({ "text", "sound" }) do
-          local key = channel
-          row[key] = Kit.Toggle(w.body, key == "text" and ns.Locale:Get("highground.addonpages.text.c3328c") or ns.Locale:Get("highground.addonpages.sound.b4e3ef"), { width = key == "text" and 90 or 104, onChange = function(_, on)
-            A.SetChannel(def.key, key, on); w:Refresh()
-          end })
-          row[key]:SetPoint("TOPRIGHT", key == "text" and -270 or -150, -y)
+          if A.Supports(def.key, channel) then
+            local key = channel
+            local labelKey = key == "text" and "highground.addonpages.text.c3328c" or "highground.addonpages.sound.b4e3ef"
+            row[key] = Kit.Toggle(w.body, ns.Locale:Get(labelKey), { width = key == "text" and 90 or 104, onChange = function(_, on)
+              A.SetChannel(def.key, key, on); w:Refresh()
+            end })
+            ns.Localization.Bind(row[key].label, labelKey)
+            row[key]:SetPoint("TOPRIGHT", key == "text" and -270 or -150, -y)
+          end
         end
         row.play = A.SoundButton(w.body, def)
         row.play:SetPoint("TOPRIGHT", 0, -y)
@@ -143,7 +147,7 @@ function A.Open(embedded)
       self.mode:SetValue(mode, true)
       Describe(self, mode)
       for _, row in ipairs(self.rows) do
-        row.text:SetChecked(A.ChannelOn(row.key, "text"), true)
+        if row.text then row.text:SetChecked(A.ChannelOn(row.key, "text"), true) end
         row.sound:SetChecked(A.ChannelOn(row.key, "sound"), true)
         row.sound:SetEnabled(sounds)
       end

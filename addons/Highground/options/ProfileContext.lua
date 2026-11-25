@@ -13,7 +13,11 @@ local function Comparable(snap, tuningOnly)
   if setup then
     local s = setup.style
     for key, choices in pairs({ font = A.fonts, bar = A.bars, barColor = A.barColors,
-      borderColor = A.borderColors, healthStyle = A.healthStyles }) do s[key] = s[key] or choices[1].key end
+      borderColor = A.borderColors, healthStyle = A.healthStyles,
+      enemyColor = A.enemyColors, enemyBar = A.enemyBars }) do s[key] = s[key] or choices[1].key end
+    for _, def in ipairs(A.enemyNumbers) do
+      if s[def.key] == nil then s[def.key] = def.default end
+    end
     s.fontScale, s.border, s.frameless = s.fontScale or 1, s.border or A.border.default, s.frameless == true
     s.hideHero = nil -- old unused field; current visibility lives in hide.hero
     s.scales, s.hide = s.scales or {}, s.hide or {}
@@ -41,9 +45,16 @@ local function Comparable(snap, tuningOnly)
     setup.preferences.locked = setup.preferences.locked == true
     setup.preferences.reducedMotion = setup.preferences.reducedMotion == true
     setup.alerts.channels = setup.alerts.channels or {}
+    setup.alerts.sounds = setup.alerts.sounds or {}
     for _, def in ipairs(ns.Alerts.categories) do
       local channel = setup.alerts.channels[def.key] or {}
-      setup.alerts.channels[def.key] = { text = channel.text ~= false, sound = channel.sound ~= false }
+      setup.alerts.channels[def.key] = {
+        text = ns.Alerts.Supports(def.key, "text") and channel.text ~= false or nil,
+        sound = ns.Alerts.Supports(def.key, "sound") and channel.sound ~= false or nil,
+      }
+      if ns.Alerts.Choosable(def.key) then
+        setup.alerts.sounds[def.key] = setup.alerts.sounds[def.key] or def.key
+      end
     end
   end
   return prepared
@@ -125,6 +136,14 @@ function P.ActiveState()
   if saved then
     if changed or modified == nil then
       local current, original = Comparable(P.Snapshot(), saved.setup == nil), Comparable(saved)
+      if current and original and current.setup and original.setup then
+        -- Old profiles leave omitted feature switches alone when applied.
+        -- Compare only those they own, rather than reporting untouched newer
+        -- switches as edits immediately after loading the saved setup.
+        for key in pairs(current.setup.features) do
+          if original.setup.features[key] == nil then current.setup.features[key] = nil end
+        end
+      end
       modified = not current or not original or not Equal(current, original)
     end
     state.modified = modified

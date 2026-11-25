@@ -251,7 +251,7 @@ test("automatic switching is available from Profiles with saved activity choices
   w.enabled:SetChecked(true); C.db.sniper = true
   sim.ns.Hub.win:Hide(); sim:joinArena()
   equal(C.db.sniper, false); equal(C.db.activeProfile, "Arena healer")
-  P.OpenAssignments(); w.activities.arena:SetValue("none")
+  P.OpenAssignments(); w.activities.arena:SetValue("")
   equal(C.db.profileAssignments[who][key], nil)
   sim:assertHealthy()
 end)

@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("ptBR", {
+  ["appearance.font.locale_fallback"] = "O idioma atual usa uma fonte compatível do jogo. A escolha da fonte fica disponível quando essa alternativa não for mais necessária; sua escolha salva é mantida.",
   ["enemy.appearance.shared"] = "Estilo compartilhado",
   ["enemy.appearance.readable"] = "Cartões legíveis",
   ["enemy.appearance.compact"] = "Barras compactas",
@@ -814,7 +815,6 @@ assert(ns.Locale:Register("ptBR", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Esmaecido significa visto pela última vez há mais tempo",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands é um avistamento mais antigo. Estar nesta lista não prova que o inimigo ainda está por perto.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Escolha se o Nearby emite um som",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "Este botão liga e desliga os sons de avistamento e furtividade. Suas configurações globais de alerta ainda se aplicam.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "Esta é a sua preferência de som real.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Abra o histórico de encontros",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "O Histórico mantém os inimigos depois que eles saem da lista de inimigos próximos. Clique em Histórico abaixo dos avistamentos.",

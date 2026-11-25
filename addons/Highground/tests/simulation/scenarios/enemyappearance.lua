@@ -247,3 +247,88 @@ test("enemy appearance routes respect the disabled battleground module", functio
   equal(s.ns.Hub.current, "module-battlegrounds", "disabled module routes to its settings")
   s:assertHealthy()
 end)
+
+
+test("appearance controls translate live and keep labels clear at enlarged text", function()
+  local s = make("cata")
+  local C, O, L = s.ns.Core, s.ns.Options, s.ns.Locale
+  C.SetFontScale(1.5)
+  local sniperLabels = {
+    sniperPadding = "highground.appearance.gap_from_nameplate.fc5321",
+    sniperX = "highground.appearance.horizontal_offset.2cfb8a",
+    sniperY = "highground.appearance.vertical_offset.669530",
+    sniperScale = "highground.appearance.marker_size.56315e",
+  }
+  local function clear(row, why)
+    local label, control = s.bounds(row.label), s.bounds(row.stepper)
+    assert(label[2] + label[4] <= control[2], why .. " label clears its control")
+    assert(row.reset.label:GetStringWidth() + 16 <= row.reset:GetWidth(), why .. " default action fits")
+  end
+  for _, owner in ipairs({ "battlegrounds", "arena", "nearby" }) do
+    s.ns.Hub.Open(owner .. "-appearance")
+    local p = O.byKey[owner .. "-appearance"]
+    for _, locale in ipairs({ "enUS", "frFR", "deDE", "esES", "esMX", "itIT", "ptBR", "ruRU", "koKR", "zhCN", "zhTW" }) do
+      s.ns.Localization.SetPreference(locale)
+      equal(p.shared:GetText(), L:Get("highground.appearance.shared_theme_and_accessibility.7f65ce"), "shared link follows language")
+      equal(p.detailHeading:GetText(), L:Get("highground.appearance.sizes_and_spacing.8d69d8"), "section follows language")
+      for _, row in ipairs(p.metricRows) do
+        equal(row.label:GetText(), row.metric.label, "metric label follows language")
+        clear(row, locale .. " " .. row.metric.key)
+      end
+      for key, row in pairs(p.sniperRows or {}) do
+        equal(row.label:GetText(), L:Get(sniperLabels[key]), "marker label follows language")
+        clear(row, locale .. " " .. key)
+      end
+      for _, row in ipairs(p.elementBoxes) do
+        for _, def in ipairs(C.THEME.appearance.elements) do
+          if def.key == row.key then
+            equal(row.label:GetText(), def.label, "row element label follows language")
+            if row.note then equal(row.note:GetText(), def.desc, "row element help follows language") end
+          end
+        end
+      end
+    end
+  end
+  s.ns.Hub.Open("battlegrounds-appearance")
+  local p = O.byKey["battlegrounds-appearance"]
+  click(p.preview)
+  local width = C.frame:GetWidth()
+  for _, row in ipairs(p.metricRows) do
+    if row.metric.key == "width" then
+      click(row.stepper.plus)
+      equal(C.frame:GetWidth(), width + row.metric.step, "translated control resizes the actual preview")
+      click(row.reset)
+      equal(C.frame:GetWidth(), C.MetricDefault("width", false), "translated Default restores the actual preview")
+    end
+  end
+  click(p.preview)
+  assert(not C.testMode and not O.AppearancePreview.session, "preview still stops after language changes")
+  s:assertHealthy()
+end)
+
+
+test("language font fallback disables unavailable choices and preserves the saved face", function()
+  local s = make("cata")
+  local C, O, L = s.ns.Core, s.ns.Options, s.ns.Localization
+  s.ns.Hub.Open("appearance")
+  local p = O.appearance
+  p.font:SetValue("skurri")
+  local selectedFace = C.head.title:GetFont()
+  for _, locale in ipairs({ "ruRU", "koKR", "zhCN", "zhTW" }) do
+    L.SetPreference(locale)
+    assert(not p.font:IsEnabled(), "font choice is unavailable under script fallback")
+    assert(p.hint:GetText():find(s.ns.Locale:Get("appearance.font.locale_fallback"), 1, true), "the reason is explained in the page")
+    equal(C.head.title:GetFont(), L.Font(), "compatible script font stays active")
+    p.font:Click()
+    equal(C.StyleChoice("font").key, "skurri", "disabled choice keeps the saved preference")
+  end
+  L.SetPreference("enUS")
+  assert(p.font:IsEnabled(), "Latin font choices become available immediately")
+  equal(p.font:GetValue(), "skurri", "saved selection restored")
+  equal(C.head.title:GetFont(), selectedFace, "saved face draws again")
+  equal(p.hint:GetText(), s.ns.OptionsConfig.pages.appearance.hint, "fallback notice clears")
+  local client = new("cata", {}, function(_, env) env.GetLocale = function() return "ruRU" end end)
+  client.ns.Hub.Open("appearance")
+  assert(not client.ns.Options.appearance.font:IsEnabled(), "client script fallback also disables the choice with English UI")
+  s:assertHealthy(); client:assertHealthy()
+end)

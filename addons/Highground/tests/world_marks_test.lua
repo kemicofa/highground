@@ -116,6 +116,29 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim:assertHealthy()
   end)
 
+  test(build .. ": map visibility does not lock the mark sharing preference", function()
+    local sim = setup(client, build)
+    local C, O, M = sim.ns.Core, sim.ns.Options, sim.ns.WorldMarks
+    sim.ns.Hub.Open("nearby")
+    local toggle
+    for _, box in ipairs(O.featureBoxes) do if box.key == "nearbyMarks" then toggle = box end end
+    assert(toggle and toggle:IsEnabled())
+    sim:command("nearby map off")
+    assert(toggle:IsEnabled(), "marks stay configurable when the map is hidden")
+    sim:command("nearby mark enemies")
+    equal(#sent(sim, "PARTY", "1M:"), 1, "the mark still reaches teammates")
+    equal(#pins(sim, HILLSBRAD), 0, "map visibility still controls rendering")
+    toggle.scripts.OnClick(toggle)
+    equal(C.db.nearbyMarks, false, "the visible switch saves the setting")
+    local mark = M.Here("help")
+    equal(mark, nil, "disabled marks cannot be placed")
+    sim:command("nearby marks on")
+    assert(toggle:GetChecked(), "the command refreshes the same control")
+    sim:command("nearby map on")
+    equal(#pins(sim, HILLSBRAD), 1, "showing the map restores the retained mark")
+    sim:assertHealthy()
+  end)
+
   test(build .. ": known gankers and gathering enemy raids are World PvP calls", function()
     local sim = setup(client, build)
     local N, H = sim.ns.Nearby, sim.ns.NearbyHistory

@@ -102,6 +102,58 @@ test("changes to records, other profiles and switching rules do not mark the act
   state(sim, "My setup", false)
 end)
 
+test("restoring enemy appearance defaults clears the active profile's edited state", function()
+  local sim = new("cata", {})
+  local C, P = sim.ns.Core, sim.ns.Options.Profiles
+  save(sim, "Enemy defaults")
+  for _, def in ipairs(sim.ns.UIConfig.appearance.enemyNumbers) do
+    local changed = def.default == def.min and def.max or def.min
+    C.SetEnemyNumber(def.key, changed); state(sim, "Enemy defaults", true)
+    C.SetEnemyNumber(def.key, def.default); state(sim, "Enemy defaults", false)
+  end
+  for key, choices in pairs({ enemyColor = sim.ns.UIConfig.appearance.enemyColors,
+    enemyBar = sim.ns.UIConfig.appearance.enemyBars }) do
+    C.SetStyleChoice(key, choices[2].key); state(sim, "Enemy defaults", true)
+    C.SetStyleChoice(key, choices[1].key); state(sim, "Enemy defaults", false)
+  end
+  assert(P.LoadProfile("Enemy defaults")); state(sim, "Enemy defaults", false)
+  sim:assertHealthy()
+end)
+
+test("obsolete text channels do not appear in profiles or mark them as edited", function()
+  local sim = new("cata", {})
+  local C, P = sim.ns.Core, sim.ns.Options.Profiles
+  save(sim, "Alert defaults")
+  for _, key in ipairs({ "go", "lockon" }) do
+    sim.ns.Alerts.Settings().channels[key] = { text = false }
+    state(sim, "Alert defaults", false)
+    for _, row in ipairs(P.Review(P.Snapshot())) do
+      assert(row.id ~= "alerts." .. key .. ".text", "sound-only alerts omit inactive text settings")
+    end
+    sim.ns.Alerts.Settings().channels[key].sound = false
+    state(sim, "Alert defaults", true)
+    sim.ns.Alerts.Settings().channels[key].sound = true
+    state(sim, "Alert defaults", false)
+  end
+  local legacy = P.Snapshot()
+  assert(P.ImportText(P.ExportString(legacy)), "legacy unused text fields remain importable")
+  sim:assertHealthy()
+end)
+
+test("restoring an alert's original sound clears the active profile's edited state", function()
+  local sim = new("cata", {})
+  local A, P = sim.ns.Alerts, sim.ns.Options.Profiles
+  save(sim, "Default sounds")
+  assert(A.SetSound("capture", "go")); state(sim, "Default sounds", true)
+  assert(A.SetSound("capture", "capture")); state(sim, "Default sounds", false)
+  -- Older imports may explicitly store the category's default cue.
+  local snap = P.Snapshot(); snap.setup.alerts.sounds.capture = "capture"
+  assert(P.SaveImported(P.ExportString(snap), "Explicit default"))
+  assert(P.LoadProfile("Explicit default")); state(sim, "Explicit default", false)
+  assert(A.SetSound("capture", "capture")); state(sim, "Explicit default", false)
+  sim:assertHealthy()
+end)
+
 test("profile indicators describe imported copies and never retain the previous profile name", function()
   local sim = new("retail", {})
   local P, C = sim.ns.Options.Profiles, sim.ns.Core
@@ -159,6 +211,21 @@ test("legacy tuning profiles only compare the settings they contain", function()
   assert(P.LoadProfile("Old")); state(sim, "Old", false)
   sim.ns.Core.SetElement("hero", false); state(sim, "Old", false)
   sim.ns.Core.SetTuning("option", "executePct", 0.2); state(sim, "Old", true)
+end)
+
+test("older full profiles compare only the feature switches they contain", function()
+  local sim = new("cata", {})
+  local C, P = sim.ns.Core, sim.ns.Options.Profiles
+  save(sim, "Older setup")
+  C.db.profiles["Older setup"].setup.features.sniper = nil
+  C.SetFeature("sniper", false)
+  assert(P.LoadProfile("Older setup"))
+  equal(C.db.sniper, false, "an omitted switch preserves the current setting")
+  state(sim, "Older setup", false)
+  C.SetFeature("sniper", true); state(sim, "Older setup", false)
+  C.SetFeature("flags", false); state(sim, "Older setup", true)
+  C.SetFeature("flags", true); state(sim, "Older setup", false)
+  sim:assertHealthy()
 end)
 
 test("standalone and Blizzard settings retain context without duplicate embedded footers", function()

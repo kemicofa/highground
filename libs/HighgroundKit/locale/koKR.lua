@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("koKR", {
+  ["appearance.font.locale_fallback"] = "현재 언어에는 호환되는 게임 글꼴이 사용됩니다. 이 대체 글꼴이 더 이상 필요하지 않으면 글꼴을 선택할 수 있으며, 저장된 선택은 유지됩니다.",
   ["enemy.appearance.shared"] = "공유 스타일",
   ["enemy.appearance.readable"] = "읽기 쉬운 카드",
   ["enemy.appearance.compact"] = "간결한 막대",
@@ -814,7 +815,6 @@ assert(ns.Locale:Register("koKR", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "마지막으로 본 날짜",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "홀리핸즈(Holyhands)는 오래된 관측지이다. 이 목록에 있는 것은 적이 여전히 가까이 있다는 증거가 아닙니다.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "근처에서 소리를 낼지 선택하기",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "이 버튼은 관측 소리와 스텔스 소리를 전환합니다. 글로벌 알림 설정은 여전히 적용됩니다.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "이것은 당신의 진정한 사운드 선호도입니다.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "만남 기록 열기",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "역사는 근처 목록을 떠난 후 적을 유지합니다. 관측 아래의 역사를 클릭하십시오.",

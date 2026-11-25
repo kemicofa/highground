@@ -1,5 +1,6 @@
 local _, ns = ...
 assert(ns.Locale:Register("frFR", {
+  ["appearance.font.locale_fallback"] = "La langue actuelle utilise une police compatible du jeu. Le choix de police redevient disponible lorsque ce remplacement n’est plus nécessaire ; votre choix est conservé.",
   ["enemy.appearance.shared"] = "Style partagé",
   ["enemy.appearance.readable"] = "Fiches lisibles",
   ["enemy.appearance.compact"] = "Barres compactes",
@@ -814,7 +815,6 @@ assert(ns.Locale:Register("frFR", {
   ["highground.coachsamples.faded_means_last_seen_earlier.c06c8f"] = "Estompé signifie vu plus tôt",
   ["highground.coachsamples.holyhands_is_an_older_sighting_being_on.8aaf10"] = "Holyhands est un repérage plus ancien. Le fait d'être sur cette liste ne prouve pas que l'ennemi est encore à proximité.",
   ["highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"] = "Choisissez si Nearby émet un son",
-  ["highground.coachsamples.this_button_toggles_sighting_and_stealth_sounds.fedc72"] = "Ce bouton active ou désactive les sons de repérage et de furtivité. Vos paramètres d'alerte globaux s'appliquent toujours.",
   ["highground.coachsamples.this_is_your_real_sound_preference.c14faf"] = "C'est votre vraie préférence sonore.",
   ["highground.coachsamples.open_the_encounter_history.fa7844"] = "Ouvrir l'historique des rencontres",
   ["highground.coachsamples.history_keeps_enemies_after_they_leave_the.8369b8"] = "L'historique conserve les ennemis après qu'ils ont quitté la liste des ennemis proches. Cliquez sur Historique sous les repérages.",

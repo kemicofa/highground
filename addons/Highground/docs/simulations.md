@@ -54,7 +54,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | `arena` | Arena panel visibility, secure target and focus clicks in combat, unseen and dead opponents, preview |
 | `playerfeatures` | Role presets, full profiles and combat deferral, automatic assignments, retired callout links, alert priority, restricted health, carrier advice, journals, match history across reloads and reconnects, claims, macro recovery/import choices, localized messages and observed objective widgets |
 | `quickcalls` | Optional movable callout panel, direct battleground sends on all clients, named areas, combat clicks, cooldown, chat failures, disabled previews, saved positions, combat drags and resets, idle refreshes and enlarged text |
-| `quickroutes` | Optional destination counts and WSG/Twin Peaks EFC routes, map and match changes, localized destinations, shared cooldown, settings, profiles, previews and enlarged text |
+| `quickroutes` | Optional destination counts and All clear, WSG/Twin Peaks EFC routes, map and match changes, localized destinations, shared cooldown, settings, profiles, previews and enlarged text |
 | `playerflows` | Setup preview lifecycle, overlapping Cata DR, interrupt estimates, Retail display-only casts/CC, undoing macro creation, stable import review, malformed profile data and guild-scoped claim permissions |
 | `setup` | Guided role and placement flow, saved positions and backups, current settings, closing/combat/match cleanup, hidden-header restoration, hub navigation, large text, profile snapshots and automatic-switching controls |
 | `onboarding` | First-install guide, fresh versus existing defaults, unrated matches, five-row lists, addon feature pages, collapsible navigation and large-text layouts |

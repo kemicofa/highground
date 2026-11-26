@@ -871,7 +871,7 @@ assert((ns.Locale or HighgroundLocale):Register("ruRU", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "Эта необязательная строка сообщает пункт назначения вместо вашего местоположения. Выберите базу в меню.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "Включить вызовы с пунктом назначения в игре",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "Отправьте место назначения и число врагов",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "Нажмите 1, 2 или 3+ под пунктом назначения. Вызов называет, куда направляются эти враги.",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "Нажмите 1, 2 или 3+ под пунктом назначения. Вызов называет, куда направляются эти враги. «Все чисто» сообщает, что там снова безопасно.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "Попробуйте 2 под местом назначения.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "Сообщите маршрут флагоносца",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "На картах с флагами эти кнопки сообщают о маршруте вражеского флагоносца. Нажмите на маршрут, который вы наблюдали.",

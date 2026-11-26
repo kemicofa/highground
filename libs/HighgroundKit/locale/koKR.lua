@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("koKR", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "이 선택적 행은 위치 대신 대상을 호출합니다. 메뉴에서 베이스를 선택합니다.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "게임에서 대상 호출 활성화",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "목적지를 보내고 계산",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "대상 아래에 있는 1, 2 또는 3+를 클릭합니다. 적들이 어디로 가는지 알려주세요",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "목적지 아래의 1, 2 또는 3+를 클릭하세요. 적들이 어디로 향하는지 알립니다. '모두 깨끗합니다'는 그곳이 다시 안전하다고 알립니다.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "목적지 아래에 2를 입력해 보세요.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "플래그 항공사의 경로 호출",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "깃발지도에서 이 버튼은 적의 깃발 운반자의 경로를 보고합니다. 관찰한 경로를 클릭합니다.",

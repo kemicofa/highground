@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("esMX", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "Esta fila opcional avisa de un destino en lugar de tu ubicación. Elige una base en el menú.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "Habilitar llamadas de destino en el juego",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "Envía el destino y el número",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "Haz clic en 1, 2 o 3+ debajo del destino. La llamada indica hacia dónde se dirigen esos enemigos.",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "Haz clic en 1, 2 o 3+ debajo del destino. La llamada indica hacia dónde se dirigen esos enemigos. Despejado avisa que ahí ya es seguro otra vez.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "Prueba 2 bajo el destino.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "Avisa de la ruta del portador de la bandera",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "En los mapas de bandera, estos botones informan de la ruta del portador de la bandera enemigo. Haz clic en la ruta que hayas visto.",

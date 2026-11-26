@@ -174,6 +174,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     go(C, "destination"); equal(Q.win.destination:GetValue(), "")
     Q.win.destination:SetValue("Blacksmith"); C.Update(); equal(C.steps[C.index].id, "count")
     click(Q.win.destinationButtons[2]); assert(Q.guide.message:find("Blacksmith", 1, true))
+    click(Q.win.destinationButtons[4]); equal(Q.guide.message, "All clear — Blacksmith", "All clear for the destination is a sample too")
     go(C, "carrier"); click(Q.win.routeButtons[1]); assert(Q.guide.message:find("EFC", 1, true))
     O.Return(); assert(not Q.guide and not Q.win:IsVisible())
     local after = s.ns.Bounty.Public.Copy(s.ns.Core.db); after.onboarding = nil; same(before, after)

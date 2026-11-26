@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("frFR", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "Cette ligne optionnelle appelle une destination au lieu de votre emplacement. Choisissez une base dans le menu.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "Activer les appels de destination dans le jeu",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "Envoyer la destination et le nombre",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "Cliquez sur 1, 2 ou 3+ sous la destination. L'appel indique où se dirigent ces ennemis.",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "Cliquez sur 1, 2 ou 3+ sous la destination. L'appel indique où se dirigent ces ennemis. Dégagé signale que l'endroit est de nouveau sûr.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "Essayez 2 sous la destination.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "Annoncer l'itinéraire du porteur de drapeau",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "Sur les cartes de drapeaux, ces boutons indiquent la route du porteur de drapeau ennemi. Cliquez sur la route que vous avez observée.",

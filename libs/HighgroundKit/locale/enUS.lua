@@ -867,7 +867,7 @@ assert(ns.Locale:Register("enUS", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "This optional row calls a destination instead of your location. Choose a base from the menu.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "Enable destination calls in game",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "Send the destination and count",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "Click 1, 2 or 3+ below the destination. The call names where those enemies are heading.",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "Click 1, 2 or 3+ below the destination. The call names where those enemies are heading. All clear says it is safe there again.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "Try 2 under the destination.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "Call the flag carrier's route",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "On flag maps, these buttons report the enemy flag carrier's route. Click the route you observed.",

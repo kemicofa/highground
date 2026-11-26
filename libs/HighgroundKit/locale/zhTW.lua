@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("zhTW", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "此可選行呼叫目標而不是你的位置。從選單中選擇一個基地。",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "在遊戲中啟用目標呼叫",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "傳送目的地和計數",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "點選目的地下方的 1、2 或 3+。呼叫名稱，這些敵人正在前進。",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "點選目的地下方的 1、2 或 3+，告訴隊友有多少敵人正前往該處。「全部清除」表示那裡已恢復安全。",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "嘗試在目的地下面輸入2。",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "呼叫旗艦運營商的路線",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "在旗幟地圖上，這些按鈕報告敵方旗手的路線。點選你觀察到的路線。",

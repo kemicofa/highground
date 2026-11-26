@@ -24,7 +24,7 @@ runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub",
 # names that XML or bindings reference. Anything else is an accidental global.
 allowed_globals = {
     "HighgroundWindowCoordinator", "HighgroundLocale",
-    "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB", "HighgroundReputationNetworkDB",
+    "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB", "HighgroundReputationNetworkDB", "HighgroundMatchArchiveDB",
     "BINDING_HEADER_HIGHGROUND",
     "Highground_Call", "Highground_TeamHealer", "Highground_Hub", "Highground_BountyBoard", "Highground_WorldMark", "HighgroundPinMixin",
     "KillOrderTargetButton", "KillOrderMarkButton", "KillOrderFocusButton",

@@ -33,6 +33,9 @@ t.test("namespaced functions win and are looked up on every call", function()
   t.equal(A.Specialization(), 2, "C_SpecializationInfo index")
   t.equal(A.SpecializationInfo(2), 262, "spec ID first")
   t.equal(A.NumSpecializationsForClassID(11), 4, "spec count")
+  env.UnitGUID, env.UnitName = function() return "Player-1-2" end, function() return "Me" end
+  env.C_AddOns.GetAddOnEnableState = function(addon, character) return addon == "Data" and character == "Player-1-2" and 2 or 0 end
+  t.equal(A.AddOnEnableState("Data"), 2, "addon, then this character's GUID")
   env.C_ChatInfo.SendChatMessage = function() return false end
   t.equal(A.SendChatMessage("hi", "SAY"), false, "a refused send is not accepted")
   env.C_ChatInfo.SendChatMessage = function() error("chat lockdown") end
@@ -49,8 +52,11 @@ t.test("older globals are the fallback and missing functions are harmless", func
     GetSpecialization = function() return 1 end,
     GetSpecializationInfo = function(i) return 70 + i end,
     IsSpellKnown = function(id, pet) return id == 7 and pet == true end,
+    UnitName = function() return "Me" end,
+    GetAddOnEnableState = function(character, addon) return character == "Me" and addon == "Data" and 2 or 0 end,
   })
   t.equal(A.AddOnMetadata("Highground", "Version"), "1.0", "global metadata")
+  t.equal(A.AddOnEnableState("Data"), 2, "the older global takes the character's name first")
   t.equal(A.SendChatMessage("hi", "SAY"), true, "global chat send")
   t.equal(A.ItemCount("Healthstone"), 2, "numbers from strings")
   t.equal(A.IsEquippedItem("Trinket"), false, "nil is false")
@@ -65,6 +71,7 @@ t.test("older globals are the fallback and missing functions are harmless", func
   t.equal(none.ItemCount("x"), 0, "no count")
   t.equal(none.IsSpellKnown(7, true), false, "no spellbook")
   t.equal(none.Specialization(), nil, "no specialization")
+  t.equal(none.AddOnEnableState("Data"), nil, "no enable state")
 end)
 
 t.test("C_SpellBook takes a spell bank instead of a pet flag", function()

@@ -3951,6 +3951,8 @@ assert((ns.Locale or HighgroundLocale):Register("koKR", {
   ["shared.matchwindow.observed_objectives.b5d775"] = "관찰된 목표",
   ["shared.matchwindow.no_objective_events_were_observed.bf34dd"] = "관찰된 목표 이벤트가 없습니다.",
   ["shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132"] = "전체 {total}개 중 최근 {count}개입니다. 전체 타임라인에서 모두 볼 수 있습니다.",
+  ["shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f"] = "이 경기의 타임라인은 Highground Match Data에 있지만, 이 애드온이 없거나 비활성화되어 있습니다. WoW 애드온 목록에서 활성화한 뒤 다시 불러오세요.",
+  ["shared.matchwindow.this_match_s_timeline_is_no_longer.651633"] = "이 경기의 타임라인은 더 이상 보관되지 않습니다. 가장 오래된 타임라인이 새 타임라인을 위해 삭제됩니다. 요약은 그대로 남습니다.",
   ["shared.organizations.open_guild_communities_after_combat.22756f"] = "전투 후 길드 및 커뮤니티 열기.",
   ["shared.organizations.you_are_no_longer_a_member_of.9180e6"] = "더 이상 이 조직의 회원이 아닙니다.",
   ["shared.alerts.everything.4a66d1"] = "모두",

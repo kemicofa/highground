@@ -9,7 +9,7 @@ These rules apply to Highground through the shared HighgroundKit library. Legacy
 | Information | Boundary | Reason |
 | --- | --- | --- |
 | Nearby encounters, kills/deaths, notes and muted enemies | Character + faction + realm/ruleset | “You killed” and “killed you” describe the current character. Forget, delete and undo affect only that history. |
-| Match results, statistics, timelines and unfinished matches | Character + faction + realm/ruleset | Win rates and personal performance belong to the participant. |
+| Match results, statistics, timelines (archived ones too) and unfinished matches | Character + faction + realm/ruleset | Win rates and personal performance belong to the participant. |
 | Private bounties, private imports, tracking/ignore choices, arrival notices and kill evidence | Character + faction + realm/ruleset | Another character's personal target is not automatically yours. **My bounties** includes rewards posted by the current character. |
 | Bounty suggestions and reply cooldowns | Character + faction + realm/ruleset | Personal deaths, dismissals and responses belong to the current character. Guild death reports also require current guild membership. |
 | Shared bounty board, shared sightings and portraits | Realm/ruleset + faction | These are intentionally shared observations and rewards for that audience. |

@@ -9,7 +9,7 @@
 ## X-Wago-ID: b6Xy3OKp
 ## X-GitHub-Latest: true
 ## Dependencies: HighgroundBountyData, HighgroundReputationData
-## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros HighgroundLocaleDeDE HighgroundLocaleEsES HighgroundLocaleEsMX HighgroundLocaleFrFR HighgroundLocaleItIT HighgroundLocaleKoKR HighgroundLocalePtBR HighgroundLocaleRuRU HighgroundLocaleZhCN HighgroundLocaleZhTW
+## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros HighgroundLocaleDeDE HighgroundLocaleEsES HighgroundLocaleEsMX HighgroundLocaleFrFR HighgroundLocaleItIT HighgroundLocaleKoKR HighgroundLocalePtBR HighgroundLocaleRuRU HighgroundLocaleZhCN HighgroundLocaleZhTW HighgroundMatchData
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/alert-*.ogg libs/sounds/alerts.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
@@ -146,6 +146,7 @@ libs/ui/Alerts.lua
 libs/pvp/Events.lua
 libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
+libs/pvp/MatchArchive.lua
 libs/pvp/MatchWindow.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua

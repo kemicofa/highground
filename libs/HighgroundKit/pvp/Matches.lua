@@ -1,6 +1,9 @@
 local _, ns = ...
 local U = ns.Util
-local H = { limit = 100, eventLimit = 200 }
+-- limit: matches per character. eventLimit: events per match, enough for
+-- a long Alterac Valley (recordings: 2-7 per minute); fallbackEvents when
+-- the timeline archive is unavailable (MatchArchive.lua).
+local H = { limit = 100, eventLimit = 1000, fallbackEvents = 200 }
 ns.MatchHistory = H
 local function DB() return ns.Core.db and ns.Scope.Store("character") end
 local function Map()
@@ -29,9 +32,11 @@ local function Complete()
   return U.read(C_PvP and C_PvP.IsMatchComplete) == true or winner == 0 or winner == 1
 end
 
-local function Usable(saved)
+-- archived: a saved match whose timeline may be in the archive.
+local function Usable(saved, archived)
   return type(saved) == "table" and saved.scope == ns.Scope.Character() and saved.game == ns.GAME
-    and type(saved.updated) == "number" and type(saved.events) == "table" and type(saved.started) == "number"
+    and type(saved.updated) == "number" and type(saved.started) == "number"
+    and (type(saved.events) == "table" or archived and type(saved.archived) == "number")
     and (saved.lastDuration == nil or type(saved.lastDuration) == "number")
 end
 
@@ -67,7 +72,7 @@ function H.Ensure()
     if usable then SaveUnfinished(saved) end
     -- A /reload on the final scoreboard: this match is already saved.
     local last = H.All()[1]
-    if Complete() and type(last) == "table" and last.map == map and Usable(last)
+    if Complete() and type(last) == "table" and last.map == map and Usable(last, true)
       and type(last.finished) == "number" and time() - last.finished < 300 then
       H.current = last
       return last
@@ -97,7 +102,8 @@ function H.Note(text)
   local last = events[#events]
   if last and last.text == text and age - last.at < 2 then return end
   events[#events + 1] = { at = age, text = text }
-  while #events > H.eventLimit do table.remove(events, 1) end
+  local limit = ns.MatchArchive.Available() and H.eventLimit or H.fallbackEvents
+  while #events > limit do table.remove(events, 1) end
 end
 
 local STATS = { "killingBlows", "honorableKills", "deaths", "honorGained", "damageDone", "healingDone", "ratingChange" }
@@ -152,6 +158,7 @@ function H.Finish(left)
   table.insert(list, 1, current)
   while #list > H.limit do table.remove(list) end
   DB().matchInProgress = nil
+  ns.MatchArchive.Finished(current)
   if H.win and H.win:IsShown() then H.win:Refresh() end
 end
 

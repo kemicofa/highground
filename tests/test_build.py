@@ -70,6 +70,20 @@ class PackageTests(TempTestCase):
         with self.assertRaisesRegex(ValueError, 'Invalid optional bundled load-on-demand addon: HighgroundLocaleDeDE'):
             build.package_sources(copies['Highground'])
 
+    def test_highground_bundles_match_timelines_as_a_load_on_demand_addon(self):
+        addon = self.manifest['Highground']
+        sources = build.package_sources(addon)
+        path = ROOT / 'addons' / 'HighgroundMatchData'
+        self.assertNotIn('HighgroundMatchData', self.manifest, 'not separately published')
+        self.assertEqual(addons.field(path, 'Dependencies'), 'Highground')
+        self.assertEqual(addons.field(path, 'LoadOnDemand'), '1')
+        self.assertEqual(addons.field(path, 'SavedVariables'), 'HighgroundMatchArchiveDB')
+        self.assertEqual(addons.field(path, 'Interface'), '120100, 120105, 16001, 40402')
+        self.assertNotIn('HighgroundMatchData', addons.field(addon.path, 'Dependencies'))
+        self.assertEqual({p for p in sources if p.startswith('HighgroundMatchData/')},
+                         {f'HighgroundMatchData/{name}' for name in
+                          ('HighgroundMatchData.toc', 'Icon.tga', 'README.md', 'LICENSE')}, 'storage only, no code')
+
     def test_package_is_complete_installable_and_reproducible(self):
         addon = self.manifest["Highground"]
         version, archive = build.build(addon, self.output)
@@ -93,7 +107,7 @@ class PackageTests(TempTestCase):
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
             self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/", "HighgroundReputationData/",
-                                                 "HighgroundModule", "HighgroundLocale")) for name in names))
+                                                 "HighgroundMatchData/", "HighgroundModule", "HighgroundLocale")) for name in names))
             self.assertIn("HighgroundBountyData/HighgroundBountyData.toc", names)
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
             self.assertIsNone(package.testzip())
@@ -279,6 +293,11 @@ class BuildFailureTests(TempTestCase):
         path = self.addon.path / "Highground.toc"
         path.write_text(path.read_text() + "\n../outside.lua\n")
         self.assertBuildFails("escapes the addon")
+
+    def test_load_on_demand_addon_must_depend_only_on_highground(self):
+        toc = self.addon.path.parent / "HighgroundMatchData/HighgroundMatchData.toc"
+        toc.write_text(toc.read_text().replace("## Dependencies: Highground\n", "## Dependencies: Highground, HighgroundBountyData\n"))
+        self.assertBuildFails("Invalid optional bundled load-on-demand addon: HighgroundMatchData")
 
     def test_bundled_dependency_cannot_escape_addons_directory(self):
         for toc in addons.tocs(self.addon.path):

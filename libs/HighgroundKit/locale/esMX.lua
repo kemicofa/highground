@@ -3951,6 +3951,8 @@ assert((ns.Locale or HighgroundLocale):Register("esMX", {
   ["shared.matchwindow.observed_objectives.b5d775"] = "OBJETIVOS OBSERVADOS",
   ["shared.matchwindow.no_objective_events_were_observed.bf34dd"] = "No se observaron eventos de objetivos.",
   ["shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132"] = "Últimos {count} de {total}. La cronología completa los muestra todos.",
+  ["shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f"] = "La cronología de esta partida está en Highground Match Data, que falta o está desactivado. Actívalo en la lista de accesorios de WoW y luego recarga.",
+  ["shared.matchwindow.this_match_s_timeline_is_no_longer.651633"] = "La cronología de esta partida ya no se conserva: las más antiguas dejan espacio a las más recientes. Su resumen se mantiene.",
   ["shared.organizations.open_guild_communities_after_combat.22756f"] = "Abrir Hermandad y comunidades tras el combate.",
   ["shared.organizations.you_are_no_longer_a_member_of.9180e6"] = "Ya no eres miembro de esta organización.",
   ["shared.alerts.everything.4a66d1"] = "Todo",

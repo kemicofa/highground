@@ -14,6 +14,7 @@ Highground is the only supported distribution. The six former standalone hosts a
 | `addons/HighgroundModule*/` | Six bundled native switches for Highground's embedded modules |
 | `addons/HighgroundLocale*/` | Ten bundled load-on-demand languages, one catalog each ([localization](localization.md)) |
 | `addons/HighgroundBountyData/`, `addons/HighgroundReputationData/` | Required bundled owners of shared SavedVariables |
+| `addons/HighgroundMatchData/` | Bundled load-on-demand owner of match history timelines |
 | `scripts/` | Metadata, ZIP builds, release planning, publication, source-worktree selection and battleground recording reports |
 | `tests/`, `tools/` | Repository checks, test runner, WoW simulator, lint, previews, profilers and the developer-only [API probe](../tools/apiprobe/README.md) |
 | `.github/` | Highground tests/package, required CI gate, publication and announcement |
@@ -30,7 +31,7 @@ python3 scripts/wow_link.py activate
 python3 scripts/wow_link.py status
 ```
 
-It links Highground, both data addons, all six module folders and the ten language folders through one pointer, and stores the game path in local Git configuration. Don't install the deprecated standalone hosts. [Worktree testing](worktree-testing.md) covers keeping the game on `main` and switching worktrees.
+It links Highground, its three data addons, all six module folders and the ten language folders through one pointer, and stores the game path in local Git configuration. Don't install the deprecated standalone hosts. [Worktree testing](worktree-testing.md) covers keeping the game on `main` and switching worktrees.
 
 ## Who owns what
 
@@ -39,7 +40,7 @@ It links Highground, both data addons, all six module folders and the ten langua
 - Bounty and Nearby runtime code live in `libs/HighgroundKit/`. Shared stealth cues and source attribution live in `libs/HighgroundKit/sounds/`.
 - Highground links `libs -> ../../libs/HighgroundKit`. Storage-only and module addons have no library link. Each language addon links only its catalog from `libs/HighgroundKit/locale/`.
 
-`tests/test_layout.py` enforces the owned feature directories and nineteen-folder bundle. Data/module folders may link their declared brand icon, with no other runtime links; language folders also link their catalog. Put feature code in Highground and reusable services in the library.
+`tests/test_layout.py` enforces the owned feature directories and twenty-folder bundle. Data/module folders may link their declared brand icon, with no other runtime links; language folders also link their catalog. Put feature code in Highground and reusable services in the library.
 
 ### Bundled modules and data
 
@@ -49,7 +50,7 @@ These switches are independent of the deprecated standalone hosts. Keep all six 
 
 Module folders contain no duplicate runtime or SavedVariables. Their `X-Highground-Module` metadata distinguishes them from required data dependencies. All bundled folders declare `X-Internal: true`, and Highground lists them in `X-Bundled-Addons`; none gets a separate release. Keep the complete bundle installed. Old source installations without module folders retain their previous behavior and explain how to obtain native switches; incomplete new bundles leave missing modules unavailable.
 
-`HighgroundBountyData` owns `HighgroundBountyNetworkDB`; `HighgroundReputationData` owns `HighgroundReputationNetworkDB`. Their separate SavedVariables files preserve shared records when moving from a legacy host to Highground. Old standalone private settings and histories remain in their original databases; see [migration](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon).
+`HighgroundBountyData` owns `HighgroundBountyNetworkDB`; `HighgroundReputationData` owns `HighgroundReputationNetworkDB`. Their separate SavedVariables files preserve shared records when moving from a legacy host to Highground. `HighgroundMatchData` owns `HighgroundMatchArchiveDB` and declares `LoadOnDemand: 1`: Highground loads it only when a match timeline is needed ([saved data](../addons/Highground/docs/saved-data.md#match-history-archive)). Old standalone private settings and histories remain in their original databases; see [migration](../addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon).
 
 ### Shared runtime and legacy installations
 

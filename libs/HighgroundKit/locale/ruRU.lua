@@ -3957,6 +3957,8 @@ assert((ns.Locale or HighgroundLocale):Register("ruRU", {
   ["shared.matchwindow.observed_objectives.b5d775"] = "ЗАМЕЧЕННЫЕ ЦЕЛИ",
   ["shared.matchwindow.no_objective_events_were_observed.bf34dd"] = "События целей не замечены.",
   ["shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132"] = "Последние {count} из {total}. Полная хронология показывает все.",
+  ["shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f"] = "Хронология этого матча хранится в Highground Match Data, но эта модификация отсутствует или отключена. Включите её в списке модификаций WoW и перезагрузите интерфейс.",
+  ["shared.matchwindow.this_match_s_timeline_is_no_longer.651633"] = "Хронология этого матча больше не хранится: самые старые хронологии освобождают место для новых. Сводка сохраняется.",
   ["shared.organizations.open_guild_communities_after_combat.22756f"] = "Откройте «Гильдия и сообщества» после боя.",
   ["shared.organizations.you_are_no_longer_a_member_of.9180e6"] = "Вы больше не являетесь членом этой организации.",
   ["shared.alerts.everything.4a66d1"] = "Все",

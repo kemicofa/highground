@@ -35,6 +35,7 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_reputation_idle.lua followed never Highground quiet` | `addons/Highground/` | Saved organizations with offline moderators and no traffic; see the file header for the other modes |
 | `luajit ../../tools/performance_background.lua 1000 20 community idle 5` | `addons/Highground/` | Large roster with the UI closed; `presence` and `units` replay event bursts |
 | `luajit ../../tools/performance_login.lua retail enUS` | `addons/Highground/` | Retained Lua heap after login for a client (`cata`, `retail`, `forever`), its game language and an optional saved language (`deDE`, `auto`) |
+| `luajit ../../tools/performance_history.lua retail 1 100 200 archived` | `addons/Highground/` | Lua heap a saved match history holds after login (`waiting` timelines in `HighgroundDB` or `archived`; characters, matches and events per match; `open` then opens match history) |
 
 ## Failures to check for
 
@@ -60,6 +61,17 @@ Each pattern caused a measured regression; [performance history](performance-his
 For each changed hot path, identify the trigger, its frequency, the maximum queue/roster size, and the work or allocations per invocation. Pay attention to nested calls that hide an enumeration or sort. A new default-enabled caller can make an old expensive helper into a release regression.
 
 Do not improve timings by suppressing membership/permission checks, retaining stale authorization, disabling existing features, or forcing garbage collection in the addon. Native-ID lookup indexes are only hints: validate their current identity and permissions before use. Keep tests for loading data, demotion, departure, ID reuse and scope changes.
+
+## Match history at login
+
+Match history kept up to 100 matches per character with up to 200 events each in `HighgroundDB`, so every login loaded every character's timelines. Timelines now live in the load-on-demand `HighgroundMatchData` ([saved data](../addons/Highground/docs/saved-data.md#match-history-archive)). From `addons/Highground/`, `luajit ../../tools/performance_history.lua <client> <characters> 100 200 <waiting|archived>`, with unique 40-character event texts; before is `origin/main` at `ffa598f`, after is the archived state that follows the first load:
+
+| Saved history held after login | Cata | Retail | Forever |
+| --- | ---: | ---: | ---: |
+| 1 character, 100 × 200 events | 4,032 → 74 KiB | 4,031 → 74 KiB | 4,031 → 72 KiB |
+| 5 characters | 20,115 → 502 KiB | 20,115 → 503 KiB | 20,114 → 502 KiB |
+
+The archive costs memory only after it loads: 3.7 MiB for one character's 20,000 events (186 bytes each), at most about 9 MiB at its 50,000-event cap. The whole simulated session (widgets included) varies by about 1 MiB between runs, so compare the saved-history figure. `tests/match_archive_budget.lua` (in the performance suite) checks that a login with a full archived history leaves the archive unloaded and that the check after each loading screen allocates nothing per saved match.
 
 ## Guide sample panels
 

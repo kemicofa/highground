@@ -3,7 +3,7 @@
 local _, ns = ...
 ns.LocaleIndex = {
   -- Source messages each catalog translates.
-  coverage = { enUS = 5076, deDE = 5076, esES = 5076, esMX = 5076, frFR = 5076, itIT = 5076, koKR = 5076, ptBR = 5076, ruRU = 5076, zhCN = 5076, zhTW = 5076 },
+  coverage = { enUS = 5078, deDE = 5078, esES = 5078, esMX = 5078, frFR = 5078, itIT = 5078, koKR = 5078, ptBR = 5078, ruRU = 5078, zhCN = 5078, zhTW = 5078 },
   -- Every catalog's text for the keys runtime code passes to Locale:Variants.
   variants = {
     ["battlegrounds.graveyards.graveyard.2b11fa"] = { "graveyard", "Friedhof", "cementerio", "Cimetière", "Cimitero", "묘지", "cemitério", "кладбище", "墓地" },

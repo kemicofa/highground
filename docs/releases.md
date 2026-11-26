@@ -24,11 +24,11 @@ python3 scripts/build.py                        # the Highground bundle
 python3 scripts/build.py Highground             # the same bundle, explicitly selected
 ```
 
-Build and publication commands reject deprecated standalone names. The supported bundle contains Highground, both data addons, all six module switches and the ten language addons.
+Build and publication commands reject deprecated standalone names. The supported bundle contains Highground, both required data addons, the load-on-demand match data addon, all six module switches and the ten language addons.
 
 | Output | Contents |
 | --- | --- |
-| `dist/Highground/Highground-<version>.zip` | Highground, both required data addons, all six optional module-switch folders and the ten load-on-demand language folders |
+| `dist/Highground/Highground-<version>.zip` | Highground, both required data addons, the load-on-demand `HighgroundMatchData`, all six optional module-switch folders and the ten load-on-demand language folders |
 | `dist/Highground/SHA256SUMS` | ZIP checksum |
 | `dist/Highground/RELEASE_NOTES.md` | First version section of Highground's `CHANGELOG.md` |
 
@@ -40,7 +40,7 @@ The ZIP contains the TOCs, their Lua/XML dependencies and `X-Package-Files`. Lin
 
 Before publication, the ZIP must contain exactly the expected files and source bytes, without duplicate or substituted members. The CurseForge wrapper repeats this check for the matching known project. Recomputing a checksum cannot bypass the archive checks.
 
-`HighgroundBountyData` and `HighgroundReputationData` own shared storage and are required dependencies. The six `HighgroundModule*` folders provide native feature switches and depend on Highground. The ten `HighgroundLocale*` folders (`X-Highground-Locale`) each hold one non-English catalog and load on demand. Any bundled folder with `LoadOnDemand: 1` is optional, like a module: it depends only on Highground and is not one of Highground's dependencies. All are internal and included through `X-Bundled-Addons`; none is published separately. The builder rejects path escapes, nested bundles and invalid dependency relationships. It includes each folder's approved `IconTexture`. Never add CurseForge dependencies on deprecated standalone projects.
+`HighgroundBountyData` and `HighgroundReputationData` own shared storage and are required dependencies. The six `HighgroundModule*` folders provide native feature switches and depend on Highground. The ten `HighgroundLocale*` folders (`X-Highground-Locale`) each hold one non-English catalog and load on demand. `HighgroundMatchData` holds match timelines and loads on demand. Any bundled folder with `LoadOnDemand: 1` is optional, like a module: it depends only on Highground and is not one of Highground's dependencies. All are internal and included through `X-Bundled-Addons`; none is published separately. The builder rejects path escapes, nested bundles and invalid dependency relationships. It includes each folder's approved `IconTexture`. Never add CurseForge dependencies on deprecated standalone projects.
 
 The build fails when Highground's TOC versions differ, its first changelog section does not match or lacks bullet notes, or its `docs/curseforge.md` version marker is stale. The CurseForge summary must contain 1–200 characters.
 

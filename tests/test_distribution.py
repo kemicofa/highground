@@ -34,7 +34,7 @@ class DistributionTests(TempTestCase):
         addon = addons.load()["Highground"]
         build.validate_archive(addon, addon.dist(self.output) / addon.zip_name())
         folders = {name.split("/")[0] for name in build.package_sources(addon)}
-        self.assertEqual(folders, {"Highground", "HighgroundBountyData", "HighgroundReputationData",
+        self.assertEqual(folders, {"Highground", "HighgroundBountyData", "HighgroundReputationData", "HighgroundMatchData",
                                   *("HighgroundModule" + suffix for suffix in
                                     ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation")),
                                   *("HighgroundLocale" + suffix for suffix in

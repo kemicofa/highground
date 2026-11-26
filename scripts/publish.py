@@ -2,7 +2,8 @@
 
 Each place a version goes is done once and recorded (scripts/addons.py):
 - its GitHub release (<Addon>-vX.Y.Z; Highground: vX.Y.Z, the "Latest"
-  release), as a draft until its files are uploaded;
+  release unless it is a beta or alpha, which are prereleases), as a draft
+  until its files are uploaded;
 - the CurseForge project in its TOCs ("## X-Curse-Project-ID"), through the
   upload API, then a tag (needs CURSEFORGE_TOKEN; skipped without it);
 - the Wago project ("## X-Wago-ID"), then a tag (needs WAGO_API_KEY; skipped
@@ -119,17 +120,23 @@ def check(addon, version, commit, directory):
     return archive, checksums, notes
 
 
+def title(addon, version):
+    """The release name: "Highground 3.3.0", or "Highground 3.3.0 alpha" for a beta or alpha."""
+    return f"{addon.title} {version}" + (f" {addon.release_type}" if addon.prerelease else "")
+
+
 def publish_curseforge(addon, repository, version, commit, directory, token):
     """Upload to CurseForge once per version; its CurseForge tag records it."""
     archive, _, notes = check(addon, version, commit, directory)
     if not addon.project:
         raise ValueError(f"{addon.name}: its TOCs need ## X-Curse-Project-ID")
-    title = f"{addon.title} {version}"
+    name = title(addon, version)
 
     def upload():
         ids = curseforge.game_version_ids(token, addon.game_versions)
-        file_id = curseforge.upload(addon.project, token, archive, notes.read_text(), title, ids)
-        print(f"Uploaded {title} to CurseForge project {addon.project}: file {file_id}")
+        file_id = curseforge.upload(addon.project, token, archive, notes.read_text(), name, ids,
+                                    release_type=addon.release_type)
+        print(f"Uploaded {name} to CurseForge project {addon.project} as {addon.release_type}: file {file_id}")
 
     upload_once(repository, addon.curseforge_tag(version), commit, upload)
 
@@ -137,11 +144,13 @@ def publish_curseforge(addon, repository, version, commit, directory, token):
 def publish_release(addon, repository, version, commit, directory):
     """Create the addon's GitHub release at commit, as a draft until its files are uploaded.
 
-    Only the latest addon (Highground) becomes the repository's "Latest" release.
+    Only the latest addon (Highground) becomes the repository's "Latest" release,
+    and never with a beta or alpha: those are prereleases.
     """
     archive, checksums, notes = check(addon, version, commit, directory)
     tag = addon.tag(version)
-    title = f"{addon.title} {version}"
+    name = title(addon, version)
+    latest = addon.latest and not addon.prerelease
 
     release = find_release(repository, tag)
     published = bool(release) and not release["draft"]
@@ -158,14 +167,14 @@ def publish_release(addon, repository, version, commit, directory):
         return
 
     common = ("--repo", repository)
-    latest = "--latest" if addon.latest else "--latest=false"
+    kind = ("--prerelease",) if addon.prerelease else ()
     if not release:
-        gh("release", "create", tag, *common, "--draft", "--target", commit,
-           "--title", title, "--notes-file", str(notes), latest)
+        gh("release", "create", tag, *common, "--draft", "--target", commit, "--title", name,
+           "--notes-file", str(notes), "--latest" if latest else "--latest=false", *kind)
     # Drafts can be resumed after an interrupted upload. Publication is last.
     gh("release", "upload", tag, str(archive), str(checksums), *common, "--clobber")
-    gh("release", "edit", tag, *common, "--draft=false", "--title", title,
-       "--notes-file", str(notes), *(["--latest"] if addon.latest else []))
+    gh("release", "edit", tag, *common, "--draft=false", "--title", name,
+       "--notes-file", str(notes), *(["--latest"] if latest else []), *kind)
     print(gh("release", "view", tag, *common, "--json", "url", "--jq", ".url").strip())
 
 
@@ -173,9 +182,12 @@ def publish_wago(addon, repository, version, commit, directory, token):
     """Upload to Wago once per version; the wago-<tag> tag records it."""
     archive, _, notes = check(addon, version, commit, directory)
 
+    stability = "stable" if addon.release_type == "release" else addon.release_type
+
     def upload():
-        wago.upload(addon.wago, token, archive, notes.read_text(), version, addon.game_versions)
-        print(f"Uploaded {addon.title} {version} to Wago project {addon.wago}")
+        wago.upload(addon.wago, token, archive, notes.read_text(), version, addon.game_versions,
+                    stability=stability)
+        print(f"Uploaded {addon.title} {version} to Wago project {addon.wago} as {stability}")
 
     upload_once(repository, addon.wago_tag(version), commit, upload)
 

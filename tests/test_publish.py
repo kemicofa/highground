@@ -6,7 +6,7 @@ import unittest.mock
 from unittest.mock import patch
 import urllib.error
 
-from support import COMMIT, TempTestCase, build, curseforge, publish, wago
+from support import COMMIT, TempTestCase, addons, build, curseforge, publish, wago
 
 REPO = "repos/owner/repo"
 OTHER = "b" * 40
@@ -91,6 +91,20 @@ class FakeGitHub:
 
 
 class PublishTestCase(TempTestCase):
+    def setUp(self):
+        super().setUp()
+        # A full release unless a test says otherwise, whatever the TOCs say today.
+        self.kind = patch.object(addons.Addon, "release_type", new_callable=unittest.mock.PropertyMock,
+                                 return_value="release")
+        self.kind.start()
+        self.addCleanup(self.kind.stop)
+
+    def as_release_type(self, kind):
+        self.kind.stop()
+        self.kind = patch.object(addons.Addon, "release_type", new_callable=unittest.mock.PropertyMock,
+                                 return_value=kind)
+        self.kind.start()
+
     def built(self, name):
         """Build an addon into the temporary output; returns (addon, version, its dist folder)."""
         addon = self.manifest[name]
@@ -130,6 +144,17 @@ class GitHubReleaseTests(PublishTestCase):
         self.assertIn("--draft=false", next(call for call in github.calls if call[:2] == ("release", "edit")))
         self.assertEqual(github.tags, {self.tag: COMMIT})
         self.assertEqual(self.uploads, 0, "no CurseForge token or Wago key given")
+
+    def test_alpha_is_a_prerelease_and_never_the_latest_release(self):
+        self.as_release_type("alpha")
+        github = self.run_publish(FakeGitHub())
+        create = next(call for call in github.calls if call[:2] == ("release", "create"))
+        edit = next(call for call in github.calls if call[:2] == ("release", "edit"))
+        self.assertEqual(create[create.index("--title") + 1], f"{self.addon.title} {self.version} alpha")
+        self.assertIn("--prerelease", create)
+        self.assertIn("--latest=false", create)
+        self.assertIn("--prerelease", edit)
+        self.assertNotIn("--latest", edit)
 
     def test_published_release_is_untouched_on_rerun(self):
         github = self.run_publish(FakeGitHub([release(self.tag, COMMIT)], {self.tag: COMMIT}))
@@ -233,6 +258,23 @@ class CurseForgeTests(PublishTestCase):
         self.assertEqual(github.writes, [("create", f"{self.tag}-pending"), ("create", self.tag),
                                          ("delete", f"{self.tag}-pending")])
         self.assertEqual(github.tags, {f"v{self.version}": COMMIT, self.tag: COMMIT})
+
+    def test_alpha_uploads_as_an_alpha_file(self):
+        self.as_release_type("alpha")
+        with patch.object(publish, "gh", FakeGitHub()), \
+                patch.object(curseforge, "game_version_ids", return_value=[1]), \
+                patch.object(curseforge, "upload", return_value=99) as up:
+            publish.publish(self.addon, "owner/repo", COMMIT, self.directory, "tok")
+        self.assertEqual(up.call_args.args[4], f"Highground {self.version} alpha")
+        self.assertEqual(up.call_args.kwargs["release_type"], "alpha")
+
+    def test_upload_request_names_its_release_type(self):
+        archive = self.directory / self.addon.zip_name()
+        for kind in ("release", "alpha"):
+            with self.subTest(kind=kind), patch.object(curseforge, "request", return_value={"id": 7}) as req:
+                curseforge.upload(self.addon.project, "tok", archive, "notes", "Highground", [1], release_type=kind)
+                body = req.call_args.args[3]
+                self.assertIn(f'"releaseType": "{kind}"'.encode(), body)
 
     def published(self, **tags):
         """GitHub as after the release was published at COMMIT."""
@@ -366,6 +408,16 @@ class WagoTests(PublishTestCase):
         self.assertIn(b'"supported_retail_patches": ["12.1.0"]', body)
         self.assertIn(b'"stability": "stable"', body)
         self.assertIn(b'"label": "1.2.3"', body)
+
+    def test_alpha_uploads_with_alpha_stability(self):
+        self.as_release_type("alpha")
+        up = self.run_publish(FakeGitHub())
+        self.assertEqual(up.call_args.kwargs["stability"], "alpha")
+        with patch.object(wago, "known_patches", return_value=self.KNOWN), \
+                patch.object(wago.uploads, "request", return_value={"id": "x"}) as req:
+            wago.upload("b6Xy3OKp", "key", self.directory / self.addon.zip_name(), "notes", "1.2.3", ["12.1.0"],
+                        stability="alpha")
+        self.assertIn(b'"stability": "alpha"', req.call_args.args[3])
 
     def test_requests_name_themselves(self):
         # Wago answers Python's default User-Agent with HTTP 403.

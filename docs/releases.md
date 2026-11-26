@@ -8,7 +8,7 @@ Highground is the only supported distribution. It has one version, changelog and
 
 | Distribution | GitHub release | CurseForge | Wago |
 | --- | --- | --- | --- |
-| Highground | `vX.Y.Z`, the repository's Latest release | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
+| Highground | `vX.Y.Z`, the repository's Latest release (a prerelease for [alphas and betas](#alpha-and-beta-releases)) | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
 
 The tags `curseforge-vX.Y.Z` and `wago-vX.Y.Z` record completed uploads. Historical standalone releases and changelogs remain available in Git tags/history.
 
@@ -69,6 +69,19 @@ GitHub receives `vX.Y.Z` at the tested commit, with the ZIP, checksum and releas
 CurseForge uploads use `CURSEFORGE_TOKEN`, TOC interface versions and the upload API; there is no webhook. Wago uses `WAGO_API_KEY` and matches TOC interfaces to Wago's patch lists. A missing secret skips that destination; a missing upload tag keeps the version unpublished for retry. New CurseForge files may await moderation.
 
 A `<tag>-pending` tag, such as `curseforge-vX.Y.Z-pending`, exists while an upload runs. It is removed when the site refuses the upload. If the upload may have arrived without its tag, a retry stops instead of uploading again: check the site's files, create the missing tag at the release commit if the file is there, delete the pending tag and retry.
+
+## Alpha and beta releases
+
+Add `## X-Release-Type: alpha` (or `beta`) to every Highground TOC to publish a test version; remove it, or set `release`, for a normal release. The version stays `X.Y.Z` and the tags are the same.
+
+| Destination | release | beta or alpha |
+| --- | --- | --- |
+| GitHub | `vX.Y.Z`, the Latest release | `vX.Y.Z` prerelease; Latest stays on the previous release |
+| CurseForge | release file | beta or alpha file, named `Highground X.Y.Z alpha` |
+| Wago | stable | beta or alpha |
+| Discord | `Highground X.Y.Z` link | `Highground X.Y.Z alpha` link |
+
+CurseForge and Wago offer beta and alpha files only to players who allow them in their client. A later normal release needs a new version: a published version is never uploaded again.
 
 ## Discord announcements
 

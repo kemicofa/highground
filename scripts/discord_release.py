@@ -68,7 +68,7 @@ def render(plan, found, repository):
         lines.extend(["", plan["notice"].strip()])
     lines.extend(["", "Downloads and full notes:"])
     for name, url in release_links(plan, found, repository).items():
-        lines.append(f"[{found[name].title} {plan['releases'][name]}](<{url}>)")
+        lines.append(f"[{publish.title(found[name], plan['releases'][name])}](<{url}>)")
     content = "\n".join(lines)
     if len(content) > MAX_CONTENT:
         raise ValueError(f"Discord announcement is {len(content)} characters; shorten it to {MAX_CONTENT}")

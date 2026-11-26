@@ -34,6 +34,20 @@ class ManifestTests(TempTestCase):
                 else:
                     self.assertNotIn("## X-Curse-Project-ID", toc)
 
+    def test_release_type_comes_from_the_tocs(self):
+        addon = self.copy_addons()["Highground"]
+        tocs = list(addon.path.glob("*.toc"))
+        for toc in tocs:
+            toc.write_text(re.sub(r"^## X-Release-Type:.*\n", "", toc.read_text(), flags=re.M))
+        self.assertEqual((addon.release_type, addon.prerelease), ("release", False))
+        for toc in tocs:
+            toc.write_text(toc.read_text().replace("## Version:", "## X-Release-Type: Alpha\n## Version:"))
+        self.assertEqual((addon.release_type, addon.prerelease), ("alpha", True))
+        for toc in tocs:
+            toc.write_text(toc.read_text().replace("Alpha", "nightly"))
+        with self.assertRaisesRegex(ValueError, "X-Release-Type"):
+            addon.release_type
+
     def test_differing_toc_fields_fail(self):
         addon = self.copy_addons()["Highground"]
         cata = addon.path / "Highground_Cata.toc"

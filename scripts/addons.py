@@ -2,7 +2,8 @@
 
 Each folder in addons/ with a TOC file is an addon. Its TOCs give the title
 ("## Title"), version ("## Version"), game versions ("## Interface"), CurseForge
-project ("## X-Curse-Project-ID"), Wago project ("## X-Wago-ID") and extra
+project ("## X-Curse-Project-ID"), Wago project ("## X-Wago-ID"), release type
+("## X-Release-Type": release, beta or alpha; release when absent) and extra
 package files ("## X-Package-Files").
 
 Highground is the only supported distribution. Internal dependencies and
@@ -11,7 +12,7 @@ deprecated standalone hosts are excluded from release discovery.
 Where a supported version goes:
 - a GitHub release: tagged <Folder>-vX.Y.Z, or vX.Y.Z for
   the addon with "## X-GitHub-Latest: true" (Highground), which is also the
-  repository's "Latest" release;
+  repository's "Latest" release (a beta or alpha is a prerelease instead);
 - a CurseForge project: an upload through the CurseForge API, recorded by the
   tag curseforge-<its tag>;
 - a Wago project: an upload to Wago, recorded by the tag wago-<its tag>.
@@ -25,6 +26,7 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 VERSION = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"  # major.minor.patch
+RELEASE_TYPES = ("release", "beta", "alpha")
 
 
 def tocs(path):
@@ -99,6 +101,19 @@ class Addon:
     def latest(self):
         """The repository's main addon ("## X-GitHub-Latest: true"): tag vX.Y.Z, the "Latest" release."""
         return (field(self.path, "X-GitHub-Latest") or "").lower() == "true"
+
+    @property
+    def release_type(self):
+        """release, beta or alpha ("## X-Release-Type"); CurseForge and Wago label the upload with it."""
+        kind = (field(self.path, "X-Release-Type") or "release").lower()
+        if kind not in RELEASE_TYPES:
+            raise ValueError(f"{self.name}: X-Release-Type must be one of {', '.join(RELEASE_TYPES)}")
+        return kind
+
+    @property
+    def prerelease(self):
+        """A beta or alpha: a GitHub prerelease, never the "Latest" release."""
+        return self.release_type != "release"
 
     @property
     def deprecated(self):

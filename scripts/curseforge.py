@@ -30,8 +30,8 @@ def game_version_ids(token, names):
     return ids
 
 
-def upload(project, token, archive, changelog, display_name, game_versions):
-    """Upload archive as a release file; returns the CurseForge file ID."""
+def upload(project, token, archive, changelog, display_name, game_versions, release_type="release"):
+    """Upload archive as a release, beta or alpha file; returns the CurseForge file ID."""
     candidates = [addon for addon in addons.load().values() if addon.project == str(project)]
     if len(candidates) != 1:
         raise ValueError("CurseForge uploads require a known addon project")
@@ -39,7 +39,7 @@ def upload(project, token, archive, changelog, display_name, game_versions):
     # attachments, a renamed banner pack, or an addon ZIP with extra assets.
     build.validate_archive(candidates[0], archive)
     metadata = {"changelog": changelog, "changelogType": "markdown", "displayName": display_name,
-                "gameVersions": game_versions, "releaseType": "release"}
+                "gameVersions": game_versions, "releaseType": release_type}
     body, content_type = uploads.multipart(metadata, archive)
     result = request("POST", f"/api/projects/{project}/upload-file", token, body, {"Content-Type": content_type})
     return result["id"]

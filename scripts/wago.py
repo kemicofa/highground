@@ -34,9 +34,9 @@ def known_patches():
     return uploads.request("GET", API + "/api/data/game", {"Accept": "application/json"})["patches"]
 
 
-def upload(project, token, archive, changelog, label, game_versions):
-    """Upload archive as a stable version; returns Wago's reply."""
-    metadata = {"label": label, "stability": "stable", "changelog": changelog,
+def upload(project, token, archive, changelog, label, game_versions, stability="stable"):
+    """Upload archive as a stable, beta or alpha version; returns Wago's reply."""
+    metadata = {"label": label, "stability": stability, "changelog": changelog,
                 **patches(known_patches(), game_versions)}
     body, content_type = uploads.multipart(metadata, archive)
     return uploads.request("POST", f"{API}/api/projects/{project}/version",

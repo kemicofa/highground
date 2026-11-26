@@ -289,4 +289,33 @@ t.test("row text uses the room its clock leaves", function()
   equal(again:GetWidth(), shortWidth, "a relayout keeps the fit")
 end)
 
+t.test("shift-clicking a flag carrier shares the carrier or the drop", function()
+  local sim = new("cata", {})
+  local Flags = sim.ns.Flags
+  sim:enemy("Carrier")
+  sim:join(1460, 489, "Warsong Gulch")
+  chat(sim, "HORDE", "The Alliance flag was picked up by Carrier!")
+  sim:advance(1)
+  local theirs = Flags.frows[2]
+  equal(theirs.side, "theirs", "second row: the enemy carrier")
+  -- The left-click macro still targets (unchanged attributes); PostClick shares.
+  local function click(r, shift, down)
+    sim.shift = shift
+    r:GetScript("PostClick")(r, "LeftButton", down)
+    sim.shift = false
+  end
+  click(theirs, false, false)
+  click(theirs, true, true)
+  equal(sim.chatDraft, nil, "a plain click, or the press of a shift-click, shares nothing")
+  click(theirs, true, false)
+  equal(sim.chatDraft, "/s Horde flag carrier: Carrier", "the release shares the carrier")
+  sim.chatEditing, sim.chatDraft = false, nil
+  click(Flags.frows[1], true, false)
+  equal(sim.chatDraft, nil, "no carrier seen: nothing to share")
+  chat(sim, "HORDE", "The Alliance flag was dropped by Carrier!")
+  sim:advance(1)
+  click(theirs, true, false)
+  equal(sim.chatDraft, "/s Horde dropped the flag", "a recent drop")
+end)
+
 t.finish("Battleground objectives: " .. t.tests .. " tests")

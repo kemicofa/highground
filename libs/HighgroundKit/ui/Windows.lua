@@ -329,10 +329,17 @@ function Timers.RowFrame(w, i)
     elseif not row.time and not row.frac then
       Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.countdown_not_observed_yet.dc953b"), "textMuted")
     end
+    if w.chatText and w.chatText(row) then Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.share_hint"), "textMuted") end
     GameTooltip:Show()
   end
   r:SetScript("OnEnter", r.ShowTip)
   r:SetScript("OnLeave", GameTooltip_Hide)
+  -- w.chatText(row): the row as a chat line, or nil. Timers.Share sends it.
+  r:SetScript("OnMouseUp", function(self, button)
+    if button ~= "LeftButton" or not IsShiftKeyDown() or not (w.chatText and Timers.Share) then return end
+    local text = self.data and w.chatText(self.data)
+    if text then Timers.Share(text) end
+  end)
   w.rows[i] = r
   return r
 end

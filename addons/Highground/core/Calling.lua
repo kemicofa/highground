@@ -32,6 +32,15 @@ function Core.CallTarget(e)
     open((Core.CALL_CHANNELS[Core.db.callChannel] or "/s ") .. msg)
   end
 end
+-- Shift-click shares (timers, forecast, flag carriers) use the same
+-- channel. Text goes into the chat box you're typing in, or opens one.
+function Core.ShareInChat(text)
+  local ok, problem = ns.Chat.Draft(text, Core.CALL_CHANNELS[Core.db.callChannel] or "/s ")
+  if not ok then
+    ns.Util.Say(problem == "full" and ns.Locale:Get("battlegrounds.share.full") or ns.Locale:Get("shared.share.chat_is_not_available.20aba3"))
+  end
+  return ok
+end
 Highground_Call = function()
   Core.CallTarget()
 end

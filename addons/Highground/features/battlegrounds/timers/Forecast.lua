@@ -13,7 +13,7 @@ local hn, nn, outQ, outHeld, outNeed = {}, {}, {}, {}, {}
 local model, NONE = {}, {}
 -- Format arguments, refilled on every refresh (a language change shows on
 -- the next one).
-local args = { info = {}, wins = {}, held = {}, need = {} }
+local args = { info = {}, wins = {}, held = {}, need = {}, chat = {} }
 
 -- The panel's model (one reused table), or nil when nothing is predicted:
 -- winner, left, frac (winner's score / max), A, H, max, need + needTeam +
@@ -75,6 +75,21 @@ local function Info(m)
   return ns.Locale:Format("battlegrounds.objectives.value1_sc_a_s_r_value3_sc.03c152", a)
 end
 
+-- One chat line for shift-click (Timers.Share): the forecast, the score,
+-- then the bases needed and the defended result when the panel shows them.
+local function ChatText(m)
+  local a = args.chat
+  a.team, a.time, a.max = TEAM_NAME[m.winner], Timers.Clock(m.left), tostring(m.max or "?")
+  a.score = string.format("%s %d - %s %d", TEAM_NAME.A, m.A or 0, TEAM_NAME.H, m.H or 0)
+  local text = ns.Locale:Format("battlegrounds.share.forecast", a)
+  if m.need then text = text .. " · " .. NeedText(m) end
+  if m.heldWinner then
+    a.team, a.time = TEAM_NAME[m.heldWinner], Timers.Clock(m.heldLeft)
+    text = text .. " · " .. ns.Locale:Format("battlegrounds.share.held", a)
+  end
+  return text
+end
+
 local function ShowTip(b)
   local m = b.data
   if not m then return end
@@ -89,6 +104,7 @@ local function ShowTip(b)
     Timers.TipLine(GameTooltip, HeldText(m) .. "  " .. Timers.Clock(m.heldLeft), "white")
     Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.projection_if_contested_bases_are_defended.bdf5c7"), "info")
   end
+  Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.share_hint"), "textMuted")
   GameTooltip:Show()
 end
 
@@ -154,6 +170,9 @@ function Timers.ForecastWindow()
   b:EnableMouse(true)
   b:SetScript("OnEnter", ShowTip)
   b:SetScript("OnLeave", GameTooltip_Hide)
+  b:SetScript("OnMouseUp", function(self, button)
+    if button == "LeftButton" and IsShiftKeyDown() and self.data then Timers.Share(ChatText(self.data)) end
+  end)
   w.block = b
   w.relayout = function() Layout(w) end
   Layout(w)

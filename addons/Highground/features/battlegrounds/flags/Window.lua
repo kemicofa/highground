@@ -3,6 +3,19 @@ local Timers = ns.Timers
 local Flags = ns.Flags
 local Core, Theme, Kit, Hud, Util = ns.Core, ns.Theme, ns.Kit, ns.Hud, ns.Util
 
+local TEAM_NAME = ns.Localization.Define({}, { A = "shared.copy.alliance.a21193", H = "shared.copy.horde.cf9229" })
+
+-- Shift-click text (Timers.Share): the carrier and stacks, or a drop.
+local chatArgs = {}
+function Flags.ChatText(r)
+  chatArgs.team, chatArgs.name = TEAM_NAME[r.team], r.shareName
+  if r.shareName then
+    local text = ns.Locale:Format("battlegrounds.share.flag_carrier", chatArgs)
+    return r.shareStacks and (text .. " · " .. r.shareStacks) or text
+  end
+  return r.shareDropped and ns.Locale:Format("battlegrounds.share.flag_dropped", chatArgs) or nil
+end
+
 function Flags.BuildFlags()
   if Flags.flagWin or InCombatLockdown() then
     return
@@ -15,8 +28,13 @@ function Flags.BuildFlags()
   Flags.frows = {}
   for i, team in ipairs({ "mine", "theirs" }) do
     local r = Hud.UnitRow(Flags.flagWin, prefix .. "FlagRow" .. i, { enemy = true, briefTip = true, tip = function(self)
-      return self.side == "mine" and ns.Locale:Get("battlegrounds.window.allied_flag_carrier_protect_this_player.2a1609") or ns.Locale:Get("battlegrounds.window.enemy_flag_carrier_stop_this_player.beb6c0")
+      return self.side == "mine" and ns.Locale:Get("battlegrounds.window.allied_flag_carrier_protect_this_player.2a1609") or ns.Locale:Get("battlegrounds.window.enemy_flag_carrier_stop_this_player.beb6c0"),
+        Flags.ChatText(self) and { { ns.Locale:Get("shared.windows.share_hint"), "textMuted" } } or nil
     end })
+    -- Shift-click still targets (the left-click macro), then shares.
+    r:SetScript("PostClick", function(self, button, down)
+      if not down and button == "LeftButton" and IsShiftKeyDown() then Timers.Share(Flags.ChatText(self)) end
+    end)
     r.side = team
     r.team = team == "mine" and Timers.MyTeam() or Timers.Other(Timers.MyTeam())
     r.bar = CreateFrame("StatusBar", nil, r)
@@ -170,6 +188,7 @@ function Flags.UpdateFlags(now)
       local held = c.since and Timers.Clock(now - c.since) or nil
       r.right:SetText(stackText and held and stackText .. "  " .. held or stackText or held or "")
       Theme.Paint(r.right, "textMuted")
+      r.shareName, r.shareStacks, r.shareDropped = Timers.plain(short) and short or nil, stackText, nil
     else
       Hud.PaintEnemy(r.classBg)
       Hud.PaintClass(r.name)
@@ -180,6 +199,7 @@ function Flags.UpdateFlags(now)
       r.name:SetText(dropped and ns.Locale:Get("battlegrounds.window.flag_dropped.6f35a1") or ns.Locale:Get("battlegrounds.window.no_carrier_seen.def49a"))
       r.right:SetText(dropped and Timers.Clock(now - c.dropped) or "")
       Theme.Paint(r.right, "textMuted")
+      r.shareName, r.shareStacks, r.shareDropped = nil, nil, dropped
     end
     if r.macroFor ~= (c and c.name) or r.macroTeam ~= r.team then
       Flags.SetMacros()

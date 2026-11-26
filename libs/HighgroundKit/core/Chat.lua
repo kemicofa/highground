@@ -33,21 +33,23 @@ function Chat.LeaveOtherChannels(base, keep)
   end
 end
 
--- Append to the player's draft or open one. The player still chooses the
--- channel and presses Enter. Failures return nil and "full" / "unavailable".
-function Chat.Draft(token)
+-- Append to the player's draft or open one, on channel ("/i ") when given.
+-- The player still chooses the channel and presses Enter. Failures return
+-- nil and "full" / "unavailable".
+function Chat.Draft(token, channel)
   if #token > MAX_CHAT then return nil, "full" end
   local active = ChatFrameUtil and ChatFrameUtil.GetActiveWindow or ChatEdit_GetActiveWindow
   local edit = active and active()
   if edit then
     local text = edit:GetText()
+    if Util.secret(text) then return nil, "unavailable" end
     local insert = (text ~= "" and " " or "") .. token
     if #text + #insert > MAX_CHAT then return nil, "full" end
     edit:Insert(insert)
   else
     local open = ChatFrameUtil and ChatFrameUtil.OpenChat or ChatFrame_OpenChat
     if not open then return nil, "unavailable" end
-    open(token)
+    open((channel or "") .. token)
   end
   return true
 end

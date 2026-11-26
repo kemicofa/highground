@@ -9,8 +9,14 @@ local function validMana(mana, level)
     and type(level) == "number" and level > 0 and level < math.huge
 end
 
+-- "cata/CLASS/tree", built once per class and tree: estimates ask every tick.
+local keys, NONE = {}, {}
 local function sampleKey(class, tree)
-  return "cata/" .. class .. "/" .. tree
+  local byTree = keys[class]
+  if not byTree then byTree = {}; keys[class] = byTree end
+  local key = byTree[tree]
+  if not key then key = "cata/" .. class .. "/" .. tree; byTree[tree] = key end
+  return key
 end
 
 function ns.RecordSpecMana(samples, class, tree, mana, level)
@@ -31,7 +37,7 @@ function ns.SpecFromMana(samples, class, mana, level)
   local candidate
   for tree = 1, #profiles do
     local count, low, high = 0, math.huge, 0
-    for _, sample in ipairs(samples[sampleKey(class, tree)] or {}) do
+    for _, sample in ipairs(samples[sampleKey(class, tree)] or NONE) do
       if sample.level == level and validMana(sample.mana, sample.level) then
         count = count + 1
         low, high = math.min(low, sample.mana), math.max(high, sample.mana)
@@ -48,11 +54,22 @@ function ns.SpecFromMana(samples, class, mana, level)
   if candidate then return candidate, ns.Locale:Get("battlegrounds.specinference.maximum_mana_compared_with_confirmed_specs_at.674e07") end
 end
 
--- A talent-tree ability cast by the enemy: that tree.
+-- A talent-tree ability cast by the enemy: that tree. The reason is built
+-- once per spell and language; the combat log repeats the same casts.
+local castReasons, castLocale, castArgs = {}, nil, {}
 function ns.SpecFromCast(class, spellName)
   local casts = config and config.casts and config.casts[class]
   local tree = casts and type(spellName) == "string" and casts[spellName]
-  if tree then return tree, ns.Locale:Format("battlegrounds.specinference.spellname_cast.8b7eda", { spellName = spellName }) end
+  if not tree then return end
+  local locale = ns.Locale:GetLocale()
+  if locale ~= castLocale then castReasons, castLocale = {}, locale end
+  local reason = castReasons[spellName]
+  if not reason then
+    castArgs.spellName = spellName
+    reason = ns.Locale:Format("battlegrounds.specinference.spellname_cast.8b7eda", castArgs)
+    castReasons[spellName] = reason
+  end
+  return tree, reason
 end
 
 -- Melee hybrids have small mana pools at max level, casters large ones.

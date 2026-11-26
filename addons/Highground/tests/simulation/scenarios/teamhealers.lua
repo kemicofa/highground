@@ -235,3 +235,23 @@ test("WoW Forever finds enemies on you and on your healers by their target's nam
   assert(not alpha.onMe and not C.subtitle.text:find("ON YOU", 1, true), "the count clears")
   sim:assertHealthy()
 end)
+
+test("saved healer marks keep the spec history's limits: pruned after login and each match", function()
+  local sim = new("retail", nil, forever)
+  local C = sim.ns.Core
+  local now = sim.env.time()
+  local tags = sim.ns.Scope.Saved("healerTags", "social")
+  local old = now - (C.HISTORY_DAYS + 1) * 86400
+  tags["Recent-Realm"] = { healer = true, by = "inspect", t = now - 86400 }
+  tags["Gone-Realm"] = { healer = true, by = "inspect", t = old }
+  tags["Hand-Realm"] = { healer = true, by = "hand", t = old }
+  sim:join()
+  assert(tags["Recent-Realm"], "a recent mark stays")
+  equal(tags["Gone-Realm"], nil, "a mark unseen past the limit goes after login")
+  equal(tags["Hand-Realm"], nil, "hand marks follow the same limit as hand-set spec tags")
+  tags["Later-Realm"] = { healer = true, by = "inspect", t = old }
+  sim.matchComplete = true
+  sim:event("PVP_MATCH_COMPLETE")
+  equal(tags["Later-Realm"], nil, "and again once per match")
+  sim:assertHealthy()
+end)

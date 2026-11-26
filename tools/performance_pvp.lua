@@ -1,5 +1,5 @@
 -- Run from addons/Highground:
--- luajit ../../tools/performance_pvp.lua [world|bg|arena] [cata|retail|forever] [seconds] [map]
+-- luajit ../../tools/performance_pvp.lua [world|bg|arena] [cata|retail|forever] [seconds] [map] [auras per second]
 -- Replays busy native event traffic through the real Highground manifest:
 --   world  a 40-player raid outside any instance (combat log, auras, casts)
 --   bg     a 15v15 Arathi Basin: visible enemies, owned and contested bases,
@@ -10,10 +10,18 @@
 -- are not WoW FPS or addon-memory measurements; compare runs of this tool.
 jit.off()
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
-local mode, client, seconds, maps = arg[1] or "world", arg[2] or "cata", tonumber(arg[3]) or 60, arg[4] == "map"
+local mode, client, seconds = arg[1] or "world", arg[2] or "cata", tonumber(arg[3]) or 60
+-- "map" opens the world and battleground maps. A number sets UNIT_AURA
+-- events per second, spread over allies' and enemies' tokens: the default
+-- 200 is a stress test (each enemy's auras change several times a second).
+local maps, auraRate = false, 200
+for i = 4, 5 do
+  if arg[i] == "map" then maps = true elseif tonumber(arg[i]) then auraRate = tonumber(arg[i]) end
+end
 assert(mode == "world" or mode == "bg" or mode == "arena", "expected world, bg or arena")
 assert(client == "cata" or client == "retail" or client == "forever", "expected cata, retail or forever")
 assert(seconds >= 1 and seconds <= 600, "expected 1..600 seconds")
+assert(auraRate >= 0 and auraRate <= 1000, "expected 0..1000 aura events per second")
 
 local sim = new(client == "forever" and "retail" or client, {}, function(s)
   if client == "forever" then -- the retail manifest on interface 16001
@@ -126,9 +134,10 @@ for i = 1, allies do auraUnits[#auraUnits + 1] = (mode == "arena" and "party" or
 for i = 1, enemies do auraUnits[#auraUnits + 1] = "nameplate" .. i end
 if mode == "arena" then for i = 1, enemies do auraUnits[#auraUnits + 1] = "arena" .. i end end
 
--- Per simulated 50 ms step: combat log 20 (400/s), auras 10 (200/s),
--- casts 2 (40/s); scoreboard updates once per second in battlegrounds.
-local step, cursor = 0, 0
+-- Per simulated 50 ms step: combat log 20 (400/s), auras auraRate / 20
+-- (10 by default), casts 2 (40/s); scoreboard updates once per second in
+-- battlegrounds.
+local step, cursor, auraDue = 0, 0, 0
 local function Traffic()
   step = step + 1
   for _ = 1, 20 do
@@ -136,8 +145,9 @@ local function Traffic()
     sim.combatEvent = events[(cursor % #events) + 1]
     Fire("COMBAT_LOG_EVENT_UNFILTERED")
   end
-  for _ = 1, 10 do
-    cursor = cursor + 1
+  auraDue = auraDue + auraRate / 20
+  while auraDue >= 1 do
+    auraDue, cursor = auraDue - 1, cursor + 1
     Fire("UNIT_AURA", auraUnits[(cursor % #auraUnits) + 1], nil)
   end
   for _ = 1, 2 do

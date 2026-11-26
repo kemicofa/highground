@@ -70,12 +70,16 @@ local function Alpha(r, state)
 end
 
 -- Class, faction or custom colour; Green to red from the curve colour read
--- with the health (secret on the Midnight client, never inspected).
-local function Paint(r, e, color, alpha)
-  local tint = e and e.hpTint
-  if Core.EnemyColorMode() == "health" and type(tint) == "table" and type(e.testHp or e.hpPct) ~= "number" then
-    local ok, cr, cg, cb = pcall(tint.GetRGB, tint)
-    if ok and pcall(r.hp.SetStatusBarColor, r.hp, cr, cg, cb, alpha) then return end
+-- with the health (secret on the Midnight client, never inspected): live
+-- for a unit in view (once per tick), else the last reading.
+local function Paint(r, e, color, alpha, unit)
+  if e and Core.EnemyColorMode() == "health" and type(e.testHp or e.hpPct) ~= "number" then
+    local tint = e.hpTint
+    if unit and Core.HealthTint then tint = Core.HealthTint(e, unit) end
+    if type(tint) == "table" then
+      local ok, cr, cg, cb = pcall(tint.GetRGB, tint)
+      if ok and pcall(r.hp.SetStatusBarColor, r.hp, cr, cg, cb, alpha) then return end
+    end
   end
   r.hp:SetStatusBarColor(color.r, color.g, color.b, alpha)
 end
@@ -158,7 +162,7 @@ function Core.UpdateHealth(r, unit, color, testPct, e)
     r.exec:SetAlpha(0)
     return
   end
-  Paint(r, e, color, Alpha(r, 1))
+  Paint(r, e, color, Alpha(r, 1), unit)
 
   -- Cata has no percentage API; use absolute health without recording a fault.
   local ok, pct = true, nil
@@ -200,11 +204,16 @@ function Core.UpdateHealth(r, unit, color, testPct, e)
   ns.Hud.HealthKnown(r.hp, drawn)
 
   if Core.execCurve then
-    local col = Util.call(UnitHealthPercent, unit, true, Core.execCurve)
-    if type(col) == "table" then
-      local okA, _, _, _, a = pcall(col.GetRGBA, col)
-      if okA then
-        pcall(r.exec.SetAlpha, r.exec, a)
+    -- The alpha curve returns the alpha itself (secret on the Midnight
+    -- client); the colour curve's new colour object is the fallback.
+    local a = Core.execAlpha and Util.call(UnitHealthPercent, unit, true, Core.execAlpha)
+    if type(a) ~= "number" or not pcall(r.exec.SetAlpha, r.exec, a) then
+      local col = Util.call(UnitHealthPercent, unit, true, Core.execCurve)
+      if type(col) == "table" then
+        local okA, _, _, _, alpha = pcall(col.GetRGBA, col)
+        if okA then
+          pcall(r.exec.SetAlpha, r.exec, alpha)
+        end
       end
     end
   else

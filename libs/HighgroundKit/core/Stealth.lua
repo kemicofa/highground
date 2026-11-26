@@ -49,13 +49,18 @@ local function Notify(e, spell, faded, nearby)
   end
 end
 
+-- Two records per enemy take turns, so each new hiding is a new e.hidden
+-- (Nearby redraws on a change of record) without a table per cast.
 function S.Hid(e, spellId, nearby)
   local spell = S.spells[U.value(spellId) or 0]
   if not (spell and e) then return end
   local now = GetTime()
   local quiet = e.hidden and now - e.hidden.at < S.REPEAT
   local name = S.Name(U.value(spellId))
-  e.hidden = { spell = name, id = spellId, at = now }
+  local h = e.hiddenSpare or {}
+  e.hiddenSpare = e.hidden
+  h.spell, h.id, h.at, h.checked, h.checkedAt = name, spellId, now, nil, nil
+  e.hidden = h
   if not quiet then Notify(e, name, false, nearby) end
 end
 
@@ -100,11 +105,29 @@ function S.Observe(e, unit, nearby)
   end
 end
 
-function S.Shown(e, unit, nearby, confirmed)
+-- An aura update that removed nothing can't end a stealth seen at the
+-- last check. info: UNIT_AURA's update details; unreadable counts as a removal.
+local function NothingRemoved(info)
+  if type(info) ~= "table" or U.secret(info) then return false end
+  local full = info.isFullUpdate
+  return type(info.removedAuraInstanceIDs) == "nil" and (type(full) == "nil" or not U.secret(full) and full == false)
+end
+
+-- StillHidden reads up to 40 auras: once per frame, and not again for
+-- updates that removed nothing.
+local function Hiding(unit, h, info)
+  local now = GetTime()
+  if h.checked and (NothingRemoved(info) or info == nil and h.checkedAt == now) then return true end
+  local hidden = StillHidden(unit, h)
+  h.checked, h.checkedAt = hidden or nil, now
+  return hidden
+end
+
+function S.Shown(e, unit, nearby, confirmed, info)
   if not (e and e.hidden) then return end
-  if not confirmed and (GetTime() - e.hidden.at < S.GRACE or StillHidden(unit, e.hidden)) then return end
+  if not confirmed and (GetTime() - e.hidden.at < S.GRACE or Hiding(unit, e.hidden, info)) then return end
   local spell = e.hidden.spell
-  e.hidden = nil
+  e.hiddenSpare, e.hidden = e.hidden, nil
   Notify(e, spell, true, nearby)
 end
 

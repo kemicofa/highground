@@ -202,6 +202,13 @@ local function Model()
   return model or nil
 end
 
+-- Nothing stays loaded or referenced between reads: the model is cleared
+-- after each one, and the enemy being read is dropped at a match's end.
+function Core.ReleaseDruidModel()
+  reading = nil
+  if model then pcall(model.ClearModel, model) end
+end
+
 -- The file ID of the model last asked for; nil while it loads or is secret.
 function Core.ReadDruidModel()
   local r = reading
@@ -209,11 +216,13 @@ function Core.ReadDruidModel()
   local ok, id = pcall(model.GetModelFileID, model)
   id = ok and ns.Util.value(id) or nil
   if type(id) == "number" and id > 0 then
-    reading, modelRead, r.e.modelAt = nil, true, GetTime()
+    modelRead, r.e.modelAt = true, GetTime()
+    Core.ReleaseDruidModel()
     Core.Stat("druidModels", id)
     if Core.MOONKIN_MODELS[id] then r.e.moonkin = true end
   elseif GetTime() - r.at >= Core.MODEL_WAIT then
-    reading, unread, r.e.modelAt = nil, (unread or 0) + 1, GetTime()
+    unread, r.e.modelAt = (unread or 0) + 1, GetTime()
+    Core.ReleaseDruidModel()
     Core.Stat("druidModels", "unread")
   end
 end
@@ -226,7 +235,7 @@ local function AskModel(e, unit)
   if e.moonkin or not modelRead and (unread or 0) >= Core.MODEL_TRIES then return end
   if GetTime() - (e.modelAt or -Core.MODEL_EVERY) < Core.MODEL_EVERY or not Model() then return end
   reading = { e = e, at = GetTime() }
-  if not pcall(model.SetUnit, model, unit) then reading = nil; unread = (unread or 0) + 1 end
+  if not pcall(model.SetUnit, model, unit) then Core.ReleaseDruidModel(); unread = (unread or 0) + 1 end
 end
 
 function Core.EstimateDruidForm(e, ptype, level, unit)

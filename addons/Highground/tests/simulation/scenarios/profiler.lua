@@ -165,12 +165,16 @@ test("battleground profiler commands, limits and kept sessions", function()
 end)
 
 test("damaged battleground recordings are repaired on load", function()
-  local saved = { bgProfilerOn = "yes", bgProfiles = { "bad", { rows = { "1.0 chat N x", 5 }, t0 = 10, counts = 3 }, { rows = "bad", t0 = 1 } } }
+  local rows = { "1.0 chat N x", 5, "2.0 me y", extra = "junk" }
+  local saved = { bgProfilerOn = "yes", bgProfiles = { "bad", { rows = rows, t0 = 10, counts = 3 }, { rows = "bad", t0 = 1 } } }
   local sim = horde(saved)
   local db = sim.env.HighgroundDB
   equal(db.bgProfilerOn, nil, "not armed")
   equal(#db.bgProfiles, 1, "one usable session")
-  equal(#db.bgProfiles[1].rows, 1, "string rows only")
+  equal(db.bgProfiles[1].rows, rows, "rows compacted in place, not copied")
+  equal(#rows, 2, "string rows only")
+  equal(rows[2], "2.0 me y", "in order")
+  equal(rows.extra, nil, "other keys dropped")
   equal(type(db.bgProfiles[1].counts), "table", "counts repaired")
   sim:assertHealthy()
 end)
@@ -180,7 +184,8 @@ test("WoW Forever: refused auras fall back to the loss-of-control count; recordi
   local sim = new("forever", {}, function(sim)
     sim.env.C_LossOfControl = { GetActiveLossOfControlDataCountByUnit = function() return count end }
   end)
-  sim.env.C_UnitAuras.GetUnitAuras = function() error("Auras cannot be accessed when secret") end
+  local function refused() error("Auras cannot be accessed when secret") end
+  sim.env.C_UnitAuras.GetUnitAuras, sim.env.C_UnitAuras.GetAuraDataByIndex = refused, refused
   sim:enemy("Stunned")
   sim:command("bg profiler start")
   sim:join(1460, 489, "Warsong Gulch")

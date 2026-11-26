@@ -146,6 +146,20 @@ function Core.LoadSaved()
       end
     end
   end)
+  Versioned(db, "fingerprintsVersion", 2, function()
+    -- Max mana and health per "CLASS/Spec" were saved after each match but
+    -- never read. The mana model's "cata/CLASS/tree" samples stay.
+    local stores = { db }
+    for _, store in pairs(type(db.scoped) == "table" and type(db.scoped.rules) == "table" and db.scoped.rules or {}) do
+      stores[#stores + 1] = store
+    end
+    for _, store in ipairs(stores) do
+      local samples = type(store) == "table" and store.fingerprints
+      for key in pairs(type(samples) == "table" and samples or {}) do
+        if type(key) ~= "string" or not key:find("^cata/") then samples[key] = nil end
+      end
+    end
+  end)
   -- Spec history now lives in scoped storage; only drop the empty stub older
   -- defaults recreated on every load. Populated legacy records stay.
   if type(db.history) == "table" and next(db.history) == nil then db.history = nil end

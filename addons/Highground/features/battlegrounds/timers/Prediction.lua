@@ -60,18 +60,42 @@ do
     reading.A, reading.H = Fill(reading.A, a, m, nil), Fill(reading.H, h, m, nil)
     return reading
   end
+  local function Pair(pair)
+    local as, am, ab = Parse(WidgetText(pair[1]))
+    local hs, hm, hb = Parse(WidgetText(pair[2]))
+    if as and hs then
+      reading.A, reading.H = Fill(reading.A, as, am, ab), Fill(reading.H, hs, hm, hb)
+      return reading
+    end
+  end
+  -- Other scoreboards' "x/y" widgets, lowest widget ID first: entries reused.
+  local found, foundCount = {}, 0
+  local function ByID(x, y) return x.id < y.id end
+  local function Found(id, s, m, b)
+    foundCount = foundCount + 1
+    local f = found[foundCount] or {}
+    found[foundCount] = f
+    f.id, f.s, f.m, f.b = id, s, m, b
+  end
+  -- The widget pair or bar that answered last is asked first; a new map or
+  -- match forgets it.
+  local lastPair, lastBar
   local function Read()
+    if lastPair then
+      local r = Pair(lastPair)
+      if r then return r end
+    elseif lastBar then
+      local a, h, m = Bar(lastBar)
+      if a then return FillBar(a, h, m) end
+    end
+    lastPair, lastBar = nil, nil
     for _, pair in ipairs(SCORE_WIDGETS) do
-      local as, am, ab = Parse(WidgetText(pair[1]))
-      local hs, hm, hb = Parse(WidgetText(pair[2]))
-      if as and hs then
-        reading.A, reading.H = Fill(reading.A, as, am, ab), Fill(reading.H, hs, hm, hb)
-        return reading
-      end
+      local r = Pair(pair)
+      if r then lastPair = pair; return r end
     end
     for _, id in ipairs(BAR_WIDGETS) do
       local a, h, m = Bar(id)
-      if a then return FillBar(a, h, m) end
+      if a then lastBar = id; return FillBar(a, h, m) end
     end
     -- Any other scoreboard: a score bar at the top of the screen, else the
     -- first two "x/y" widgets there.
@@ -79,26 +103,45 @@ do
     if W and W.GetTopCenterWidgetSetID and W.GetAllWidgetsBySetID then
       local okS, set = pcall(W.GetTopCenterWidgetSetID)
       local okL, list = pcall(W.GetAllWidgetsBySetID, okS and set or 0)
-      list = okL and type(list) == "table" and list or {}
+      list = okL and type(list) == "table" and list or NONE
       for _, wi in ipairs(list) do
         local a, h, m = Bar(wi.widgetID)
         if a then return FillBar(a, h, m) end
       end
-      local found = {}
+      foundCount = 0
       for _, wi in ipairs(list) do
         local s, m, b = Parse(WidgetText(wi.widgetID))
-        if s then
-          found[#found + 1] = { id = wi.widgetID, s = s, m = m, b = b }
-        end
+        if s then Found(wi.widgetID, s, m, b) end
       end
-      table.sort(found, function(x, y)
-        return x.id < y.id
-      end)
-      if #found >= 2 then
-        reading.A, reading.H = found[1], found[2]
+      for i = #found, foundCount + 1, -1 do found[i] = nil end
+      table.sort(found, ByID)
+      if foundCount >= 2 then
+        -- Copies: the found entries are refilled by the next read.
+        local a, h = found[1], found[2]
+        reading.A, reading.H = Fill(reading.A, a.s, a.m, a.b), Fill(reading.H, h.s, h.m, h.b)
         return reading
       end
     end
+  end
+
+  -- The reading is kept until a widget or the scoreboard changes
+  -- (Timers.ScoresChanged, timers/Driver.lua), at most a second. Once the
+  -- score's widgets are known, other widgets' updates don't count.
+  local cached, readAt, dirty, readMap, readMatch
+  function Timers.ScoresChanged(widget)
+    local id = type(widget) == "table" and Timers.plain(widget.widgetID) and widget.widgetID
+    if id and (lastPair and id ~= lastPair[1] and id ~= lastPair[2] or lastBar and id ~= lastBar) then return end
+    dirty = true
+  end
+  local function Scoreboard(now)
+    if Timers.currentMap ~= readMap or ns.MatchSerial ~= readMatch then
+      readMap, readMatch, lastPair, lastBar, dirty = Timers.currentMap, ns.MatchSerial, nil, nil, true
+    end
+    if dirty or not readAt or now - readAt >= 1 or now < readAt then
+      dirty, readAt = false, now
+      cached = Read()
+    end
+    return cached
   end
 
   -- Bases scoring right now: map nodes owned and not under assault (an
@@ -198,7 +241,7 @@ do
     Timers.UpdateNodePhases(now)
     local scoring = Timers.Rules().scoring
     if not (scoring and scoring.predict) then return nil end
-    local sc = Read()
+    local sc = Scoreboard(now)
     if not sc then return nil end
     sc.n = Bases(sc)
     sc.max = sc.A.m or sc.H.m

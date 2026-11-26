@@ -162,8 +162,12 @@ end
 -- Periodic damage, projectiles and aura events can continue after the enemy
 -- leaves, so arbitrary damage events cannot refresh intel.
 local MELEE = { SWING_DAMAGE = true, SWING_MISSED = true }
+-- The subevents that place a fighter (ns.CombatSightRadius); others skip
+-- the guarded call (map/Driver.lua).
+Intel.LOG_SUBEVENTS = { SWING_DAMAGE = true, SWING_MISSED = true, SPELL_CAST_SUCCESS = true,
+  SPELL_DAMAGE = true, SPELL_MISSED = true }
 function Intel.OnCombatLog()
-  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellID = CombatLogGetCurrentEventInfo()
+  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellID = ns.PvPEvents.Log()
   local radius = MELEE[sub] and 8 or (ns.CombatSightRadius and ns.CombatSightRadius(sub, spellID))
   if not radius or not (srcName and dstName) or not ns.enemies then
     return

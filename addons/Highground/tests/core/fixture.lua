@@ -79,7 +79,9 @@ local function client(flavor)
         return filter == "HARMFUL|CROWD_CONTROL" and state.auras or {}
       end,
       GetAuraDataByIndex = function(_, index, filter)
-        return (filter == "HARMFUL" and state.auras or state.buffs)[index]
+        local list = (filter == "HARMFUL" or filter == "HARMFUL|CROWD_CONTROL") and state.auras
+          or filter == "HELPFUL" and state.buffs or {}
+        return list[index]
       end,
     },
     Profile = function(id) return ns.Specs[id] end,
@@ -109,6 +111,8 @@ local function client(flavor)
   setfenv(assert(loadfile("libs/core/Saved.lua")), env)("Highground", ns)
   setfenv(assert(loadfile("libs/core/Scope.lua")), env)("Highground", ns)
   env.On = function(key) return env.db[key] ~= false end
+  -- The shared combat-log read (libs/pvp/Events.lua), outside a dispatch.
+  ns.PvPEvents = { Log = function() return env.CombatLogGetCurrentEventInfo() end }
   assert(loadfile("libs/ui/Theme.lua"))("Highground", ns) -- colours for alerts
   for _, name in ipairs({ "Specs", "Objectives", "Cooldowns", "Scoring", "Roster", "Auras", "Units", "Capping", "SapCall", "Targeting", "CombatLog" }) do
     -- Scoring and Targeting are Highground's own; the rest is the battleground engine.

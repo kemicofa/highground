@@ -142,7 +142,7 @@ function A.UpdateActivity(r)
 end
 
 function A.ActivityLog()
-  local _, sub, _, src, _, _, _, dst, _, _, _, id = CombatLogGetCurrentEventInfo()
+  local _, sub, _, src, _, _, _, dst, _, _, _, id = ns.PvPEvents.Log()
   local data, now = ns.ArenaCataData, GetTime()
   if sub == "UNIT_DIED" and dst then A.control[dst], A.kicks[dst] = nil, nil; return end
   if sub == "SPELL_CAST_SUCCESS" and src and data.interrupts[id] then
@@ -190,5 +190,6 @@ U.Events({ PLAYER_ENTERING_WORLD = function() wipe(A.control); wipe(A.kicks) end
 -- Cata diminishing returns and interrupts: the combat log only in arenas.
 if ns.CLIENT == "cata" and CombatLogGetCurrentEventInfo then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = A.ActivityLog }, "arena activity",
-    function() return A.Enabled() and A.InArena() end, "arena")
+    function() return A.Enabled() and A.InArena() end, "arena", { UNIT_DIED = true, SPELL_CAST_SUCCESS = true,
+      SPELL_AURA_APPLIED = true, SPELL_AURA_REFRESH = true, SPELL_AURA_REMOVED = true })
 end

@@ -152,4 +152,82 @@ t.test("Cata health text rounds, clamps and colours execute, live and stale read
   assert(not rr.hpText:IsShown(), "no text without a reading")
 end)
 
+t.test("Retail execute marks read the alpha curve, with the colour curve as the fallback", function()
+  local sim = new("retail", {}, function(s, env)
+    curves(s, env)
+    env.C_CurveUtil.CreateCurve = function()
+      local curve = { points = {} }
+      function curve:SetType(kind) self.kind = kind end
+      function curve:AddPoint(x, y) self.points[#self.points + 1] = { x = x, y = y } end
+      function curve:Evaluate(x)
+        local y
+        for _, p in ipairs(self.points) do if x >= p.x then y = p.y end end
+        return y
+      end
+      return curve
+    end
+  end)
+  local Core, env = sim.ns.Core, sim.env
+  sim:enemy("Low", { health = 20, maxHealth = 100 })
+  sim:enemy("High", { health = 90, maxHealth = 100 })
+  local colours, percent = 0, env.UnitHealthPercent
+  env.UnitHealthPercent = function(unit, predicted, curve)
+    if curve ~= nil and curve == Core.execCurve then colours = colours + 1 end
+    return percent(unit, predicted, curve)
+  end
+  sim:join()
+  sim:advance(1)
+  equal(rowFor(sim, "Low").exec.alpha, 1, "execute mark under the threshold")
+  equal(rowFor(sim, "High").exec.alpha, 0, "none above it")
+  equal(colours, 0, "no colour object per row while the alpha curve answers")
+  sim:command("exec 50")
+  equal(Core.execAlpha.points[2].x, 0.5, "the alpha curve follows the threshold")
+  env.UnitHealthPercent = function(unit, predicted, curve)
+    if curve ~= nil and curve == Core.execAlpha then return nil end
+    return percent(unit, predicted, curve)
+  end
+  sim:advance(0.5)
+  equal(rowFor(sim, "Low").exec.alpha, 1, "an unanswered alpha curve falls back to the colour curve")
+  env.UnitHealthPercent = percent
+end)
+
+t.test("Green to red reads each drawn row's tint once per tick, others once a second", function()
+  local tint = { GetRGB = function() return 0.9, 0.1, 0.1 end }
+  local reads = {}
+  local secret = { secret = true }
+  local sim = new("retail", {}, function(s, env)
+    env.CurveConstants = { ScaleTo100 = "scale100" }
+    env.UnitHealthPercent = function(unit, _, curve)
+      if curve ~= nil and curve == s.ns.Core.healthCurve then
+        local name = s.units[unit] and s.units[unit].name
+        if name then reads[name] = (reads[name] or 0) + 1 end
+        return tint
+      end
+      return secret
+    end
+    env.UnitHealth = function() return secret end
+    env.UnitHealthMax = function() return secret end
+  end)
+  local _, first = sim:enemy("First", { yards = 5 })
+  local _, second = sim:enemy("Second", { yards = 40 })
+  sim:join()
+  local C = sim.ns.Core
+  C.healthCurve = C.healthCurve or {}
+  sim:command("enemy color health")
+  C.db.rows = 1
+  sim:advance(1)
+  local drawn = C.rows[1].entry
+  assert(drawn and drawn.unit, "one enemy drawn")
+  local other = drawn.key == "First-Realm" and "Second" or "First"
+  reads = {}
+  sim:advance(2)
+  local shown = drawn.key:match("^[^-]+")
+  assert(reads[shown] >= 7 and reads[shown] <= 9, "the drawn row each tick: " .. reads[shown])
+  assert(reads[other] >= 1 and reads[other] <= 3, "the other enemy once a second: " .. tostring(reads[other]))
+  equal(C.rows[1].hp.statusColor[1], 0.9, "the drawn row shows the tint")
+  sim.units[other == "First" and first or second] = nil
+  sim:advance(0.5)
+  equal(sim:entry(other).hpTint, tint, "a reading at most a second old stays for its last seen bar")
+end)
+
 t.finish("Health: " .. t.tests .. " tests")

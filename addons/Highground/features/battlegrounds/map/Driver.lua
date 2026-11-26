@@ -72,7 +72,7 @@ Intel.events = Util.Events(handlers, "intel events", "battlegrounds")
 -- Only clients that deliver the combat log to addons (ns.Caps.combatLog).
 if ns.Caps.combatLog then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Intel.Try("combatlog", Intel.OnCombatLog) end },
-    "intel events", Running, "battlegrounds")
+    "intel events", Running, "battlegrounds", Intel.LOG_SUBEVENTS)
 end
 ns.Comms.Listen(Intel.PREFIX, WhileRunning(function(text, channel, sender)
   if ns.Comms.FromGroup(channel) then Intel.Try("receive", Intel.Receive, text, sender) end

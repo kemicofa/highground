@@ -3,30 +3,27 @@ local Core = ns.Core
 local Util = ns.Util
 
 ---------------------------------------------------------------------------
--- Auras and plates: aura counts by category (retail) or by spell ID (Cata),
+-- Auras and plates: aura categories present (retail) or spell IDs (Cata),
 -- enemy nameplate tokens and how many teammates target each enemy.
 ---------------------------------------------------------------------------
-local function Length(list) return #list end
-
-function Core.CountAuras(unit, filter)
-  if not (C_UnitAuras and C_UnitAuras.GetUnitAuras) then
-    return nil
-  end
-  local ok, list = pcall(C_UnitAuras.GetUnitAuras, unit, filter)
-  if not ok or type(list) ~= "table" then
+-- Retail: whether the unit has an aura in a category (filter) and the
+-- first one's icon, possibly secret: only handed on. One index read, not
+-- a new list of every match. nil when unreadable.
+function Core.FirstAura(unit, filter)
+  local api = C_UnitAuras
+  -- Category filters came with GetUnitAuras: older clients would read
+  -- "HELPFUL|BIG_DEFENSIVE" as any buff.
+  if not (api and api.GetUnitAuras and api.GetAuraDataByIndex) then return nil end
+  local ok, a = pcall(api.GetAuraDataByIndex, unit, 1, filter)
+  if not ok or Core.issecret(a) or (a ~= nil and type(a) ~= "table") then
     -- Never counted before: tells /hg why whether aura flags can work at all.
-    Core.Stat("auras", ok and "notTable" or "error")
-    if not ok and not Core.db.auraErr then
-      Core.db.auraErr = tostring(list)
-    end
+    Core.Stat("auras", not ok and "error" or Core.issecret(a) and "secret" or "notTable")
+    if not ok and not Core.db.auraErr then Core.db.auraErr = tostring(a) end
     return nil
   end
-  local n = Util.read(Length, list)
-  if n ~= nil then
-    Core.Stat("auras", "plain")
-    return n, list
-  end
-  Core.Stat("auras", "secret")
+  Core.Stat("auras", "plain")
+  if a then return true, a.icon end
+  return false
 end
 
 -- One reading per owner (an enemy entry), reused on every scan: all fields
@@ -37,10 +34,11 @@ local FILTERS = { "HELPFUL", "HARMFUL" }
 local function Reading(owner)
   local r = owner and owner.auraReading or {}
   if owner then owner.auraReading = r end
-  local active, markerSet = r.activeCooldowns or {}, r.markerSet or {}
+  local active, markerSet, watch = r.activeCooldowns or {}, r.markerSet or {}, r.watch or {}
   local lists = r.burstLists or { {}, {} }
-  wipe(r); wipe(active); wipe(markerSet)
-  r.activeCooldowns, r.markerSet, r.burstLists = active, markerSet, lists
+  wipe(r); wipe(active); wipe(markerSet); wipe(watch)
+  r.activeCooldowns, r.markerSet, r.burstLists, r.watch = active, markerSet, lists, watch
+  r.dmg = Core.me.dmg
   r.burstList = owner and owner.bursts == lists[1] and lists[2] or lists[1]
   r.burstCount = 0
   return r
@@ -108,12 +106,17 @@ function Core.ReadAurasByList(unit, class, owner)
         end
         -- Cloak against a warrior, Spell Reflect against a rogue: not a defensive.
         local weight = ns.Defensives[id] and ns.DefensiveWeight(id, Core.me.dmg) or 0
-        if weight > 0 and ns.CooldownTracked(Core.db, id) then
+        local tracked
+        if weight > 0 or ns.Burst[id] then
+          tracked = ns.CooldownTracked(Core.db, id)
+          r.watch[id] = tracked
+        end
+        if weight > 0 and tracked then
           r.def = true
           r.defScale = math.max(r.defScale or 0, weight)
           r.defIcon = r.defIcon or a.icon
           r.defSpell = r.defSpell or id
-        elseif ns.Burst[id] and ns.CooldownTracked(Core.db, id) then
+        elseif ns.Burst[id] and tracked then
           r.burst = true
           r.burstIcon = r.burstIcon or a.icon
           r.burstSpell = r.burstSpell or id
@@ -132,6 +135,16 @@ function Core.ReadAurasByList(unit, class, owner)
   for i = #list, r.burstCount + 1, -1 do list[i] = nil end
   Core.Stat("auras", "plain")
   return r
+end
+
+-- Whether a reading still classifies its auras as a new one would: the
+-- cooldown switches of its defensives and bursts, and your damage type.
+function Core.ReadingCurrent(r)
+  if r.dmg ~= Core.me.dmg then return false end
+  for id, tracked in pairs(r.watch) do
+    if ns.CooldownTracked(Core.db, id) ~= tracked then return false end
+  end
+  return true
 end
 
 -- Map enemies to their nameplate token (for the world-space sniper scope).

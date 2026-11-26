@@ -10,7 +10,7 @@ local Timers, Theme, Hud, Motion = ns.Timers, ns.Theme, ns.Hud, ns.Motion
 ---------------------------------------------------------------------------
 local TEAM_NAME = ns.Localization.Define({}, { A = "shared.copy.alliance.a21193", H = "shared.copy.horde.cf9229" })
 local hn, nn, outQ, outHeld, outNeed = {}, {}, {}, {}, {}
-local model = {}
+local model, NONE = {}, {}
 -- Format arguments, refilled on every refresh (a language change shows on
 -- the next one).
 local args = { info = {}, wins = {}, held = {}, need = {} }
@@ -19,7 +19,7 @@ local args = { info = {}, wins = {}, held = {}, need = {} }
 -- winner, left, frac (winner's score / max), A, H, max, need + needTeam +
 -- noun, heldWinner + heldLeft.
 function Timers.Forecast(now)
-  local scoring = Timers.Rules().scoring or {}
+  local scoring = Timers.Rules().scoring or NONE
   local sc = scoring.predict and Timers.Scores(now)
   local q = sc and Timers.Predict(sc, now, true, nil, outQ)
   if not q then return nil end
@@ -170,7 +170,8 @@ function Timers.ShowForecast(m)
   local color = Timers.TeamColor(m.winner)
   b.winner:SetText(WinsText(m))
   Theme.Paint(b.winner, color)
-  b.time:SetText(Timers.Clock(m.left))
+  local clock = Timers.Clock(m.left)
+  if b.timeText ~= clock then b.timeText = clock; b.time:SetText(clock) end -- changes once a second
   b.bar:SetValue(math.max(0, math.min(1, m.frac or 0)))
   Timers.BarColor(b.bar, color, 0.85)
   b.need:SetText(NeedText(m))

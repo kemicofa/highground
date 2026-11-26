@@ -22,11 +22,25 @@ local function Enemy(name)
   return key and Core.enemies[key]
 end
 
+-- Aura changes: the unit scan reads that enemy's auras again (core/Units.lua),
+-- also on raid targets and mouseover, which get no UNIT_AURA.
+local AURA_CHANGES = { SPELL_AURA_APPLIED = true, SPELL_AURA_REMOVED = true, SPELL_AURA_REFRESH = true,
+  SPELL_AURA_APPLIED_DOSE = true, SPELL_AURA_REMOVED_DOSE = true, SPELL_AURA_BROKEN = true,
+  SPELL_AURA_BROKEN_SPELL = true }
+-- The subevents read here; others skip the guarded call (core/Events.lua).
+Core.LOG_SUBEVENTS = { SPELL_CAST_START = true, SPELL_CAST_SUCCESS = true, SPELL_CAST_FAILED = true,
+  SPELL_INTERRUPT = true, UNIT_DIED = true }
+for sub in pairs(AURA_CHANGES) do Core.LOG_SUBEVENTS[sub] = true end
+
 -- Cata only (retail has no combat log). Enemy defensives: cast -> on
 -- cooldown for its known duration; aura fading -> "spent: GO", even out of
 -- sight. Deaths -> dead until the rez wave.
 function Core.OnCombatLog()
-  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellId, spellName = CombatLogGetCurrentEventInfo()
+  local _, sub, _, _, srcName, _, _, _, dstName, _, _, spellId, spellName = ns.PvPEvents.Log()
+  if AURA_CHANGES[sub] then
+    local target = Enemy(dstName)
+    if target then target.auraDirty = true end
+  end
   if sub == "SPELL_CAST_START" or sub == "SPELL_CAST_SUCCESS" or sub == "SPELL_CAST_FAILED" then
     Core.CaptureFromLog(sub, srcName, spellId, spellName)
     if sub ~= "SPELL_CAST_FAILED" then Core.SpecFromLog(Enemy(srcName), spellName) end

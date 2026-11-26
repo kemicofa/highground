@@ -53,6 +53,7 @@ local function client(saved)
   env._G = env
   ns.ProximityBonus = {}
   ns.Alerts = { categories = {}, Upgrade = function() return true end }
+  ns.PvPEvents = { Listen = noop } -- match listeners register nothing here
   setfenv(assert(loadfile("core/Modules.lua")), env)("Highground", ns)
   for path in io.lines("Highground_Cata.toc") do
     if path:match("^libs/locale/") then setfenv(assert(loadfile(path)), env)("Highground", ns) end

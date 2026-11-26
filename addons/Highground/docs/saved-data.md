@@ -23,7 +23,7 @@ SavedVariables can hold anything after a bad import, a manual edit or a differen
 
 ## Bounded stores
 
-Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.rules[…].reviveLag`) keep the last nine samples, each 0-3 seconds. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`). Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
+Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.rules[…].reviveLag`) keep the last nine samples, each 0-3 seconds. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`); spec tags and team healer marks, hand-set ones included, follow the same limits, healer marks also once after login. Max mana and health per class and spec name (`fingerprints["CLASS/Spec"]`) were saved but never read: `fingerprintsVersion` 2 removes them, and the mana model's `cata/CLASS/tree` samples stay. Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
 
 ## Errors and diagnostics
 

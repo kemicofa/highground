@@ -25,7 +25,7 @@ Each profiler loads the real addon manifests in the simulator. Heap, CPU and all
 | `luajit ../../tools/performance_tick.lua cata 30` | `addons/Highground/` | Allocations per battleground tick stage, then retained growth over 30 virtual minutes |
 | `luajit ../../tools/performance_events.lua cata 1000` | `addons/Highground/` | Bytes allocated per native event in a live battleground with 15 enemies, then the tick's allocations and widget calls (`retail` also works) |
 | `luajit ../../tools/performance_nearby.lua cata world 15 25 60` | `addons/Highground/` | Open-world nameplate churn: aura, flag and combat-log bursts for Nearby (`retail`/`forever`, `instance`/`off`) |
-| `luajit ../../tools/performance_pvp.lua bg cata 60` | `addons/Highground/` | Battleground, arena and world event traffic through the PvP observers (`world`/`arena`, `retail`/`forever`; add `map` to keep both maps open) |
+| `luajit ../../tools/performance_pvp.lua bg cata 60` | `addons/Highground/` | Battleground, arena and world event traffic through the PvP observers (`world`/`arena`, `retail`/`forever`; add `map` to keep both maps open, or a number for aura events per second, 200 by default) |
 | `luajit ../../tools/performance_world_map.lua cata 60` | `addons/Highground/` | Open-world sightings, shared sightings, tracking reports, marks and kills with the world and zone maps open (`retail`/`forever`, `closed`) |
 | `luajit ../../tools/performance_hub.lua cata 5` | `addons/Highground/` | Idle Home with and without a named profile, then the closed window |
 | `luajit ../../tools/performance_bounty_idle.lua 5 form loading` | `addons/Highground/` | Forever, two communities, empty bounty records: closed UI, the idle bounty board (`board`) or Create Bounty open (`form`), with organizations ready or still `loading` |
@@ -283,8 +283,26 @@ A later pass removed work the 0.25-second tick and the combat log repeated witho
 
 `tests/pvp_events_test.lua` budgets non-lethal combat-log hits through bounty tracking.
 
-Still open; each needs a live check before changing:
+### Auras, the combat log and saved tables
 
-- Retail reads four aura lists per visible enemy per tick. `GetUnitAuras` returns new tables, and only the first aura is used.
-- Cata reads every aura of every visible enemy per tick. `UNIT_AURA` could gate re-reads, but `raidNtarget` and `mouseover` tokens get no aura events.
-- Each combat-log listener calls `CombatLogGetCurrentEventInfo` itself.
+The simulator used to hand back the stored aura fixture; like the client, it now builds a new aura table with its `points` list on every read, so the figures below include that cost. Its category filters (`"HELPFUL|BIG_DEFENSIVE"`) read the unit's category lists; they used to return its buffs. From `addons/Highground/`, `luajit ../../tools/performance_pvp.lua bg <client> 60 [auras per second]` (allocations per minute, all guarded callbacks). The default 200 `UNIT_AURA` events per second change each enemy's auras several times a second; 20 is calmer, though the combat log still reports 80 aura changes a second, which Cata reads.
+
+| Client, `UNIT_AURA` events | Before | After |
+| --- | ---: | ---: |
+| Cata, 200/s | 2,924 KiB | 2,054 KiB |
+| Cata, 20/s | 2,903 KiB | 1,085 KiB |
+| Retail, 200/s | 1,281 KiB | 326 KiB |
+| Retail, 20/s | 1,278 KiB | 322 KiB |
+| WoW Forever, 200/s | 374 KiB | 319 KiB |
+
+- Unit scans read an enemy's auras again only when they may have changed: newly in view or on another token, or an aura change for that enemy, from Cata's combat log or `UNIT_AURA` on any of its target, focus, arena or nameplate tokens; such an enemy is also read every 2 seconds. An enemy seen only through tokens without aura events (mouseover, the soft target or a teammate's target without a nameplate) is read every tick, as before, so no aura display is slower than the 0.25-second tick. A cooldown switch or your damage type changing reads again at once. Retail reads one aura per category with `GetAuraDataByIndex` instead of four `GetUnitAuras` lists; a refused first read skips the other three. With 10 enemies for 10 seconds, Cata went from 1,200 aura reads and 88 KiB to 120 and 9 KiB, Retail from 197 to 9 KiB. `tools/performance_events.lua retail`: the live tick fell from 495 to 41 KiB per 30 seconds, the 40-enemy minute from 2,521 to 121 KiB.
+- `PvPEvents.Log()` reads each combat-log row once for every PvP listener (core, map intel, Timers, stealth, arena activity), and listeners name the subevents they read. 20,000 mixed rows in a Cata battleground ran 36,000 guarded calls and 20,000 row reads instead of 104,000 and 80,000. With both maps open (`bg <client> 60 map`), Cata fell from 3,441 to 2,569 KiB, Retail from 1,798 to 843 KiB.
+- Stealth: no lookups while nobody is hidden, two records per enemy instead of a table per hiding cast (Cata battleground 380 to 7 KiB, open world 484 to 110 KiB), and a visible stealthed enemy's auras are not rescanned for updates that removed nothing.
+- Timers (Cata 112 to 73 KiB): the win forecast reads the score widgets after `UPDATE_UI_WIDGET` or a scoreboard update, at least once a second, asking the widget that answered last first; no empty tables per refresh; countdowns are written when their text changes.
+- Health: execute marks read a float curve's alpha instead of a colour object per row; Green to red reads each drawn row's tint once per tick and other enemies' once a second for their last seen bar.
+- The druid model probe clears its model after each read and at a match's end.
+- Capture casts and finished capture estimates age out during long matches and world fights, where an "Opening" cast is a chest, not a base. Spec reasons from casts are built once per spell and language; pruning a full history builds one list of keys. Battleground recordings are repaired in place at login.
+
+The Retail arena's crowd-control reads fell from 218 to 21 KiB only because of the simulator's category fix. `tests/pvp_events_test.lua` budgets the scans, the shared combat-log read and its subevent filters; `tests/stealth.lua`, `tests/health_test.lua` and `tests/battleground_timers_test.lua` cover the stealth, health and score-widget reads.
+
+Live checks still owed for the pass above: whether `UNIT_AURA` fires for `mouseover` and `softenemy` (they are treated as tokens without aura events), that a hovered or soft-targeted enemy's nameplate token resolves to the same enemy so its `UNIT_AURA` counts, that `GetAuraDataByIndex` honours category filters on Retail as `GetUnitAuras` does, that `UnitHealthPercent` takes a float curve and `SetAlpha` its secret result, that `UNIT_AURA`'s `removedAuraInstanceIDs` is readable for enemies on the Midnight client, and that `ClearModel` releases the druid model.

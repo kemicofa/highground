@@ -162,9 +162,114 @@ t.test("a busy battleground combat log stays within its allocation budget", func
   local allocated = collectgarbage("count") - before
   collectgarbage("restart")
   -- Before the shared dispatcher, four guarded handlers packed ~400 bytes each.
-  assert(allocated < 64, "2,000 combat-log events: " .. allocated .. " KiB")
+  assert(allocated < 4, "2,000 combat-log events: " .. allocated .. " KiB")
   sim:assertHealthy()
 end)
+
+t.test("the combat log is read once per row; listeners skip subevents they ignore", function()
+  local sim = setup("cata", 40402)
+  for i = 1, 5 do sim:enemy("Enemy" .. i) end
+  sim:join()
+  sim:advance(2)
+  local E, U, env = sim.ns.PvPEvents, sim.ns.Util, sim.env
+  local reads, info = 0, env.CombatLogGetCurrentEventInfo
+  env.CombatLogGetCurrentEventInfo = function() reads = reads + 1; return info() end
+  local seen
+  E.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() seen = select(9, E.Log()) end }, "test log",
+    function() return true end, nil, { SPELL_DAMAGE = true })
+  E.Refresh()
+  local stages, run = {}, U.RunGuarded
+  U.RunGuarded = function(stage, fn) stages[stage] = (stages[stage] or 0) + 1; return run(stage, fn) end
+  sim.combatEvent = { sim.now, "SPELL_DAMAGE", false, "Player-1", "Me-Realm", 0x511, 0, "Player-2", "Enemy1-Realm",
+    0x548, 0, 133, "Spell", 4 }
+  for _ = 1, 100 do E.frame.scripts.OnEvent(E.frame, "COMBAT_LOG_EVENT_UNFILTERED") end
+  U.RunGuarded = run
+  t.equal(seen, "Enemy1-Realm", "E.Log hands each listener the row")
+  for _, stage in ipairs({ "combatlog", "timers combatlog", "pvp stealth" }) do
+    t.equal(stages[stage], nil, stage .. " skips a damage row it never reads")
+  end
+  t.equal(reads, 100, "one read per row for every PvP listener")
+  env.CombatLogGetCurrentEventInfo = info
+  sim:assertHealthy()
+end)
+
+for _, client in ipairs(CLIENTS) do
+  t.test(client[2] .. " unit scans read enemy auras when they change, not every tick", function()
+    local sim = setup(client[1], client[2])
+    local tokens = {}
+    for i = 1, 10 do
+      local _, token = sim:enemy("Enemy" .. i, { buffs = { { spellId = 1126, icon = 1 } },
+        categories = { ["HELPFUL|BIG_DEFENSIVE"] = { { spellId = 642, icon = 2 } } } })
+      tokens[i] = token
+    end
+    sim:join()
+    sim:advance(2)
+    local env, reads, allocated = sim.env, 0, 0
+    local get = env.C_UnitAuras.GetAuraDataByIndex
+    env.C_UnitAuras.GetAuraDataByIndex = function(unit, ...)
+      if unit ~= "player" then reads = reads + 1 end
+      return get(unit, ...)
+    end
+    local C = sim.ns.Core
+    local scan = C.ScanUnits
+    C.ScanUnits = function()
+      local before = collectgarbage("count")
+      scan()
+      allocated = allocated + collectgarbage("count") - before
+    end
+    collectgarbage("collect"); collectgarbage("stop")
+    sim:advance(10)
+    collectgarbage("restart")
+    if not sim.ns.Caps.enemyAuras then
+      t.equal(reads, 0, "WoW Forever never asks for enemy auras")
+    else
+      -- Every tick used to read each enemy: 40 scans of 10 enemies in 10 s.
+      local perRead = client[1] == "cata" and 3 or 4
+      assert(reads <= 10 * 6 * perRead, "a reading every two seconds without aura events: " .. reads)
+      assert(allocated < 24, "ten seconds of scans: " .. allocated .. " KiB")
+      reads = 0
+      sim.units[tokens[3]].categories = {}
+      sim.units[tokens[3]].buffs = {}
+      sim:event("UNIT_AURA", tokens[3])
+      sim:advance(0.3)
+      assert(reads > 0 and reads <= 2 * perRead, "an aura event reads that enemy at the next tick: " .. reads)
+      t.equal(sim:entry("Enemy3").def, false, "and shows the change")
+    end
+    C.ScanUnits = scan
+    sim:assertHealthy()
+  end)
+end
+
+for _, client in ipairs(CLIENTS) do
+  t.test(client[2] .. " a hovered or soft-targeted enemy follows its nameplate's aura events", function()
+    for _, token in ipairs({ "mouseover", "softenemy" }) do
+      local sim = setup(client[1], client[2])
+      local fields, plate = sim:enemy("Hovered", { buffs = {}, categories = {} })
+      sim:join()
+      sim.units[token] = fields
+      sim:advance(0.5)
+      local entry = sim:entry("Hovered")
+      t.equal(entry.unit, token, "seen through " .. token .. " first")
+      local env, reads = sim.env, 0
+      local get = env.C_UnitAuras.GetAuraDataByIndex
+      env.C_UnitAuras.GetAuraDataByIndex = function(unit, ...)
+        if unit == token then reads = reads + 1 end
+        return get(unit, ...)
+      end
+      sim:advance(1.25)
+      t.equal(reads, 0, token .. ": not read again while unchanged")
+      if sim.ns.Caps.enemyAuras then
+        fields.buffs = { { spellId = 45438, icon = 1 } }
+        fields.categories = { ["HELPFUL|BIG_DEFENSIVE"] = { { spellId = 45438, icon = 1 } } }
+        sim:event("UNIT_AURA", plate)
+        sim:advance(0.25)
+        assert(reads > 0, token .. ": its nameplate's UNIT_AURA reads it at the next tick")
+        assert(entry.immune or entry.def, token .. ": and shows the change")
+      end
+      sim:assertHealthy()
+    end
+  end)
+end
 
 t.test("bounty kill tracking passes over non-lethal hits without allocating", function()
   local sim = setup("cata", 40402)

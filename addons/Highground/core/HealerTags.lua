@@ -239,9 +239,18 @@ function Core.ResetTeamInspect()
   pending, nextAt = nil, 0
 end
 
+-- Marks follow the spec history's limits (Core.PruneHistory): once after
+-- login here, then once per battleground.
+local pruned = false
+local function Prune()
+  if pruned or not (Core.db and Core.PruneHistory) then return end
+  pruned = true
+  Core.PruneHistory(ns.Scope.Saved("healerTags", "social"), time())
+end
+
 ns.Util.Events({
   INSPECT_READY = function(_, guid) Core.InspectReady(guid) end,
-  PLAYER_ENTERING_WORLD = function() wipe(keys); Core.ResetTeamInspect() end,
+  PLAYER_ENTERING_WORLD = function() wipe(keys); Core.ResetTeamInspect(); Prune() end,
   UNIT_NAME_UPDATE = function() wipe(keys) end,
   GROUP_ROSTER_UPDATE = function()
     wipe(keys)

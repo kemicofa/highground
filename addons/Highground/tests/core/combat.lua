@@ -1,5 +1,8 @@
 local test, client = ...
 
+-- The client reports an aura change on the enemy's token (UNIT_AURA).
+local function AuraChanged(core) core.AuraEvent("target") end
+
 test("Cata preserves CC through eligibility while stuns still score", function()
   local s, _, _, core, enemy = client("cata")
   core.BuildSpecLookup()
@@ -9,6 +12,9 @@ test("Cata preserves CC through eligibility while stuns still score", function()
   core.Score(enemy)
   assert(enemy.stun and not enemy.cc and enemy.comp.stun == 12)
   s.auras = { { spellId = 118 } }
+  core.ScanUnits()
+  assert(enemy.stun, "unchanged without an aura event")
+  AuraChanged(core)
   core.ScanUnits()
   core.Score(enemy)
   assert(enemy.cc and not enemy.stun and not enemy.comp.cc and not core.Eligible(enemy))
@@ -75,6 +81,7 @@ test("untracking an active defensive removes its score without a false GO", func
   core.ScanUnits()
   assert(enemy.def, "re-enabling should recognize the still-active aura")
   s.buffs, s.now = {}, 101
+  AuraChanged(core)
   core.ScanUnits()
   core.Score(enemy)
   assert(enemy.burnedAt == 101 and enemy.burnedSpell == 45438 and enemy.comp.spent == 15)
@@ -109,6 +116,7 @@ test("aura aliases and other active defensives respect independent choices", fun
   core.ScanUnits()
   assert(not enemy.def and not enemy.burst, "alternate aura IDs must share the ability's switch")
   s.buffs = { { spellId = 86659 }, { spellId = 33206, icon = 3 } }
+  AuraChanged(core)
   core.ScanUnits()
   assert(enemy.def and enemy.defIcon == 3 and enemy.defSpell == 33206, "tracked external still protects the target")
   env.db.disabledCooldowns[86150] = nil
@@ -170,6 +178,27 @@ test("rogue sap call fires once when the enemy FC or a healer dies in WSG and Tw
   s.now = s.now + 40
   core.OnCombatLog()
   assert(#warnings == 2, "other classes, maps and the setting stay quiet")
+end)
+
+test("an enemy seen only through a teammate's target, with no aura events, is read every scan", function()
+  for _, flavor in ipairs({ "cata", "retail" }) do
+    local s, ns, env, core, enemy = client(flavor)
+    core.BuildSpecLookup()
+    s.visible = false
+    ns.UnitTokens.Group = function() return ns.UnitTokens.raid, 2 end
+    env.UnitIsVisible = function(unit) return unit == "raid2target" end
+    local reads, get = 0, env.C_UnitAuras.GetAuraDataByIndex
+    env.C_UnitAuras.GetAuraDataByIndex = function(...) reads = reads + 1; return get(...) end
+    s.auras = { { spellId = 853 } }
+    core.ScanUnits()
+    local first = reads
+    assert(enemy.unit == "raid2target" and first > 0, flavor .. ": read when first seen")
+    s.auras = {}
+    s.now = s.now + 0.25
+    core.ScanUnits()
+    assert(reads > first, flavor .. ": read again at the next scan")
+    assert(not enemy.stun and not enemy.crowdControlled, flavor .. ": and up to date")
+  end
 end)
 
 test("an enemy only a teammate targets gets that unit while visible", function()
@@ -237,7 +266,8 @@ end)
 
 test("auras refused: the loss-of-control count marks crowd control, kind unknown", function()
   local s, _, env, core, enemy = client("retail")
-  env.C_UnitAuras = { GetUnitAuras = function() error("Auras cannot be accessed when secret") end }
+  local function refused() error("Auras cannot be accessed when secret") end
+  env.C_UnitAuras = { GetUnitAuras = refused, GetAuraDataByIndex = refused }
   local count = 1
   env.C_LossOfControl = {
     GetActiveLossOfControlDataCountByUnit = function(unit) return unit == "target" and count or 0 end,
@@ -265,7 +295,8 @@ test("WoW Forever never asks for enemy auras; loss of control still marks CC", f
   local s, ns, env, core, enemy = client("retail")
   ns.Caps.enemyAuras = false
   local asked = 0
-  env.C_UnitAuras = { GetUnitAuras = function() asked = asked + 1; error("Auras cannot be accessed when secret") end }
+  local function refused() asked = asked + 1; error("Auras cannot be accessed when secret") end
+  env.C_UnitAuras = { GetUnitAuras = refused, GetAuraDataByIndex = refused }
   env.C_LossOfControl = { GetActiveLossOfControlDataCountByUnit = function() return 1 end }
   core.ScanUnits()
   assert(asked == 0, "no aura call to fail")

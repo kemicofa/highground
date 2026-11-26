@@ -188,8 +188,7 @@ t.test("the combat log is read once per row; listeners skip subevents they ignor
   for _, stage in ipairs({ "combatlog", "timers combatlog", "pvp stealth" }) do
     t.equal(stages[stage], nil, stage .. " skips a damage row it never reads")
   end
-  -- The shared read, plus map intel's own until it reads E.Log.
-  assert(reads <= 200, "at most two reads per row: " .. reads)
+  t.equal(reads, 100, "one read per row for every PvP listener")
   env.CombatLogGetCurrentEventInfo = info
   sim:assertHealthy()
 end)

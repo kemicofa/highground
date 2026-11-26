@@ -34,11 +34,15 @@ local function Layout()
   w.area:SetHeight(height)
   local top = header + gap + height + gap
   local inner, control = width - 2 * pad, 28 * scale
-  local function Row(buttons, y, uniform)
+  -- Buttons fill the row in proportion to their base widths.
+  local function Row(buttons, y)
+    local total = 0
+    for _, button in ipairs(buttons) do total = total + button.baseWidth end
+    local stretch = (inner - (#buttons - 1) * gap) / total
     local x = 0
     for _, button in ipairs(buttons) do
       button:ClearAllPoints(); button:SetPoint("TOPLEFT", x, -y)
-      button:SetSize(uniform or button.baseWidth * scale, control)
+      button:SetSize(button.baseWidth * stretch, control)
       x = x + button:GetWidth() + gap
     end
   end
@@ -56,12 +60,12 @@ local function Layout()
     w.destinationGroup.heading:SetSize(inner, 20 * scale)
     w.destination:ClearAllPoints(); w.destination:SetPoint("TOPLEFT", 0, -20 * scale - gap)
     w.destination:SetSize(inner, control)
-    Row(w.destinationButtons, 20 * scale + control + 2 * gap, (inner - 2 * gap) / 3)
+    Row(w.destinationButtons, 20 * scale + control + 2 * gap)
   end
   if w.routeGroup:IsShown() then
     Group(w.routeGroup, 20 * scale + control + gap)
     w.routeGroup.heading:SetSize(inner, 20 * scale)
-    Row(w.routeButtons, 20 * scale + gap, (inner - 2 * gap) / 3)
+    Row(w.routeButtons, 20 * scale + gap)
   end
   w.status:ClearAllPoints(); w.status:SetPoint("TOPLEFT", pad, -top)
   w.status:SetWidth(w:GetWidth() - 2 * pad); w.status:SetHeight(18 * scale)
@@ -128,11 +132,15 @@ local function Build()
   end
   w.destinationGroup = Group(ns.Locale:Get("battlegrounds.quickcalls.enemies_going_to.1c6bf7"))
   w.destination = Kit.Select(w.destinationGroup, { menu = true, choices = {}, onChange = function() Quick.Update() end })
+  -- The counts, then All clear for the chosen destination.
   w.destinationButtons = {}
-  for i, count in ipairs(Quick.COUNTS) do
-    w.destinationButtons[i] = Button(w.destinationGroup, count, 56,
-      function() return Quick.DestinationMessage(count, w.destination:GetValue() ~= "" and w.destination:GetValue() or ns.Locale:Get("battlegrounds.quickcalls.chosen_destination.782f28")) end)
-    w.destinationButtons[i].count = count
+  local choices = {}
+  for _, count in ipairs(Quick.COUNTS) do choices[#choices + 1] = { label = count, value = count } end
+  choices[#choices + 1] = BUTTONS[#BUTTONS]
+  for i, def in ipairs(choices) do
+    w.destinationButtons[i] = Button(w.destinationGroup, def.label, def.width or 56,
+      function() return Quick.DestinationMessage(def.value, w.destination:GetValue() ~= "" and w.destination:GetValue() or ns.Locale:Get("battlegrounds.quickcalls.chosen_destination.782f28")) end)
+    w.destinationButtons[i].count = def.value
   end
   w.routeGroup = Group(ns.Locale:Get("battlegrounds.quickcalls.enemy_flag_carrier_going.6845f4"))
   w.routeButtons = {}

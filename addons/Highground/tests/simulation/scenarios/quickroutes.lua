@@ -27,9 +27,10 @@ test(game .. " destination calls send the selected area alongside local calls", 
   assert(w.destination:SetValue("Farm"), "all bases available without timers or map POIs")
   equal(#sim.chat, 0, "selecting a place does not send")
   sim.env.ChatFrame_OpenChat("/w Friend unfinished message")
-  for i, count in ipairs({ "1", "2", "3+" }) do
+  for i, message in ipairs({ "1 enemy going to Farm", "2 enemies going to Farm", "3+ enemies going to Farm",
+    "All clear — Farm" }) do
     send(sim, w.destinationButtons[i])
-    equal(sim.chat[i].text, "" .. count .. (i == 1 and " enemy" or " enemies") .. " going to Farm")
+    equal(sim.chat[i].text, message)
     equal(sim.chat[i].channel, "INSTANCE_CHAT")
     equal(sim.chatDraft, "/w Friend unfinished message")
     area = "Blacksmith" -- Moving the observer must not change the chosen destination.
@@ -37,12 +38,14 @@ test(game .. " destination calls send the selected area alongside local calls", 
     equal(#sim.chat, i, "no automatic sends")
   end
   send(sim, w.buttons[3])
-  equal(sim.chat[4].text, "Need help — Blacksmith (2 enemies)", "local help still follows the observer")
+  equal(sim.chat[5].text, "Need help — Blacksmith (2 enemies)", "local help still follows the observer")
   equal(w.routeGroup:IsShown(), false, "route feature stays off")
   C.SetFeature("quickCallsDestinations", false)
   assert(not w.destinationGroup:IsShown() and w:IsShown())
-  equal(w.destinationButtons[2].fire.attrs.macrotext, "", "turning the feature off clears its macros")
-  equal(#sim.chat, 4)
+  for _, button in ipairs(w.destinationButtons) do
+    equal(button.fire.attrs.macrotext, "", "turning the feature off clears its macros")
+  end
+  equal(#sim.chat, 5)
   sim:assertHealthy()
 end)
 
@@ -93,8 +96,10 @@ test("destination choices reset across matches and map changes before a fresh ti
   sim.mapID, sim.instanceID, sim.mapName = 1576, 2245, "Deepwind Gorge"
   Q.Update()
   equal(w.destinationButtons[2].fire.attrs.macrotext, "", "Farm on a different map needs a fresh selection")
+  equal(w.destinationButtons[4].fire.attrs.macrotext, "", "All clear too")
   equal(w.destination:GetValue(), "")
   equal(w.destinationButtons[2]:IsEnabled(), false)
+  equal(w.destinationButtons[4]:IsEnabled(), false)
   assert(w.destination:SetValue("Market"))
   send(sim, w.destinationButtons[2])
   equal(sim.chat[1].text, "2 enemies going to Market")

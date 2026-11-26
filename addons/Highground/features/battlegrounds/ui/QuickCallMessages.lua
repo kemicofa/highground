@@ -83,14 +83,20 @@ function Quick.Routes(preview)
   return config.routes or {}
 end
 
+local function Clear(area)
+  return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.all_clear_area.bff079", { area = area }))
+end
+
 function Quick.Message(choice, area)
-  if choice == "clear" then return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.all_clear_area.bff079", { area = area })) end
+  if choice == "clear" then return Clear(area) end
   if choice ~= nil and not Contains(Quick.COUNTS, tostring(choice)) then return nil end
   local enemies = choice and (" (" .. choice .. (tostring(choice) == "1" and ns.Locale:Get("battlegrounds.quickcallmessages.enemy.91f1fa") or ns.Locale:Get("battlegrounds.quickcallmessages.enemies.83743d"))) or ""
   return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.need_help_area_enemies.355721", { area = area, enemies = enemies }))
 end
 
+-- count: a count from COUNTS, or "clear" for All clear there.
 function Quick.DestinationMessage(count, destination)
+  if count == "clear" then return Clear(destination) end
   if not Contains(Quick.COUNTS, tostring(count)) then return nil end
   return ChatText(ns.Locale:Format("battlegrounds.quickcallmessages.count_value2_going_to_destination.b2c232", { count = count, value2 = (tostring(count) == "1" and ns.Locale:Get("battlegrounds.quickcallmessages.enemy.ce4e8e") or ns.Locale:Get("battlegrounds.quickcallmessages.enemies.c31be1")), destination = destination }))
 end

@@ -141,6 +141,16 @@ end
 function Api.AddOnMetadata(addon, field) return Call(Api.Fn("C_AddOns", "GetAddOnMetadata"), addon, field) end
 function Api.IsAddOnLoaded(addon) return Call(Api.Fn("C_AddOns", "IsAddOnLoaded"), addon) end
 function Api.LoadAddOn(addon) return Call(Api.Fn("C_AddOns", "LoadAddOn"), addon) end
+-- This character's enable state for an addon (0: off or missing; nil:
+-- unknown). C_AddOns takes (addon, GUID); the older global (name, addon).
+function Api.AddOnEnableState(addon)
+  local space, guid, name = G.C_AddOns, Call(G.UnitGUID, "player"), Call(G.UnitName, "player")
+  if type(space) == "table" and type(space.GetAddOnEnableState) == "function" then
+    if guid or name then return Call(space.GetAddOnEnableState, addon, guid or name) end
+  elseif name then
+    return Call(G.GetAddOnEnableState, name, addon)
+  end
+end
 
 -- Game settings (C_CVar since 8.0). Values are strings; nil when this client
 -- has no such setting. SetCVar returns whether the client accepted it.

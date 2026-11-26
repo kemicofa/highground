@@ -24,14 +24,8 @@ function A.Available()
   if A.db then return true end
   if A.failed then return false end
   if A.enabled == nil then
-    local api, name, state = C_AddOns, U.read(UnitName, "player"), nil
-    local character = U.read(UnitGUID, "player") or name
-    if not character then return true end
-    if type(api) == "table" and api.GetAddOnEnableState then
-      state = U.read(api.GetAddOnEnableState, A.ADDON, character)
-    elseif GetAddOnEnableState and name then
-      state = U.read(GetAddOnEnableState, name, A.ADDON)
-    end
+    if not U.read(UnitName, "player") then return true end
+    local state = ns.Api.AddOnEnableState(A.ADDON)
     A.enabled = type(state) ~= "number" or state > 0
   end
   return A.enabled

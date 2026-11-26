@@ -8,9 +8,9 @@ Highground is the only supported distribution. It has one version, changelog and
 
 | Distribution | GitHub release | CurseForge | Wago |
 | --- | --- | --- | --- |
-| Highground | `vX.Y.Z`, the repository's Latest release (a prerelease for [alphas and betas](#alpha-and-beta-releases)) | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
+| Highground | `vX.Y.Z`, the repository's Latest release (`vX.Y.Z-beta` or `vX.Y.Z-alpha` prereleases for [alphas and betas](#alpha-and-beta-releases)) | [1749115](https://www.curseforge.com/projects/1749115) | [b6Xy3OKp](https://addons.wago.io/addons/b6Xy3OKp) |
 
-The tags `curseforge-vX.Y.Z` and `wago-vX.Y.Z` record completed uploads. Historical standalone releases and changelogs remain available in Git tags/history.
+The tags `curseforge-<tag>` and `wago-<tag>`, such as `curseforge-vX.Y.Z` or `wago-vX.Y.Z-beta`, record completed uploads. Historical standalone releases and changelogs remain available in Git tags/history.
 
 ## Local build
 
@@ -72,16 +72,18 @@ A `<tag>-pending` tag, such as `curseforge-vX.Y.Z-pending`, exists while an uplo
 
 ## Alpha and beta releases
 
-Add `## X-Release-Type: alpha` (or `beta`) to every Highground TOC to publish a test version; remove it, or set `release`, for a normal release. The version stays `X.Y.Z` and the tags are the same.
+Add `## X-Release-Type: alpha` (or `beta`) to every Highground TOC to publish a test version; remove it, or set `release`, for a normal release. The TOC version stays `X.Y.Z`; the tags and the Wago label add the release type, so one version can ship as an alpha, then a beta, then a release.
 
 | Destination | release | beta or alpha |
 | --- | --- | --- |
-| GitHub | `vX.Y.Z`, the Latest release | `vX.Y.Z` prerelease; Latest stays on the previous release |
+| GitHub | `vX.Y.Z`, the Latest release | `vX.Y.Z-beta` or `vX.Y.Z-alpha` prerelease; Latest stays on the previous release |
 | CurseForge | release file | beta or alpha file, named `Highground X.Y.Z alpha` |
-| Wago | stable | beta or alpha |
+| Wago | stable, labelled `X.Y.Z` | beta or alpha, labelled `X.Y.Z-beta` or `X.Y.Z-alpha` |
 | Discord | `Highground X.Y.Z` link | `Highground X.Y.Z alpha` link |
 
-CurseForge and Wago offer beta and alpha files only to players who allow them in their client. A later normal release needs a new version: a published version is never uploaded again.
+CurseForge and Wago offer beta and alpha files only to players who allow them in their client. Each version and release type is uploaded once: a second beta needs a new version. Discord announces each one; a normal release keeps the delivery key it had before release types counted.
+
+The 3.3.0 alpha was published before this scheme and holds the plain `v3.3.0`, `curseforge-v3.3.0` and `wago-v3.3.0` tags (Wago label `3.3.0`). The release check reads those as a published 3.3.0 release, so the next normal release must be 3.3.1 or later.
 
 ## Discord announcements
 

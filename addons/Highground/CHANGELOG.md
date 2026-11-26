@@ -2,14 +2,11 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
-
-- Quick callouts: **Enemies going to** has an **All clear** button beside **1**, **2** and **3+**, which sends `All clear — Farm` for the chosen destination.
-- Battlegrounds: shift-click the **Win forecast** or a resurrection or **Timers** countdown to share it in chat, such as "Horde res at Stables in 12s" or "Forecast: Alliance wins in 3:10 · Horde needs 3 bases". The line goes into your chat box on the callout channel (`/hg call s|i|raid|party|y`, say by default), or into the message you are typing; press Enter to send it, which works during matches. What the game already shows everyone, such as the score, base owners and flag carriers, is left out. Previews and the Objectives guide print the sample instead.
-
 ## [3.3.0] - 2026-11-26
 
-- This is an alpha: CurseForge and Wago offer it only to players who allow alpha files for Highground. Restart the game after updating, because it adds new addon folders.
+- This is a beta: CurseForge and Wago offer it only to players who allow beta or alpha files for Highground. It adds the next two entries to the 3.3.0 alpha. Coming from 3.2 or earlier, restart the game after updating, because 3.3.0 adds new addon folders.
+- Battlegrounds: shift-click the **Win forecast** or a resurrection or **Timers** countdown to share it in chat, such as "Horde res at Stables in 12s" or "Forecast: Alliance wins in 3:10 · Horde needs 3 bases". The line goes into your chat box on the callout channel (`/hg call s|i|raid|party|y`, say by default), or into the message you are typing; press Enter to send it, which works during matches. What the game already shows everyone, such as the score, base owners and flag carriers, is left out. Previews and the Objectives guide print the sample instead.
+- Quick callouts: **Enemies going to** has an **All clear** button beside **1**, **2** and **3+**, which sends `All clear — Farm` for the chosen destination.
 - **Match history** keeps every objective event of a match, up to 1,000 (enough for a long Alterac Valley), instead of the last 200. Full timelines move to a new bundled addon, **HighgroundMatchData**, whose saved data loads only when you open an older match or after a battleground once 20 new timelines wait. Logging in no longer loads every character's old timelines: in a simulated full 100-match history, about 74 KiB of memory instead of 4 MiB per character. Existing timelines move there the first time it loads. Keep the new folder with Highground; without it, Highground keeps 200 events per match as before.
 - Highground uses less memory from login. Settings pages, the Profiles page and the profile export window are built the first time you open them instead of at login, and buttons add their hover and highlight effects the first time you use them. Logging in now creates about a fifth of the interface objects it did, and Nearby and Bounties settings are never built while those addons are off.
 - Open maps use much less memory. The world map, the zone map and the battleground map updated every pin, circle, heat square and timer by building it again, every second in the open world and twice a second in battlegrounds; they now update them in place, for about nine tenths less garbage with both maps open in a simulated busy zone or match. Sightings, marks, kills and tracking reports that name a map your client doesn't know are ignored. Turning the enemy heatmap or World map sightings off discards the heat gathered so far.

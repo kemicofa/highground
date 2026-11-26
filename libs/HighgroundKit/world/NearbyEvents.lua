@@ -84,12 +84,22 @@ local function Observe(unit)
   Guard("nearby", Nearby.NoteUnit, unit)
   Refresh()
 end
+-- Off or paused, nothing lists the sightings: forgotten ones still go.
+local function Forget()
+  local now, forget = GetTime(), Core.O("nearbyForget")
+  if not forget then return end
+  for name, e in pairs(Nearby.seen) do
+    if now - e.last > forget then Nearby.seen[name] = nil end
+  end
+end
 local function Scan()
   Nearby.SyncEvents()
   if Nearby.State() == "tracking" then
     for unit in pairs(units) do
       if Read(UnitExists, unit) then Guard("nearby", Nearby.NoteUnit, unit) end
     end
+  else
+    Forget()
   end
   if redraw then redraw:Run() else Guard("nearby", Nearby.Update) end
 end

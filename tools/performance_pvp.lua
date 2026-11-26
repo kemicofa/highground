@@ -1,15 +1,16 @@
 -- Run from addons/Highground:
--- luajit ../../tools/performance_pvp.lua [world|bg|arena] [cata|retail|forever] [seconds]
+-- luajit ../../tools/performance_pvp.lua [world|bg|arena] [cata|retail|forever] [seconds] [map]
 -- Replays busy native event traffic through the real Highground manifest:
 --   world  a 40-player raid outside any instance (combat log, auras, casts)
 --   bg     a 15v15 Arathi Basin: visible enemies, owned and contested bases,
 --          a live score and a busy combat log
 --   arena  a 3v3 arena with opponent tokens
+-- `map` keeps the world map and the zone map (Shift+M) open on the match.
 -- Reports simulator allocations and CPU per outer guarded callback. These
 -- are not WoW FPS or addon-memory measurements; compare runs of this tool.
 jit.off()
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
-local mode, client, seconds = arg[1] or "world", arg[2] or "cata", tonumber(arg[3]) or 60
+local mode, client, seconds, maps = arg[1] or "world", arg[2] or "cata", tonumber(arg[3]) or 60, arg[4] == "map"
 assert(mode == "world" or mode == "bg" or mode == "arena", "expected world, bg or arena")
 assert(client == "cata" or client == "retail" or client == "forever", "expected cata, retail or forever")
 assert(seconds >= 1 and seconds <= 600, "expected 1..600 seconds")
@@ -21,6 +22,9 @@ local sim = new(client == "forever" and "retail" or client, {}, function(s)
   end
   dofile("../../tools/wowsim/geometry.lua")(s)
   s.env.WorldMapFrame:Hide(); s.env.BattlefieldMapFrame:Hide()
+  -- The game positions map pins without Lua tables; the simulator's anchors
+  -- would hide the addon's own allocations.
+  s.env.MapCanvasPinMixin.SetPosition = function(pin, x, y) pin.x, pin.y = x, y end
   -- The client filters RegisterUnitEvent registrations by unit.
   local create = s.env.CreateFrame
   s.env.CreateFrame = function(...)
@@ -48,6 +52,8 @@ for i = 1, enemies do
   -- rangeAnswers: an empty table avoids the simulator's per-call default.
   local fields, token = sim:enemy(name, { classID = (i % 9) + 1, guid = "Player-2-" .. i, yards = 10 + i, rangeAnswers = {},
     buffs = { { spellId = 1126, icon = 1 }, { spellId = 21562, icon = 2 } }, debuffs = { { spellId = 118, icon = 3 } } })
+  -- With the maps open, six enemies have exact positions, two of them on one spot.
+  if maps and i <= 6 then fields.position = { x = 0.3 + 0.1 * math.min(i, 5), y = 0.35 + 0.05 * (i % 3) } end
   if mode == "arena" then sim.units["arena" .. i] = fields end
   local ally = sim.units[(mode == "arena" and "party" or "raid") .. i]
   if ally then sim.units[(mode == "arena" and "party" or "raid") .. i .. "target"] = fields end
@@ -70,6 +76,9 @@ if mode == "bg" then
 elseif mode == "arena" then
   sim.instanceType = "arena"
   sim:joinArena()
+end
+if maps then
+  env.WorldMapFrame:Show(); env.BattlefieldMapFrame:Show()
 end
 sim:advance(5)
 
@@ -184,8 +193,8 @@ collectgarbage("restart"); collectgarbage("collect")
 local rows, attributed = {}, 0
 for _, row in pairs(stats) do rows[#rows + 1] = row; attributed = attributed + row.kb end
 table.sort(rows, function(a, b) return a.kb > b.kb end)
-print(string.format("%s %s, %ds: %.1f KiB allocated (%.1f KiB/min); %.1f KiB in guarded callbacks; %.0f ms total incl. simulator",
-  mode, client, seconds, allocated, allocated * 60 / seconds, attributed, cpu * 1000))
+print(string.format("%s %s%s, %ds: %.1f KiB allocated (%.1f KiB/min); %.1f KiB in guarded callbacks; %.0f ms total incl. simulator",
+  mode, client, maps and " with maps open" or "", seconds, allocated, allocated * 60 / seconds, attributed, cpu * 1000))
 for _, row in ipairs(rows) do
   if row.kb >= 0.05 or row.cpu >= 0.0005 or row.calls >= 50 then
     print(string.format("  %-28s %7d calls %9.1f KiB %8.1f ms", row.name, row.calls, row.kb, row.cpu * 1000))

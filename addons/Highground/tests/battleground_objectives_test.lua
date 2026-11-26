@@ -165,7 +165,7 @@ t.test("Eye of the Storm tracks the single flag and its respawn after a capture"
   end
   assert(pin and pin.label == "FLAG 20s", "respawn pin on the map: " .. tostring(pin and pin.label))
   local lines = {}
-  pin.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
+  pin.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }, pin)
   assert(table.concat(lines, " "):find("Flag respawns in 20s", 1, true), "respawn tooltip")
   sim:advance(21)
   for _, item in ipairs(sim.env.WorldMapFrame.pins) do

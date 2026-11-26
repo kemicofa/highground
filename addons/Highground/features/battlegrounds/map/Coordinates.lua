@@ -108,14 +108,18 @@ ns.CurrentMapID = Intel.MapID
 -- Map position 0-1: C_Map.GetPlayerMapPosition, else UnitPosition projected
 -- through the map's world-space corners. Both are nil in battlegrounds on
 -- some Cata clients; kept for clients/places where they work.
+-- A failed read is tried again on the next call (it can fail for a moment);
+-- the two query points are made once.
 Intel.corners = {}
+local origin, middle
 function Intel.Corners(mapID)
   if Intel.corners[mapID] then
     return Intel.corners[mapID]
   end
   if C_Map.GetWorldPosFromMapPos and CreateVector2D then
-    local ok1, instance, a = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(0, 0))
-    local ok2, otherInstance, b = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(0.5, 0.5))
+    origin, middle = origin or CreateVector2D(0, 0), middle or CreateVector2D(0.5, 0.5)
+    local ok1, instance, a = pcall(C_Map.GetWorldPosFromMapPos, mapID, origin)
+    local ok2, otherInstance, b = pcall(C_Map.GetWorldPosFromMapPos, mapID, middle)
     -- Both APIs return north/south first, east/west second. Normalized map
     -- x is the SECOND world axis. Never guess an orientation that fits.
     -- Use the center: the (1,1) edge is inaccurate on some maps.

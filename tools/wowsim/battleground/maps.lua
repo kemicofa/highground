@@ -7,6 +7,7 @@ return function(sim, env)
   end
   env.MapCanvasPinMixin = {
     GetMap = function(pin) return pin:GetParent() end,
+    OnReleased = function() end,
     SetPosition = function(pin, x, y)
       pin.x, pin.y = x, y
       local map = pin:GetParent()
@@ -63,7 +64,7 @@ return function(sim, env)
       self.pool[template] = self.pool[template] or {}
       for _, pin in ipairs(self.pins) do
         if pin.template == template then
-          pin:Hide(); table.insert(self.pool[template], pin)
+          pin:Hide(); pin:OnReleased(); table.insert(self.pool[template], pin)
         else
           keep[#keep + 1] = pin
         end
@@ -75,7 +76,8 @@ return function(sim, env)
         if active == pin then table.remove(self.pins, i); break end
       end
       self.pool[pin.template] = self.pool[pin.template] or {}
-      pin:Hide(); table.insert(self.pool[pin.template], pin)
+      -- The game's pin pool calls OnReleased (MapCanvasPinMixin's is empty).
+      pin:Hide(); pin:OnReleased(); table.insert(self.pool[pin.template], pin)
     end
     function map:AcquirePin(template, item)
       local pin = self.pool[template] and table.remove(self.pool[template])

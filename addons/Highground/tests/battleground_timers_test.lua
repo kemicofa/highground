@@ -35,7 +35,7 @@ local function pins(sim)
   local out = {}
   for _, pin in ipairs(sim.env.WorldMapFrame.pins) do
     local item, lines = pin.item, {}
-    if item.tooltip then item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }) end
+    if item.tooltip then item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end }, item) end
     out[#out + 1] = { label = item.label or "", tip = table.concat(lines, "\n"), x = pin.x, y = pin.y }
   end
   return out

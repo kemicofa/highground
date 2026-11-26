@@ -348,7 +348,7 @@ t.test("map pin tooltips keep the sighting they were drawn from", function()
   assert(pin, "the sighting has a pin")
   I.Died(key, sim.now + 1) -- the record is rewritten in place
   local lines = {}
-  pin.tooltip({ AddLine = function(_, text) lines[#lines + 1] = text end })
+  pin.tooltip({ AddLine = function(_, text) lines[#lines + 1] = text end }, pin)
   assert(table.concat(lines, " "):find("Scout", 1, true), "the tooltip still names the observer")
   sim:assertHealthy()
 end)

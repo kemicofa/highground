@@ -156,14 +156,14 @@ function Marks.Receive(text, channel, sender, _, _, localID, channelName)
     return
   end
   local kind, x, y, age, ttl, area = rest:match("^(%l+),(%d+),(%d+),(%d+),(%d+),(.*)$")
-  x, y, age, ttl = tonumber(x), tonumber(y), tonumber(age), tonumber(ttl)
-  if not (kind and Marks.Valid(kind) and x <= 10000 and y <= 10000 and age < ttl) then return end
+  x, y, age, ttl, map = tonumber(x), tonumber(y), tonumber(age), tonumber(ttl), tonumber(map)
+  if not (kind and Marks.Valid(kind) and x <= 10000 and y <= 10000 and age < ttl and ns.WorldMap.Known(map)) then return end
   ttl = math.min(ttl, Marks.TTL[kind])
   local known = Marks.heard[key]
   if not known and Count() >= Marks.MAX then return end
   area = Clean(area)
   local m = known or {}
-  m.type, m.mapID, m.x, m.y, m.ttl = kind, tonumber(map), x / 10000, y / 10000, ttl
+  m.type, m.mapID, m.x, m.y, m.ttl = kind, map, x / 10000, y / 10000, ttl
   m.at, m.by, m.via, m.area = GetTime() - age, from, via, area ~= "" and area or nil
   Marks.heard[key] = m
   Marks.stats.recv = Marks.stats.recv + 1
@@ -189,11 +189,27 @@ local SAMPLES = {
   { type = "help", x = 0.33, y = 0.6, ago = 10, by = "Guildmate", via = "guild" },
 }
 
-function Marks.Pins(mapID)
-  local items = {}
+-- A place's tooltip, read from its item when hovered.
+local function Tooltip(tt, item)
+  Line(tt, Marks.Label(item.type), Marks.RING[item.type])
+  for _, m in ipairs(item.marks) do
+    Line(tt, (m.area and (m.area .. " · ") or "") .. Describe(m, item.now), "textMuted")
+  end
+end
+
+local function Newest(a, b) return a.at > b.at end
+
+-- Items are reused between refreshes per owner (a map's data provider,
+-- map/Pins.lua), by place in order: places are rebuilt each refresh.
+local pools = setmetatable({}, { __mode = "k" })
+function Marks.Pins(mapID, _, _, _, _, owner)
+  local p = pools[owner or Marks]
+  if not p then p = { out = {}, list = {}, places = {} }; pools[owner or Marks] = p end
+  local items, list = p.out, p.list
+  wipe(items); wipe(list)
   local Nearby = ns.Nearby
   if not (Core.On("nearby") and Core.On("nearbyMap") and Core.On("nearbyMarks")) then return items end
-  local now, list = GetTime(), {}
+  local now = GetTime()
   if Nearby.preview then
     for _, s in ipairs(SAMPLES) do
       local map, x, y = Nearby.SampleAt(s.x, s.y)
@@ -205,33 +221,38 @@ function Marks.Pins(mapID)
   else
     return items
   end
-  local places = {}
+  local places, n = p.places, 0
   for _, m in ipairs(list) do
     local x, y = ns.WorldMap.Translate(m.mapID, mapID, m.x, m.y)
     if x and x > 0 and x < 1 and y > 0 and y < 1 then
       local place
-      for _, p in ipairs(places) do
-        if p.type == m.type and math.abs(p.x - x) < Marks.MERGE and math.abs(p.y - y) < Marks.MERGE then place = p; break end
+      for i = 1, n do
+        local q = places[i]
+        if q.type == m.type and math.abs(q.x - x) < Marks.MERGE and math.abs(q.y - y) < Marks.MERGE then place = q; break end
       end
       if not place then
-        place = { type = m.type, x = x, y = y, marks = {} }
-        places[#places + 1] = place
+        n = n + 1
+        place = places[n] or { marks = {}, size = 28, tooltip = Tooltip }
+        places[n] = place
+        wipe(place.marks)
+        place.type, place.x, place.y = m.type, x, y
       end
       place.marks[#place.marks + 1] = m
     end
   end
-  for i, p in ipairs(places) do
-    local n = #p.marks
-    table.sort(p.marks, function(a, b) return a.at > b.at end)
-    items[#items + 1] = { sortKey = "mark:" .. p.type .. ":" .. i, x = p.x, y = p.y, size = 28,
-      icon = Marks.Icon(p.type), ring = Marks.RING[p.type],
-      label = Marks.Label(p.type) .. (n > 1 and (" ×" .. n) or ""), labelColor = Marks.RING[p.type],
-      tooltip = function(tt)
-        Line(tt, Marks.Label(p.type), Marks.RING[p.type])
-        for _, m in ipairs(p.marks) do
-          Line(tt, (m.area and (m.area .. " · ") or "") .. Describe(m, now), "textMuted")
-        end
-      end }
+  for i = 1, n do
+    local item = places[i]
+    local count, kind = #item.marks, item.type
+    table.sort(item.marks, Newest)
+    -- Key, icon and label are built again only when the place changes.
+    local locale = ns.Locale:GetLocale()
+    if item.kind ~= kind or item.count ~= count or item.locale ~= locale then
+      item.kind, item.count, item.locale = kind, count, locale
+      item.sortKey, item.icon = "mark:" .. kind .. ":" .. i, Marks.Icon(kind)
+      item.label = Marks.Label(kind) .. (count > 1 and (" ×" .. count) or "")
+    end
+    item.ring, item.labelColor, item.now = Marks.RING[kind], Marks.RING[kind], now
+    items[#items + 1] = item
   end
   return items
 end

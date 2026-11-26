@@ -7,15 +7,18 @@ local Util, Theme = ns.Util, ns.Theme
 -- an XML template (Pins.xml), exactly like Blizzard's flag pins. The map
 -- canvas positions, scales and layers them, so they stay put at any zoom.
 --
--- Producers register with MapPins.Add(fn); fn(mapID, width, height) returns
+-- Producers register with MapPins.Add(fn); fn(mapID, width, height, nil,
+-- rings, provider) returns a list of
 --   { x, y (0-1), ring = colour | nil, icon = atlas | texture, desat,
---     alpha, label, labelColor = colour, mark, size, tooltip = fn(lines),
+--     alpha, label, labelColor = colour, mark, size, tooltip = fn(tooltip, item),
 --     zone = zone item it sits in }
 -- or a zone { x, y, radius (0-1 of the map width), ring, alpha, tooltip }
 -- or heat { x, y, heat (0-1), size and hit (0-1 of the map's width and
 -- height), ring, alpha, tooltip }.
 -- desat: true or a grey amount 0-1.
 -- A colour is a theme token name or { r, g, b } (see Theme.Paint).
+-- The list is read at once. Items may be reused between refreshes, but
+-- only by the same provider: a shown pin keeps reading its item.
 local MapPins = { stats = { draws = 0, pins = 0 } }
 ns.MapPins = MapPins
 
@@ -93,7 +96,7 @@ function PinMixin:OnMouseEnter()
     return
   end
   GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-  if Util.Guard("map pin tooltip", item.tooltip, GameTooltip) then
+  if Util.Guard("map pin tooltip", item.tooltip, GameTooltip, item) then
     GameTooltip:Show()
   end
 end
@@ -101,6 +104,13 @@ end
 function PinMixin:OnMouseLeave()
   Highlight(self.item, false)
   GameTooltip_Hide()
+end
+
+-- Back in the map's pool: forget the item, which a producer may reuse.
+function PinMixin:OnReleased()
+  local item = self.item
+  if item and item.pin == self then item.pin = nil end
+  self.item = nil
 end
 
 -- Fight rings: a circle around a group member at their live position, drawn
@@ -163,8 +173,10 @@ end
 function Rings.Draw(map, mapID, wanted, radius)
   local set = Rings.frames[map]
   if not set then return end
-  if radius and (set.dirty or set.mapID ~= mapID or math.abs(2 * radius * map:GetCanvas():GetWidth() - (set.size or 0)) > 1) then
-    Rebuild(map, set, mapID, math.max(8, 2 * radius * map:GetCanvas():GetWidth()))
+  -- Compare the clamped size: small rings would otherwise rebuild every refresh.
+  local size = radius and math.max(8, 2 * radius * map:GetCanvas():GetWidth())
+  if size and (set.dirty or set.mapID ~= mapID or math.abs(size - (set.size or 0)) > 1) then
+    Rebuild(map, set, mapID, size)
   end
   local r, g, b = Theme.Color("mapZone")
   for _, unit in ipairs(set.units) do
@@ -221,7 +233,7 @@ function HighgroundDataProviderMixin:RefreshAllData()
   -- map can draw them; a guide preview never gets rings.
   local rings, radius = not self.preview and Rings.Ready(map, mapID), nil
   for _, fn in ipairs(self.preview and { self.preview } or layers) do
-    local ok, list = Util.Guard("map layer", fn, mapID, width, height, nil, rings)
+    local ok, list = Util.Guard("map layer", fn, mapID, width, height, nil, rings, self)
     if ok and type(list) == "table" then
       for _, item in ipairs(list) do
         if item.unit and rings then

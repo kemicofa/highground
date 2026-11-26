@@ -22,6 +22,9 @@ local function Zone(zones, order, mapID)
   return z
 end
 
+local function Latest(a, b) return a.last > b.last end
+local function Largest(a, b) return a[2] > b[2] or (a[2] == b[2] and a[1] < b[1]) end
+
 -- The zones with activity, most recent first.
 function A.Zones(now)
   now = now or GetTime()
@@ -52,7 +55,7 @@ function A.Zones(now)
       z.last = math.max(z.last, f.at)
     end
   end
-  table.sort(order, function(a, b) return a.last > b.last end)
+  table.sort(order, Latest)
   return order
 end
 
@@ -60,7 +63,7 @@ end
 local function Top(counts, label)
   local list = {}
   for key, n in pairs(counts) do list[#list + 1] = { key, n } end
-  table.sort(list, function(a, b) return a[2] > b[2] or (a[2] == b[2] and a[1] < b[1]) end)
+  table.sort(list, Largest)
   for i = 1, #list do list[i] = i <= 5 and (label(list[i][1]) .. " " .. list[i][2]) or nil end
   return table.concat(list, ", ")
 end

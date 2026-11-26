@@ -154,8 +154,18 @@ end
 -- Watching with every Highground user
 ---------------------------------------------------------------------------
 local watch, watching = {}, 0 -- [Name-Realm] = when the last request expires
-local reported = {} -- [Name-Realm] = when someone last reported it
+-- [Name-Realm] = when someone last reported it; names come from other
+-- players, so at most MAX_WATCH are kept.
+local reported, reports = {}, 0
 local askAt = -math.huge
+
+local function Reported(name, now)
+  if not reported[name] then
+    if reports >= Tracking.MAX_WATCH then return end
+    reports = reports + 1
+  end
+  reported[name] = now
+end
 
 local function Send(text, channel)
   return Comms.Send(ns.WorldShare.PREFIX, text, "CHANNEL", channel)
@@ -181,20 +191,24 @@ local function Ask(channel, now)
 end
 
 function Tracking.Tick()
+  local now = GetTime()
+  for key, last in pairs(alerted) do
+    if now - last.at >= Tracking.GAP then alerted[key] = nil end
+  end
   local channel = Tracking.WorldChannel()
   if not channel then
-    wipe(watch); watching = 0
+    wipe(watch); wipe(reported); watching, reports = 0, 0
     return
   end
-  if Comms.Blocked() then return end
-  local now = GetTime()
-  if now - askAt >= Tracking.ASK_EVERY or (askDirty and now - askAt >= Tracking.ASK_AFTER_CHANGE) then Ask(channel, now) end
+  -- Requests and reports expire during chat lockdown too.
   for name, until_ in pairs(watch) do
     if now >= until_ then watch[name], watching = nil, watching - 1 end
   end
   for name, at in pairs(reported) do
-    if now - at >= Tracking.REPORT_GAP then reported[name] = nil end
+    if now - at >= Tracking.REPORT_GAP then reported[name], reports = nil, reports - 1 end
   end
+  if Comms.Blocked() then return end
+  if now - askAt >= Tracking.ASK_EVERY or (askDirty and now - askAt >= Tracking.ASK_AFTER_CHANGE) then Ask(channel, now) end
 end
 
 -- Nearby.Note, through Share.Local: your own sighting.
@@ -217,7 +231,7 @@ function Tracking.Seen(e)
   local text = string.format("1R:%d:%s,%s,%d,%d,%d,%d,%s", map, Clean(canon), Clean(e.class),
     math.floor(tonumber(e.level) or 0), cx, cy, math.max(0, math.floor(now - e.last)), Clean(area))
   if Send(text:sub(1, 250), channel) then
-    reported[canon] = now
+    Reported(canon, now)
     Tracking.stats.reported = Tracking.stats.reported + 1
   end
 end
@@ -244,12 +258,12 @@ function Tracking.Receive(text, channel, sender, _, _, localID, channelName)
     return
   end
   local map, name, class, level, cx, cy, age, area = (body or ""):match("^(%d+):([^,]+),(%u*),(%d+),(%-?%d+),(%-?%d+),(%d+),(.*)$")
-  age = tonumber(age)
-  if not (name and age <= ns.WorldShare.MAX_AGE) then return end
-  reported[name] = now
+  age, map = tonumber(age), tonumber(map)
+  if not (name and age <= ns.WorldShare.MAX_AGE and ns.WorldMap.Known(map)) then return end
+  Reported(name, now)
   Tracking.stats.heard = Tracking.stats.heard + 1
   if not Tracking.Get(name) then return end
-  map, cx, cy, level = tonumber(map), tonumber(cx), tonumber(cy), tonumber(level)
+  cx, cy, level = tonumber(cx), tonumber(cy), tonumber(level)
   local cells = Tracking.CELLS
   local x, y
   if cx >= 0 and cy >= 0 and cx < cells and cy < cells then x, y = (cx + 0.5) / cells, (cy + 0.5) / cells end
@@ -272,6 +286,6 @@ end
 
 ns.Scope.Listen(function()
   Tracking.Changed()
-  wipe(alerted); wipe(watch); wipe(reported); watching, askAt, askDirty = 0, -math.huge, true
+  wipe(alerted); wipe(watch); wipe(reported); watching, reports, askAt, askDirty = 0, 0, -math.huge, true
 end)
 Util.Every(1, Tracking.Tick, "tracking", "nearby")

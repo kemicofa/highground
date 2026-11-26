@@ -253,14 +253,14 @@ median of five runs (simulator heap, not WoW's memory meter):
 
 | Login | Before | After | Change |
 | --- | ---: | ---: | ---: |
-| Retail, English client | 36.2 MiB | 29.6 MiB | -6.5 MiB |
-| Retail, German client, **Use game language** | 36.5 MiB | 30.3 MiB | -6.3 MiB |
-| Retail, English client, German selected | 36.2 MiB | 30.7 MiB | -5.5 MiB |
-| Retail, Chinese (Simplified) client, **Use game language** | 36.5 MiB | 30.3 MiB | -6.2 MiB |
-| WoW Forever, English client | 35.3 MiB | 28.9 MiB | -6.5 MiB |
-| WoW Forever, German client, **Use game language** | 35.4 MiB | 29.8 MiB | -5.6 MiB |
-| Cataclysm Classic, English client | 36.5 MiB | 30.3 MiB | -6.2 MiB |
-| Cataclysm Classic, German client, **Use game language** | 36.6 MiB | 30.7 MiB | -5.9 MiB |
+| Retail, English client | 19.1 MiB | 12.0 MiB | -7.0 MiB |
+| Retail, German client, **Use game language** | 18.6 MiB | 13.1 MiB | -5.5 MiB |
+| Retail, English client, German selected | 18.7 MiB | 13.1 MiB | -5.5 MiB |
+| Retail, Chinese (Simplified) client, **Use game language** | 19.0 MiB | 13.0 MiB | -6.0 MiB |
+| WoW Forever, English client | 18.6 MiB | 12.3 MiB | -6.3 MiB |
+| WoW Forever, German client, **Use game language** | 18.8 MiB | 12.7 MiB | -6.1 MiB |
+| Cataclysm Classic, English client | 18.9 MiB | 12.6 MiB | -6.3 MiB |
+| Cataclysm Classic, German client, **Use game language** | 19.2 MiB | 13.1 MiB | -6.1 MiB |
 
 Choosing another language later adds that catalog (about 0.6 MiB) for the rest
 of the session; switching back does not load anything again.

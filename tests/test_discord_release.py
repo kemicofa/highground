@@ -18,9 +18,11 @@ class AnnouncementTests(unittest.TestCase):
     def setUp(self):
         self.addons = {
             "Highground": SimpleNamespace(title="Highground", version="2.31.0", project="1", wago="wago",
+                                          release_type="release", prerelease=False,
                                           tag=lambda v: "v" + v, curseforge_tag=lambda v: "curseforge-v" + v,
                                           wago_tag=lambda v: "wago-v" + v),
             "HighgroundMacros": SimpleNamespace(title="Highground Macros", version="0.4.0", project="2", wago=None,
+                                                release_type="release", prerelease=False,
                                                 tag=lambda v: "HighgroundMacros-v" + v,
                                                 curseforge_tag=lambda v: "curseforge-HighgroundMacros-v" + v),
         }
@@ -68,6 +70,11 @@ class AnnouncementTests(unittest.TestCase):
             self.assertIn(f"[{self.addons[name].title} {self.addons[name].version}](<{url}>)", content)
         self.assertIn(self.plan["notice"], content)
         self.assertLessEqual(len(content), 2000)
+
+    def test_alpha_links_name_the_release_type(self):
+        self.addons["Highground"].release_type, self.addons["Highground"].prerelease = "alpha", True
+        content = discord.render(self.load(self.plan), self.addons, self.repository)
+        self.assertIn("[Highground 2.31.0 alpha](<", content)
 
     def test_stale_unknown_or_missing_release_versions_are_rejected(self):
         for releases in ({"Highground": "2.30.0"}, {"HighgroundBountyData": "1.0.0"},

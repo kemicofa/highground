@@ -23,7 +23,7 @@ On merge to `main`, CI publishes Highground's tested ZIP to GitHub, then CurseFo
 
 `<Addon>` below always means `Highground`.
 
-1. **TOCs:** set `## Version: X.Y.Z` in every `addons/<Addon>/*.toc`.
+1. **TOCs:** set `## Version: X.Y.Z` in every `addons/<Addon>/*.toc`. For an alpha or beta, also set `## X-Release-Type: alpha` (or `beta`) in every TOC; for a normal release, remove that line. See [alpha and beta releases](../../../docs/releases.md#alpha-and-beta-releases).
 2. **`addons/<Addon>/CHANGELOG.md`:** add `## [X.Y.Z] - YYYY-MM-DD` at the top, above the previous entry. Write short player-facing bullets: what changed and how to use it. No spin, no internals.
 3. **`addons/<Addon>/docs/curseforge.md` (required):**
    - Set the first line to `<!-- <Addon> X.Y.Z -->`.

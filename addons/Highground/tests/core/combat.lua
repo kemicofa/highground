@@ -180,7 +180,7 @@ test("rogue sap call fires once when the enemy FC or a healer dies in WSG and Tw
   assert(#warnings == 2, "other classes, maps and the setting stay quiet")
 end)
 
-test("auras of an enemy seen only through a teammate's target: Cata's log at once, else each second", function()
+test("an enemy seen only through a teammate's target, with no aura events, is read every scan", function()
   for _, flavor in ipairs({ "cata", "retail" }) do
     local s, ns, env, core, enemy = client(flavor)
     core.BuildSpecLookup()
@@ -194,19 +194,10 @@ test("auras of an enemy seen only through a teammate's target: Cata's log at onc
     local first = reads
     assert(enemy.unit == "raid2target" and first > 0, flavor .. ": read when first seen")
     s.auras = {}
-    s.now = s.now + 0.5
+    s.now = s.now + 0.25
     core.ScanUnits()
-    assert(reads == first, flavor .. ": nothing reported, the reading stands")
-    if flavor == "cata" then
-      s.event, s.destination, s.spellID = "SPELL_AURA_REMOVED", "Enemy", 853
-      core.OnCombatLog()
-      core.ScanUnits()
-      assert(reads > first and not enemy.stun, "the combat log's removal is read at the next scan")
-    else
-      s.now = s.now + 0.5
-      core.ScanUnits()
-      assert(reads > first and not enemy.crowdControlled, "a second after the last reading")
-    end
+    assert(reads > first, flavor .. ": read again at the next scan")
+    assert(not enemy.stun and not enemy.crowdControlled, flavor .. ": and up to date")
   end
 end)
 

@@ -241,6 +241,37 @@ for _, client in ipairs(CLIENTS) do
   end)
 end
 
+for _, client in ipairs(CLIENTS) do
+  t.test(client[2] .. " a hovered or soft-targeted enemy follows its nameplate's aura events", function()
+    for _, token in ipairs({ "mouseover", "softenemy" }) do
+      local sim = setup(client[1], client[2])
+      local fields, plate = sim:enemy("Hovered", { buffs = {}, categories = {} })
+      sim:join()
+      sim.units[token] = fields
+      sim:advance(0.5)
+      local entry = sim:entry("Hovered")
+      t.equal(entry.unit, token, "seen through " .. token .. " first")
+      local env, reads = sim.env, 0
+      local get = env.C_UnitAuras.GetAuraDataByIndex
+      env.C_UnitAuras.GetAuraDataByIndex = function(unit, ...)
+        if unit == token then reads = reads + 1 end
+        return get(unit, ...)
+      end
+      sim:advance(1.25)
+      t.equal(reads, 0, token .. ": not read again while unchanged")
+      if sim.ns.Caps.enemyAuras then
+        fields.buffs = { { spellId = 45438, icon = 1 } }
+        fields.categories = { ["HELPFUL|BIG_DEFENSIVE"] = { { spellId = 45438, icon = 1 } } }
+        sim:event("UNIT_AURA", plate)
+        sim:advance(0.25)
+        assert(reads > 0, token .. ": its nameplate's UNIT_AURA reads it at the next tick")
+        assert(entry.immune or entry.def, token .. ": and shows the change")
+      end
+      sim:assertHealthy()
+    end
+  end)
+end
+
 t.test("bounty kill tracking passes over non-lethal hits without allocating", function()
   local sim = setup("cata", 40402)
   sim:join()

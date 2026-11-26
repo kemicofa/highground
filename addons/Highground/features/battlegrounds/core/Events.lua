@@ -160,7 +160,7 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo and ns.Defensives then
   ns.PvPEvents.Listen({ COMBAT_LOG_EVENT_UNFILTERED = function() Core.OnCombatLog() end }, "combatlog",
     Live, "battlegrounds", Core.LOG_SUBEVENTS)
 end
--- Aura changes by token for the unit scan (core/Units.lua).
+-- Aura changes for the unit scan, by enemy (core/Units.lua).
 if ns.Caps.enemyAuras then
   ns.PvPEvents.Listen({ UNIT_AURA = function(_, unit) Core.AuraEvent(unit) end }, "scan auras", Live, "battlegrounds")
 end

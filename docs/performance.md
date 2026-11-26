@@ -289,13 +289,13 @@ The simulator used to hand back the stored aura fixture; like the client, it now
 
 | Client, `UNIT_AURA` events | Before | After |
 | --- | ---: | ---: |
-| Cata, 200/s | 2,924 KiB | 2,055 KiB |
-| Cata, 20/s | 2,903 KiB | 1,086 KiB |
-| Retail, 200/s | 1,281 KiB | 327 KiB |
-| Retail, 20/s | 1,278 KiB | 323 KiB |
+| Cata, 200/s | 2,924 KiB | 2,054 KiB |
+| Cata, 20/s | 2,903 KiB | 1,085 KiB |
+| Retail, 200/s | 1,281 KiB | 326 KiB |
+| Retail, 20/s | 1,278 KiB | 322 KiB |
 | WoW Forever, 200/s | 374 KiB | 319 KiB |
 
-- Unit scans read an enemy's auras again only when they may have changed: newly in view or on another token, an aura change for that enemy in Cata's combat log, or `UNIT_AURA` on its target, focus, arena or nameplate token (else every 2 seconds; raid targets, mouseover and the soft target get no `UNIT_AURA`, so every second). A cooldown switch or your damage type changing reads again at once. Retail reads one aura per category with `GetAuraDataByIndex` instead of four `GetUnitAuras` lists; a refused first read skips the other three. With 10 enemies for 10 seconds, Cata went from 1,200 aura reads and 88 KiB to 120 and 9 KiB, Retail from 197 to 9 KiB. `tools/performance_events.lua retail`: the live tick fell from 495 to 41 KiB per 30 seconds, the 40-enemy minute from 2,521 to 121 KiB.
+- Unit scans read an enemy's auras again only when they may have changed: newly in view or on another token, or an aura change for that enemy, from Cata's combat log or `UNIT_AURA` on any of its target, focus, arena or nameplate tokens; such an enemy is also read every 2 seconds. An enemy seen only through tokens without aura events (mouseover, the soft target or a teammate's target without a nameplate) is read every tick, as before, so no aura display is slower than the 0.25-second tick. A cooldown switch or your damage type changing reads again at once. Retail reads one aura per category with `GetAuraDataByIndex` instead of four `GetUnitAuras` lists; a refused first read skips the other three. With 10 enemies for 10 seconds, Cata went from 1,200 aura reads and 88 KiB to 120 and 9 KiB, Retail from 197 to 9 KiB. `tools/performance_events.lua retail`: the live tick fell from 495 to 41 KiB per 30 seconds, the 40-enemy minute from 2,521 to 121 KiB.
 - `PvPEvents.Log()` reads each combat-log row once for every PvP listener, and listeners name the subevents they read. 20,000 mixed rows in a Cata battleground ran 60,000 guarded calls instead of 104,000.
 - Stealth: no lookups while nobody is hidden, two records per enemy instead of a table per hiding cast (Cata battleground 380 to 7 KiB, open world 484 to 110 KiB), and a visible stealthed enemy's auras are not rescanned for updates that removed nothing.
 - Timers (Cata 112 to 73 KiB): the win forecast reads the score widgets after `UPDATE_UI_WIDGET` or a scoreboard update, at least once a second, asking the widget that answered last first; no empty tables per refresh; countdowns are written when their text changes.
@@ -309,4 +309,4 @@ Still open; each needs a live check before changing:
 
 - Map intel still reads its own combat-log row.
 
-Live checks still owed for the pass above: that `GetAuraDataByIndex` honours category filters on Retail as `GetUnitAuras` does, that `UnitHealthPercent` takes a float curve and `SetAlpha` its secret result, that `UNIT_AURA`'s `removedAuraInstanceIDs` is readable for enemies on the Midnight client, and that `ClearModel` releases the druid model.
+Live checks still owed for the pass above: whether `UNIT_AURA` fires for `mouseover` and `softenemy` (they are treated as tokens without aura events), that a hovered or soft-targeted enemy's nameplate token resolves to the same enemy so its `UNIT_AURA` counts, that `GetAuraDataByIndex` honours category filters on Retail as `GetUnitAuras` does, that `UnitHealthPercent` takes a float curve and `SetAlpha` its secret result, that `UNIT_AURA`'s `removedAuraInstanceIDs` is readable for enemies on the Midnight client, and that `ClearModel` releases the druid model.

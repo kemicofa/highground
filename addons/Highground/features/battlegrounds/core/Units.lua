@@ -100,25 +100,29 @@ function Core.TickKey(unit)
 end
 
 -- Auras are read again only when they may have changed: an enemy newly in
--- view or on another token, or an aura change. Cata's combat log names the
--- enemy (core/CombatLog.lua). Target, focus, arena and nameplate tokens get
--- UNIT_AURA (core/Events.lua), else every two seconds; raid targets,
--- mouseover and the soft target get none, so at least once a second.
+-- view or on another token, or an aura change reported for that enemy:
+-- UNIT_AURA on any of its target, focus, arena or nameplate tokens
+-- (core/Events.lua) or Cata's combat log (core/CombatLog.lua). An enemy on
+-- such a token this tick is also read every two seconds; one seen only
+-- through tokens without aura events (mouseover or a teammate's target
+-- without a nameplate) is read every tick.
 local AURA_EVENTS = { target = true, focus = true }
 for i = 1, 4 do AURA_EVENTS[ns.UnitTokens.arena[i]] = true end
 for i = 1, 40 do AURA_EVENTS[ns.UnitTokens.nameplate[i]] = true end
-Core.AURA_EVERY, Core.AURA_RECHECK = 1, 2
-local auraTokens = {} -- [token] = true after its UNIT_AURA
-function Core.AuraEvent(unit) auraTokens[unit] = true end
+Core.AURA_RECHECK = 2
+local covered = {} -- [key] = true: on a token with aura events this tick (Claim)
+function Core.AuraEvent(unit)
+  if not AURA_EVENTS[unit] then return end -- teammates' and your own auras
+  local key = Core.TickKey(unit)
+  local e = key and Core.enemies[key]
+  if e then e.auraDirty = true end
+end
 local function AurasStale(e, unit, now)
-  if not e.wasVisible or e.auraUnit ~= unit or e.auraDirty then return true end
-  local age = now - (e.auraAt or -math.huge)
-  if AURA_EVENTS[unit] then return auraTokens[unit] or age >= Core.AURA_RECHECK end
-  return age >= Core.AURA_EVERY
+  if not e.wasVisible or e.auraUnit ~= unit or e.auraDirty or not covered[e.key] then return true end
+  return now - (e.auraAt or -math.huge) >= Core.AURA_RECHECK
 end
 local function AurasRead(e, unit, now)
   e.auraUnit, e.auraAt, e.auraDirty = unit, now, nil
-  auraTokens[unit] = nil
 end
 
 -- Green to red on the Midnight client: the curve's colour at the unit's
@@ -134,19 +138,20 @@ function Core.HealthTint(e, unit)
   return e.hpTint
 end
 
+-- The first token that shows an enemy is its unit for this tick.
 local function Claim(unit)
   local key = Core.TickKey(unit)
-  if key and Core.enemies[key] and not Core.unitFor[key] then
-    Core.unitFor[key] = unit
-    return 1
-  end
-  return 0
+  if not (key and Core.enemies[key]) then return 0 end
+  if AURA_EVENTS[unit] then covered[key] = true end
+  if Core.unitFor[key] then return 0 end
+  Core.unitFor[key] = unit
+  return 1
 end
 
 function Core.ScanUnits()
   local now = GetTime()
   for _, e in pairs(Core.enemies) do ns.FilterCooldownState(e, Core.db) end
-  wipe(Core.unitFor)
+  wipe(Core.unitFor); wipe(covered)
   local visible = 0
   for i = 1, #SCAN do
     local unit = SCAN[i]

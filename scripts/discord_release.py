@@ -129,7 +129,10 @@ def timestamp(value):
 
 
 def find_message(channel, token, links, since):
-    """Recover a sent message if the workflow stopped before recording its tag."""
+    """Recover a sent message if the workflow stopped before recording its tag.
+
+    Messages older than the releases never count: a prerelease once held the 3.3.0 tags.
+    """
     bot_id = request("GET", "/users/@me", token)["id"]
     before = ""
     while True:
@@ -139,7 +142,7 @@ def find_message(channel, token, links, since):
         for message in messages:
             urls = set(re.findall(r"https://github\.com/[^\s<>)]*/releases/tag/[^\s<>)]*",
                                   message.get("content", "")))
-            if message["author"]["id"] == bot_id and urls == links:
+            if message["author"]["id"] == bot_id and urls == links and timestamp(message["timestamp"]) >= since:
                 return message
         oldest = min(messages, key=lambda message: int(message["id"]))
         if timestamp(oldest["timestamp"]) < since or len(messages) < 100:

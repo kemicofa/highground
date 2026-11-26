@@ -182,6 +182,15 @@ class AnnouncementTests(unittest.TestCase):
         self.assertFalse(any(call.args[0] == "POST" for call in request.call_args_list))
         gh.assert_called_once()
 
+    def test_message_from_before_the_release_is_not_recovered(self):
+        # The 3.3.0 alpha's message links the tag the 3.3.0 release now uses.
+        _, gh, request = self.mock_delivery()
+        older = {"id": "250", "author": {"id": "bot"}, "timestamp": "2026-10-30T09:59:00Z",
+                 "content": discord.render(self.plan, self.addons, self.repository)}
+        request.side_effect = [{"type": 5, "guild_id": "100"}, {"id": "bot"}, [older], {"id": "300"}]
+        self.assertEqual(self.announce(), "https://discord.com/channels/100/200/300")
+        self.assertEqual(sum(call.args[0] == "POST" for call in request.call_args_list), 1)
+
     def test_history_is_paginated_and_does_not_match_another_author(self):
         content = discord.render(self.plan, self.addons, self.repository)
         messages = [{"id": str(i), "author": {"id": "someone"}, "content": content,

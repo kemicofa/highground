@@ -3,11 +3,11 @@
     "Highground": "3.3.0"
   },
   "changes": [
-    "New in the beta: shift-click the Win forecast or a resurrection or Timers countdown to share it in chat, and Quick callouts can send All clear for a destination.",
     "Open world: Nearby shares the enemies you see with your group, your guild and other Highground users, and the world map shows a heatmap of who won the fights there in the last hour.",
     "Track an enemy with /hg nearby track NAME, mark gankers with /hg nearby mark ganker, and in a party or raid get kill order, health bars and healer markers on the enemies around you.",
     "Battlegrounds: a Win forecast panel, readable enemy health bars, a Warsong Gulch flag respawn countdown, and WoW Forever fixes for resurrection timers, healer crosses and druid specs.",
+    "Shift-click the Win forecast or a resurrection or Timers countdown to share it in chat, and Quick callouts can send All clear for a destination.",
     "Highground uses much less memory: settings pages are built when opened, maps update their pins in place, and only your language and recent match timelines load at login."
   ],
-  "notice": "This is a beta: on CurseForge or Wago, allow beta files for Highground to get it. Coming from 3.2 or earlier, restart the game after updating; /reload is not enough because 3.3.0 adds new addon folders."
+  "notice": "Coming from 3.2 or earlier, restart the game after updating; /reload is not enough because 3.3.0 adds new addon folders. From the 3.3.0 alpha or beta, /reload is enough."
 }

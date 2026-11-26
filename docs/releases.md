@@ -83,7 +83,7 @@ Add `## X-Release-Type: alpha` (or `beta`) to every Highground TOC to publish a 
 
 CurseForge and Wago offer beta and alpha files only to players who allow them in their client. Each version and release type is uploaded once: a second beta needs a new version. Discord announces each one; a normal release keeps the delivery key it had before release types counted.
 
-The 3.3.0 alpha was published before this scheme and holds the plain `v3.3.0`, `curseforge-v3.3.0` and `wago-v3.3.0` tags (Wago label `3.3.0`). The release check reads those as a published 3.3.0 release, so the next normal release must be 3.3.1 or later.
+The 3.3.0 alpha was published before this scheme under the plain `v3.3.0` tags; they were renamed to `v3.3.0-alpha`, `curseforge-v3.3.0-alpha`, `wago-v3.3.0-alpha` and the alpha's Discord key before the 3.3.0 release. Its Wago version keeps the label `3.3.0`.
 
 ## Discord announcements
 

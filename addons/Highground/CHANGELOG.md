@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Quick callouts: **Enemies going to** has an **All clear** button beside **1**, **2** and **3+**, which sends `All clear — Farm` for the chosen destination.
+
 ## [3.3.0] - 2026-11-26
 
 - This is an alpha: CurseForge and Wago offer it only to players who allow alpha files for Highground. Restart the game after updating, because it adds new addon folders.

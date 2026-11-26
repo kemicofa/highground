@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("zhCN", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "此可选行调用目标而不是你的位置。从菜单中选择一个基地。",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "在游戏中启用目标调用",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "发送目的地和计数",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "点击目的地下方的 1、2 或 3+。呼叫名称，这些敌人正在前进。",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "点击目的地下方的 1、2 或 3+，告诉队友有多少敌人正前往该处。“全部清除”表示那里已恢复安全。",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "尝试在目的地下面输入2。",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "呼叫旗舰运营商的路线",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "在旗帜地图上，这些按钮报告敌方旗手的路线。点击你观察到的路线。",

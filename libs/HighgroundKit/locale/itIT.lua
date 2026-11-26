@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("itIT", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "Questa riga facoltativa segnala una destinazione invece della tua posizione. Scegli una base dal menu.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "Abilita le chiamate di destinazione nel gioco",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "Invia la destinazione e il numero",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "Fai clic su 1, 2 o 3+ sotto la destinazione. La chiamata indica dove sono diretti quei nemici.",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "Fai clic su 1, 2 o 3+ sotto la destinazione. La chiamata indica dove sono diretti quei nemici. Tutto libero segnala che lì è di nuovo sicuro.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "Prova 2 sotto la destinazione.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "Segnala il percorso del portatore di bandiera",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "Nelle mappe con bandiera, questi pulsanti segnalano il percorso del portatore di bandiera nemico. Fai clic sul percorso che hai osservato.",

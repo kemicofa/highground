@@ -81,7 +81,7 @@ function C.CallSteps()
       advance = function() return Quick.win.destination:GetValue() ~= "" end, requireAction = true,
       hint = ns.Locale:Get("guide.hint.destination") },
     { id = "count", title = ns.Locale:Get("highground.coachtools.send_the_destination_and_count.ff0796"),
-      text = ns.Locale:Get("highground.coachtools.click_1_2_or_3_below_the.2f268e"),
+      text = ns.Locale:Get("highground.coachtools.click_1_2_or_3_below_the.7b4aab"),
       enter = function()
         if not Quick.guide or Quick.guide.mode ~= "destinations" then Quick.StartGuide("destinations") end
         if Quick.win.destination:GetValue() == "" then Quick.win.destination:SetValue("Blacksmith") end

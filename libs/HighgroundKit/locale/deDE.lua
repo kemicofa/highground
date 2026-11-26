@@ -867,7 +867,7 @@ assert((ns.Locale or HighgroundLocale):Register("deDE", {
   ["highground.coachtools.this_optional_row_calls_a_destination_instead.860171"] = "Diese optionale Zeile sagt ein Ziel statt Ihres Standorts an. Wählen Sie eine Basis aus dem Menü.",
   ["highground.coachtools.enable_destination_calls_in_game.a15323"] = "Zielansagen im Spiel aktivieren",
   ["highground.coachtools.send_the_destination_and_count.ff0796"] = "Ziel und Anzahl senden",
-  ["highground.coachtools.click_1_2_or_3_below_the.2f268e"] = "Klicken Sie unter dem Ziel auf 1, 2 oder 3+. Die Ansage nennt, wohin diese Feinde unterwegs sind.",
+  ["highground.coachtools.click_1_2_or_3_below_the.7b4aab"] = "Klicken Sie unter dem Ziel auf 1, 2 oder 3+. Die Ansage nennt, wohin diese Feinde unterwegs sind. Alles klar meldet, dass es dort wieder sicher ist.",
   ["highground.coachtools.try_2_under_the_destination.5583e6"] = "Probieren Sie 2 unter dem Ziel aus.",
   ["highground.coachtools.call_the_flag_carrier_s_route.ef389d"] = "Die Route des Flaggenträgers ansagen",
   ["highground.coachtools.on_flag_maps_these_buttons_report_the.7ad88d"] = "Auf Flaggenkarten melden diese Schaltflächen die Route des feindlichen Flaggenträgers. Klicken Sie auf die Route, die Sie beobachtet haben.",

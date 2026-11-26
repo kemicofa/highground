@@ -35,6 +35,15 @@ class DecideTests(unittest.TestCase):
         self.assertEqual(self.status("HighgroundMacros", {"Highground": False, "HighgroundMacros": True},
                                      {"Highground": []}), PUBLISH)
 
+    def test_last_tag_orders_alpha_beta_then_release(self):
+        addon = SimpleNamespace(tag_prefix="v")
+        for tags, newest in (("v3.2.0 v3.3.0-alpha v3.3.0-beta", "v3.3.0-beta"),
+                             ("v3.3.0-beta v3.3.0 v3.3.0-alpha", "v3.3.0"),
+                             ("v3.3.0 v3.10.0-alpha v3.9.1", "v3.10.0-alpha"),
+                             ("v3.3.0-rc v3.3.0-pending v3.2.0", "v3.2.0"), ("", None)):
+            with self.subTest(tags=tags), patch.object(release_check, "git", return_value=tags):
+                self.assertEqual(release_check.last_tag(addon), newest)
+
     def test_published_version_is_left_alone(self):
         old = {"Highground": False, "HighgroundMacros": False}
         self.assertEqual(self.status("Highground", old, {"HighgroundMacros": [BUILDER]}), PUBLISHED)

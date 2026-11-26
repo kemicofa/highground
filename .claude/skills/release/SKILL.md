@@ -7,9 +7,9 @@ description: Release a new Highground version when the user asks to publish or c
 
 Every step is required. Paths are from the repository root. Background: [docs/releases.md](../../../docs/releases.md).
 
-Highground is the only supported distribution. Its GitHub tag is `vX.Y.Z` (Latest), CurseForge project is `1749115`, and Wago project is `b6Xy3OKp`. The six standalone addons are deprecated. Retain their feature source and historical changelogs, but never bump or publish them. Bundled data addons and module switches also have no independent release.
+Highground is the only supported distribution. Its GitHub tag is `vX.Y.Z` (Latest; `vX.Y.Z-beta` or `vX.Y.Z-alpha` for a prerelease), CurseForge project is `1749115`, and Wago project is `b6Xy3OKp`. The six standalone addons are deprecated. Retain their feature source and historical changelogs, but never bump or publish them. Bundled data addons and module switches also have no independent release.
 
-On merge to `main`, CI publishes Highground's tested ZIP to GitHub, then CurseForge and Wago, recording `curseforge-vX.Y.Z` and `wago-vX.Y.Z`. The final job posts the reviewed Highground announcement to Discord. There is no CurseForge webhook. Editing release instructions or distribution policy is not itself a request to publish a version.
+On merge to `main`, CI publishes Highground's tested ZIP to GitHub, then CurseForge and Wago, recording `curseforge-<tag>` and `wago-<tag>`. The final job posts the reviewed Highground announcement to Discord. There is no CurseForge webhook. Editing release instructions or distribution policy is not itself a request to publish a version.
 
 ## 1. Pick what to release
 
@@ -44,7 +44,7 @@ CI adds addon names, versions and download/release-note links. Keep the complete
 
 - **CurseForge asset boundary:** never send assets that are not used directly by the addon to CurseForge. This includes banners, promotional images/videos, editable artwork, source scenes and separate GitHub release attachments. Do not add them to addon manifests or bypass the asset/ZIP checks in `scripts/package_assets.py`, `scripts/build.py` and `scripts/curseforge.py`. Only actual in-game assets with loaded runtime readers may be registered; required addon documentation and licenses remain allowed.
 - **Description content check (required).** The build only checks the version line and the summary length, so check the content yourself:
-  1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | head -1`. Read every CHANGELOG entry above `P`, the new one included.
+  1. Find the previous tag `P`: `git tag --list 'v*' --sort=-v:refname | grep -v pending | head -1` (alpha and beta tags count). Read every CHANGELOG entry above `P`, the new one included.
   2. For each new headline feature, removed feature, renamed page or changed command in those entries, update the **Description**. Leave fixes, refinements and performance work in the changelog.
   3. Run `git diff P -- addons/<Addon>/docs/curseforge.md`. If only the version line changed, say in the hand-off why no Description change was needed.
   4. Finish with the copy skill's checks: glance test, summary length and no release-note wording.

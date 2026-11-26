@@ -18,7 +18,8 @@ class ManifestTests(TempTestCase):
         for name, addon in self.manifest.items():
             with self.subTest(addon=name):
                 version = addon.version
-                self.assertEqual(addon.tag(), ("v" if addon.latest else f"{name}-v") + version)
+                self.assertEqual(addon.label(), version + (f"-{addon.release_type}" if addon.prerelease else ""))
+                self.assertEqual(addon.tag(), ("v" if addon.latest else f"{name}-v") + addon.label())
                 self.assertEqual(addon.curseforge_tag(), "curseforge-" + addon.tag())
                 self.assertEqual(addon.zip_name(), f"{name}-{version}.zip")
                 self.assertEqual(addon.artifact(), f"{name}-{version}")
@@ -43,6 +44,11 @@ class ManifestTests(TempTestCase):
         for toc in tocs:
             toc.write_text(toc.read_text().replace("## Version:", "## X-Release-Type: Alpha\n## Version:"))
         self.assertEqual((addon.release_type, addon.prerelease), ("alpha", True))
+        version = addon.version
+        self.assertEqual((addon.tag(), addon.curseforge_tag(), addon.wago_tag()),
+                         (f"v{version}-alpha", f"curseforge-v{version}-alpha", f"wago-v{version}-alpha"),
+                         "an alpha's tags never claim the release's")
+        self.assertEqual((addon.zip_name(), addon.artifact()), (f"Highground-{version}.zip", f"Highground-{version}"))
         for toc in tocs:
             toc.write_text(toc.read_text().replace("Alpha", "nightly"))
         with self.assertRaisesRegex(ValueError, "X-Release-Type"):

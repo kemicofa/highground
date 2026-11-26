@@ -128,8 +128,17 @@ class Addon:
     def tag_prefix(self):
         return "v" if self.latest else f"{self.name}-v"
 
+    def label(self, version=None):
+        """The version with its release type: "3.3.0", "3.3.0-beta" or "3.3.0-alpha".
+
+        Each release type of a version has its own tags and Wago label, so a beta
+        can follow an alpha of the same version and a release can follow both.
+        """
+        version = version or self.version
+        return f"{version}-{self.release_type}" if self.prerelease else version
+
     def tag(self, version=None):
-        return self.tag_prefix + (version or self.version)
+        return self.tag_prefix + self.label(version)
 
     def curseforge_tag(self, version=None):
         """The tag that marks a version as uploaded to CurseForge."""

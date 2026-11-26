@@ -411,8 +411,11 @@ class WagoTests(PublishTestCase):
 
     def test_alpha_uploads_with_alpha_stability(self):
         self.as_release_type("alpha")
-        up = self.run_publish(FakeGitHub())
+        github = FakeGitHub()
+        up = self.run_publish(github)
         self.assertEqual(up.call_args.kwargs["stability"], "alpha")
+        self.assertEqual(up.call_args.args[4], f"{self.version}-alpha", "Wago labels the alpha apart from the release")
+        self.assertEqual(github.tags, {f"wago-v{self.version}-alpha": COMMIT})
         with patch.object(wago, "known_patches", return_value=self.KNOWN), \
                 patch.object(wago.uploads, "request", return_value={"id": "x"}) as req:
             wago.upload("b6Xy3OKp", "key", self.directory / self.addon.zip_name(), "notes", "1.2.3", ["12.1.0"],

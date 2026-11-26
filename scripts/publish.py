@@ -126,7 +126,7 @@ def title(addon, version):
 
 
 def publish_curseforge(addon, repository, version, commit, directory, token):
-    """Upload to CurseForge once per version; its CurseForge tag records it."""
+    """Upload to CurseForge once per version and release type; its CurseForge tag records it."""
     archive, _, notes = check(addon, version, commit, directory)
     if not addon.project:
         raise ValueError(f"{addon.name}: its TOCs need ## X-Curse-Project-ID")
@@ -179,15 +179,16 @@ def publish_release(addon, repository, version, commit, directory):
 
 
 def publish_wago(addon, repository, version, commit, directory, token):
-    """Upload to Wago once per version; the wago-<tag> tag records it."""
+    """Upload to Wago once per version and release type; the wago-<tag> tag records it."""
     archive, _, notes = check(addon, version, commit, directory)
 
     stability = "stable" if addon.release_type == "release" else addon.release_type
 
     def upload():
-        wago.upload(addon.wago, token, archive, notes.read_text(), version, addon.game_versions,
+        # The label names the type too: an alpha and a beta of one version are separate uploads.
+        wago.upload(addon.wago, token, archive, notes.read_text(), addon.label(version), addon.game_versions,
                     stability=stability)
-        print(f"Uploaded {addon.title} {version} to Wago project {addon.wago} as {stability}")
+        print(f"Uploaded {addon.title} {addon.label(version)} to Wago project {addon.wago} as {stability}")
 
     upload_once(repository, addon.wago_tag(version), commit, upload)
 

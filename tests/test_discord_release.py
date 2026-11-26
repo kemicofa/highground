@@ -16,21 +16,23 @@ import discord_release as discord
 
 class AnnouncementTests(unittest.TestCase):
     def setUp(self):
+        def addon(title, version, project, wago, prefix):
+            a = SimpleNamespace(title=title, version=version, project=project, wago=wago,
+                                release_type="release", prerelease=False)
+            a.label = lambda v: f"{v}-{a.release_type}" if a.prerelease else v
+            a.tag = lambda v: prefix + a.label(v)
+            a.curseforge_tag = lambda v: "curseforge-" + a.tag(v)
+            a.wago_tag = lambda v: "wago-" + a.tag(v)
+            return a
         self.addons = {
-            "Highground": SimpleNamespace(title="Highground", version="2.31.0", project="1", wago="wago",
-                                          release_type="release", prerelease=False,
-                                          tag=lambda v: "v" + v, curseforge_tag=lambda v: "curseforge-v" + v,
-                                          wago_tag=lambda v: "wago-v" + v),
-            "HighgroundMacros": SimpleNamespace(title="Highground Macros", version="0.4.0", project="2", wago=None,
-                                                release_type="release", prerelease=False,
-                                                tag=lambda v: "HighgroundMacros-v" + v,
-                                                curseforge_tag=lambda v: "curseforge-HighgroundMacros-v" + v),
+            "Highground": addon("Highground", "2.31.0", "1", "wago", "v"),
+            "HighgroundMacros": addon("Highground Macros", "0.4.0", "2", None, "HighgroundMacros-v"),
         }
         self.plan = {"releases": {name: a.version for name, a in self.addons.items()},
                      "changes": ["Added repair and sell-junk macro presets.", "Fixed stale enemy map pins."],
                      "notice": "Restart the game after updating; /reload is not enough."}
         self.repository = "owner/repo"
-        self.key = discord.delivery_key(self.plan, self.repository)
+        self.key = discord.delivery_key(self.plan, self.addons, self.repository)
         self.marker = f"repos/{self.repository}/git/ref/tags/discord-{self.key}"
         self.release = {"draft": False, "published_at": "2026-10-30T10:00:00Z"}
 
@@ -74,7 +76,7 @@ class AnnouncementTests(unittest.TestCase):
     def test_alpha_links_name_the_release_type(self):
         self.addons["Highground"].release_type, self.addons["Highground"].prerelease = "alpha", True
         content = discord.render(self.load(self.plan), self.addons, self.repository)
-        self.assertIn("[Highground 2.31.0 alpha](<", content)
+        self.assertIn("[Highground 2.31.0 alpha](<https://github.com/owner/repo/releases/tag/v2.31.0-alpha>)", content)
 
     def test_stale_unknown_or_missing_release_versions_are_rejected(self):
         for releases in ({"Highground": "2.30.0"}, {"HighgroundBountyData": "1.0.0"},
@@ -146,12 +148,23 @@ class AnnouncementTests(unittest.TestCase):
         self.assertLessEqual(len(payload["nonce"]), 25)
         gh.assert_called_once()
 
-    def test_delivery_key_ignores_wording_and_map_order_but_changes_with_version(self):
+    def test_delivery_key_ignores_wording_and_map_order_but_changes_with_version_and_type(self):
         reordered = dict(reversed(list(self.plan["releases"].items())))
         self.assertEqual(discord.delivery_key(self.plan | {"changes": ["Reworded"], "releases": reordered},
-                                              self.repository), self.key)
+                                              self.addons, self.repository), self.key)
+        self.addons["Highground"].version = "2.32.0"
         self.assertNotEqual(discord.delivery_key(self.plan | {"releases": {"Highground": "2.32.0"}},
-                                                 self.repository), self.key)
+                                                 self.addons, self.repository), self.key)
+        # A normal release keeps the key recorded before release types counted.
+        legacy = discord.hashlib.sha256(json.dumps([self.repository, self.plan["releases"]], sort_keys=True)
+                                        .encode()).hexdigest()[:24]
+        self.addons["Highground"].version = "2.31.0"
+        self.assertEqual(self.key, legacy)
+        keys = set()
+        for kind in ("alpha", "beta", "release"):
+            self.addons["Highground"].release_type, self.addons["Highground"].prerelease = kind, kind != "release"
+            keys.add(discord.delivery_key(self.plan, self.addons, self.repository))
+        self.assertEqual(len(keys), 3, "an alpha, a beta and the release of one version are each announced")
 
     def test_recorded_announcement_is_not_sent_again(self):
         lookup, gh, request = self.mock_delivery()

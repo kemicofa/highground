@@ -52,7 +52,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg guide objectives` · `/hg checklist objectives` | Learn resurrection waves, captures and flag carriers. | Start objectives guide |
 | `/hg priority [on\|off]` | Show or change target recommendations. | Target recommendation switch → `battlegrounds-settings` |
 | `/hg call` | Prepare a kill-target chat message; press Enter to send. | Prepare target call |
-| `/hg call s\|i\|raid\|party\|y` | Choose the chat channel used for target calls. | Choose call channel |
+| `/hg call s\|i\|raid\|party\|y` | Choose the chat channel for target calls and shift-click shares. | Choose call channel |
 | `/hg mark` | Print the current mark mode and the secure button macro. | Show mark instructions |
 | `/hg mark icon 1-8` | Choose the raid icon used by the mark key. (not WoW Forever) | Choose raid icon |
 | `/hg mark ping TYPE` | Choose the ping used by the mark key. (requires pings) | Choose ping type |

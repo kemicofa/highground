@@ -39,6 +39,7 @@ function Timers.ObjectiveRows(now)
     Timers.Tag(row, "CAPPING").team = Timers.Other(Timers.MyTeam())
     row.color = Timers.TeamColor(row.team)
     row.text = k.c.node and (k.e.short .. "  " .. k.c.node) or k.e.short
+    row.who, row.place = k.e.short, k.c.node
     row.left, row.total, row.est = left, k.c.finish - k.c.start, k.c.est
     row.time = string.format("%s%.1fs", k.c.est and "~" or "", left)
   end
@@ -51,6 +52,7 @@ function Timers.ObjectiveRows(now)
       Timers.Tag(row, "CAPPING").team = Timers.MyTeam()
       row.color = Timers.TeamColor(row.team)
       row.text = (a.me and ns.Locale:Get("battlegrounds.objectives.you.905cb3") or a.name) .. (node and ("  " .. node) or "")
+      row.who, row.place = a.me and ns.Util.read(UnitName, "player") or a.name, node
       row.left, row.total, row.time = left, a.finish - a.start, string.format("%.1fs", left)
     end
   end
@@ -68,6 +70,7 @@ function Timers.ObjectiveRows(now)
     Timers.Tag(row, "CAP").color, row.team, row.node = Timers.TeamColor(n.assault), n.assault, n
     args.from.value2 = n.owner and TEAM_NAME[n.owner]
     row.text = n.name .. (n.owner and n.owner ~= n.assault and ns.Locale:Format("battlegrounds.objectives.from_value2.47ce47", args.from) or "")
+    row.place = n.name
     row.left = n.capEnd and n.capEnd - now
     row.total = n.capEnd and n.capStart and (n.capEnd - n.capStart) or Timers.CapTime()
   end
@@ -81,7 +84,7 @@ function Timers.ObjectiveRows(now)
     local row = pool:Add()
     Timers.Tag(row, n.holdEnd and "LOCK" or "RESET")
     row.color, row.team = n.owner and Timers.TeamColor(n.owner) or ns.Theme.Rgb("textMuted"), n.owner
-    row.text, row.left, row.est = n.name, (n.holdEnd or n.resetEnd) - now, true
+    row.text, row.place, row.left, row.est = n.name, n.name, (n.holdEnd or n.resetEnd) - now, true
     row.total = n.holdEnd and capture.holdSeconds or capture.resetSeconds
   end
   if ns.flagRespawnAt and ns.flagRespawnAt > now then
@@ -96,6 +99,57 @@ function Timers.ObjectiveRows(now)
   return out
 end
 
+---------------------------------------------------------------------------
+-- Shift-click sharing: a countdown or the forecast as one chat line, with
+-- team names where the window says YOU or OURS. The player presses Enter
+-- (core/Calling.lua); the preview and the guide only print the sample.
+---------------------------------------------------------------------------
+function Timers.Share(text)
+  if not text then return end
+  if Timers.previewing then
+    Timers.sampleShared = text
+    ns.Util.Say(ns.Locale:Format("battlegrounds.share.sample", { text = text }))
+  elseif ns.Core.ShareInChat then
+    ns.Core.ShareInChat(text)
+  end
+end
+
+-- Timer rows (ui/Windows.lua): w.chatText(row) is the line, or nil.
+function Timers.ShareClick(r, button)
+  local w = r:GetParent()
+  if button == "LeftButton" and IsShiftKeyDown() and r.data and w.chatText then Timers.Share(w.chatText(r.data)) end
+end
+
+local share = {}
+local function ShareArgs(row)
+  wipe(share)
+  share.team, share.place, share.who = row.team and TEAM_NAME[row.team], row.place, row.who
+  share.time = row.time ~= "" and row.time or row.left and ((row.est and "~" or "") .. Timers.Clock(row.left)) or nil
+  return share
+end
+
+-- Resurrection rows: only a timed wave is worth sharing.
+function Timers.ResChatText(row)
+  local a = ShareArgs(row)
+  if row.kind == "RES" or not (a.team and a.time) then return nil end
+  return ns.Locale:Format(a.place and "battlegrounds.share.res" or "battlegrounds.share.res_unplaced", a)
+end
+
+-- Countdowns only: scores, base owners, game status and announcements are
+-- already on everyone's screen.
+local ROW_KEYS = { CAP = "battlegrounds.share.cap", LOCK = "battlegrounds.share.lock",
+  RESET = "battlegrounds.share.reset", FLAG = "battlegrounds.share.flag" }
+function Timers.ObjectiveChatText(row)
+  local a, kind = ShareArgs(row), row.kind
+  if not a.time then return nil end
+  if kind == "CAPPING" then
+    return a.who and a.team and ns.Locale:Format(a.place and "battlegrounds.share.capping" or "battlegrounds.share.capping_unplaced", a) or nil
+  end
+  if ROW_KEYS[kind] and (a.place or kind == "FLAG") and (a.team or kind ~= "CAP") then
+    return ns.Locale:Format(ROW_KEYS[kind], a)
+  end
+end
+
 -- The resurrection and timers windows, made on first use (named
 -- <prefix>TimersFrame and <prefix>BasesFrame: Highground or the folder).
 -- The win forecast has its own panel (timers/Forecast.lua).
@@ -105,6 +159,7 @@ function Timers.Windows()
     Timers.resWin = Timers.MakeWindow(prefix .. "TimersFrame", ns.Locale:Get("battlegrounds.objectives.resurrection.b90edc"), "timersPoint", { "TOP", "TOP", 0, -150 })
     Timers.objWin = Timers.MakeWindow(prefix .. "BasesFrame", ns.Locale:Get("battlegrounds.objectives.timers.94baf9"), "basesPoint",
       { "TOP", "TOP", Timers.THEME.timers.spacing, -150 })
+    Timers.resWin.chatText, Timers.objWin.chatText = Timers.ResChatText, Timers.ObjectiveChatText
     -- Titles follow a language change.
     ns.Localization.Bind(Timers.resWin.title, "battlegrounds.objectives.resurrection.b90edc")
     ns.Localization.Bind(Timers.objWin.title, "battlegrounds.objectives.timers.94baf9")

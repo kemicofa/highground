@@ -297,8 +297,7 @@ function Timers.RowFrame(w, i)
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
   r.flash = Theme.Fill(r, "BORDER", "accent")
-  r.flash:SetAllPoints()
-  r.flash:SetAlpha(0)
+  r.flash:SetAllPoints(); r.flash:SetAlpha(0)
   r.edge = ns.Kit.Outline(r, "border")
   r.glow = ns.Kit.Glow(r, "warning", 4)
   r.faction = r:CreateTexture(nil, "ARTWORK")
@@ -329,10 +328,12 @@ function Timers.RowFrame(w, i)
     elseif not row.time and not row.frac then
       Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.countdown_not_observed_yet.dc953b"), "textMuted")
     end
+    if w.chatText and w.chatText(row) then Timers.TipLine(GameTooltip, ns.Locale:Get("shared.windows.share_hint"), "textMuted") end
     GameTooltip:Show()
   end
   r:SetScript("OnEnter", r.ShowTip)
   r:SetScript("OnLeave", GameTooltip_Hide)
+  r:SetScript("OnMouseUp", Timers.ShareClick) -- shift-click shares w.chatText(row) (battlegrounds)
   w.rows[i] = r
   return r
 end

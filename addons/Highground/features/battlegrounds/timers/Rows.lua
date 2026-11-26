@@ -25,7 +25,7 @@ function Pool:New()
   end
   row.tag, row.color, row.text, row.detail, row.time = nil, nil, nil, nil, nil
   row.left, row.total, row.frac, row.est, row.die = nil, nil, nil, nil, nil
-  row.kind, row.team, row.node, row.icon = nil, nil, nil, nil
+  row.kind, row.team, row.node, row.icon, row.place, row.who = nil, nil, nil, nil, nil, nil
   return row
 end
 function Pool:Add()
@@ -170,7 +170,8 @@ function Timers.Rows(now)
     row.color, row.team = Timers.TeamColor(g.team), g.team
     row.left, row.total, row.est = it.nw and it.nw - now, Timers.WaveCycle(), it.est or g.conf == "cap"
     local name = Timers.GYName(g)
-    row.text = name ~= "" and name or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c")
+    row.place = name ~= "" and name or nil
+    row.text = row.place or ns.Locale:Get("battlegrounds.rows.spot_unknown.a1b11c")
     if g == myG and die then
       Timers.Tag(row, "SOON")
       row.color, row.die = ns.Theme.Rgb("warning"), true

@@ -184,12 +184,30 @@ test("disabled battleground panels stay disabled and a callout-only sample has a
   sim:assertHealthy()
 end)
 
+test("the Objectives guide's share step completes on a sample shift-click, without chat", function()
+  local sim = new("cata", {}, geometry)
+  local O, C, T = sim.ns.Onboarding, sim.ns.Onboarding.Coach, sim.ns.Timers
+  sim.ns.Hub.Open("checklist"); O.Go("objectives"); O.Explore(O.Current().actions[1])
+  C.Go(5); equal(C.steps[C.index].id, "share")
+  local b = C.target
+  assert(b == T.foreWin.block and b:IsVisible(), "the step points at the sample forecast")
+  equal(C.status, "ready", "nothing shared yet")
+  sim.shift = true; b:GetScript("OnMouseUp")(b, "LeftButton"); sim.shift = false
+  sim:advance(0.5)
+  equal(C.status, "done", "the sample share completes the step")
+  equal(sim.chatDraft, nil, "the guide never opens chat")
+  assert(sim.messages[#sim.messages]:find("Sample, not sent: Forecast:", 1, true), "the sample line is printed")
+  C.Go(4); C.Go(5); equal(C.status, "ready", "returning starts the step again")
+  O.Return()
+  sim:assertHealthy()
+end)
+
 test("feature guides keep their switch on every step, enable parents and offer alert sounds", function()
   local sim = new("cata", { objectives = false, dieAlert = false, sound = false }, geometry)
   local O, C, Core, A = sim.ns.Onboarding, sim.ns.Onboarding.Coach, sim.ns.Core, sim.ns.Alerts
   sim.ns.Hub.Open("checklist"); O.Go("objectives"); O.Explore(O.Current().actions[1])
   local w = C.win
-  for i, id in ipairs({ "resurrection", "estimate", "capture", "score", "carrier" }) do
+  for i, id in ipairs({ "resurrection", "estimate", "capture", "score", "share", "carrier" }) do
     C.Go(i); equal(C.steps[C.index].id, id)
     assert(w.enable:IsShown(), id .. " offers its feature switch")
   end

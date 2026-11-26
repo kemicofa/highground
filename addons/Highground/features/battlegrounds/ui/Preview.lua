@@ -12,19 +12,26 @@ ns.BattlegroundsPreview = Preview
 
 local SAMPLE_CARRIERS = { mine = { "Aldric", "PALADIN", 0.82, "x2  0:41" }, theirs = { "Vexa", "ROGUE", 0.31, "x2  0:37" } }
 
+-- place and who: what a shift-click shares (timers/Objectives.lua).
+local function Row(row, kind)
+  row.place = row.place or row.text
+  return Timers.Tag(row, kind)
+end
+
 local function ResurrectionRows(me, them)
   return {
-    Timers.Tag({ team = me, color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.stables.4f2cd9"), left = 12, total = 30 }, "YOU"),
-    Timers.Tag({ team = me, color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.farm.c3215b"), left = 12, total = 30 }, "OURS"),
-    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.blacksmith.191a40"), left = 23, total = 30, est = true }, "THEIRS"),
+    Row({ team = me, color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.stables.4f2cd9"), left = 12, total = 30 }, "YOU"),
+    Row({ team = me, color = Timers.TeamColor(me), text = ns.Locale:Get("battlegrounds.preview.farm.c3215b"), left = 12, total = 30 }, "OURS"),
+    Row({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.blacksmith.191a40"), left = 23, total = 30, est = true }, "THEIRS"),
   }
 end
 
 local function ObjectiveRows(me, them)
+  local capping = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476")
   return {
-    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
+    Row({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.arathibasin.lumber_mill.c02615"), left = 38, total = 60 }, "CAP"),
     Timers.Tag({ color = Theme.Rgb("white"), text = ns.Locale:Get("battlegrounds.objectives.respawn.1b63d8"), left = 8, total = 11, icon = Timers.FLAG_ICON }, "FLAG"),
-    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = ns.Locale:Get("battlegrounds.preview.vexa_gold_mine.895476"), left = 4, total = 8 }, "CAPPING"),
+    Timers.Tag({ team = them, color = Timers.TeamColor(them), text = capping, who = "Vexa", place = capping:match("^Vexa%s+(.+)$"), left = 4, total = 8 }, "CAPPING"),
   }
 end
 

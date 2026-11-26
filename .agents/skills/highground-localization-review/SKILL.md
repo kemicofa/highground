@@ -19,7 +19,10 @@ no catalog update; record the specific reason instead of adding placeholder keys
   contain exactly the `enUS` key set (`tests/test_localization.py`), with the same
   named arguments, inline controls (`|c…|r`, `|H`, `|T`), slash commands and
   `#showtooltip` text. Add reviewed translations for every new key in all ten
-  catalogs; `scripts/l10n_sync.py` finds and inserts them. Don't fill a catalog
+  catalogs; `scripts/l10n_sync.py` finds and inserts them. Only English and the
+  language in use load in game (each other catalog is a `HighgroundLocale*`
+  load-on-demand addon), so keep the generated `locale/Index.lua` current:
+  `l10n_sync.py apply` rewrites it, `l10n_sync.py index` after hand edits. Don't fill a catalog
   with untranslated English; identical text is fine only for names and terms the
   language keeps, and required for text other clients match, such as
   Reputation's `[Highground Reputation]` reply prefix (`docs/localization.md`).

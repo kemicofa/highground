@@ -251,15 +251,16 @@ English client). From `addons/Highground/`,
 `luajit ../../tools/performance_login.lua <client> <game language> [saved language]`,
 median of five runs (simulator heap, not WoW's memory meter):
 
-| Login | Before | After |
-| --- | ---: | ---: |
-| Retail, English client | 36.2 MiB | 29.8 MiB |
-| Retail, German client, **Use game language** | 36.5 MiB | 30.4 MiB |
-| Retail, English client, German selected | 36.2 MiB | 30.5 MiB |
-| WoW Forever, English client | 35.3 MiB | 28.8 MiB |
-| WoW Forever, German client, **Use game language** | 35.4 MiB | 29.8 MiB |
-| Cataclysm Classic, English client | 36.5 MiB | 29.9 MiB |
-| Cataclysm Classic, German client, **Use game language** | 36.6 MiB | 30.6 MiB |
+| Login | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| Retail, English client | 36.2 MiB | 29.6 MiB | -6.5 MiB |
+| Retail, German client, **Use game language** | 36.5 MiB | 30.3 MiB | -6.3 MiB |
+| Retail, English client, German selected | 36.2 MiB | 30.7 MiB | -5.5 MiB |
+| Retail, Chinese (Simplified) client, **Use game language** | 36.5 MiB | 30.3 MiB | -6.2 MiB |
+| WoW Forever, English client | 35.3 MiB | 28.9 MiB | -6.5 MiB |
+| WoW Forever, German client, **Use game language** | 35.4 MiB | 29.8 MiB | -5.6 MiB |
+| Cataclysm Classic, English client | 36.5 MiB | 30.3 MiB | -6.2 MiB |
+| Cataclysm Classic, German client, **Use game language** | 36.6 MiB | 30.7 MiB | -5.9 MiB |
 
 Choosing another language later adds that catalog (about 0.6 MiB) for the rest
 of the session; switching back does not load anything again.

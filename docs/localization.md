@@ -298,10 +298,10 @@ includes simulated widgets, not WoW's memory meter):
 
 | Login | All catalogs loaded | Only the language in use |
 | --- | ---: | ---: |
-| Retail, English client | 36.2 MiB | 29.8 MiB |
-| Retail, German client, **Use game language** | 36.5 MiB | 30.4 MiB |
-| WoW Forever, English client | 35.3 MiB | 28.8 MiB |
-| Cataclysm Classic, English client | 36.5 MiB | 29.9 MiB |
+| Retail, English client | 36.2 MiB | 29.6 MiB |
+| Retail, German client, **Use game language** | 36.5 MiB | 30.3 MiB |
+| WoW Forever, English client | 35.3 MiB | 28.9 MiB |
+| Cataclysm Classic, English client | 36.5 MiB | 30.3 MiB |
 
 The locale library alone retained 7.3 MiB with all eleven catalogs; English
 now retains 1.3 MiB and English with German 1.9 MiB.

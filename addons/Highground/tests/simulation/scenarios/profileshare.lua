@@ -328,3 +328,20 @@ test("chat imports still defer applying a full setup until combat ends", functio
   equal(b.ns.Core.db.sniper, false)
   b:assertHealthy()
 end)
+
+test("a shared profile's export is released when its link expires", function()
+  local sim = peer("retail", "Alice")
+  sim.ns.Options.Profiles.SaveProfile("My healer")
+  local Share = sim.ns.Options.Profiles.Chat
+  assert(Share.ToChat("My healer"))
+  local cache
+  for i = 1, 50 do
+    local name, value = debug.getupvalue(Share.ToChat, i)
+    if name == "cache" then cache = value; break end
+  end
+  assert(next(cache), "the export is held for its link")
+  sim:advance(1790)
+  assert(next(cache), "until the link expires")
+  sim:advance(15)
+  equal(next(cache), nil, "then released without another share")
+end)

@@ -123,14 +123,23 @@ function W.Match(target)
   return candidates[1], #candidates
 end
 
+-- Each chat window filters the same message, and senders repeat: the last
+-- sender's answer is kept on the index, so any change (W.Changed) drops it.
+local function Remember(index, name, guid, entry, count)
+  index.chatName, index.chatGuid, index.chatEntry, index.chatCount = name, guid, entry, count
+  return entry, count
+end
+
 function W.ChatMatch(...)
   if not W.ready or W.db.settings.filter == false then return end
   -- Most players have no blacklist: skip parsing every chat sender.
-  if (W.index or W.BuildIndex()).empty then return end
+  local index = W.index or W.BuildIndex()
+  if index.empty then return end
   local name, guid = U.value(select(2, ...)), U.value(select(12, ...))
+  if name ~= nil and name == index.chatName and guid == index.chatGuid then return index.chatEntry, index.chatCount end
   if not W.String(name, 200) then return end
   local target = W.Target(name, nil, guid ~= "" and guid or nil, true)
-  return W.Match(target)
+  return Remember(index, name, guid, W.Match(target))
 end
 
 function W.ChatFilter(_, _, ...)

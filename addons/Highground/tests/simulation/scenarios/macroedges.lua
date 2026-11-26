@@ -152,6 +152,17 @@ test("spell rank checks reread buttons and macros only after they change", funct
   sim:event("SPELLS_CHANGED")
   assert(reads > first, "a changed button is read")
   equal(sim.ns.Macros.Ranks.top["Flash of Light"].rank, 2, "and its spell is tracked")
+  -- The simulated spell API returns new tables; count only the tracking.
+  local R = sim.ns.Macros.Ranks
+  collectgarbage("stop")
+  local memory = collectgarbage("count")
+  for _ = 1, 100 do R.Highest("Flash of Light") end
+  local lookups = collectgarbage("count") - memory
+  memory = collectgarbage("count")
+  for _ = 1, 100 do R.Update() end
+  local allocated = collectgarbage("count") - memory - lookups
+  collectgarbage("restart")
+  assert(allocated < 1, "unchanged ranks are checked without new tables, got " .. allocated .. " KiB")
 
   local retail = new("retail")
   local frames = 0

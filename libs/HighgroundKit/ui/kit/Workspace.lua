@@ -113,10 +113,65 @@ function Kit.ScrollArea(parent, opts)
   return area
 end
 
+-- Rows of their own height (VirtualList's measure option). Heights are
+-- measured on SetItems, Refresh and width changes, never while scrolling;
+-- scrolling finds the first visible row by binary search.
+local function Measured(list, area, opts)
+  local tops, heights = {}, {}
+  list.tops, list.heights, list.top, list.total = tops, heights, 0, 0
+  local layout = area.onLayout
+  function area:onLayout(width)
+    if layout then layout(self, width) end
+    width = math.max(1, width - (opts.inset or 0))
+    list.top = opts.header and opts.header(width) or 0
+    if list.stale or list.width ~= width then
+      local y, gap = 0, opts.gap or 0
+      for i = 1, #list.items do
+        tops[i], heights[i] = y, opts.measure(list.items[i], i, width)
+        y = y + heights[i] + gap
+      end
+      for i = #list.items + 1, #tops do tops[i], heights[i] = nil, nil end
+      list.total, list.stale, list.width = y, false, width
+    end
+    local height = math.max(1, list.top + list.total)
+    if math.abs(self.body:GetHeight() - height) > 0.001 then self.body:SetHeight(height) end
+  end
+  local function First(offset)
+    local lo, hi = 1, #tops
+    while lo < hi do
+      local mid = math.floor((lo + hi) / 2)
+      if tops[mid] + heights[mid] <= offset then lo = mid + 1 else hi = mid end
+    end
+    return lo
+  end
+  function list:Render()
+    local bottom, slot = area.offset - self.top + math.max(1, area.view:GetHeight()), 0
+    for index = First(area.offset - self.top), #tops do
+      local item = self.items[index]
+      if item == nil or tops[index] >= bottom or slot >= (opts.max or 32) then break end
+      slot = slot + 1
+      local row = self.rows[slot] or opts.create(area.body, slot)
+      self.rows[slot] = row
+      if not row:IsShown() then row:Show() end
+      Kit.Place(row, "TOPLEFT", area.body, "TOPLEFT", 0, -(self.top + tops[index]), self.width, heights[index])
+      opts.render(row, item, index, self.width)
+    end
+    for i = slot + 1, #self.rows do if self.rows[i]:IsShown() then self.rows[i]:Hide() end end
+  end
+  function list:Refresh()
+    self.stale = true
+    area:Refresh()
+  end
+end
+
 -- Recycled rows for a ScrollArea: only the visible window of rows exists,
 -- created on first need and reused while scrolling or replacing items.
 -- opts: rowHeight (number or function), gap, inset (right margin),
--- max (pool bound, 32), create(body, slot) -> row, render(row, item, index).
+-- max (pool bound, 32), create(body, slot) -> row,
+-- render(row, item, index, width).
+-- Rows of different heights: measure(item, index, width) -> height in
+-- place of rowHeight, and header(width) -> height lays out what sits
+-- above the rows. Existing onLayout callbacks run first.
 -- :SetItems(list) and :Refresh() size the body and redraw; rows beyond
 -- the items hide. Existing onScroll observers keep running.
 function Kit.VirtualList(area, opts)
@@ -144,7 +199,7 @@ function Kit.VirtualList(area, opts)
         if row:IsShown() ~= (item ~= nil) then row:SetShown(item ~= nil) end
         if item ~= nil then
           Kit.Place(row, "TOPLEFT", area.body, "TOPLEFT", 0, -(index - 1) * step, width, height)
-          opts.render(row, item, index)
+          opts.render(row, item, index, width)
         end
       end
     end
@@ -160,6 +215,7 @@ function Kit.VirtualList(area, opts)
     self.items = items or {}
     self:Refresh()
   end
+  if opts.measure then Measured(list, area, opts) end
   area.onScroll = function(offset)
     if observe then observe(offset) end
     list:Render()

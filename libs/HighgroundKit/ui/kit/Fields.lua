@@ -241,8 +241,8 @@ end
 
 function Kit.ColorEditBox(box, colorize, onChange)
   local busy
-  local function Show(plain, cursor)
-    local coded = colorize(plain)
+  local function Show(plain, cursor, coded)
+    coded = coded or colorize(plain)
     busy = true
     box.wbColoring = true
     box:SetText(coded)
@@ -261,7 +261,9 @@ function Kit.ColorEditBox(box, colorize, onChange)
   box:SetScript("OnTextChanged", function(self, userInput)
     if busy then return end
     local plain, cursor = self:GetPlainText(), self:GetPlainCursor()
-    if colorize(plain) ~= self:GetText() then Show(plain, cursor) end
+    -- Colour once per change: the comparison's text is the one shown.
+    local coded = colorize(plain)
+    if coded ~= self:GetText() then Show(plain, cursor, coded) end
     if onChange then onChange(self, plain, userInput) end
   end)
   return box

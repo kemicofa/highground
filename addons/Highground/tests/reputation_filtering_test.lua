@@ -268,6 +268,12 @@ test("chat filtering reads no roster and ranks shared listings by community size
   equal(listings, 0, "rebuilding the index and ordinary chat read no roster")
   assert(W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Enemy-Realm", "Player-1-Enemy"))), "listed player hidden")
   equal(listings, 0, "a single listing needs no member count")
+  parsed = 0
+  for _ = 1, 7 do assert(W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Enemy-Realm", "Player-1-Enemy")))) end
+  equal(parsed, 0, "every chat window's filter reuses the last sender's answer")
+  assert(not W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Talker-Realm", "Player-1-Talker"))))
+  assert(W.ChatFilter(nil, "CHAT_MSG_CHANNEL", unpack(F.chat("Enemy-Realm", "Player-1-Enemy"))), "a new sender is parsed again")
+  equal(parsed, 2, "once per sender change")
   assert(W.Decide(large, target, "ban", { scamming = true }, "Large"))
   local entry, count = W.Match(target)
   equal(count, 2, "both joined organizations list the target")

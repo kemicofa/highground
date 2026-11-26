@@ -25,13 +25,21 @@ def git(*args):
     return subprocess.run(["git", *args], cwd=addons.ROOT, check=True, capture_output=True, text=True).stdout
 
 
+RANK = {"alpha": 0, "beta": 1, None: 2}  # a version's alpha, then its beta, then its release
+
+
 def last_tag(addon):
-    """Newest published tag of this addon, or None."""
+    """Newest published tag of this addon (vX.Y.Z, vX.Y.Z-beta or vX.Y.Z-alpha), or None."""
     prefix = addon.tag_prefix
-    tags = [t for t in git("tag", "--list", f"{prefix}*").split()
-            if re.fullmatch(re.escape(prefix) + addons.VERSION, t)]
-    tags.sort(key=lambda t: [int(n) for n in t[len(prefix):].split(".")])
-    return tags[-1] if tags else None
+    pattern = re.escape(prefix) + f"({addons.VERSION})(?:-(alpha|beta))?"
+    newest = None
+    for tag in git("tag", "--list", f"{prefix}*").split():
+        match = re.fullmatch(pattern, tag)
+        if match:
+            key = ([int(n) for n in match.group(1).split(".")], RANK[match.group(2)])
+            if newest is None or key > newest[0]:
+                newest = (key, tag)
+    return newest and newest[1]
 
 
 def published(addon, version):

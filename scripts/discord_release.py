@@ -75,8 +75,10 @@ def render(plan, found, repository):
     return content
 
 
-def delivery_key(plan, repository):
-    identity = json.dumps([repository, plan["releases"]], sort_keys=True)
+def delivery_key(plan, found, repository):
+    """Once per set of versions and release types: a beta after an alpha of one version is news."""
+    labels = {name: found[name].label(version) for name, version in plan["releases"].items()}
+    identity = json.dumps([repository, labels], sort_keys=True)
     return hashlib.sha256(identity.encode()).hexdigest()[:24]
 
 
@@ -152,7 +154,7 @@ def announce(plan, found, repository, commit, token, channel):
         return None
     if not re.fullmatch(r"[0-9a-f]{40}", commit or ""):
         raise ValueError("Discord delivery needs the full workflow commit SHA")
-    key = delivery_key(plan, repository)
+    key = delivery_key(plan, found, repository)
     tag = "discord-" + key
     marker = f"repos/{repository}/git/ref/tags/{tag}"
     if publish.lookup(marker):

@@ -1,4 +1,4 @@
-<!-- Highground 3.2.1 -->
+<!-- Highground 3.3.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -26,7 +26,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **Enemy list:** every enemy with its kill priority and spec, which you can tag when the game hides it. Left-click to target, right-click to focus.
 - **Target and healer markers:** a sight over your recommended target and crosses over enemy and friendly healers.
-- **Objective timers:** graveyard waves, base capture countdowns and win predictions.
+- **Objective timers:** graveyard waves, base capture countdowns and a win forecast.
 - **Flag carriers and map intel:** carrier health and debuffs, plus where enemies were last seen as circles on the map, shared with teammates.
 - **Quick callouts and history:** one-click calls to battleground chat, and saved results for every match.
 
@@ -37,9 +37,11 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 ### 🌍 Open world
 
-- **Nearby enemies:** hostile players you've seen recently, with class, level, place and a live count.
-- **Stealth alerts:** a sound and chat notice when a nearby enemy enters or leaves stealth.
-- **Enemy journal:** who killed you and who you killed, with notes and muting.
+- **Nearby enemies:** hostile players seen by you, your group, your guild or other Highground users, with a live count and stealth alerts.
+- **Enemy heatmap:** the world map shades where enemies were seen and who won the fights there in the last hour.
+- **Tracking and marks:** track an enemy to hear where they turn up, and mark gankers or calls for help on the map.
+- **Kill order in world fights:** in a party or raid, kill order, health bars and healer markers cover the enemies around you.
+- **Enemy journal:** who killed you and who you killed, with notes, muting and tracked and bounty filters.
 
 ### 💰 Bounties (alpha)
 

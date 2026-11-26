@@ -30,10 +30,14 @@ Library.PLURAL_EXTRA = { ru = { "few", "many" } }
 -- English's list joiners, used when a catalog does not supply its own.
 local LIST_DEFAULT = { pair = "{first} and {second}", middle = "{first}, {second}" }
 
+-- Most messages have no named arguments; they share EMPTY (never modified).
 local function Tokens(text)
-  local result = {}
-  for name in text:gmatch(TOKEN) do result[name] = true end
-  return result
+  local result
+  for name in text:gmatch(TOKEN) do
+    result = result or {}
+    result[name] = true
+  end
+  return result or EMPTY
 end
 
 local function SameTokens(a, b)
@@ -45,7 +49,7 @@ end
 function Library.New(defaultLocale, aliases)
   assert(type(defaultLocale) == "string" and defaultLocale ~= "", "a default locale is required")
   local self = setmetatable({ defaultLocale = defaultLocale, locale = defaultLocale,
-    catalogs = {}, aliases = {}, tokens = {}, counts = {}, total = 0,
+    catalogs = {}, aliases = {}, tokens = {}, counts = {}, total = 0, variants = EMPTY,
     pluralKeys = {}, count = {}, pair = {}, listKeys = {} }, Instance)
   for alias, target in pairs(aliases or {}) do
     assert(type(alias) == "string" and alias ~= "" and type(target) == "string" and target ~= "",
@@ -117,6 +121,12 @@ end
 
 function Instance:GetLocale() return self.locale end
 
+-- Whether a catalog is registered for locale (or its alias).
+function Instance:Has(locale)
+  locale = self:Canonical(locale)
+  return locale ~= nil and self.catalogs[locale] ~= nil
+end
+
 -- Two table reads; missing keys never populate a cache or grow a catalog.
 function Instance:Get(key)
   local text = self.catalogs[self.locale][key]
@@ -129,8 +139,9 @@ function Instance:Source(key)
   return self.catalogs[self.defaultLocale][key]
 end
 
--- Every distinct text registered for key, the source message first. Use it to
--- recognize text another player's client sent in its own language.
+-- Every distinct text registered or supplied for key, the source message
+-- first. Use it to recognize text another player's client sent in its own
+-- language.
 function Instance:Variants(key)
   local result, seen = {}, {}
   local function Add(text)
@@ -138,7 +149,16 @@ function Instance:Variants(key)
   end
   Add(self.catalogs[self.defaultLocale][key])
   for _, catalog in pairs(self.catalogs) do Add(catalog[key]) end
+  local supplied = self.variants[key] or EMPTY
+  for i = 1, #supplied do Add(supplied[i]) end
   return result
+end
+
+-- Texts of catalogs that are not registered, such as languages loaded only
+-- when selected: { [key] = { text, ... } }. Variants includes them.
+function Instance:SetVariants(variants)
+  assert(type(variants) == "table", "variants must be a table")
+  self.variants = variants
 end
 
 -- Named placeholders can move or repeat in translations. Replacement values

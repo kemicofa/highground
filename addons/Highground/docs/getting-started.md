@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Highground overview](../README.md)
 
-Highground runs on Retail, WoW Forever and Cataclysm Classic. One download contains Highground, its two required data addons and six module folders: Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros. The former standalone addons are deprecated and receive no releases.
+Highground runs on Retail, WoW Forever and Cataclysm Classic. One download contains Highground, its two required data addons, six module folders (Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros) and ten language folders. The former standalone addons are deprecated and receive no releases.
 
 ## Install
 
@@ -12,7 +12,7 @@ Highground runs on Retail, WoW Forever and Cataclysm Classic. One download conta
 
 1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest).
 2. Fully quit WoW.
-3. Extract every folder from the ZIP into `Interface/AddOns/` in your game folder: `Highground`, `HighgroundBountyData`, `HighgroundReputationData` and the six `HighgroundModule*` folders. Keep each folder's name, with its TOC file directly inside.
+3. Extract every folder from the ZIP into `Interface/AddOns/` in your game folder: `Highground`, `HighgroundBountyData`, `HighgroundReputationData`, the six `HighgroundModule*` folders and the ten `HighgroundLocale*` folders. Keep each folder's name, with its TOC file directly inside. Each language folder loads only while Highground uses that language; without it, Highground shows English.
 4. To update, replace the old folders so removed files don't linger. Keep your `WTF/` folder: it holds your settings.
 5. Start WoW.
 

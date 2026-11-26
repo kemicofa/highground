@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("enUS", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Says {text} in officer chat.",
   ["locale.client"] = "Use game language",
   ["locale.coverage"] = "{language}: {translated} of {total} prepared messages translated. Other text uses English.",
+  ["locale.unavailable"] = "{language} isn't installed or is turned off, so Highground shows English. Install the complete Highground download, or turn on “Highground language: {language}” in WoW's AddOn List, then reload.",
   ["macros.scripts.quiet_trinket_description"] = "Top trinket without the error sound or red text; put any cast after the /run line",
   ["shared.copy.secret.3c3b27"] = "SECRET",
   ["shared.copy.selected.835f3b"] = "selected",

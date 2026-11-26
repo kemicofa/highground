@@ -10,9 +10,10 @@ local function start(saved, locale, inject)
     if addon == "Highground" then dofile("../../tools/wowsim/geometry.lua")(s) end
     local load = s.load
     function s:load(path)
-      -- Substitute a test translation file without constraining future real
-      -- French translations to match this fixture's wording.
-      if path ~= "libs/locale/frFR.lua" or not inject then load(self, path) end
+      load(self, path)
+      -- Substitute a test translation catalog without constraining future real
+      -- French translations to match this fixture's wording. A registered
+      -- language is never loaded from its addon (HighgroundLocaleFrFR).
       if path == "libs/locale/Highground.lua" and inject then
         assert(self.ns.Locale:Register("frFR", {
           ["locale.title"] = "Langue", ["locale.sample"] = "Exemple : les préférences de langue s'appliquent à Highground.",

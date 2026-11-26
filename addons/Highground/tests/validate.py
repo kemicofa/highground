@@ -15,7 +15,7 @@ import lint  # noqa: E402
 # Highground's own folders, then what it loads from the library (libs/) and
 # from the owned features/<name>/ directories.
 BG = "features/battlegrounds"
-runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub", "libs/locale",
+runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub",
                 "libs/config/themes", "libs/core", "libs/social", "libs/ui", "libs/world", "libs/pvp", "libs/bounty",
                 "features/macros/macros", "features/arena", "features/bounties", "features/reputation",
                 *(f"{BG}/{d}" for d in ("core", "rules", "ui", "timers", "flags", "map", "config/battlegrounds")))
@@ -23,7 +23,7 @@ runtime_dirs = ("core", "ui", "options", "commands", "macros", "hub", "libs/loca
 # Intentional global writes: SavedVariables, slash commands, key bindings, and
 # names that XML or bindings reference. Anything else is an accidental global.
 allowed_globals = {
-    "HighgroundWindowCoordinator",
+    "HighgroundWindowCoordinator", "HighgroundLocale",
     "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB", "HighgroundReputationNetworkDB",
     "BINDING_HEADER_HIGHGROUND",
     "Highground_Call", "Highground_TeamHealer", "Highground_Hub", "Highground_BountyBoard", "Highground_WorldMark", "HighgroundPinMixin",
@@ -44,8 +44,9 @@ for toc, client in [("Highground.toc", "retail"), ("Highground_Cata.toc", "cata"
     assert not any(s.startswith("libs/standalone/") for s in entries), "Highground is not a standalone addon"
     extra = (f"{BG}/config/forever",) if client == "retail" else ()  # WoW Forever shares the retail manifest
     directories = (*runtime_dirs, f"{BG}/config/{client}", f"compat/{client}", *extra)
+    # English and the locale code; other catalogs are load-on-demand addons.
     tocs[toc] = ["config/*.lua", "libs/config/*.lua", f"{BG}/config/*.lua", "features/macros/config/*.lua",
-                 *(f"{d}/**/*.lua" for d in directories)]
+                 "libs/locale/[A-Z]*.lua", "libs/locale/enUS.lua", *(f"{d}/**/*.lua" for d in directories)]
 
 runtime_lua, lua_count = lint.validate(root, tocs, allowed_globals=allowed_globals,
                                        allowed_prefixes=allowed_global_prefixes)

@@ -25,7 +25,7 @@ Choose the features you want in `/hg` → **Addons** or WoW's AddOn List; module
 
 Install [Highground on CurseForge](https://www.curseforge.com/projects/1749115), [Wago](https://addons.wago.io/addons/b6Xy3OKp), or the Highground ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). Fully quit the game, extract every top-level folder into `Interface/AddOns/`, then restart.
 
-Keep both included data addons, [HighgroundBountyData](addons/HighgroundBountyData/README.md) and [HighgroundReputationData](addons/HighgroundReputationData/README.md), enabled. Keep all six `HighgroundModule*` folders; they provide the feature switches and are part of the Highground bundle.
+Keep both included data addons, [HighgroundBountyData](addons/HighgroundBountyData/README.md) and [HighgroundReputationData](addons/HighgroundReputationData/README.md), enabled. Keep all six `HighgroundModule*` folders; they provide the feature switches and are part of the Highground bundle. Keep the ten `HighgroundLocale*` folders too: each holds one language and loads only when Highground uses it.
 
 Moving from a standalone addon? Follow the [migration steps](addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon): remove the old folder and keep your `WTF` folder. Shared bounty and reputation records carry over through the data addons; standalone panel settings and profiles do not.
 
@@ -42,6 +42,7 @@ libs/HighgroundKit/          shared library, UI, bounties, journals and fonts
 addons/Highground/           kill order, settings, hub and feature implementations
 addons/Highground/features/  owned feature implementations and command catalogs
 addons/HighgroundModule*/    bundled feature switches
+addons/HighgroundLocale*/    bundled languages, loaded on demand
 addons/HighgroundBountyData/ shared bounty storage dependency
 addons/HighgroundReputationData/ shared reputation storage dependency
 docs/                       documentation index, monorepo and release guides
@@ -51,7 +52,7 @@ tools/                      WoW simulator, lint, previews and sound generators
 .github/                    coordinated CI/release workflow and reusable addon build
 ```
 
-Highground's TOCs define its version, supported interfaces, package files and publishing destinations. Builds copy linked library and feature files into its ZIP, together with the data addons and module switches. Only Highground is published.
+Highground's TOCs define its version, supported interfaces, package files and publishing destinations. Builds copy linked library and feature files into its ZIP, together with the data addons, module switches and language addons. Only Highground is published.
 
 ## Build and test
 

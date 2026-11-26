@@ -9,7 +9,7 @@
 ## X-Wago-ID: b6Xy3OKp
 ## X-GitHub-Latest: true
 ## Dependencies: HighgroundBountyData, HighgroundReputationData
-## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros
+## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros HighgroundLocaleDeDE HighgroundLocaleEsES HighgroundLocaleEsMX HighgroundLocaleFrFR HighgroundLocaleItIT HighgroundLocaleKoKR HighgroundLocalePtBR HighgroundLocaleRuRU HighgroundLocaleZhCN HighgroundLocaleZhTW
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
 ## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/alert-*.ogg libs/sounds/alerts.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
@@ -20,17 +20,8 @@
 features/battlegrounds/config/Shared.lua
 libs/locale/Library.lua
 libs/locale/Locales.lua
+libs/locale/Index.lua
 libs/locale/enUS.lua
-libs/locale/deDE.lua
-libs/locale/esES.lua
-libs/locale/esMX.lua
-libs/locale/frFR.lua
-libs/locale/itIT.lua
-libs/locale/koKR.lua
-libs/locale/ptBR.lua
-libs/locale/ruRU.lua
-libs/locale/zhCN.lua
-libs/locale/zhTW.lua
 libs/locale/Highground.lua
 libs/config/Theme.lua
 libs/config/themes/Ember.lua

@@ -1,0 +1,14 @@
+## Interface: 120100, 120105, 16001, 40402
+## Title: Highground language: Portuguese (Brazil)
+## IconTexture: Interface\AddOns\HighgroundLocalePtBR\Icon.tga
+## Group: Highground
+## Notes: Highground's Portuguese (Brazil) text. Loads only while Highground shows Portuguese (Brazil). Keep it beside Highground.
+## Author: kemicofa
+## Version: 1.0.0
+## Dependencies: Highground
+## LoadOnDemand: 1
+## X-Internal: true
+## X-Highground-Locale: ptBR
+## X-Package-Files: README.md LICENSE
+
+ptBR.lua

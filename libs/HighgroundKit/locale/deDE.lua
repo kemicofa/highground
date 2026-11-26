@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("deDE", {
+assert((ns.Locale or HighgroundLocale):Register("deDE", {
   ["appearance.font.locale_fallback"] = "Die aktuelle Sprache verwendet eine passende Spielschrift. Die Schriftauswahl ist wieder verfügbar, wenn dieser Ersatz nicht mehr nötig ist; deine Auswahl bleibt gespeichert.",
   ["enemy.appearance.shared"] = "Gemeinsamer Stil",
   ["enemy.appearance.readable"] = "Lesbare Karten",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("deDE", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Sagt {text} im Offizierschat.",
   ["locale.client"] = "Spielsprache verwenden",
   ["locale.coverage"] = "{language}: {translated} von {total} vorbereiteten Meldungen übersetzt. Anderer Text erscheint auf Englisch.",
+  ["locale.unavailable"] = "{language} ist nicht installiert oder ausgeschaltet, daher zeigt Highground Englisch an. Installieren Sie den vollständigen Highground-Download oder aktivieren Sie „Highground language: {language}“ in der AddOn-Liste von WoW und laden Sie die Oberfläche dann neu.",
   ["macros.scripts.quiet_trinket_description"] = "Oberes Schmuckstück ohne Fehlerton oder roten Text; fügen Sie beliebige Zauber nach der /run-Zeile ein",
   ["shared.copy.secret.3c3b27"] = "GEHEIM",
   ["shared.copy.selected.835f3b"] = "ausgewählt",

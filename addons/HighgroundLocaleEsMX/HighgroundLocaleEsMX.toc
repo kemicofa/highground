@@ -1,0 +1,14 @@
+## Interface: 120100, 120105, 16001, 40402
+## Title: Highground language: Spanish (Latin America)
+## IconTexture: Interface\AddOns\HighgroundLocaleEsMX\Icon.tga
+## Group: Highground
+## Notes: Highground's Spanish (Latin America) text. Loads only while Highground shows Spanish (Latin America). Keep it beside Highground.
+## Author: kemicofa
+## Version: 1.0.0
+## Dependencies: Highground
+## LoadOnDemand: 1
+## X-Internal: true
+## X-Highground-Locale: esMX
+## X-Package-Files: README.md LICENSE
+
+esMX.lua

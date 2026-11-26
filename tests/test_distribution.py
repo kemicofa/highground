@@ -36,7 +36,9 @@ class DistributionTests(TempTestCase):
         folders = {name.split("/")[0] for name in build.package_sources(addon)}
         self.assertEqual(folders, {"Highground", "HighgroundBountyData", "HighgroundReputationData",
                                   *("HighgroundModule" + suffix for suffix in
-                                    ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation"))})
+                                    ("Arena", "Battlegrounds", "Bounties", "Macros", "Nearby", "Reputation")),
+                                  *("HighgroundLocale" + suffix for suffix in
+                                    ("DeDE", "EsES", "EsMX", "FrFR", "ItIT", "KoKR", "PtBR", "RuRU", "ZhCN", "ZhTW"))})
 
     def test_explicit_standalone_build_and_release_commands_are_rejected(self):
         for name in ("Highground" + suffix for suffix in RETIRED):

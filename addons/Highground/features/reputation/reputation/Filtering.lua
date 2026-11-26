@@ -8,8 +8,7 @@ W.CHAT_EVENTS = { "CHAT_MSG_SAY", "CHAT_MSG_YELL", "CHAT_MSG_CHANNEL", "CHAT_MSG
 -- cannot reply forever. It is always sent in English and its catalog entry
 -- stays untranslated: 3.0.0 sent it in the addon language, and two players
 -- with different languages did not recognize each other's replies.
-local PREFIX_KEY = "reputation.filtering.highground_reputation.f7407b"
-W.REPLY_PREFIX = ns.Locale:Source(PREFIX_KEY)
+W.REPLY_PREFIX = ns.Locale:Source("reputation.filtering.highground_reputation.f7407b")
 -- What 3.0.0 sent in each addon language (esES and esMX shared one).
 local LEGACY = { "[Highground Bekanntmachung]", "[Reputación de Highground]", "[Highground Réputation]",
   "[Highground reputazione]", "[Highground 평판]", "[Reputação de Highground]", "[Highground Репутация]",
@@ -17,7 +16,8 @@ local LEGACY = { "[Highground Bekanntmachung]", "[Reputación de Highground]", "
 -- Chat addons and typing can change case or add leading spaces.
 local function Fold(text) return (text:gsub("^%s+", ""):lower()) end
 -- Recognized whatever language either client uses: every catalog's text for
--- the marker (English first) and the 3.0.0 markers.
+-- the marker (English first; Locale:Variants reads catalogs that are not
+-- loaded from the generated locale index) and the 3.0.0 markers.
 local markers = {}
 do
   local seen = {}
@@ -25,7 +25,7 @@ do
     local marker = Fold(text)
     if marker ~= "" and not seen[marker] then seen[marker] = true; markers[#markers + 1] = marker end
   end
-  for _, text in ipairs(ns.Locale:Variants(PREFIX_KEY)) do Add(text) end
+  for _, text in ipairs(ns.Locale:Variants("reputation.filtering.highground_reputation.f7407b")) do Add(text) end
   for _, text in ipairs(LEGACY) do Add(text) end
 end
 

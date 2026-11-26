@@ -1,0 +1,14 @@
+## Interface: 120100, 120105, 16001, 40402
+## Title: Highground language: Chinese (Simplified)
+## IconTexture: Interface\AddOns\HighgroundLocaleZhCN\Icon.tga
+## Group: Highground
+## Notes: Highground's Chinese (Simplified) text. Loads only while Highground shows Chinese (Simplified). Keep it beside Highground.
+## Author: kemicofa
+## Version: 1.0.0
+## Dependencies: Highground
+## LoadOnDemand: 1
+## X-Internal: true
+## X-Highground-Locale: zhCN
+## X-Package-Files: README.md LICENSE
+
+zhCN.lua

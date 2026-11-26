@@ -286,8 +286,8 @@ test("localized flag, orb and node announcements use recorded game formats", fun
   equal(sim:entry("Porteur").carrier, false)
   sim.ns.Timers.nodes.Ferme = { name = "Ferme" }
   assert(sim.ns.LocalizedChat("Porteur a attaqué la ferme !"):find("has assaulted the Ferme!", 1, true))
-  sim.env.GetLocale = function() return "koKR" end
-  equal(sim.ns.LocalizedChat("적이 호드 깃발을 손에 넣었습니다!"), "The Horde Flag was picked up by 적!")
+  local korean = new("cata", nil, function(_, env) env.GetLocale = function() return "koKR" end end)
+  equal(korean.ns.LocalizedChat("적이 호드 깃발을 손에 넣었습니다!"), "The Horde Flag was picked up by 적!")
 end)
 
 test("localized macro presets resolve spell IDs and preserve secure conditions", function()

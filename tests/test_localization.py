@@ -16,18 +16,45 @@ spec.loader.exec_module(l10n_sync)
 
 class LocalizationTests(unittest.TestCase):
     def test_library_and_catalogs_load_in_every_host_and_package(self):
-        names = {path.name for path in (ROOT / "libs/HighgroundKit/locale").glob("*.lua")}
+        folder = ROOT / "libs/HighgroundKit/locale"
+        languages = [path.stem for path in folder.glob("*.lua")
+                     if l10n_sync.CATALOG_NAME.fullmatch(path.stem) and path.stem != "enUS"]
+        shared = {path.name for path in folder.glob("*.lua")} - {f"{code}.lua" for code in languages}
+        self.assertEqual(shared, {"Library.lua", "Locales.lua", "Index.lua", "enUS.lua", "Highground.lua"})
+        self.assertEqual(len(languages), 10)
         for name, addon in addons.load(include_deprecated=True).items():
             sources = build.package_sources(addon)
-            for filename in names:
+            for filename in shared:
                 self.assertIn(f"{name}/libs/locale/{filename}", sources)
             for toc in addons.tocs(addon.path):
                 entries = toc.read_text().splitlines()
-                for filename in names:
+                for filename in shared:
                     entry = f"libs/locale/{filename}"
                     self.assertEqual(entries.count(entry), 1)
                     self.assertLess(entries.index(entry), entries.index("libs/ui/Style.lua"))
-                self.assertLess(entries.index("libs/locale/enUS.lua"), entries.index("libs/locale/frFR.lua"))
+                order = [f"libs/locale/{n}.lua" for n in ("Library", "Locales", "Index", "enUS", "Highground")]
+                self.assertEqual(order, sorted(order, key=entries.index))
+            # Each other language is its own load-on-demand addon, loading only its catalog.
+            definitions = dict(re.findall(r'key = "(\w+)", addon = "(\w+)"', (folder / "Locales.lua").read_text()))
+            self.assertEqual(sorted(definitions), sorted(languages))
+            bundled = (addons.field(addon.path, "X-Bundled-Addons") or "").split()
+            for code in languages:
+                language = definitions[code]
+                with self.subTest(host=name, language=code):
+                    self.assertIn(language, bundled)
+                    self.assertNotIn(f"{name}/libs/locale/{code}.lua", sources)
+                    self.assertEqual(sources[f"{language}/{code}.lua"].resolve(), (folder / f"{code}.lua").resolve())
+                    path = addon.path.parent / language
+                    self.assertEqual(addons.field(path, "X-Highground-Locale"), code)
+                    entries = [line for line in (path / f"{language}.toc").read_text().splitlines()
+                               if line and not line.startswith("#")]
+                    self.assertEqual(entries, [f"{code}.lua"])
+
+    def test_generated_index_is_current(self):
+        # Coverage and Locale:Variants texts of catalogs that load on demand.
+        path = ROOT / "libs/HighgroundKit/locale/Index.lua"
+        self.assertEqual(path.read_text(encoding="utf-8"), l10n_sync.render_index(ROOT),
+                         "Index.lua is stale; run: python3 scripts/l10n_sync.py index")
 
     def test_preferences_in_all_hosts_and_client_families(self):
         for name, addon in addons.load(include_deprecated=True).items():
@@ -58,7 +85,7 @@ class LocalizationTests(unittest.TestCase):
         # One definition of preserved controls and syntax, shared with scripts/l10n_sync.py.
         controls, syntax = l10n_sync.CONTROLS, l10n_sync.SYNTAX
         for path in folder.glob("*.lua"):
-            if path.stem in ("Library", "Locales", "Highground", "enUS"):
+            if not l10n_sync.CATALOG_NAME.fullmatch(path.stem) or path.stem == "enUS":
                 continue
             translated = catalog(path)
             # English keys plus the plural forms this language adds (ruRU: few, many).

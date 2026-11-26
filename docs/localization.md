@@ -4,7 +4,8 @@ Highground embeds a reusable Lua 5.1 library with English (`enUS`) as the defaul
 and fallback. [Library.lua](../libs/HighgroundKit/locale/Library.lua) has no WoW,
 Highground, UI, chat or SavedVariables dependencies. Consumers create independent
 instances and supply their own catalogs and aliases. The remaining files in
-`libs/HighgroundKit/locale/` are Highground's catalogs and game adapter.
+`libs/HighgroundKit/locale/` are Highground's catalogs, the generated index and
+the game adapter.
 
 ## Player behavior and scope
 
@@ -15,6 +16,17 @@ is selected on both new and existing installations. Choose another language or
 Bound controls, declared display tables and the sample update immediately. The Appearance guide
 (`/hg guide features`) includes this real control; changing it intentionally
 saves the preference. Opening or closing the guide never selects a language.
+
+Only English and the language in use are loaded. Each other language is its own
+load-on-demand addon in the Highground download, `HighgroundLocale<Code>`
+(`HighgroundLocaleDeDE`, …), listed in WoW's AddOn List as **Highground
+language: German** and so on. At login Highground loads the saved language, or the
+client's with **Use game language**; choosing another language loads its addon
+at once, so switching stays instant, and a loaded language stays loaded until
+the next reload. When a language addon is missing (an installation that copied
+only some folders) or turned off, Highground shows English, keeps the saved
+choice and the picker says why and how to get the language. Nothing else
+changes for old installations.
 
 All ten non-English catalogs include the migrated display messages for navigation,
 settings, HUD labels, tooltips, command help and feedback, Feature guides, and
@@ -55,9 +67,24 @@ only for the optional client-language selection and native font choice. Unknown
 client locales and corrupt saved preferences fall back to English. No Battle.net
 launcher-only languages are added as WoW locales.
 
-Both Highground TOC variants embed the same library and catalogs. Feature
-implementations share `HighgroundDB.locale`; retired hosts no longer have
-settings pages or runtime test targets. Storage-only and generated module addons need no UI catalogs.
+Both Highground TOC variants load the same library, English catalog, index and
+adapter. The ten language addons have one TOC for every client (Retail, WoW
+Forever and Cataclysm Classic interfaces), depend on Highground and load only
+their catalog, which stays in `libs/HighgroundKit/locale/` and is linked into the
+addon folder. Their own namespace has no `ns.Locale`, so the catalogs register
+through the `HighgroundLocale` global, which accepts only languages other than
+English. Feature implementations share `HighgroundDB.locale`; retired hosts no
+longer have settings pages or runtime test targets. Storage-only and generated
+module addons need no UI catalogs.
+
+What Highground reads from languages that are not loaded comes from the
+generated [Index.lua](../libs/HighgroundKit/locale/Index.lua): each catalog's
+coverage for the picker, and every catalog's text for the keys runtime code
+passes to `Locale:Variants` (other players' text, such as Reputation's reply
+marker and old graveyard labels). `scripts/l10n_sync.py apply` rewrites it;
+`python3 scripts/l10n_sync.py index` regenerates it after other catalog edits,
+and the localization check fails while it is stale. `Locale:Variants` calls
+need a literal message key so the index can find them.
 
 ## Reuse outside Highground
 
@@ -87,9 +114,11 @@ print(messages:Get("close")) -- English fallback
 | `Canonical(locale)` | Resolves a direct alias; non-string input returns nil. |
 | `SetLocale(locale)` | Returns effective locale and recognition boolean. An unregistered locale selects the default. |
 | `GetLocale()` | Current canonical locale. |
+| `Has(locale)` | Whether a catalog is registered for `locale` (or its alias). |
 | `Get(key)` | Selected translation, then source message, then the key itself for an unknown key. No missing-key cache. |
 | `Source(key)` | Source message whatever locale is selected; nil for an unknown key. For text other clients match, such as a chat marker. |
-| `Variants(key)` | Every distinct registered text for `key`, source message first. Recognizes text another player's client sent in its own language. |
+| `Variants(key)` | Every distinct registered or supplied text for `key`, source message first. Recognizes text another player's client sent in its own language. |
+| `SetVariants(variants)` | `{ [key] = { text, … } }` from catalogs that are not registered, such as languages loaded on demand; `Variants` includes them. |
 | `Format(key, values)` | Substitutes named `{arguments}` as literal strings/numbers. Arguments can move and repeat. Missing/invalid arguments raise a programming error. |
 | `Plural(base, n, values?)` | Formats the family member `<base>.<category>` for the whole number `n` (CLDR categories, below). `values` defaults to `{ count = n }`. A form the selected catalog lacks falls back to its `other` form, then to English. |
 | `PluralCategory(n, locale?)` | `"one"`, `"few"`, `"many"` or `"other"` for `n` in the selected (or given) locale. |
@@ -174,6 +203,8 @@ font and layout checks in the simulator do not replace live-client glyph review.
    differ from English, ignores empty strings (apply a partly filled file again
    later), keeps existing translations unless `--overwrite`, and removes keys
    English no longer has with `--prune-stale`. `--dry-run` writes nothing.
+   It also rewrites `Index.lua`; after adding an English key by hand, run
+   `python3 scripts/l10n_sync.py index`.
    For plural families, `missing` and `template` also list the extra forms
    each language needs (`ruRU`: `.few` and `.many`, checked against the
    English `.other`); the key-set test requires them too. A family's key is
@@ -254,28 +285,49 @@ required.
 Catalogs are registered once and shared by that host's feature modules. `Get`
 performs at most two expected constant-time table lookups, with no cache growth
 on misses. `Format` is proportional to template and output bytes. Retained
-storage is proportional to registered catalog text; all eleven catalogs remain
-available for immediate switching. Language changes update declared display tables, visit bound labels and watched
+storage is proportional to registered catalog text: English plus each language
+selected this session. Messages without named arguments share one empty
+argument table. Language changes update declared display tables, visit bound labels and watched
 views, and refresh fonts only when the script face changes. There are no timers, polling,
 network messages or per-frame localization scans. Bindings hold weak target
 keys; their values do not retain the target.
+
+Retained Lua heap after login, median of five simulator runs from
+`addons/Highground/` (`luajit ../../tools/performance_login.lua retail enUS`;
+includes simulated widgets, not WoW's memory meter):
+
+| Login | All catalogs loaded | Only the language in use |
+| --- | ---: | ---: |
+| Retail, English client | 19.1 MiB | 12.0 MiB |
+| Retail, German client, **Use game language** | 18.6 MiB | 13.1 MiB |
+| WoW Forever, English client | 18.6 MiB | 12.3 MiB |
+| Cataclysm Classic, English client | 18.9 MiB | 12.6 MiB |
+
+The locale library alone retained 7.3 MiB with all eleven catalogs; English
+now retains 1.3 MiB and English with German 1.9 MiB.
 
 Run from the repository root:
 
 ```sh
 python3 scripts/check_localization.py            # working tree
 python3 scripts/l10n_sync.py missing             # every catalog has every key
+python3 scripts/l10n_sync.py index --check       # Index.lua matches the catalogs
 python3 scripts/check_localization.py --staged   # exact staged content
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p test_localization.py -v
 bash tests/run.sh --jobs 4
 python3 scripts/check_performance.py --staged # after staging runtime changes
 ```
 
-The library suite loads only Lua primitives, proving it needs no WoW APIs. Host
+The library suite loads only Lua primitives, proving it needs no WoW APIs, and
+validates every shipped catalog and the index against them. Host
 integration loads real manifests on Cataclysm, Retail and Forever and checks
 selection, persistence, aliases, malformed data, bindings, font routing, guide
-start/stop and the main preview. Packaging checks require every host's catalog
-files and reject unknown literal message references. Existing command catalog,
+start/stop and the main preview; the simulator loads the language addons
+through `C_AddOns.LoadAddOn`. `tests/locale_loading_test.lua` checks that a
+login registers only English and the language in use, that choosing a language
+loads it once, and that a missing or disabled language keeps English with the
+picker notice. Packaging checks require every host's shared locale files and
+one language addon per catalog, and reject unknown literal message references. Existing command catalog,
 guide, preview, profile and performance suites provide regression coverage.
 
 The full-catalog integration scenario also compares executable macro bodies,

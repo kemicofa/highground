@@ -1,5 +1,12 @@
 local _, ns = ...
-ns.ChatLocaleData = {}
+-- Chat*.lua add recorded rows for every client language. The game's language
+-- cannot change during a session, so only its rows are kept; the others go
+-- into one shared table that keeps nothing.
+local CLIENT = GetLocale and GetLocale() or "enUS"
+local DISCARD = setmetatable({}, { __newindex = function() end })
+ns.ChatLocaleData = setmetatable({}, { __index = function(_, locale)
+  if locale ~= CLIENT then return DISCARD end
+end })
 local U = ns.Util
 local patterns = {}
 -- AreaTable identifiers let the client resolve nominative map names even
@@ -41,7 +48,7 @@ end
 function ns.LocalizedChat(message)
   if type(message) ~= "string" or U.secret(message) then return message end
   message = Clean(message)
-  local locale = GetLocale and GetLocale() or "enUS"
+  local locale = CLIENT
   if not patterns[locale] then
     patterns[locale] = {}
     for _, row in ipairs(ns.ChatLocaleData[locale] or {}) do

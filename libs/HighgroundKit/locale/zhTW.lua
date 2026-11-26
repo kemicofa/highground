@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("zhTW", {
+assert((ns.Locale or HighgroundLocale):Register("zhTW", {
   ["appearance.font.locale_fallback"] = "目前語言使用相容的遊戲字型。不再需要替代字型時，即可選擇字型；已儲存的選擇會保留。",
   ["enemy.appearance.shared"] = "共用樣式",
   ["enemy.appearance.readable"] = "清晰卡片",
@@ -4606,6 +4606,7 @@ assert(ns.Locale:Register("zhTW", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "說{text}在官員聊天。",
   ["locale.client"] = "使用遊戲語言",
   ["locale.coverage"] = "{language}：已翻譯目錄中的 {translated}/{total} 條訊息。",
+  ["locale.unavailable"] = "{language} 未安裝或已關閉，因此 Highground 顯示英文。請安裝完整的 Highground 下載包，或在魔獸世界插件列表中啟用「Highground language: {language}」，然後重新載入介面。",
   ["macros.scripts.quiet_trinket_description"] = "沒有錯誤聲音或紅色文字的頂部飾品；在/run行後放置任何鑄件",
   ["shared.copy.secret.3c3b27"] = "機密",
   ["shared.copy.selected.835f3b"] = "選定",

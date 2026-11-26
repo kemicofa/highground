@@ -29,11 +29,15 @@ return function(sim, env)
   env.date = function() return "12:00:00" end
   env.GetTime = function() return sim.now end
   env.GetNormalizedRealmName = function() return "Realm" end
-  -- Addons: this one (its TOC fields in sim.metadata) and sim.otherAddons
-  -- ({ Highground = true } makes a standalone addon stand by).
+  -- Addons: this one (its TOC fields in sim.metadata), sim.otherAddons
+  -- ({ Highground = true } makes a standalone addon stand by) and
+  -- load-on-demand folders beside it (sim:loadAddOn, runtime.lua).
   env.C_AddOns = {
     GetAddOnMetadata = function(name, field) if name == sim.addon then return (sim.metadata or EMPTY)[field] end end,
-    IsAddOnLoaded = function(name) return name == sim.addon or (sim.otherAddons or EMPTY)[name] == true end,
+    IsAddOnLoaded = function(name)
+      return name == sim.addon or (sim.otherAddons or EMPTY)[name] == true or sim.addons[name] ~= nil
+    end,
+    LoadAddOn = function(name) return sim:loadAddOn(name) end,
   }
   env.issecretvalue = function(value) return type(value) == "table" and value.secret == true end
   env.print = function(...) sim.messages[#sim.messages + 1] = table.concat({ ... }, " ") end

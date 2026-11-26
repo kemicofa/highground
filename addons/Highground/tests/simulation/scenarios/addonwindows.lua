@@ -15,7 +15,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       if translations then
         local load = s.load
         function s:load(path)
-          if path ~= "libs/locale/frFR.lua" then load(self, path) end
+          load(self, path)
           if path == "libs/locale/Highground.lua" then assert(self.ns.Locale:Register("frFR", translations)) end
         end
       end

@@ -231,7 +231,8 @@ test('comparison columns localize long reordered values without mutating snapsho
   local s=new('cata',{});local p,P,C=open(s)
   C.pos.point={'TOPLEFT','CENTER',12,-27};P.SaveProfile('Language review');p.SelectProfile('Language review')
   local original=P.ReviewText(p.reviewRows);local saved=P.ExportString(P.Snapshot())
-  s.ns.Locale.catalogs.frFR = {}
+  -- French is not loaded yet: this partial catalog stands in for its addon.
+  assert(not s.ns.Locale:Has('frFR'))
   assert(s.ns.Locale:Register('frFR',{
     ['profiles.compare.default']='DÉFAUT', ['profiles.compare.profile']='PROFIL',
     ['profiles.position']='Écran {screenAnchor}, panneau {panelAnchor}\nDécalage vertical {vertical}; décalage horizontal {horizontal}',

@@ -15,6 +15,8 @@
 --   sim.savedVariable global for saved (default sim.addon .. "DB")
 --   sim.manifest      TOC to load (default <addon>_Cata.toc on "cata",
 --                     <addon>.toc otherwise)
+--   sim.missingAddons, sim.disabledAddons  { [folder] = true } that
+--                     C_AddOns.LoadAddOn reports missing or disabled
 -- and add game APIs, sim methods or health checks (sim.checks). saved is
 -- installed as env[sim.savedVariable] after the last configure.
 -- Paths in the TOC are relative to the working directory: run from the
@@ -83,6 +85,27 @@ local function loggedErrors(sim, db)
   return errors
 end
 Runtime.NONE = NONE
+
+-- C_AddOns.LoadAddOn: runs a sibling folder's TOC (../<name>/<name>.toc)
+-- once, in the addon's own namespace as in the game. Returns loaded, reason:
+-- "MISSING" without that folder or when sim.missingAddons[name] is set,
+-- "DISABLED" when sim.disabledAddons[name] is set.
+function Runtime:loadAddOn(name)
+  if name == self.addon or self.addons[name] then return true end
+  if (self.disabledAddons or NONE)[name] then return false, "DISABLED" end
+  local folder = "../" .. name .. "/"
+  local manifest = not (self.missingAddons or NONE)[name] and io.open(folder .. name .. ".toc")
+  if not manifest then return false, "MISSING" end
+  local ns = {}
+  self.addons[name] = ns
+  for line in manifest:lines() do
+    line = line:match("^%s*(.-)%s*$")
+    if line ~= "" and line:sub(1, 1) ~= "#" then setfenv(compile(folder .. line), self.env)(name, ns) end
+  end
+  manifest:close()
+  self:event("ADDON_LOADED", name)
+  return true
+end
 
 -- Fails with every error found by sim.checks (each check(sim, db) returns a
 -- list of messages). Runs after every event, clock step and click.
@@ -183,7 +206,7 @@ end
 
 return function(client, saved, ...)
   local sim = setmetatable({ client = client or "cata", now = 100, specIndex = 1,
-    combat = false, frames = {}, updateFrames = {}, afterStep = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {},
+    combat = false, frames = {}, updateFrames = {}, afterStep = {}, timers = {}, templates = {}, loaded = {}, ns = {}, sent = {}, addons = {},
     messages = {}, sounds = {}, chat = {}, notices = {}, units = { player = { name = "Me", classID = 8 } },
     plates = {}, checks = { loggedErrors } }, Runtime)
   local env = setmetatable({}, { __index = _G })

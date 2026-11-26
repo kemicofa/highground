@@ -42,6 +42,34 @@ class PackageTests(TempTestCase):
             self.assertNotIn(name, addons.field(addon.path, 'Dependencies'))
             self.assertFalse(any(p.startswith(f'Highground{module}/') for p in sources))
 
+    def test_highground_bundles_each_language_as_a_load_on_demand_addon(self):
+        addon = self.manifest['Highground']
+        sources = build.package_sources(addon)
+        for code in ('deDE', 'esES', 'esMX', 'frFR', 'itIT', 'koKR', 'ptBR', 'ruRU', 'zhCN', 'zhTW'):
+            name = 'HighgroundLocale' + code[0].upper() + code[1:]
+            path = ROOT / 'addons' / name
+            with self.subTest(language=code):
+                self.assertNotIn(name, self.manifest, 'languages are not separately published')
+                self.assertEqual(addons.field(path, 'Dependencies'), 'Highground')
+                self.assertEqual(addons.field(path, 'LoadOnDemand'), '1')
+                self.assertEqual(addons.field(path, 'X-Highground-Locale'), code)
+                self.assertEqual(addons.field(path, 'Interface'), '120100, 120105, 16001, 40402')
+                self.assertNotIn(name, addons.field(addon.path, 'Dependencies'))
+                self.assertEqual(sources[f'{name}/{code}.lua'].resolve(),
+                                 (ROOT / 'libs/HighgroundKit/locale' / f'{code}.lua').resolve())
+                self.assertNotIn(f'Highground/libs/locale/{code}.lua', sources, 'only its own addon ships it')
+
+    def test_bundled_language_must_load_on_demand_after_highground(self):
+        copies = self.copy_addons()
+        toc = copies['Highground'].path.parent / 'HighgroundLocaleDeDE/HighgroundLocaleDeDE.toc'
+        original = toc.read_text()
+        toc.write_text(original.replace('## LoadOnDemand: 1\n', ''))
+        with self.assertRaisesRegex(ValueError, 'Invalid optional bundled language: HighgroundLocaleDeDE'):
+            build.package_sources(copies['Highground'])
+        toc.write_text(original.replace('## Dependencies: Highground', '## Dependencies: HighgroundBountyData'))
+        with self.assertRaisesRegex(ValueError, 'Invalid optional bundled load-on-demand addon: HighgroundLocaleDeDE'):
+            build.package_sources(copies['Highground'])
+
     def test_package_is_complete_installable_and_reproducible(self):
         addon = self.manifest["Highground"]
         version, archive = build.build(addon, self.output)
@@ -64,7 +92,8 @@ class PackageTests(TempTestCase):
                              "libs/media/OFL-barlow.txt", "sounds/go.ogg", "sounds/lockon.ogg",
                              "features/bounties/sounds/bounty.ogg"):
                 self.assertIn(f"Highground/{filename}", names)
-            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/", "HighgroundReputationData/", "HighgroundModule")) for name in names))
+            self.assertTrue(all(name.startswith(("Highground/", "HighgroundBountyData/", "HighgroundReputationData/",
+                                                 "HighgroundModule", "HighgroundLocale")) for name in names))
             self.assertIn("HighgroundBountyData/HighgroundBountyData.toc", names)
             self.assertFalse(any(name.endswith(".py") or "/tests/" in name or "/.git" in name for name in names))
             self.assertIsNone(package.testzip())

@@ -12,6 +12,7 @@ Highground is the only supported distribution. The six former standalone hosts a
 | `addons/Highground/` | The supported addon: kill order, settings, profiles, hub and `/hg`; owns the feature code |
 | `addons/Highground/features/` | Feature implementations and command catalogs, in ordinary directories |
 | `addons/HighgroundModule*/` | Six bundled native switches for Highground's embedded modules |
+| `addons/HighgroundLocale*/` | Ten bundled load-on-demand languages, one catalog each ([localization](localization.md)) |
 | `addons/HighgroundBountyData/`, `addons/HighgroundReputationData/` | Required bundled owners of shared SavedVariables |
 | `scripts/` | Metadata, ZIP builds, release planning, publication, source-worktree selection and battleground recording reports |
 | `tests/`, `tools/` | Repository checks, test runner, WoW simulator, lint, previews, profilers and the developer-only [API probe](../tools/apiprobe/README.md) |
@@ -29,16 +30,16 @@ python3 scripts/wow_link.py activate
 python3 scripts/wow_link.py status
 ```
 
-It links Highground, both data addons and all six module folders through one pointer, and stores the game path in local Git configuration. Don't install the deprecated standalone hosts. [Worktree testing](worktree-testing.md) covers keeping the game on `main` and switching worktrees.
+It links Highground, both data addons, all six module folders and the ten language folders through one pointer, and stores the game path in local Git configuration. Don't install the deprecated standalone hosts. [Worktree testing](worktree-testing.md) covers keeping the game on `main` and switching worktrees.
 
 ## Who owns what
 
 - Highground owns the kill order, settings, profiles, setup, main window, `/hg` and its half of `Macros.Host`.
 - Macros, battlegrounds, arena and reputation implementations live in `addons/Highground/features/<name>/`, alongside feature command catalogs and the bounty alert sound. These are real directories, not links to other addons.
 - Bounty and Nearby runtime code live in `libs/HighgroundKit/`. Shared stealth cues and source attribution live in `libs/HighgroundKit/sounds/`.
-- Highground links `libs -> ../../libs/HighgroundKit`. Storage-only and module addons have no library link.
+- Highground links `libs -> ../../libs/HighgroundKit`. Storage-only and module addons have no library link. Each language addon links only its catalog from `libs/HighgroundKit/locale/`.
 
-`tests/test_layout.py` enforces the owned feature directories and nine-folder bundle. Data/module folders may link their declared brand icon, with no other runtime links. Put feature code in Highground and reusable services in the library.
+`tests/test_layout.py` enforces the owned feature directories and nineteen-folder bundle. Data/module folders may link their declared brand icon, with no other runtime links; language folders also link their catalog. Put feature code in Highground and reusable services in the library.
 
 ### Bundled modules and data
 

@@ -1,5 +1,5 @@
 local _, ns = ...
-assert(ns.Locale:Register("ruRU", {
+assert((ns.Locale or HighgroundLocale):Register("ruRU", {
   ["appearance.font.locale_fallback"] = "Для текущего языка используется совместимый игровой шрифт. Выбор шрифта станет доступен, когда замена больше не понадобится; ваш выбор сохранён.",
   ["enemy.appearance.shared"] = "Общий стиль",
   ["enemy.appearance.readable"] = "Чёткие карточки",
@@ -4632,6 +4632,7 @@ assert(ns.Locale:Register("ruRU", {
   ["shared.messages.says_text_in_officer_chat.48e11a"] = "Говорит {text} в офицерском чате.",
   ["locale.client"] = "Использовать язык игры",
   ["locale.coverage"] = "{language}: переведено {translated} из {total} подготовленных сообщений. Остальной текст на английском.",
+  ["locale.unavailable"] = "{language} не установлен или отключён, поэтому Highground показывается на английском. Установите полную загрузку Highground или включите «Highground language: {language}» в списке модификаций WoW, затем перезагрузите интерфейс.",
   ["macros.scripts.quiet_trinket_description"] = "Верхний аксессуар без звука ошибки и красного текста; любое заклинание ставьте после строки /run",
   ["shared.copy.secret.3c3b27"] = "СЕКРЕТНО",
   ["shared.copy.selected.835f3b"] = "выбрано",

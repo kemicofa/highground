@@ -241,8 +241,7 @@ test("arena and flag rows keep their secure bindings and tooltips", function()
   equal(theirs.attrs.type2, "macro", "flag row right-click runs a macro")
   equal(theirs.attrs.unit, nil, "flag rows bind no unit")
   equal(tip(mine), "Allied flag carrier · Protect this player|Left-click: target   Right-click: focus", "own carrier tooltip")
-  equal(tip(theirs), "Enemy flag carrier · Stop this player|Shift-click to share in chat|Left-click: target   Right-click: focus",
-    "enemy carrier tooltip: a seen carrier can be shared")
+  equal(tip(theirs), "Enemy flag carrier · Stop this player|Left-click: target   Right-click: focus", "enemy carrier tooltip")
 end)
 
 for _, client in ipairs({ "cata", "retail" }) do

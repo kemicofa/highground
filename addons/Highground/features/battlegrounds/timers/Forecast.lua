@@ -75,12 +75,12 @@ local function Info(m)
   return ns.Locale:Format("battlegrounds.objectives.value1_sc_a_s_r_value3_sc.03c152", a)
 end
 
--- One chat line for shift-click (Timers.Share): the forecast, the score,
--- then the bases needed and the defended result when the panel shows them.
+-- One chat line for shift-click (Timers.Share): the forecast, then the
+-- bases needed and the defended result when the panel shows them. Everyone
+-- sees the score already.
 local function ChatText(m)
   local a = args.chat
-  a.team, a.time, a.max = TEAM_NAME[m.winner], Timers.Clock(m.left), tostring(m.max or "?")
-  a.score = string.format("%s %d - %s %d", TEAM_NAME.A, m.A or 0, TEAM_NAME.H, m.H or 0)
+  a.team, a.time = TEAM_NAME[m.winner], Timers.Clock(m.left)
   local text = ns.Locale:Format("battlegrounds.share.forecast", a)
   if m.need then text = text .. " · " .. NeedText(m) end
   if m.heldWinner then

@@ -5,7 +5,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 ## Unreleased
 
 - Quick callouts: **Enemies going to** has an **All clear** button beside **1**, **2** and **3+**, which sends `All clear — Farm` for the chosen destination.
-- Battlegrounds: shift-click the **Win forecast**, a resurrection or **Timers** row, or a flag carrier to share it in chat, such as "Horde res at Stables in 12s" or "Forecast: Alliance wins in 3:10 (Alliance 940 - Horde 1080, 1600 to win)". The line goes into your chat box on the callout channel (`/hg call s|i|raid|party|y`, say by default), or into the message you are typing; press Enter to send it, which works during matches. Previews and the Objectives guide print the sample instead.
+- Battlegrounds: shift-click the **Win forecast** or a resurrection or **Timers** countdown to share it in chat, such as "Horde res at Stables in 12s" or "Forecast: Alliance wins in 3:10 · Horde needs 3 bases". The line goes into your chat box on the callout channel (`/hg call s|i|raid|party|y`, say by default), or into the message you are typing; press Enter to send it, which works during matches. What the game already shows everyone, such as the score, base owners and flag carriers, is left out. Previews and the Objectives guide print the sample instead.
 
 ## [3.3.0] - 2026-11-26
 

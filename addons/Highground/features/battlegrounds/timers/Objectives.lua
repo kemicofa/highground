@@ -100,8 +100,8 @@ function Timers.ObjectiveRows(now)
 end
 
 ---------------------------------------------------------------------------
--- Shift-click sharing: a row or the forecast as one chat line, with team
--- names where the window says YOU or OURS. The player presses Enter
+-- Shift-click sharing: a countdown or the forecast as one chat line, with
+-- team names where the window says YOU or OURS. The player presses Enter
 -- (core/Calling.lua); the preview and the guide only print the sample.
 ---------------------------------------------------------------------------
 function Timers.Share(text)
@@ -135,25 +135,19 @@ function Timers.ResChatText(row)
   return ns.Locale:Format(a.place and "battlegrounds.share.res" or "battlegrounds.share.res_unplaced", a)
 end
 
+-- Countdowns only: scores, base owners, game status and announcements are
+-- already on everyone's screen.
 local ROW_KEYS = { CAP = "battlegrounds.share.cap", LOCK = "battlegrounds.share.lock",
   RESET = "battlegrounds.share.reset", FLAG = "battlegrounds.share.flag" }
 function Timers.ObjectiveChatText(row)
   local a, kind = ShareArgs(row), row.kind
-  if kind == "CAPPING" and a.who and a.team and a.time then
-    return ns.Locale:Format(a.place and "battlegrounds.share.capping" or "battlegrounds.share.capping_unplaced", a)
+  if not a.time then return nil end
+  if kind == "CAPPING" then
+    return a.who and a.team and ns.Locale:Format(a.place and "battlegrounds.share.capping" or "battlegrounds.share.capping_unplaced", a) or nil
   end
-  if ROW_KEYS[kind] and a.time and (a.place or kind == "FLAG") and (a.team or kind ~= "CAP") then
+  if ROW_KEYS[kind] and (a.place or kind == "FLAG") and (a.team or kind ~= "CAP") then
     return ns.Locale:Format(ROW_KEYS[kind], a)
   end
-  -- Bases, game status and announcements: their own text.
-  local text = row.detail or row.text
-  if not text or text == "" then return nil end
-  a.text = text
-  if a.team or kind == "NEUTRAL" then
-    a.team = a.team or row.tag
-    text = ns.Locale:Format("battlegrounds.share.row", a)
-  end
-  return row.left and a.time and (text .. " " .. a.time) or text
 end
 
 -- The resurrection and timers windows, made on first use (named

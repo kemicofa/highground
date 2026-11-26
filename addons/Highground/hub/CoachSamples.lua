@@ -42,7 +42,7 @@ local function Objectives()
     -- Samples print instead of opening chat (Timers.Share).
     { id = "share", title = ns.Locale:Get("highground.coachsamples.share_it_with_your_team.e5f7e2"), target = function() return ns.Timers.foreWin and ns.Timers.foreWin.block end,
       enter = function() ns.Timers.sampleShared = nil end, complete = function() return ns.Timers.sampleShared ~= nil end,
-      text = ns.Locale:Get("highground.coachsamples.shift_click_the_forecast_a_timer_or.043ec3") },
+      text = ns.Locale:Get("highground.coachsamples.shift_click_the_forecast_or_a_timer.bd1519") },
     { id = "carrier", title = ns.Locale:Get("highground.coachsamples.find_the_enemy_flag_carrier.a2d424"), target = function() return ns.Flags.frows[2] end, event = "OnEnter",
       feature = "flags", settingLabel = ns.Locale:Get("highground.coachsamples.enable_flag_carrier_panel_in_game.91a521"),
       text = ns.Locale:Get("highground.coachsamples.the_crest_on_each_carrier_s_class.0bc6ea") },

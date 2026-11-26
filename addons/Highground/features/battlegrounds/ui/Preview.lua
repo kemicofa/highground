@@ -62,7 +62,6 @@ local function ShowCarriers(me, them)
     r.hpText:Show(); r.healthTextBg:SetShown(not Timers.Compact())
     r.right:SetText(s[4])
     Theme.Paint(r.right, "textMuted")
-    r.shareName, r.shareStacks, r.shareDropped = s[1], s[4]:match("^x%d+"), nil
   end
   -- No real carriers: the rows' macros fall back to the arena tokens.
   Flags.SetMacros()

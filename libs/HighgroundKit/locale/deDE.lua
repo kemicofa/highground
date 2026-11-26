@@ -3951,6 +3951,8 @@ assert((ns.Locale or HighgroundLocale):Register("deDE", {
   ["shared.matchwindow.observed_objectives.b5d775"] = "BEOBACHTETE ZIELE",
   ["shared.matchwindow.no_objective_events_were_observed.bf34dd"] = "Es wurden keine Zielereignisse beobachtet.",
   ["shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132"] = "Die letzten {count} von {total}. Die vollständige Zeitleiste zeigt alle.",
+  ["shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f"] = "Die Zeitleiste dieses Matches liegt in Highground Match Data, das fehlt oder deaktiviert ist. Aktivieren Sie es in der AddOn-Liste von WoW und laden Sie dann neu.",
+  ["shared.matchwindow.this_match_s_timeline_is_no_longer.651633"] = "Die Zeitleiste dieses Matches wird nicht mehr gespeichert: Die ältesten Zeitleisten machen Platz für neuere. Die Zusammenfassung bleibt erhalten.",
   ["shared.organizations.open_guild_communities_after_combat.22756f"] = "Öffnen Sie Gilden & Communitys nach dem Kampf.",
   ["shared.organizations.you_are_no_longer_a_member_of.9180e6"] = "Sie sind nicht mehr Mitglied dieser Organisation.",
   ["shared.alerts.everything.4a66d1"] = "Alles",

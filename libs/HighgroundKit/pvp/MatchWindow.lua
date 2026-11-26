@@ -21,6 +21,9 @@ local STATS = {
   { "ratingChange", "shared.matchwindow.rating_change.60e13f" },
 }
 local COLUMNS, EVENTS = 3, 11
+-- Why H.Events could not return a timeline.
+local MISSING = { unavailable = "shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f",
+  removed = "shared.matchwindow.this_match_s_timeline_is_no_longer.651633" }
 
 local function Result(match) return RESULTS[match.result] or match.result or "" end
 local function Spec(match)
@@ -160,11 +163,13 @@ local function RenderDetail(entry, w, width)
   end
   y = y + 20
 
-  local events = match.events or {}
+  local events, missing = H.Events(match)
+  events = events or {}
   inner = width - pad * 2
   y = y + Place(p.eventsLabel, ns.Locale:Get("shared.matchwindow.observed_objectives.b5d775"), pad, y, inner) + 8
   local first = math.max(1, #events - EVENTS + 1)
-  local note = #events == 0 and ns.Locale:Get("shared.matchwindow.no_objective_events_were_observed.bf34dd")
+  local note = missing and ns.Locale:Get(MISSING[missing])
+    or #events == 0 and ns.Locale:Get("shared.matchwindow.no_objective_events_were_observed.bf34dd")
     or first > 1 and ns.Locale:Format("shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132",
       { count = string.format("%d", EVENTS), total = string.format("%d", #events) })
   p.eventsNote:SetShown(note and true or false)
@@ -224,10 +229,12 @@ function H.Build(provider)
       selected = function(_, w) w:SetSub(owner.summary or "") end,
       actions = {
         { label = ns.Locale:Get("shared.matchwindow.full_timeline.a0c4d1"), tone = "accent", run = function(entry)
+          local events, missing = H.Events(entry.match)
+          if not events then return false, ns.Locale:Get(MISSING[missing]) end
           if not owner.timeline then owner.timeline = Kit.CopyBox((ns.FRAME_PREFIX or "Highground") .. "MatchTimeline" .. (provider and "Sample" or ""), {
             title = ns.Locale:Get("shared.matchwindow.objective_timeline.f6ac0d"), width = 650, height = 500 }) end
           local lines = {}
-          for _, e in ipairs(entry.match.events) do lines[#lines + 1] = U.Clock(e.at) .. "  " .. e.text end
+          for _, e in ipairs(events) do lines[#lines + 1] = U.Clock(e.at) .. "  " .. e.text end
           owner.timeline:Open(entry.match.name, ns.Locale:Get("shared.matchwindow.observed_events_since_joining.6ff0e9"), table.concat(lines, "\n"), true)
         end },
         { label = ns.Locale:Get("shared.matchwindow.delete_entry.ccaf75"), run = function(entry)

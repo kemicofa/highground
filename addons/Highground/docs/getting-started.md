@@ -2,7 +2,7 @@
 
 [Documentation](README.md) · [Highground overview](../README.md)
 
-Highground runs on Retail, WoW Forever and Cataclysm Classic. One download contains Highground, its two required data addons, six module folders (Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros) and ten language folders. The former standalone addons are deprecated and receive no releases.
+Highground runs on Retail, WoW Forever and Cataclysm Classic. One download contains Highground, its two required data addons, a match data addon, six module folders (Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros) and ten language folders. The former standalone addons are deprecated and receive no releases.
 
 ## Install
 
@@ -12,11 +12,11 @@ Highground runs on Retail, WoW Forever and Cataclysm Classic. One download conta
 
 1. Download the ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest).
 2. Fully quit WoW.
-3. Extract every folder from the ZIP into `Interface/AddOns/` in your game folder: `Highground`, `HighgroundBountyData`, `HighgroundReputationData`, the six `HighgroundModule*` folders and the ten `HighgroundLocale*` folders. Keep each folder's name, with its TOC file directly inside. Each language folder loads only while Highground uses that language; without it, Highground shows English.
+3. Extract every folder from the ZIP into `Interface/AddOns/` in your game folder: `Highground`, `HighgroundBountyData`, `HighgroundReputationData`, `HighgroundMatchData`, the six `HighgroundModule*` folders and the ten `HighgroundLocale*` folders. Keep each folder's name, with its TOC file directly inside. Each language folder loads only while Highground uses that language; without it, Highground shows English.
 4. To update, replace the old folders so removed files don't linger. Keep your `WTF/` folder: it holds your settings.
 5. Start WoW.
 
-Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled. Highground does not load without both data addons.
+Keep **Highground**, **HighgroundBountyData** and **HighgroundReputationData** enabled. Highground does not load without both data addons. Keep **HighgroundMatchData** enabled too: it holds match history timelines and loads only when they are needed. Without it, Highground keeps up to 200 events per match in its own saved data.
 
 **From source:** see [source installation](../../../docs/monorepo.md#source-installation), or [build a ZIP](../../../docs/releases.md#local-build).
 
@@ -80,6 +80,7 @@ Shared bounty identity, contributions and claims stay in `HighgroundBountyData`;
 | `HighgroundCharDB` | `WTF/Account/<account>/<realm>/<character>/SavedVariables/Highground.lua` | This character's panel positions, automatic profiles and Discord invitation dismissal |
 | `HighgroundBountyNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundBountyData.lua` | Shared bounty identity, contributions and claims |
 | `HighgroundReputationNetworkDB` | `WTF/Account/<account>/SavedVariables/HighgroundReputationData.lua` | Organization opt-ins, player reports and moderation history |
+| `HighgroundMatchArchiveDB` | `WTF/Account/<account>/SavedVariables/HighgroundMatchData.lua` | Match history timelines, read only when needed ([saved data](saved-data.md#match-history-archive)) |
 
 These survive addon updates. See [shared bounties](user-guide.md#shared-bounties) and [Reputation storage](reputation.md#sharing-and-storage).
 

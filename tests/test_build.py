@@ -297,7 +297,7 @@ class BuildFailureTests(TempTestCase):
     def test_load_on_demand_addon_must_depend_only_on_highground(self):
         toc = self.addon.path.parent / "HighgroundMatchData/HighgroundMatchData.toc"
         toc.write_text(toc.read_text().replace("## Dependencies: Highground\n", "## Dependencies: Highground, HighgroundBountyData\n"))
-        self.assertBuildFails("Invalid optional bundled addon: HighgroundMatchData")
+        self.assertBuildFails("Invalid optional bundled load-on-demand addon: HighgroundMatchData")
 
     def test_bundled_dependency_cannot_escape_addons_directory(self):
         for toc in addons.tocs(self.addon.path):

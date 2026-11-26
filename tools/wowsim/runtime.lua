@@ -182,6 +182,25 @@ function Runtime:setCombat(on)
   self:event(on and "PLAYER_REGEN_DISABLED" or "PLAYER_REGEN_ENABLED")
 end
 
+-- SavedVariables of load-on-demand folders: sim.addonSaved[global] becomes
+-- each global the folder's TOC names (## SavedVariables) when it loads,
+-- before its ADDON_LOADED. (The game applies them after the folder's files,
+-- so its code must not assign them unconditionally.)
+local loadAddOn = Runtime.loadAddOn
+function Runtime:loadAddOn(name)
+  local manifest = name ~= self.addon and not self.addons[name] and not (self.disabledAddons or NONE)[name]
+    and not (self.missingAddons or NONE)[name] and io.open("../" .. name .. "/" .. name .. ".toc")
+  if manifest then
+    local globals = manifest:read("*a"):match("\n##%s*SavedVariables:%s*([^\n]*)")
+    manifest:close()
+    for global in (globals or ""):gmatch("[%w_]+") do
+      local value = (self.addonSaved or NONE)[global]
+      if value ~= nil then self.env[global] = value end
+    end
+  end
+  return loadAddOn(self, name)
+end
+
 -- Unit flags for combatLog fields (COMBATLOG_OBJECT_* combinations).
 Runtime.combatFlags = { mine = 0x511, friendlyPlayer = 0x518, hostilePlayer = 0x548, hostileNPC = 0xa48 }
 

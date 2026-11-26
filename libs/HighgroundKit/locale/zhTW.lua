@@ -3951,6 +3951,8 @@ assert((ns.Locale or HighgroundLocale):Register("zhTW", {
   ["shared.matchwindow.observed_objectives.b5d775"] = "觀察到的目標",
   ["shared.matchwindow.no_objective_events_were_observed.bf34dd"] = "沒有觀察到目標事件。",
   ["shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132"] = "最近 {count} 筆，共 {total} 筆。完整時間表列出全部。",
+  ["shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f"] = "此比賽的時間表保存在 Highground Match Data 中，但該插件缺失或已停用。請在魔獸世界插件列表中啟用它，然後重新載入。",
+  ["shared.matchwindow.this_match_s_timeline_is_no_longer.651633"] = "此比賽的時間表已不再保存：最舊的時間表會為較新的騰出空間。比賽摘要仍會保留。",
   ["shared.organizations.open_guild_communities_after_combat.22756f"] = "戰鬥後開啟公會和社群。",
   ["shared.organizations.you_are_no_longer_a_member_of.9180e6"] = "你不再是本組織的成員。",
   ["shared.alerts.everything.4a66d1"] = "一切",

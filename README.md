@@ -25,7 +25,7 @@ Choose the features you want in `/hg` → **Addons** or WoW's AddOn List; module
 
 Install [Highground on CurseForge](https://www.curseforge.com/projects/1749115), [Wago](https://addons.wago.io/addons/b6Xy3OKp), or the Highground ZIP from [GitHub Releases](https://github.com/kemicofa/highground/releases/latest). Fully quit the game, extract every top-level folder into `Interface/AddOns/`, then restart.
 
-Keep both included data addons, [HighgroundBountyData](addons/HighgroundBountyData/README.md) and [HighgroundReputationData](addons/HighgroundReputationData/README.md), enabled. Keep all six `HighgroundModule*` folders; they provide the feature switches and are part of the Highground bundle. Keep the ten `HighgroundLocale*` folders too: each holds one language and loads only when Highground uses it.
+Keep both included data addons, [HighgroundBountyData](addons/HighgroundBountyData/README.md) and [HighgroundReputationData](addons/HighgroundReputationData/README.md), enabled, and keep [HighgroundMatchData](addons/HighgroundMatchData/README.md), which holds match history timelines and loads only when they are needed. Keep all six `HighgroundModule*` folders; they provide the feature switches and are part of the Highground bundle. Keep the ten `HighgroundLocale*` folders too: each holds one language and loads only when Highground uses it.
 
 Moving from a standalone addon? Follow the [migration steps](addons/Highground/docs/getting-started.md#moving-from-a-standalone-addon): remove the old folder and keep your `WTF` folder. Shared bounty and reputation records carry over through the data addons; standalone panel settings and profiles do not.
 
@@ -45,6 +45,7 @@ addons/HighgroundModule*/    bundled feature switches
 addons/HighgroundLocale*/    bundled languages, loaded on demand
 addons/HighgroundBountyData/ shared bounty storage dependency
 addons/HighgroundReputationData/ shared reputation storage dependency
+addons/HighgroundMatchData/  match history timelines, loaded on demand
 docs/                       documentation index, monorepo and release guides
 scripts/                    addon metadata, ZIP builds and publishing
 tests/                      test runner, packaging, layout and release tests

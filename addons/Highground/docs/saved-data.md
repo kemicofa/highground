@@ -23,7 +23,27 @@ SavedVariables can hold anything after a bad import, a manual edit or a differen
 
 ## Bounded stores
 
-Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.rules[…].reviveLag`) keep the last nine samples, each 0-3 seconds. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`); spec tags and team healer marks, hand-set ones included, follow the same limits, healer marks also once after login. Max mana and health per class and spec name (`fingerprints["CLASS/Spec"]`) were saved but never read: `fingerprintsVersion` 2 removes them, and the mana model's `cata/CLASS/tree` samples stay. Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`).
+Battleground upgrade markers use `Saved.Migrate`. Learned revive lags (`scoped.rules[…].reviveLag`) keep the last nine samples, each 0-3 seconds. Remembered enemy specs keep the 4,000 most recently seen names from the last 120 days, pruned once per match (`Core.PruneHistory`); spec tags and team healer marks, hand-set ones included, follow the same limits, healer marks also once after login. Max mana and health per class and spec name (`fingerprints["CLASS/Spec"]`) were saved but never read: `fingerprintsVersion` 2 removes them, and the mana model's `cata/CLASS/tree` samples stay. Unpaid shared-board contributions are pruned 90 days after expiry (`Public.CONTRACT_GRACE`), and boards of other realms and factions once per session (`Public.PruneOtherScopes`). Match history keeps 100 matches per character and moves their timelines to a [load-on-demand archive](#match-history-archive).
+
+## Match history archive
+
+Match history keeps each character's 100 latest matches (`scoped.character[…].matches`, newest first) with the map, result, duration, stats and spec. A match's objective events (`events`, `{ at, text }`) wait in `HighgroundDB` until the bundled load-on-demand addon `HighgroundMatchData` takes them; an archived summary keeps only its event count (`archived`). The archive, `HighgroundMatchArchiveDB`, uses the same character keys: `scoped.character[<key>].timelines[<match id>] = { started, events }` ([MatchArchive.lua](../../../libs/HighgroundKit/pvp/MatchArchive.lua)).
+
+WoW reads an addon's SavedVariables only when it loads and leaves an unloaded addon's file untouched, so archived timelines cost no memory until one is needed. The archive loads when:
+
+- match history's detail view or **Full timeline** shows an archived match (waiting timelines and the guide's samples need no archive);
+- after a loading screen outside instances, 20 of the current character's timelines wait; in combat it waits for combat to end.
+
+On load, every character's waiting timelines move in; while it is loaded, a finished match goes straight there. Existing installations migrate this way: timelines move on the first load, summaries stay. Loading also drops timelines without a summary (deleted, past the 100-match cap, a reset `HighgroundDB`) and damaged entries; damaged events are skipped when shown.
+
+| Limit | Value | Why |
+| --- | --- | --- |
+| Matches per character | 100 | Unchanged; a summary is about 0.75 KiB in the simulator |
+| Events per match | 1,000; 200 without the archive | 22 recorded WoW Forever matches logged 1.4 to 6.6 events a minute (Darkspear Islands up to 6.6, Arathi Basin 3.2 to 4.8, Warsong Gulch about 2); a 27-minute Arathi Basin reached 130. 1,000 covers a 40-minute Alterac Valley at 25 a minute, or two hours at 8. The earliest events go first. |
+| Waiting timelines | 20 per character | Then the archive loads at the next safe moment. 19 waiting timelines hold at most about as many events as a full history did before (100 × 200) |
+| Archive total | 50,000 events | The oldest timelines (by start, any character) go first; summaries stay. About 800 matches of 60 events, or one character's 100 matches of 500; about 9 MiB of Lua memory while loaded (186 bytes per event in the simulator) |
+
+Without the archive addon (a manual install without the folder, or disabled for the character), timelines stay in `HighgroundDB` with at most 200 events per match, as before. The detail view says when an archived timeline cannot be shown, or was dropped by the total cap; the summary remains.
 
 ## Errors and diagnostics
 

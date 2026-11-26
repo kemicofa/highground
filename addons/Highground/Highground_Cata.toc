@@ -146,6 +146,7 @@ libs/ui/Alerts.lua
 libs/pvp/Events.lua
 libs/pvp/Stealth.lua
 libs/pvp/Matches.lua
+libs/pvp/MatchArchive.lua
 libs/pvp/MatchWindow.lua
 libs/ui/Restore.lua
 libs/ui/Hud.lua

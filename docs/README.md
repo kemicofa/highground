@@ -12,7 +12,7 @@
 - [Battleground coverage](../addons/Highground/docs/battlegrounds.md): supported maps and their limits.
 - [Observations and timers](../addons/Highground/docs/observations.md): map positions, spec estimates and countdowns.
 - [Data scopes](../addons/Highground/docs/data-scopes.md): which data belongs to your character, faction, ruleset or account.
-- [Bounty data](../addons/HighgroundBountyData/README.md) and [Reputation data](../addons/HighgroundReputationData/README.md): the two required storage addons.
+- [Bounty data](../addons/HighgroundBountyData/README.md) and [Reputation data](../addons/HighgroundReputationData/README.md): the two required storage addons. [Match data](../addons/HighgroundMatchData/README.md): match history timelines, loaded on demand.
 
 ## Contributors
 

@@ -3951,6 +3951,8 @@ assert(ns.Locale:Register("enUS", {
   ["shared.matchwindow.observed_objectives.b5d775"] = "OBSERVED OBJECTIVES",
   ["shared.matchwindow.no_objective_events_were_observed.bf34dd"] = "No objective events were observed.",
   ["shared.matchwindow.latest_count_of_total_full_timeline_lists.87b132"] = "Latest {count} of {total}. Full timeline lists them all.",
+  ["shared.matchwindow.this_match_s_timeline_is_in_highground.01a06f"] = "This match's timeline is in Highground Match Data, which is missing or disabled. Enable it in WoW's AddOn List, then reload.",
+  ["shared.matchwindow.this_match_s_timeline_is_no_longer.651633"] = "This match's timeline is no longer kept: the oldest timelines make room for newer ones. Its summary remains.",
   ["shared.organizations.open_guild_communities_after_combat.22756f"] = "Open Guild & Communities after combat.",
   ["shared.organizations.you_are_no_longer_a_member_of.9180e6"] = "You are no longer a member of this organization.",
   ["shared.alerts.everything.4a66d1"] = "Everything",

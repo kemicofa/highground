@@ -129,6 +129,8 @@ WoW Forever is simulated on the Retail manifest by setting its interface number 
 
 `tests/battleground_objectives_test.lua`, `battleground_roster_test.lua`, `battleground_timers_test.lua` and `battleground_waves_test.lua` run real battleground rules through the simulator: flag, single-flag and orb carriers, team detection without your own scoreboard row, score prediction (including dead heats and learned rates), graveyard names by side and for cross-faction teams, map pin tooltips, spirit guides, resurrection advice and cart/round status widgets.
 
+`tests/match_archive_test.lua` covers match timelines in the load-on-demand `HighgroundMatchData`: logins that leave it unloaded, loading for an archived match and once 20 timelines wait (never in instances or combat), migration, the per-match and total caps, damaged archive data, the 200-event fallback without it and the guide's samples. Its sessions pass the archive through `sim.addonSaved`, which the simulator installs as the folder's SavedVariables when it loads.
+
 In particular, `addons/Highground/tests/bounty_public_test.lua` and `bounty_public_claims_test.lua` exercise shared contributions, funding, transport and claims. Use `bash tests/run.sh Highground` from the repository root to run them with that addon's other tests.
 
 ## Write a scenario

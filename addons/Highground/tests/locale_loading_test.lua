@@ -47,7 +47,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local saved = start(client, { locale = "frFR" }, "enUS")
     t.equal(registered(saved), "enUS frFR", "saved French")
     t.equal(table.concat(saved.loads, " "), "HighgroundLocaleFrFR", "one load")
-    t.equal(saved.ns.Options.general.language.sample:GetText(), saved.ns.Locale:Get("locale.sample"), "early labels follow")
+    t.equal(saved.ns.Options.BuildPage("general").language.sample:GetText(), saved.ns.Locale:Get("locale.sample"), "the picker shows the saved language")
     assert(saved.ns.Locale:Get("locale.title") ~= "Language", "French text")
     local auto = start(client, { locale = "auto" }, "deDE")
     t.equal(registered(auto), "enUS deDE", "game language")
@@ -59,7 +59,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
 
   t.test(client .. ": choosing a language loads it once and switches at once", function()
     local s = start(client, {}, "enUS")
-    local ns, L, picker = s.ns, s.ns.Locale, s.ns.Options.general.language
+    local ns, L, picker = s.ns, s.ns.Locale, s.ns.Options.BuildPage("general").language
     s:command("config general")
     assert(picker.select:SetValue("deDE"))
     t.equal(L:GetLocale(), "deDE", "switched")
@@ -79,7 +79,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
   t.test(client .. ": a missing or disabled language keeps English and says why in the picker", function()
     for _, field in ipairs({ "missingAddons", "disabledAddons" }) do
       local s = start(client, { locale = "deDE" }, "enUS", function(sim) sim[field] = { [GERMAN] = true } end)
-      local ns, L, picker = s.ns, s.ns.Locale, s.ns.Options.general.language
+      local ns, L, picker = s.ns, s.ns.Locale, s.ns.Options.BuildPage("general").language
       t.equal(L:GetLocale(), "enUS", field .. ": English at login")
       t.equal(ns.Core.db.locale, "deDE", "the saved choice is kept for a complete installation")
       local notice = L:Format("locale.unavailable", { language = "German" })

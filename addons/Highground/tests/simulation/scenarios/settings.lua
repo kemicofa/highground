@@ -322,7 +322,7 @@ test("root page exports, imports and saves a profile, and follows the theme", fu
   local O, db = sim.ns.Options, sim.env.HighgroundDB
   local root = O.panel
   root:Show()
-  local P, share = O.Profiles, O.Profiles.share
+  local P = O.Profiles
   sim:command("points killPer 9")
   root.NewProfile(); root.profileName:SetText("Mine")
   local buttons = root.profileButtons
@@ -332,6 +332,7 @@ test("root page exports, imports and saves a profile, and follows the theme", fu
   equal(buttons.Save:IsShown(), false, "creation confirmation closes after saving")
   equal(buttons.Update.label.text, "Update profile", "existing profile offers an explicit review before updating")
   buttons.Export.scripts.OnClick(buttons.Export)
+  local share = P.share -- built by the first export
   assert(share:IsShown(), "export opens the copy box")
   local text = share:GetText()
   assert(text:match("^[%w%+/=]+$"), "export is base64")

@@ -3,9 +3,9 @@ local Core, Theme, Options = ns.Core, ns.Theme, ns.Options
 local S = Theme.Space
 
 -- Nearby and Bounties settings pages: the behavior options tagged
--- with the page's key.
-local function Build(key)
-  local page = Options.FeaturePage(key, key == "bounty" and "bounties" or "nearby")
+-- with the page's key. Built on first open, so never while the module is off.
+local function Fill(page)
+  local key = page.key
   local toggles = {}
   page.behaviorToggles = toggles
   local open = Options.ToolLink(page, key == "bounty" and "bountyboard" or "journal")
@@ -35,5 +35,5 @@ local function Build(key)
   page.child:SetHeight(-page.y + 12)
 end
 
-Build("nearby")
-Build("bounty")
+Options.FeaturePage("nearby", "nearby", Fill)
+Options.FeaturePage("bounty", "bounties", Fill)

@@ -63,7 +63,8 @@ return function(addon)
       local w = sim.ns.EnemyJournal.Open()
       local function idle()
         for _, row in ipairs(w.rows) do
-          if row:IsVisible() and not sim.ns.Motion.IsPlaying(row.sweep) then
+          -- Rows build their glint on first use.
+          if row:IsVisible() and row.sweep and not sim.ns.Motion.IsPlaying(row.sweep) then
             assert(not row.sweep.light:IsShown(), "idle glints are hidden, not stranded at the old row width")
           end
         end

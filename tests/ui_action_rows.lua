@@ -6,6 +6,7 @@ return function(s, t, fire)
     local row = K.ActionRow(env.UIParent, { label = label, detail = detail, action = "Open", role = "code",
       onClick = function() calls = calls + 1 end })
     row:SetPoint("TOPLEFT", 20, -20)
+    fire(row.button, "OnEnter"); fire(row.button, "OnLeave") -- the first hover builds its layers
     local count = #s.frames
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale)

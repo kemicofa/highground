@@ -208,9 +208,10 @@ end
 test("a rounded hover layer fades all its pieces with one transition", function()
   local sim, M = setup()
   local b = sim.ns.Kit.Button(sim.env.UIParent, "Apply", 120, 24)
+  equal(b.hover, nil, "the hover layer is built on the first hover")
+  b.scripts.OnEnter(b)
   local hover = b.hover
   assert(#hover.parts > 0, "rounded layer has corner pieces")
-  b.scripts.OnEnter(b)
   sim:advance(0.05)
   assert(M.IsPlaying(hover), "the layer owns the transition")
   for _, part in ipairs(hover.parts) do

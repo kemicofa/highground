@@ -95,6 +95,8 @@ test(client .. " focus and selection update immediately while their decoration s
   editor.code:ClearFocus()
   assert(not editor.focusLine:IsShown(), "editor blur clears it")
   local toggle = Kit.Toggle(sim.env.UIParent, "Setting", { checked = false })
+  equal(toggle.pressed, nil, "the press tint is built on the first press")
+  toggle.scripts.OnMouseDown(toggle); toggle.scripts.OnMouseUp(toggle)
   equal(toggle.pressed:GetParent(), toggle.well:GetParent(), "press tint shares the checkbox backing's frame")
   toggle:SetChecked(true)
   assert(toggle:GetChecked() and toggle.mark:IsShown(), "checked state is immediate")

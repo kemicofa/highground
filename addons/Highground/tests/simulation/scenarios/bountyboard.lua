@@ -74,6 +74,7 @@ test("/hg bounty lists, tests and switches off; settings page opens the board", 
   equal(bountySounds(sim), 2, "no alert when off")
   assert(not shown(sim.ns.Bounty.plateMarks[1]), "no marker when off")
   local page
+  sim.ns.Hub.Open("bounty")
   for _, p in ipairs(sim.ns.Options.pages) do if p.key == "bounty" then page = p end end
   assert(page and page.openBoard, "Guild bounties settings page with a board button")
   page.openBoard.scripts.OnClick(page.openBoard)

@@ -387,7 +387,7 @@ page.RefreshAppearance = function()
   page.RefreshPreview()
 end
 end
-if owner then page.build = Populate else Populate() end
+page.build = Populate
 return page
 end
 
@@ -395,4 +395,6 @@ Options.appearance = Build("appearance")
 for _, owner in ipairs({ "battlegrounds", "arena", "nearby", "bounties" }) do
   if Options.addonPages[owner] then Build(Options.addonPages[owner].appearance, owner) end
 end
-ns.RefreshOpacityOption = Options.appearance.RefreshAppearance
+ns.RefreshOpacityOption = function()
+  if Options.appearance.RefreshAppearance then Options.appearance.RefreshAppearance() end
+end

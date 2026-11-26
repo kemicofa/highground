@@ -35,6 +35,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local bountyKey = "shared.bounties.track_and_use_gold_across_account_characters.31f96e"
     local reputationKey = "reputation.window.hide_chat_from_blacklisted_players.549198"
     s.ns.Hub.Open("reputation-settings")
+    O.BuildPage("nearby"); O.BuildPage("bounty") -- hidden pages keep following the language
     local reputation = O.byKey["reputation-settings"].preferences
     for _, locale in ipairs({ "frFR", "deDE", "enUS" }) do
       s.ns.Localization.SetPreference(locale)

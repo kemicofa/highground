@@ -7,6 +7,12 @@ local S, Z = Theme.Space, Theme.Size
 -- Each keeps its own value; Set* with silent = true skips onChange.
 ---------------------------------------------------------------------------
 
+-- The halo is built the first time a toggle is checked and enabled.
+local function ToggleGlow(t, on, immediate)
+  if on and not t.glow and Kit.Glow then t.glow = Kit.Glow(t.box, "accent", 3) end
+  if t.glow then t.glow:SetActive(on, false, immediate) end
+end
+
 -- Checkbox look-alike with a label and an optional description below it.
 -- opts: desc, checked, width, onChange(self, checked).
 -- toggle:SetChecked(on, silent), toggle:GetChecked(), toggle:SetEnabled(on).
@@ -21,7 +27,6 @@ function Kit.Toggle(parent, label, opts)
   t.well:SetAllPoints()
   t.edge = Kit.Outline(Kit.BorderLayer(t.box, Z("line")), "controlBorder")
   t.bevel = Kit.Bevel(t.box, Z("line") * 2)
-  t.glow = Kit.Glow and Kit.Glow(t.box, "accent", 3)
   t.mark = Theme.Fill(t.box, "ARTWORK", "accent")
   t.mark:SetPoint("TOPLEFT", S("xs") + 1, -(S("xs") + 1))
   t.mark:SetPoint("BOTTOMRIGHT", -(S("xs") + 1), S("xs") + 1)
@@ -46,12 +51,12 @@ function Kit.Toggle(parent, label, opts)
     self.checked = on
     Motion.Mark(self.mark, on, silent)
     self.edge:SetColor(on and "accent" or "controlBorder")
-    if self.glow then self.glow:SetActive(on and self.enabled, false, silent) end
+    ToggleGlow(self, on and self.enabled, silent)
     if changed and not silent and opts.onChange then opts.onChange(self, on) end
   end
   function t:GetChecked() return self.checked end
   function t:RefreshFinish(immediate)
-    if self.glow then self.glow:SetActive(self.enabled and self.checked, false, immediate) end
+    ToggleGlow(self, self.enabled and self.checked, immediate)
   end
   t:SetScript("OnClick", function(self)
     if self.enabled then self:SetChecked(not self.checked) end

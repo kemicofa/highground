@@ -29,7 +29,7 @@ test(client .. " illumination follows action, selection, disabled and focus stat
   local Kit, T, M = sim.ns.Kit, sim.ns.Theme, sim.ns.Motion
   local action = Kit.Button(sim.env.UIParent, "Apply", 120, 28, { tone = "accent" })
   local secondary = Kit.Button(sim.env.UIParent, "Details", 120, 28)
-  assert(action.glow.active and not secondary.glow.active, "only the primary action glows at rest")
+  assert(action.glow.active and not secondary.glow, "only the primary action glows at rest; others build no halo")
   secondary.scripts.OnEnter(secondary)
   sim:advance(0.04)
   assert(secondary.glow.active and M.IsPlaying(secondary.glow), "hover light eases in")
@@ -42,7 +42,9 @@ test(client .. " illumination follows action, selection, disabled and focus stat
   secondary:Hide(); secondary:Show()
   assert(not secondary.glow:IsShown() and not M.IsPlaying(secondary.glow), "reopening during a fade cannot strand a hover halo")
   local tiny = Kit.Button(sim.env.UIParent, "X", 24, 24)
+  equal(tiny.sweep, nil, "the glint is built on its first use")
   tiny.scripts.OnEnter(tiny)
+  for _, hook in ipairs(tiny.hooks.OnEnter or {}) do hook(tiny) end
   sim:advance(0.04)
   assert(tiny.sweep.light:GetWidth() <= tiny:GetWidth() - 6, "glints stay inside small close and stepper controls")
   action:Disable()

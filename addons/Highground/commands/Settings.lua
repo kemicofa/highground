@@ -59,7 +59,7 @@ function Commands.profile(arg, msg, say)
   elseif sub == "delete" and rawName and Core.db.profiles and Core.db.profiles[rawName] then
     local ok, problem = Options.Profiles.DeleteProfile(rawName)
     say(ok and (ns.Locale:Format("highground.settings.deleted_profile_rawname.3d3a8f", { rawName = rawName })) or problem or ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b"))
-    Options.panel.RefreshProfiles()
+    if Options.panel.RefreshProfiles then Options.panel.RefreshProfiles() end
   elseif sub == "share" then
     local _, message = Options.Profiles.Chat.ToChat(rawName)
     say(message)

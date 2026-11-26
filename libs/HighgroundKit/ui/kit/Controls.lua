@@ -80,7 +80,8 @@ function Kit.Paint(b, fill, text)
   b.tone = tone and fill or nil
   Kit.PaintFill(b.bg, tone and tone.fill or fill or "surface", "button")
   Theme.Paint(b.label, text or (tone and tone.text) or "text")
-  if b.selectedMark then Motion.Mark(b.selectedMark, fill == "selected" and not b.choiceMark and not b.isTab) end
+  local marked = fill == "selected" and not b.choiceMark and not b.isTab
+  if b.selectedMark or marked and b.wbMarkable and Kit.SelectedMark then Motion.Mark(b.selectedMark or Kit.SelectedMark(b), marked) end
   if b.RefreshFinish then b:RefreshFinish() end
 end
 
@@ -110,6 +111,8 @@ function Kit.EnableControl(b)
   b.SetEnabled, b.Enable, b.Disable, b.IsEnabled = SetEnabled, Enable, Disable, IsEnabled
 end
 
+local function HoverLayer(b) return Kit.RoundedFill(b, "overlayHover", nil, "BORDER") end
+
 -- Raised button: bevel, illuminated edge, light sweep and a stable hit area.
 -- opts: tone or fill (see Kit.Paint), text, onClick(self, button).
 -- :SetEnabled(on), :Enable(), :Disable(), :IsEnabled().
@@ -119,14 +122,9 @@ function Kit.Button(parent, label, width, height, opts)
   b:SetSize(width or Z("tabWidth"), height or Z("control"))
   b.cornerRadius = Z("controlRadius")
   b.bg = Kit.RoundedFill(b, "surface", "button")
-  b.hover = Kit.RoundedFill(b, "overlayHover", nil, "BORDER")
   b.edge = Kit.RoundedOutline(b, "controlBorder")
   b.bevel = Kit.Bevel(b, Z("line") * 2, b.cornerRadius)
-  b.selectedMark = Theme.Fill(b, "ARTWORK", "accent")
-  b.selectedMark:SetPoint("TOPLEFT", 2, -b.cornerRadius)
-  b.selectedMark:SetPoint("BOTTOMLEFT", 2, b.cornerRadius)
-  b.selectedMark:SetWidth(Z("strip"))
-  b.selectedMark:Hide()
+  b.wbMarkable = true -- .selectedMark, .hover and .pressed are built on first use
   b.label = Theme.Text(b, "control")
   b.label:SetPoint("CENTER")
   b.SetText = function(self, text)
@@ -135,7 +133,7 @@ function Kit.Button(parent, label, width, height, opts)
   end
   b:SetText(label)
   Kit.Paint(b, opts.tone or opts.fill or "surface", opts.text)
-  Kit.Feedback(b, { press = true, edge = b.edge })
+  Kit.Feedback(b, { press = true, edge = b.edge, hover = HoverLayer })
   if Kit.ButtonFinish then Kit.ButtonFinish(b) end
   b:SetScript("OnClick", opts.onClick)
   Kit.EnableControl(b)
@@ -212,7 +210,6 @@ function Kit.Choice(parent, label, width, kind, onClick)
   function b:SetSelected(on)
     self.selected = not not on
     Kit.Paint(self, on and "selected" or "surface")
-    self.selectedMark:Hide()
     Motion.Mark(self.choiceMark, on)
     if self.checkTail then Motion.Mark(self.checkTail, on) end
   end

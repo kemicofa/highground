@@ -175,8 +175,7 @@ P.CurrentState = Current
 -- Callers supply the controls anchored to the bottom of their window.
 -- Reserve a footer outside the scrolling content. Embedded pages use the
 -- hub's footer and regain their own when opened in Blizzard settings.
-function P.AttachContext(owner, controls, onLayout)
-  if owner.profileContext then return owner.profileContext end
+local function Create(owner, controls, onLayout)
   local anchors = {}
   for _, object in ipairs(controls or {}) do
     local points = {}
@@ -253,6 +252,11 @@ function P.AttachContext(owner, controls, onLayout)
     elapsed = elapsed + dt
     if elapsed >= 0.5 then elapsed = 0; self:Refresh() end
   end)
+  return bar
+end
+function P.AttachContext(owner, controls, onLayout)
+  if owner.profileContext then return owner.profileContext end
+  local bar = Create(owner, controls, onLayout)
   owner:HookScript("OnShow", function() bar:Refresh(true) end)
   bar:Refresh()
   return bar
@@ -263,9 +267,17 @@ function P.RefreshContext()
   for _, bar in ipairs(bars) do bar:Refresh() end
 end
 
-P.AttachContext(ns.Options.panel, {}, function() if Core.db and ns.Options.panel:IsVisible() then ns.Options.panel.LayoutProfiles() end end)
-for _, page in ipairs(ns.Options.pages) do
-  P.AttachContext(page.frame, { page.scroll })
+-- Settings pages and the profile workspace build their footer with their
+-- controls, on first show.
+local function AttachOnShow(owner, controls, onLayout)
+  owner:HookScript("OnShow", function()
+    if not owner.profileContext and not owner:IsShown() then return end -- redirected away
+    local bar = owner.profileContext or Create(owner, controls(), onLayout)
+    bar:Refresh(true)
+  end)
 end
-local share = P.share
-P.AttachContext(share, {}, function() share:LayoutProfileShare() end)
+local panel = ns.Options.panel
+AttachOnShow(panel, function() return {} end, function() if Core.db and panel:IsVisible() then panel.LayoutProfiles() end end)
+for _, page in ipairs(ns.Options.pages) do
+  AttachOnShow(page.frame, function() return { page.scroll } end)
+end

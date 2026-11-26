@@ -175,7 +175,7 @@ Other shared services worth knowing before adding a feature:
 
 `options/AddonPages.lua` gives each module one set of pages: Settings, Previews and guide, Commands and, except for Macros and Reputation, Appearance. Their keys are `<module>-settings`, `-previews`, `-commands` and `-appearance`; Nearby, Bounties and Reputation keep their older settings keys `nearby`, `bounty` and `reputation-settings`. The hub, Home, help shortcuts and panel cogwheels all route through this map. Each feature switch has one control, on its owner's page. Enemy stealth alerts stay on the shared Alerts page because several addons use them.
 
-Appearance and preview pages build their controls on first use. `options/Previews.lua` calls the existing preview commands and sample renderers; its Start/Stop buttons show the current sample state.
+Settings pages, including Appearance and preview pages, build their controls on first show (`page.build`). A guide step, command or test that reaches a page's controls before it is shown calls `Options.BuildPage(page or key)` first; the profile workspace builds with `Options.BuildProfiles()`. Controls read saved values when shown, so pages never hold settings state. `options/Previews.lua` calls the existing preview commands and sample renderers; its Start/Stop buttons show the current sample state.
 
 Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts`, `style.normal` and `style.compact`. The style normalizer fills missing values from the older shared Battlegrounds values, on load and for imported profiles. A control for one addon's panel must not resize another addon's panel, and reset buttons name what they reset.
 

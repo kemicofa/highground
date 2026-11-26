@@ -58,6 +58,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local s = make()
     local O, H = s.ns.Options, s.ns.Hub
     local page, other = O.byKey.nearby, O.byKey.bounty
+    O.BuildPage(page) -- pages build on first use; wrap the built refresh
     local calls, refresh = 0, page.RefreshBehavior
     page.RefreshBehavior = function() calls = calls + 1; refresh() end
     H.Open("nearby")
@@ -75,6 +76,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     equal(calls, 0, "closing cancels the pending layout")
     H.Open("nearby"); calls = 0; s:advance(0.02)
     equal(calls, 1, "reopening finishes the selected page")
+    -- Sidebar glints are built on their first visible selection.
+    for _ = 1, 3 do H.Open("bounty"); H.Open("nearby"); s:advance(0.02) end
     local count = #s.frames
     for _ = 1, 3 do H.Open("bounty"); H.Open("nearby"); s:advance(0.02) end
     equal(#s.frames, count, "page switches reuse controls and layout callbacks")
@@ -321,6 +324,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     H.Open("alerts")
     w.rows[1].sound:SetChecked(false)
     equal(A.Settings().channels.stealth.sound, false, "shared stealth control still saves")
+    H.Open("home"); H.Open("alerts") -- Home's sidebar mark is built on its first selection
     local count = #s.frames
     H.Open("home"); H.Open("alerts")
     equal(#s.frames, count, "reopening reuses shortcut controls")

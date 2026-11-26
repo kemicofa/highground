@@ -355,8 +355,8 @@ for _, client in ipairs({ "retail", "cata" }) do
     t.equal(s.ns.Hub.current, "users", "command opens correct page")
     t.equal(w.total:GetText(), "2 characters detected", "unique total including self visible")
     t.equal(w.rows.CHANNEL.value:GetText(), "2 detected", "context including self visible")
-    local count = #s.frames
-    s.ns.Hub.Show("home"); s:command("users")
+    local count -- the first round builds Home's sidebar mark
+    for _ = 1, 2 do count = #s.frames; s.ns.Hub.Show("home"); s:command("users") end
     t.equal(#s.frames, count, "page widgets reused")
     for _, scale in ipairs({ 1, 1.25, 1.5 }) do
       s.ns.Core.SetFontScale(scale)

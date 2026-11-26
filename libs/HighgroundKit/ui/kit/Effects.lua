@@ -260,6 +260,27 @@ function Kit.Sweep(parent, color)
   return f
 end
 
+-- A button's selection strip, built the first time it is selected.
+function Kit.SelectedMark(b)
+  local mark = Theme.Fill(b, "ARTWORK", "accent")
+  mark:SetPoint("TOPLEFT", 2, -b.cornerRadius)
+  mark:SetPoint("BOTTOMLEFT", 2, b.cornerRadius)
+  mark:SetWidth(Theme.Size("strip"))
+  mark:Hide()
+  b.selectedMark = mark
+  return mark
+end
+
+-- A button's halo and glint are built the first time it lights up or
+-- plays one; most controls never do.
+local function Glint(self)
+  if not self.sweep then
+    if Core.ReducedMotion() or not self:IsVisible() then return end
+    self.sweep = Kit.Sweep(self)
+  end
+  self.sweep:Play()
+end
+
 -- Every control gets relief; only primary and selected controls radiate.
 -- Brightening the perimeter leaves the label's contrast unchanged.
 local function RefreshFinish(self, immediate)
@@ -267,20 +288,22 @@ local function RefreshFinish(self, immediate)
   local selected = self.tone == "selected"
   local enabled = not self.wbDisabled and self.enabled ~= false
   local token = primary and self.tone or selected and "accent" or "focus"
-  self.glow:SetColor(token)
-  self.glow:SetActive(enabled and (primary or selected or self.wbHovered), false, immediate)
+  local lit = enabled and (primary or selected or self.wbHovered)
+  if lit and not self.glow then self.glow = Kit.Glow(self, "accent", 4) end
+  if self.glow then
+    self.glow:SetColor(token)
+    self.glow:SetActive(lit, false, immediate)
+  end
   self.edge:SetColor(primary and self.tone or selected and "accent" or enabled and self.wbHovered and "focus" or "controlBorder")
-  if selected and not self.wbWasSelected then self.sweep:Play() end
+  if selected and not self.wbWasSelected then Glint(self) end
   self.wbWasSelected = selected
-  if not enabled or immediate then self.sweep:Stop() end
+  if self.sweep and (not enabled or immediate) then self.sweep:Stop() end
 end
-local function FinishEnter(self) if not self.wbDisabled then self.sweep:Play() end end
+local function FinishEnter(self) if not self.wbDisabled then Glint(self) end end
 local function FinishShow(self) self:RefreshFinish(true) end
 
 function Kit.ButtonFinish(button)
   button.sheen = Kit.RoundedFill(button, "metalHighlight", "sheen", "BORDER", true)
-  button.glow = Kit.Glow(button, "accent", 4)
-  button.sweep = Kit.Sweep(button)
   button.RefreshFinish = RefreshFinish
   button:HookScript("OnEnter", FinishEnter)
   button:HookScript("OnShow", FinishShow)

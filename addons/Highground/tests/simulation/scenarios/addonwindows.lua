@@ -60,6 +60,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         if button:GetText() == page.openTool:GetText() then launch = button end
       end
       click(launch); equal(entry[3](), w, "overview launches the same window")
+      H.Open(key); click(page.openTool) -- the sidebar entry's first visible selection builds its glint
       local count = #s.frames
       for _ = 1, 3 do H.Open(key); click(page.openTool) end
       equal(#s.frames, count, "reopening does not create more controls")
@@ -118,8 +119,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       for _, hook in ipairs(button.hooks.OnLeave or {}) do hook(button) end
       return text
     end
-    -- Macros settings are built before saved preferences are initialized.
-    equal(O.byKey["macros-settings"].openTool:GetText(), translated["tools.open.macros"])
+    -- Settings pages are built on first use, after saved preferences load.
+    equal(O.BuildPage("macros-settings").openTool:GetText(), translated["tools.open.macros"])
     s.ns.Core.SetFontScale(1.5)
     local launchers = { { "macros", "macros" }, { "reputation", "reputation" },
       { "bounties", "bountyboard" }, { "nearby", "journal" }, { "arena", "history" } }

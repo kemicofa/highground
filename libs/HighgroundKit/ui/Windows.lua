@@ -297,8 +297,7 @@ function Timers.RowFrame(w, i)
   r = CreateFrame("Frame", nil, w)
   Hud.Surface(r, "BACKGROUND"):SetAllPoints()
   r.flash = Theme.Fill(r, "BORDER", "accent")
-  r.flash:SetAllPoints()
-  r.flash:SetAlpha(0)
+  r.flash:SetAllPoints(); r.flash:SetAlpha(0)
   r.edge = ns.Kit.Outline(r, "border")
   r.glow = ns.Kit.Glow(r, "warning", 4)
   r.faction = r:CreateTexture(nil, "ARTWORK")
@@ -334,12 +333,7 @@ function Timers.RowFrame(w, i)
   end
   r:SetScript("OnEnter", r.ShowTip)
   r:SetScript("OnLeave", GameTooltip_Hide)
-  -- w.chatText(row): the row as a chat line, or nil. Timers.Share sends it.
-  r:SetScript("OnMouseUp", function(self, button)
-    if button ~= "LeftButton" or not IsShiftKeyDown() or not (w.chatText and Timers.Share) then return end
-    local text = self.data and w.chatText(self.data)
-    if text then Timers.Share(text) end
-  end)
+  r:SetScript("OnMouseUp", Timers.ShareClick) -- shift-click shares w.chatText(row) (battlegrounds)
   w.rows[i] = r
   return r
 end

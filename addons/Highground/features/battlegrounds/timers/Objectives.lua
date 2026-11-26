@@ -114,6 +114,12 @@ function Timers.Share(text)
   end
 end
 
+-- Timer rows (ui/Windows.lua): w.chatText(row) is the line, or nil.
+function Timers.ShareClick(r, button)
+  local w = r:GetParent()
+  if button == "LeftButton" and IsShiftKeyDown() and r.data and w.chatText then Timers.Share(w.chatText(r.data)) end
+end
+
 local share = {}
 local function ShareArgs(row)
   wipe(share)

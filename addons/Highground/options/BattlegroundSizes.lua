@@ -37,12 +37,12 @@ Options.featureWidgets.battlegroundSizes = function(parent, page)
     local unrated = Core.On("allBGs")
     local current = Core.CurrentBracket and Core.CurrentBracket()
     for i, def in ipairs(Options.BATTLEGROUND_SIZES) do
-      local row, detail = self.rows[i], L:Get(def.detail)
+      local row = self.rows[i]
       local blocked = def.unrated and not unrated
-      if not module then detail = detail .. L:Get("highground.general.enable_this_addon_and_reload.d99a6e")
-      elseif blocked then detail = detail .. L:Format("highground.general.enable_parentdef_label_first.0b04d3", { parentDef_label = L:Get(UNRATED) }) end
       row:SetLabel(L:Get(def.label))
-      row:SetDetail(detail)
+      row:SetDetail(L:Get(def.detail))
+      row:SetNote(not module and (L:Get("highground.general.enable_this_addon_and_reload.d99a6e"):match("^%s*(.-)$"))
+        or blocked and L:Format("battlegrounds.sizes.needs_unrated", { option = L:Get(UNRATED) }) or nil)
       row:SetChecked(Core.SizeEnabled(def.key), true)
       row:SetEnabled(module and not blocked)
       row:SetBadge(current == def.key and L:Get("battlegrounds.sizes.current") or nil)

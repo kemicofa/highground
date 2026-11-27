@@ -67,6 +67,9 @@ if arg[3] == "manual" then
 end
 if arg[3] == "hub" then sim.ns.Hub.Open("macros-settings") end
 if arg[3] == "config" then sim.ns.Hub.Open(arg[4] ~= "" and arg[4] or "macros-settings") end
+-- --step names a switch group on a settings page: --chapter battlegrounds-settings --step Battleground
+local settingsPage = arg[3] == "config" and sim.ns.Options.byKey[arg[4]]
+if settingsPage and settingsPage.SelectGroup and arg[5] ~= "" then settingsPage.SelectGroup(arg[5]) end
 if arg[3] == "config" and arg[4] == "profiles" and arg[5] ~= "" then
   local profiles, panel, core = sim.ns.Options.Profiles, sim.ns.Options.panel, sim.ns.Core
   local candidate = profiles.ParseString(profiles.ExportString(profiles.EnsureDefault()))

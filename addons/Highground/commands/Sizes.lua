@@ -25,7 +25,7 @@ function Commands.sizes(arg, msg, say)
   if #names == 0 then
     say(L:Format("battlegrounds.sizes.status_none", { character = character }))
   else
-    say(L:Format("battlegrounds.sizes.status", { character = character, sizes = table.concat(names, ", ") }))
+    say(L:Format("battlegrounds.sizes.status", { character = character, sizes = L:List(names) }))
   end
   if not Core.On("allBGs") and (Core.SizeEnabled("bg15") or Core.SizeEnabled("bg40")) then
     say(L:Get("battlegrounds.sizes.status_unrated"))

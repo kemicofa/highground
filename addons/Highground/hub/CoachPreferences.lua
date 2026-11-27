@@ -114,6 +114,14 @@ local function Features()
     appearanceKey, function() return Appearance().preview end, ns.Locale:Get("appearance.preview.guide_hint"))
   local enemy = bg and Step("enemy-style", ns.Locale:Get("enemy.appearance.title"),
     ns.Locale:Get("enemy.appearance.guide"), appearanceKey, function() return Appearance().enemyPreset end)
+  -- Where Highground runs: the Battleground sizes card on the same page.
+  local sizes = bg and Step("sizes", ns.Locale:Get("battlegrounds.sizes.guide_title"), ns.Locale:Get("battlegrounds.sizes.guide_text"),
+    settingsKey, function() return ns.Options.featurePages.battlegrounds.sizes end)
+  if sizes then sizes.enter = function()
+    N.Page(settingsKey)
+    local page = ns.Options.featurePages.battlegrounds
+    N.Reveal(page.scroll, page.content, page.sizes, 24)
+  end end
   if enemy then enemy.enter = function()
     N.Page(appearanceKey)
     local page = Appearance(); N.Reveal(page.scroll, page.child, page.enemyPreset, 24)
@@ -133,6 +141,7 @@ local function Features()
       function() return Box(bg and "killorder" or "minimap") end), { title = bg and "highground.coachpreferences.keep_the_panels_you_want.abbf0b" or "highground.coachpreferences.choose_shared_preferences.f69dd0", text = bg and "highground.coachpreferences.checked_means_enabled_all_available_feature_switches.16b69f" or "highground.coachpreferences.checked_means_enabled_this_switch_shows_the.de650b" }),
     appearance, preview, theme, details, language,
   }
+  if sizes then table.insert(steps, 3, sizes) end
   if enemy then steps[#steps + 1] = enemy end
   return steps
 end

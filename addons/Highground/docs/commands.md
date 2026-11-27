@@ -60,6 +60,10 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg live` | Toggle live-priority row sorting. | Live sorting controls → `behavior` |
 | `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
 | `/hg sizes [10\|15\|40] [on\|off]` | Show or switch the battleground sizes Highground runs in for this character. | Battleground sizes → `battlegrounds-settings` |
+| `/hg layout` | Show which battleground sizes have their own layout for this character. | Battleground sizes → `battlegrounds-settings` |
+| `/hg layout create 10\|15\|40` | Save your current setup as a battleground size's layout. | Create layout → `battlegrounds-settings` |
+| `/hg layout remove 10\|15\|40` | Delete a battleground size's layout; its matches use your usual setup again. | Remove layout → `battlegrounds-settings` |
+| `/hg layout remember on\|off` | Remember or discard changes made during a match with a layout. | Remember changes made during a match → `battlegrounds-settings` |
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
 | `/hg exec PCT` | Set the execute health threshold. | Execute threshold → `behavior` |
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |

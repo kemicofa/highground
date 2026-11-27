@@ -95,9 +95,9 @@ test("the Battleground sizes card shows this character's switches, the current m
   assert(card.rows[1].toggle.enabled, "10v10 covers rated play")
   assert(not card.rows[2].toggle.enabled and not card.rows[3].toggle.enabled, "15v15 and epic need unrated battlegrounds")
   assert(card.rows[2].note:IsShown() and card.rows[2].note:GetText():find("Include unrated battlegrounds", 1, true), "says why")
-  assert(not card.rows[1].note:IsShown(), "no note where nothing is missing")
+  assert(not card.rows[1].note:GetText():find("Include unrated", 1, true), "no dependency where nothing is missing")
   sim.ns.Core.SetFeature("allBGs", true)
-  assert(card.rows[2].toggle.enabled and not card.rows[2].note:IsShown(), "available again")
+  assert(card.rows[2].toggle.enabled and not card.rows[2].note:GetText():find("Include unrated", 1, true), "available again")
 
   sim.rated = false
   sim:enemy("Enemy"); sim:join()

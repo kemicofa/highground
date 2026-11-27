@@ -94,7 +94,7 @@ for _, client in ipairs({ 'cata', 'retail', 'forever' }) do
     local s=make(); create(s,'Arena'); local p,P,C=open(s)
     local a=p.assignments
     -- WoW Forever has no arenas, so no Arena activity.
-    local activity=client=='forever' and 'bg' or 'arena'
+    local activity=client=='forever' and 'world' or 'arena'
     equal(a.activities.arena==nil,client=='forever','Arena activity only where the game has arenas')
     assert(a:IsVisible() and a.activities[activity]:IsVisible())
     a.activities[activity]:SetValue('Arena'); a.enabled:SetChecked(true)

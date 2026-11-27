@@ -166,7 +166,7 @@ test("damaged battleground, profile, match and macro records load without errors
   sim:command("profile save Mine")
   assert(sim.ns.Options.Profiles.DeleteProfile("Mine"), "profiles with damaged assignments can be deleted")
   local P = sim.ns.Options.Profiles
-  if P.Assign then assert(P.Assign("Default", "bg")) end
+  if P.Assign then assert(P.Assign("Default", "world")) end
   local character = sim.ns.Scope.Store("character")
   character.matchInProgress = { map = "Arathi Basin", scope = sim.ns.Scope.Character(), game = sim.ns.GAME,
     updated = sim.env.time(), events = "damaged", started = "soon" }

@@ -125,7 +125,24 @@ local function InputsChanged(saved)
   return changed
 end
 
+-- A battleground size layout in use (options/ProfileLayouts.lua).
+local function LayoutState()
+  local bracket = P.Layouts and P.Layouts.Active()
+  if not bracket then return end
+  local label
+  for _, def in ipairs(ns.Options.BATTLEGROUND_SIZES or {}) do if def.key == bracket then label = ns.Locale:Get(def.label) end end
+  if ns.Options.panel:IsVisible() and InputsChanged(nil) then P.revision = (P.revision or 0) + 1 end
+  local remember = P.Layouts.Remember()
+  return { layout = bracket, revision = P.revision or 0,
+    label = ns.Locale:Format("battlegrounds.layouts.context", { size = label or bracket }),
+    status = ns.Locale:Get(P.pending and P.pending.sizeLayout and "profiles.context.pending"
+      or remember and "battlegrounds.layouts.context_saving" or "battlegrounds.layouts.context_kept"),
+    pending = P.pending and P.pending.sizeLayout and (label or bracket) or nil }
+end
+
 function P.ActiveState()
+  local layout = LayoutState()
+  if layout then return layout end
   local db = Core.db or {}
   local name = type(db.activeProfile) == "string" and db.activeProfile
   local saved = name and db.profiles and db.profiles[name]
@@ -206,6 +223,8 @@ local function Create(owner, controls, onLayout)
         owner:Hide()
         if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
       end
+      -- A size layout in use is managed on the Battleground sizes card.
+      if Current().layout then return ns.Options.ShowBattlegroundSizes() end
       ns.Hub.Open("profiles")
       local name = P.ActiveState().name
       if name then
@@ -216,6 +235,10 @@ local function Create(owner, controls, onLayout)
   end)
   Kit.Tooltip(bar, function()
     local state = Current(true)
+    if state.layout then
+      return { { state.label, "text", true }, { ns.Locale:Get("battlegrounds.layouts.context_hint"), "textMuted", true },
+        { ns.Locale:Get("battlegrounds.layouts.context_open"), "accent", false } }
+    end
     local lines = { { state.label, "text", true }, { ns.Locale:Get("highground.profilecontext.active_settings_save_automatically.6543b7"), "textMuted", true } }
     lines[#lines + 1] = { state.name and ns.Locale:Get(state.name == "Default" and "profiles.context.tooltip_default" or "profiles.context.tooltip_saved")
       or ns.Locale:Get("highground.profilecontext.save_a_named_profile_to_keep_a.b5701c"), "textMuted", true }
@@ -226,7 +249,7 @@ local function Create(owner, controls, onLayout)
   function bar:Refresh(force)
     local embedded = ns.Hub and ns.Hub.content and owner:GetParent() == ns.Hub.content
     local state = Core.db and Current(force)
-    local relevant = state and (state.name or state.pending or Core.db.importedProfileName)
+    local relevant = state and (state.name or state.pending or state.layout or Core.db.importedProfileName)
     local visible = not embedded and not not relevant
     local inset = visible and P.CONTEXT_HEIGHT or 0
     if self.inset ~= inset then
@@ -245,7 +268,7 @@ local function Create(owner, controls, onLayout)
     if self.lastState == state then return end
     self.lastState = state
     ns.Localization.BindField(self.label, state, "label"); self.state:SetText(state.status)
-    Theme.Paint(self.state, (state.modified or state.pending) and "warning" or "textMuted")
+    Theme.Paint(self.state, (state.modified or state.pending) and "warning" or state.layout and "accent" or "textMuted")
   end
   local elapsed = 0
   bar:SetScript("OnUpdate", function(self, dt)

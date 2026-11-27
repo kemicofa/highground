@@ -1,9 +1,9 @@
 {
   "releases": {
-    "Highground": "3.3.1"
+    "Highground": "3.3.2"
   },
   "changes": [
-    "Arena is now off by default on Retail and Cataclysm Classic. To use the Arena panel, turn on Enable addon in Arena → Overview and enable (or the Addons page, /hg guide) and reload."
+    "Nearby: your killing blows on enemy players now count on WoW Forever and Retail, in the enemy journal, World activity and the heatmap's Kills here. WoW Forever showed 0 kills before. Your pet's killing blows count too."
   ],
-  "notice": "Characters that already have a saved Arena choice keep it; turn Arena off on the Addons page if you don't play arena."
+  "notice": ""
 }

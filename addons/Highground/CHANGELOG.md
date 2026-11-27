@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## [3.3.1] - 2026-11-27
+
+- Arena: the Arena addon is now off by default on Retail and Cataclysm Classic. To use the Arena panel, turn on **Enable addon** in **Arena → Overview and enable** (or the **Addons** page, `/hg guide`) and reload. Characters that already have a saved Arena choice in WoW's AddOn List keep it.
+
 ## [3.3.0] - 2026-11-26
 
 - Coming from 3.2 or earlier, restart the game after updating: 3.3.0 adds new addon folders. From the 3.3.0 alpha or beta, `/reload` is enough.

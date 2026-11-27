@@ -1,4 +1,4 @@
-<!-- Highground 3.3.0 -->
+<!-- Highground 3.3.1 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description

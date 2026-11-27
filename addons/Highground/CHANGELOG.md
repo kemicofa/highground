@@ -4,6 +4,7 @@ Release versions match both addon TOC files. The latest version is listed first.
 
 ## Unreleased
 
+- Battlegrounds: each battleground panel has its own scale in **Battlegrounds → Appearance**: main panel, **Resurrection timers**, **Timers**, **Win forecast**, **Flag carriers** and **Quick callouts**. **Timer panels scale** resized four of them at once. A new **Overall battleground scale** resizes them all together, on top of each panel's own scale; the master scale in **Shared preferences → General → All HUD panels** still applies to every panel. Your current sizes are kept.
 - Battlegrounds: on WoW Forever and Retail, changing an **Appearance** setting such as **Hero card** after the enemy list had shown health percentages caused a Lua error ("attempt to perform numeric conversion on a secret number value") and stopped the list from updating its layout. The change now applies.
 
 ## [3.3.2] - 2026-11-27

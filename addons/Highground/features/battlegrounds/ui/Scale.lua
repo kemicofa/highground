@@ -14,7 +14,7 @@ function ns.ApplyUIScale()
   if not Core.db then return false end
   local applied = not InCombatLockdown()
   if applied then
-    if Core.frame then Core.frame:SetScale(Core.db.scale * (Core.PanelScale and Core.PanelScale("main") or 1)) end
+    if Core.frame then Core.frame:SetScale(Core.db.scale * (ns.PanelScale and ns.PanelScale("main") or 1)) end
     if ns.TimersApplyScale then ns.TimersApplyScale() end
   end
   if ns.RefreshUIScaleOption then ns.RefreshUIScaleOption() end

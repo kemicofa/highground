@@ -75,6 +75,14 @@ for _, s in ipairs({ client("cata"), client("retail") }) do
   Core.SetPanelScale("arena", 1.3)
   equal(Core.PanelScale("arena"), 1.3, "panels scale separately")
   equal(Core.PanelScale("main"), 1, "other panels keep their scale")
+  for _, text in ipairs({ "Overall battleground scale", "Main panel scale", "Resurrection timers scale", "Timers scale",
+    "Win forecast scale", "Flag carriers scale", "Quick callouts scale" }) do
+    assert(s:find("FontString", text), text .. " control")
+  end
+  equal(s:find("FontString", "Timer panels scale"), nil, "no shared timer scale")
+  Core.SetPanelScale("battlegrounds", 1.2)
+  assert(math.abs(Core.PanelDrawScale("bases") - 1.2) < 1e-9, "the overall scale multiplies battleground panels")
+  assert(math.abs(Core.PanelDrawScale("arena") - 1.3) < 1e-9, "and leaves other addons' panels alone")
   Core.SetStyleChoice("font", "nope")
   equal(Core.StyleChoice("font").key, "barlow", "unknown font falls back")
   Core.SetStyleChoice("barColor", "faction")

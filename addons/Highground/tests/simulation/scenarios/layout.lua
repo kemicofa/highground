@@ -7,6 +7,41 @@ local function anchor(frame)
   return p and p[2]
 end
 
+test("each battleground window scales on its own, times the overall battleground scale", function()
+  local sim = new("cata")
+  sim:enemy("Alpha")
+  sim:join()
+  sim:poi(36)
+  sim:poi(37)
+  sim:advance(1)
+  sim:command("arena test")
+  local core, env, T = sim.ns.Core, sim.env, sim.ns.Timers
+  T.ForecastWindow()
+  sim.ns.Flags.BuildFlags()
+  core.SetFeature("quickCalls", true)
+  sim.ns.QuickCalls.Update()
+  local own = { timersPoint = "timers", basesPoint = "bases", forecastPoint = "forecast", flagsPoint = "flags",
+    quickCallsPoint = "quickCalls", arenaPoint = "arena", nearbyPoint = "nearby" }
+  local sizes = { main = 1.1, timers = 0.8, bases = 1.2, forecast = 0.9, flags = 1.3, quickCalls = 0.7, arena = 1.5, nearby = 0.6 }
+  for panel, v in pairs(sizes) do core.SetPanelScale(panel, v) end
+  core.SetPanelScale("battlegrounds", 1.5)
+  local master, seen = env.HighgroundDB.scale, {}
+  local function near(a, b, why) assert(math.abs(a - b) < 1e-9, why .. ": expected " .. b .. ", got " .. a) end
+  near(env.HighgroundFrame:GetScale(), master * 1.1 * 1.5, "main panel")
+  for _, w in ipairs(T.windows) do
+    local panel = assert(own[w.key], "unknown window " .. tostring(w.key))
+    seen[panel] = true
+    local overall = (panel == "arena" or panel == "nearby") and 1 or 1.5
+    near(w:GetScale(), master * sizes[panel] * overall, panel)
+  end
+  for _, panel in ipairs({ "timers", "bases", "forecast", "flags", "quickCalls", "arena" }) do
+    assert(seen[panel], panel .. " window checked")
+  end
+  core.SetPanelScale("battlegrounds", 1)
+  near(env.HighgroundBasesFrame:GetScale(), master * 1.2, "overall back to 100%")
+  sim:assertHealthy()
+end)
+
 test("compact layout slims the panels and docks battleground windows under the main panel", function()
   local sim = new("cata")
   sim:enemy("Alpha")

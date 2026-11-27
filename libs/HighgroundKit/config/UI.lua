@@ -29,9 +29,14 @@ ns.UIConfig = {
   -- layout (normal / compact); every other choice applies to both.
   appearance = {
     panels = {
+      -- "battlegrounds" multiplies every other battleground panel's scale.
+      ns.Localization.Define({ key = "battlegrounds", module = "battlegrounds", label = ns.Locale:Get("profiles.panel.battlegrounds") }, { label = "profiles.panel.battlegrounds" }),
       ns.Localization.Define({ key = "main", module = "battlegrounds", label = ns.Locale:Get("shared.ui.main_panel.097f43") }, { label = "shared.ui.main_panel.097f43" }),
-      ns.Localization.Define({ key = "timers", module = "battlegrounds", label = ns.Locale:Get("shared.ui.resurrection_timers_and_forecast.ce6138") }, { label = "shared.ui.resurrection_timers_and_forecast.ce6138" }),
+      ns.Localization.Define({ key = "timers", module = "battlegrounds", label = ns.Locale:Get("profiles.panel.timers") }, { label = "profiles.panel.timers" }),
+      ns.Localization.Define({ key = "bases", module = "battlegrounds", label = ns.Locale:Get("profiles.panel.objectives") }, { label = "profiles.panel.objectives" }),
+      ns.Localization.Define({ key = "forecast", module = "battlegrounds", label = ns.Locale:Get("profiles.panel.forecast") }, { label = "profiles.panel.forecast" }),
       ns.Localization.Define({ key = "flags", module = "battlegrounds", label = ns.Locale:Get("highground.profilesummary.flag_carriers.287119") }, { label = "highground.profilesummary.flag_carriers.287119" }),
+      ns.Localization.Define({ key = "quickCalls", module = "battlegrounds", label = ns.Locale:Get("profiles.panel.callouts") }, { label = "profiles.panel.callouts" }),
       ns.Localization.Define({ key = "arena", module = "arena", label = ns.Locale:Get("profiles.panel.arena") }, { label = "profiles.panel.arena" }),
       ns.Localization.Define({ key = "nearby", module = "nearby", label = ns.Locale:Get("highground.profilesummary.nearby_enemies.85f5df") }, { label = "highground.profilesummary.nearby_enemies.85f5df" }),
     },

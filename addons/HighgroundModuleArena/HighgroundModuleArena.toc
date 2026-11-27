@@ -6,6 +6,7 @@
 ## Author: kemicofa
 ## Version: 1.0.0
 ## Dependencies: Highground
+## DefaultState: disabled
 ## X-Internal: true
 ## X-Highground-Module: arena
 ## X-Package-Files: README.md LICENSE

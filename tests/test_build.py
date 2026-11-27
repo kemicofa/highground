@@ -37,6 +37,8 @@ class PackageTests(TempTestCase):
             self.assertEqual(addons.field(path, 'Dependencies'), 'Highground')
             self.assertEqual(addons.field(path, 'Group'), 'Highground')
             self.assertEqual(addons.field(path, 'X-Highground-Module'), module.lower())
+            # Arena starts off on every client; players enable it on the Addons page.
+            self.assertEqual(addons.field(path, 'DefaultState'), 'disabled' if module == 'Arena' else None)
             self.assertIn(f'{name}/{name}.toc', sources)
             self.assertIn(f'{name}/Icon.tga', sources)
             self.assertNotIn(name, addons.field(addon.path, 'Dependencies'))

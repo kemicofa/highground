@@ -177,7 +177,7 @@ Other shared services worth knowing before adding a feature:
 
 Settings pages, including Appearance and preview pages, build their controls on first show (`page.build`). A guide step, command or test that reaches a page's controls before it is shown calls `Options.BuildPage(page or key)` first; the profile workspace builds with `Options.BuildProfiles()`. Controls read saved values when shown, so pages never hold settings state. `options/Previews.lua` calls the existing preview commands and sample renderers; its Start/Stop buttons show the current sample state.
 
-Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts`, `style.normal` and `style.compact`. The style normalizer fills missing values from the older shared Battlegrounds values, on load and for imported profiles. A control for one addon's panel must not resize another addon's panel, and reset buttons name what they reset.
+Arena and Nearby keep their own panel geometry in `style.scales`, `style.layouts`, `style.normal` and `style.compact`. The style normalizer fills missing values from the older shared Battlegrounds values, on load and for imported profiles. A control for one addon's panel must not resize another addon's panel, and reset buttons name what they reset. Each battleground window has its own `style.scales` key (`main`, `timers`, `bases`, `forecast`, `flags`, `quickCalls`), and `battlegrounds` multiplies all of them (`Core.PanelDrawScale`, also `ns.PanelScale`). The normalizer gives `bases`, `forecast` and `quickCalls` the older shared `timers` scale.
 
 ## Shared utilities
 

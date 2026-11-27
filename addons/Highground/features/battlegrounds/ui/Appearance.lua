@@ -50,6 +50,10 @@ function Core.NormalizePanelStyle(style, compact)
     if type(style[key]) ~= "table" then style[key] = {} end
   end
   if style.scales.nearby == nil then style.scales.nearby = Number(style.scales.timers) or 1 end
+  -- Objectives, forecast and Quick callouts shared the Resurrection scale.
+  for _, key in ipairs({ "bases", "forecast", "quickCalls" }) do
+    if style.scales[key] == nil then style.scales[key] = Number(style.scales.timers) or 1 end
+  end
   for _, owner in ipairs({ "arena", "nearby" }) do
     if style.layouts[owner] == nil then style.layouts[owner] = compact == true end
     for _, layout in ipairs({ "normal", "compact" }) do
@@ -93,7 +97,14 @@ function Core.PanelScale(panel)
   local v = Number(Sub("scales")[panel])
   return v and Clamp(v, A.panelScale.min, A.panelScale.max) or 1
 end
-ns.PanelScale = Core.PanelScale
+
+-- Drawn scale: a battleground panel's own scale times the overall one.
+function Core.PanelDrawScale(panel)
+  local def, scale = Find(A.panels, panel), Core.PanelScale(panel)
+  if def and def.module == "battlegrounds" and panel ~= "battlegrounds" then scale = scale * Core.PanelScale("battlegrounds") end
+  return scale
+end
+ns.PanelScale = Core.PanelDrawScale
 
 function Core.FontScale()
   local v = Number(Core.StyleDB().fontScale)

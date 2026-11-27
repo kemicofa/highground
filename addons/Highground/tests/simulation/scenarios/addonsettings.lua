@@ -183,6 +183,10 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     local s = make(saved)
     local C, T, O = s.ns.Core, s.ns.Timers, s.ns.Options
     equal(C.PanelScale("nearby"), 1.35, "Nearby keeps its inherited scale")
+    for _, panel in ipairs({ "timers", "bases", "forecast", "quickCalls" }) do
+      equal(C.PanelScale(panel), 1.35, panel .. " keeps the shared timer scale")
+    end
+    equal(C.PanelScale("battlegrounds"), 1, "overall battleground scale starts at 100%")
     equal(C.Metric("nearbyWidth", false), 410, "normal layout preserved")
     equal(C.Metric("arenaWidth", true), 440, "compact layout preserved")
     assert(C.PanelCompact("nearby") and C.PanelCompact("arena"))
@@ -211,6 +215,8 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     old.setup.features.compact = true
     P.Apply(assert(P.Prepare(old)))
     equal(C.PanelScale("nearby"), 1.2, "legacy profile migrates its own scale")
+    equal(C.PanelScale("bases"), 1.2, "legacy profile keeps the Timers window at its timer scale")
+    equal(C.PanelScale("quickCalls"), 1.2)
     equal(C.Metric("nearbyWidth", false), 400)
     equal(C.Metric("nearbyWidth", true), 420)
     s:command("profile load Separate")

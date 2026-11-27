@@ -296,7 +296,7 @@ elseif owner == "bounties" then
 end
 for _, panel in ipairs(A.panels) do
   if owner and panel.module == owner then
-    Stepper(panel.key == "timers" and "highground.appearance.timer_panels_scale.621a38" or { key = "highground.appearance.panel_label_scale.87b0f5",
+    Stepper(panel.key == "battlegrounds" and "appearance.scale.battlegrounds" or { key = "highground.appearance.panel_label_scale.87b0f5",
       values = function() return { panel_label = panel.label } end }, function() return Core.PanelScale(panel.key) end,
       function(v) Core.SetPanelScale(panel.key, v) end, A.panelScale.step, Percent, function() return 1 end)
   end

@@ -8,6 +8,9 @@
   <Binding name="HIGHGROUND_TEAM_HEALER" category="ADDONS">
     Highground_TeamHealer()
   </Binding>
+  <Binding name="HIGHGROUND_TEAM_ICON" category="ADDONS">
+    Highground_TeamIcon()
+  </Binding>
   <Binding name="HIGHGROUND_CALL" category="ADDONS">
     Highground_Call()
   </Binding>

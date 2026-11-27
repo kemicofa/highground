@@ -83,6 +83,7 @@ for g = 1, 8 do
   for m = 1, 5 do FRAME_NAMES[#FRAME_NAMES + 1] = "CompactRaidGroup" .. g .. "Member" .. m end
 end
 for i = 1, 5 do FRAME_NAMES[#FRAME_NAMES + 1] = "CompactPartyFrameMember" .. i end
+Core.GROUP_FRAMES = FRAME_NAMES -- team icons use them too (ui/TeamIconMarks.lua)
 local FRAME_SCALE = 0.45
 
 local function ShowFrameMark(index, frame)
@@ -141,6 +142,7 @@ function Core.UpdateHealerMarks()
   end
   for i = used + 1, #Core.healerMarks do HideMark(Core.healerMarks[i]) end
   UpdateFrameMarks(on)
+  if Core.PlaceTeamIcons then Core.PlaceTeamIcons() end
 end
 
 ns.Util.Events({ NAME_PLATE_UNIT_REMOVED = function(_, unit)

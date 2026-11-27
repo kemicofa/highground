@@ -26,7 +26,7 @@ allowed_globals = {
     "HighgroundWindowCoordinator", "HighgroundLocale",
     "HighgroundDB", "HighgroundCharDB", "HighgroundBountyNetworkDB", "HighgroundReputationNetworkDB", "HighgroundMatchArchiveDB",
     "BINDING_HEADER_HIGHGROUND",
-    "Highground_Call", "Highground_TeamHealer", "Highground_Hub", "Highground_BountyBoard", "Highground_WorldMark", "HighgroundPinMixin",
+    "Highground_Call", "Highground_TeamHealer", "Highground_TeamIcon", "Highground_Hub", "Highground_BountyBoard", "Highground_WorldMark", "HighgroundPinMixin",
     "KillOrderTargetButton", "KillOrderMarkButton", "KillOrderFocusButton",
 }
 allowed_global_prefixes = ("SLASH_HIGHGROUND", "BINDING_NAME_HIGHGROUND_", "BINDING_NAME_CLICK Highground")

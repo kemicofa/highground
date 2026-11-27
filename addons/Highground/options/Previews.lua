@@ -62,6 +62,8 @@ local function Build(page, owner)
     -- A window, so not part of /hg test: it would replace the Highground window.
     Add(ns.Localization.Define({ cmd = "healers test", label = ns.Locale:Get("battlegrounds.commands.team_healers.68a1c6"), desc = ns.Locale:Get("battlegrounds.commands.sample_teammates_to_mark_and_unmark_as.da5545"),
       active = function() return ns.TeamHealers.IsSample() end }, { label = "battlegrounds.commands.team_healers.68a1c6", desc = "battlegrounds.commands.sample_teammates_to_mark_and_unmark_as.da5545" }))
+    Add(ns.Localization.Define({ cmd = "icons test", label = ns.Locale:Get("highground.teamicons.team_icons.c632c4"), desc = ns.Locale:Get("highground.previews.sample_teammates_with_icons_two_sharing_one.2b712b"),
+      active = function() return ns.TeamIcons.IsSample() end }, { label = "highground.teamicons.team_icons.c632c4", desc = "highground.previews.sample_teammates_with_icons_two_sharing_one.2b712b" }))
   elseif owner == "nearby" and ns.WorldActivity then
     -- A window too, like Team healers.
     Add(ns.Localization.Define({ cmd = "activity test", label = ns.Locale:Get("activity.title"), desc = ns.Locale:Get("activity.preview.desc"),

@@ -12,7 +12,7 @@
 ## X-Bundled-Addons: HighgroundBountyData HighgroundReputationData HighgroundModuleBattlegrounds HighgroundModuleArena HighgroundModuleNearby HighgroundModuleBounties HighgroundModuleReputation HighgroundModuleMacros HighgroundLocaleDeDE HighgroundLocaleEsES HighgroundLocaleEsMX HighgroundLocaleFrFR HighgroundLocaleItIT HighgroundLocaleKoKR HighgroundLocalePtBR HighgroundLocaleRuRU HighgroundLocaleZhCN HighgroundLocaleZhTW HighgroundMatchData
 ## SavedVariables: HighgroundDB
 ## SavedVariablesPerCharacter: HighgroundCharDB
-## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/alert-*.ogg libs/sounds/alerts.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
+## X-Package-Files: Bindings.xml README.md CHANGELOG.md LICENSE docs/*.md libs/media/*.ttf libs/media/*.tga libs/media/*.txt assets/logos/*.tga assets/sniper/*.tga assets/teamicons/*.tga sounds/*.ogg features/bounties/sounds/*.ogg libs/sounds/stealth-*.ogg libs/sounds/stealth.txt libs/sounds/alert-*.ogg libs/sounds/alerts.txt libs/sounds/nearby.ogg libs/sounds/nearby.txt
 ## OptionalDeps: BattleGroundEnemies
 
 # libs/ links to the HighgroundKit library; features/<name>/ to each standalone
@@ -162,13 +162,16 @@ ui/SniperColors.lua
 ui/Sniper.lua
 features/battlegrounds/ui/CapPlates.lua
 core/HealerTags.lua
+core/TeamIcons.lua
 ui/HealerMarks.lua
+ui/TeamIconMarks.lua
 ui/BurstMarks.lua
 core/Calling.lua
 ui/Tooltip.lua
 ui/Rows.lua
 ui/SpecPicker.lua
 ui/TeamHealers.lua
+ui/TeamIcons.lua
 ui/Health.lua
 ui/Layout.lua
 core/Targeting.lua

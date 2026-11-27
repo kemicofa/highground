@@ -9,8 +9,9 @@ local History = ns.NearbyHistory
 -- seen, how many times you met them, and kills both ways. A sighting of someone met before says
 -- so in chat and on their row.
 -- Kills: Cata reads the combat log (your killing blows). Retail and Forever have no combat
--- log: your honorable kills count when the game names them, and a death
--- counts when fatal damage names an enemy player (world/Deaths.lua).
+-- log: their PARTY_KILL event names your killing blows by GUID, and honorable
+-- kills count when the game names them; a death counts when fatal damage
+-- names an enemy player (world/Deaths.lua).
 ---------------------------------------------------------------------------
 History.MAX = 1000 -- players kept; the longest unseen go first, never tracked or bounty enemies
 
@@ -212,6 +213,18 @@ function History.Seen(e, fresh)
   h.last = time()
 end
 
+-- One kill can arrive twice, as PARTY_KILL and as its honor line, in either
+-- order. A report from the other source within PAIR_GAP is the same kill.
+local PAIR_GAP, reports = 5, {}
+local function Paired(name, source)
+  local key, now = Core.Canon(name) or name, GetTime()
+  for k, r in pairs(reports) do if now - r.at > PAIR_GAP then reports[k] = nil end end
+  local r = reports[key]
+  if r and r.source ~= source then reports[key] = nil; return true end
+  reports[key] = { at = now, source = source }
+  return false
+end
+
 local function RecordKill(name, counter)
   if name and ns.WorldFeed then ns.WorldFeed.Local(name, counter) end -- the kill feed (world/Feed.lua)
   if not (name and History.Enabled()) then return end
@@ -248,7 +261,7 @@ local function SameName(key, short)
   return length == #short and key:sub(1, length):lower() == short
 end
 
-local function HonorEnemy(name)
+local function KnownEnemy(name)
   local wanted = Core.CharacterName(name)
   if not wanted then return end
   local qualified = name:find("-", 1, true)
@@ -270,8 +283,37 @@ end
 local function OnHonor(_, msg)
   if not History.Enabled() or not Nearby.InWorld() then return end
   local name = ns.Honor.Name(msg)
-  name = name and HonorEnemy(name)
-  if name then RecordKill(name, "killedThem") end
+  name = name and KnownEnemy(name)
+  if name and not Paired(name, "honor") then RecordKill(name, "killedThem") end
+end
+
+-- Retail and Forever: PARTY_KILL(attackerGUID, targetGUID) replaces the
+-- combat log's row. GUIDs are readable for players in the open world.
+-- Count your and your pet's killing blows on an enemy you have met: the
+-- victim is named from a unit that still shows it, else from its GUID.
+local KILL_UNITS = { "target", "focus", "mouseover", "softenemy" }
+for i = 1, 40 do KILL_UNITS[#KILL_UNITS + 1] = "nameplate" .. i end
+
+local function Victim(guid)
+  for _, unit in ipairs(KILL_UNITS) do
+    if Util.read(UnitGUID, unit) == guid then return KnownEnemy(Core.FullUnitName(unit) or "") end
+  end
+  local _, _, _, _, _, name, realm = Util.call(GetPlayerInfoByGUID, guid)
+  name, realm = Util.value(name), Util.value(realm)
+  if type(name) ~= "string" or name == "" then return end
+  local found = KnownEnemy(name)
+  if found or type(realm) ~= "string" or realm == "" then return found end
+  -- Forever's second name is a surname, not a realm (core/Names.lua).
+  return KnownEnemy(name .. (ns.Caps.hideRealmNames and " " or "-") .. realm)
+end
+
+local function OnPartyKill(_, attacker, target)
+  if not History.Enabled() or not Nearby.InWorld() then return end
+  attacker, target = Util.value(attacker), Util.value(target)
+  if type(target) ~= "string" or not target:find("^Player%-") or attacker == nil then return end
+  if attacker ~= Util.read(UnitGUID, "player") and attacker ~= Util.read(UnitGUID, "pet") then return end
+  local name = Victim(target)
+  if name and not Paired(name, "kill") then RecordKill(name, "killedThem") end
 end
 
 -- Forget everyone except tracked enemies and bounty targets.
@@ -306,12 +348,13 @@ if ns.Caps.combatLog and CombatLogGetCurrentEventInfo then
   handlers.COMBAT_LOG_EVENT_UNFILTERED = function() Util.RunGuarded("nearby history", OnCombatLog) end
 else
   handlers.CHAT_MSG_COMBAT_HONOR_GAIN = function(...) Util.Guard("nearby history", OnHonor, ...) end
+  handlers.PARTY_KILL = OnPartyKill
 end
 local frame = Util.Events(handlers, "nearby history events", "nearby")
 History.events = frame
 
 -- Kills count only in the open world with history on: instances and a
--- disabled history receive no combat-log or honor events. Nearby's poll
+-- disabled history receive no combat-log, kill or honor events. Nearby's poll
 -- and world transitions call this (NearbyEvents.lua).
 local listening = true
 function History.SyncEvents()

@@ -20,12 +20,19 @@ return function(sim, env)
     if hooks then for _, callback in ipairs(hooks) do callback(frame, ...) end end
   end
   local meta = { __index = methods } -- one per simulator, shared by its frames
+  -- As in the game, backdrop methods exist only on frames made with
+  -- BackdropTemplate. Elsewhere false stands in for nil: a check skips it
+  -- and a call fails, while every frame keeps the shared metatable.
+  local BACKDROP = { "SetBackdrop", "SetBackdropColor", "SetBackdropBorderColor" }
   local function create(kind, name, parent, template)
     local frame = { kind = kind or "Frame", name = name, parent = parent, children = {},
       scripts = {}, hooks = {}, events = {}, attrs = {}, shown = true, alpha = 1,
       width = 600, height = 400, scale = 1, points = {}, frameLevel = 1,
       secure = template and template:find("SecureActionButtonTemplate", 1, true) ~= nil }
     setmetatable(frame, meta)
+    if not (template and template:find("BackdropTemplate", 1, true)) and kind ~= "GameTooltip" then
+      for _, method in ipairs(BACKDROP) do frame[method] = false end
+    end
     if frame.kind == "Button" or frame.kind == "CheckButton" then
       frame.IsEnabled = function(self) return self.enabled ~= false end
       frame.SetEnabled = function(self, on) self.enabled = not not on end

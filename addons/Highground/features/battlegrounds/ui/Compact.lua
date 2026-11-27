@@ -140,14 +140,19 @@ local NONE = 0.001
 -- Reserve the widest possible label once at layout time. Empty priority
 -- tags keep the same track width as NOW/TOP/DEAD, so health remains comparable
 -- between rows and never appears to change just because priority changes.
+-- Measured on a hidden string in the label's font: a label that has shown
+-- secret health keeps a secret width, even after plain text replaces it.
+local measure
 local function LabelWidth(fs, ...)
-  local previous, width = fs:GetText(), 0
-  fs:SetWidth(0)
+  measure = measure or (Core.frame or UIParent):CreateFontString(nil, "OVERLAY")
+  measure:Hide()
+  local font, size, flags = fs:GetFont()
+  if font then measure:SetFont(font, size, flags) end
+  local width = 0
   for i = 1, select("#", ...) do
-    fs:SetText((select(i, ...)))
-    width = math.max(width, fs:GetStringWidth())
+    measure:SetText((select(i, ...)))
+    width = math.max(width, measure:GetStringWidth())
   end
-  fs:SetText(previous or "")
   return math.ceil(width) + 2
 end
 

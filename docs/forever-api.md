@@ -22,6 +22,7 @@ Enemy health, power, auras and casts come back as *secret values*. Addon code ca
 | `print(v)` | shows the real value in chat |
 | `StatusBar:SetValue(v)` | draws it |
 | `FontString:SetFormattedText("%d%%", v)` | draws it (`73%`) |
+| `FontString:GetStringWidth()` after showing `v` | secret, even after `SetText` with plain text (live, 2026-11-27) |
 | `UnitHealthPercent(unit, true, colorCurve)` → `SetStatusBarColor` | draws the curve's colour |
 
 `UnitHealthPercent(unit, true, CurveConstants.ScaleTo100)` returns 0-100. One profiled match drew enemy health 42,163 times without a failure.

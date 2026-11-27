@@ -93,7 +93,8 @@ return function(sim, env)
   methods.SetShown = function(f, on) if on then f:Show() else f:Hide() end end
   methods.IsShown = function(f) return f.shown end
   methods.IsMouseOver = function(f) return sim.mouseOver == f end
-  methods.GetStringWidth = function(f) return #(f.text or "") * 7 end -- about the code font
+  -- A string that has shown a secret keeps a secret width, as in the game.
+  methods.GetStringWidth = function(f) return f.secretText and { secret = true } or #(f.text or "") * 7 end -- about the code font
   methods.GetUnboundedStringWidth = methods.GetStringWidth
   methods.IsVisible = function(f) return f.shown and (type(f.parent) ~= "table" or f.parent:IsVisible()) end
   methods.IsForbidden = function() return false end
@@ -134,7 +135,11 @@ return function(sim, env)
   methods.SetFormattedText = function(f, fmt, ...)
     local args = { ... }
     for i = 1, select("#", ...) do
-      if type(args[i]) == "table" and args[i].secret then return methods.SetText(f, (fmt:gsub("%%[%d%.]*[df]", "<secret>", 1):gsub("%%%%", "%%"))) end
+      if type(args[i]) == "table" and args[i].secret then
+        methods.SetText(f, (fmt:gsub("%%[%d%.]*[df]", "<secret>", 1):gsub("%%%%", "%%")))
+        f.secretText = true
+        return
+      end
     end
     methods.SetText(f, string.format(fmt, ...))
   end

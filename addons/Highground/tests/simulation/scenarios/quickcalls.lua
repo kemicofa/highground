@@ -72,7 +72,7 @@ test("quick callouts follow named areas and battleground scope independently of 
   equal(#sim.chat, 0)
   sim:leave()
   sim.rated = false
-  sim.ns.Core.SetFeature("bg15", false)
+  sim.ns.Core.SetSizeEnabled("bg15", false)
   sim:join()
   assert(not w:IsShown(), "excluded battleground size stays hidden")
   sim:assertHealthy()

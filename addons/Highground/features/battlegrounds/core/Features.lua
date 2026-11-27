@@ -21,7 +21,7 @@ EFFECTS.quickCallsRoutes = EFFECTS.quickCalls
 function Core.SetFeature(key, on)
   on = on and true or false
   Core.db[key] = on
-  local effect = EFFECTS[key] or (key:match("^bg%d+$") and EFFECTS.allBGs)
+  local effect = EFFECTS[key]
   if effect then effect(on) end
   if ns.PvPEvents then ns.PvPEvents.Refresh() end -- live listeners follow their switches
   local Options = ns.Options

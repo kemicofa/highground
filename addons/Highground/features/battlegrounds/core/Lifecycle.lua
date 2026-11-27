@@ -145,25 +145,50 @@ function Core.SetActive(on)
 end
 
 
--- Team-size switches: bg10 (up to 10v10, Blitz included), bg15, bg40
--- (larger, 35v35 Ashran included). nil for a battleground Highground doesn't know.
+-- Team sizes: bg10 (up to 10v10, Blitz included), bg15, bg40 (larger,
+-- 35v35 Ashran included). nil when the size is unknown.
 function Core.SizeBracket(size)
   if not size then return nil end
   return size <= 10 and "bg10" or size <= 15 and "bg15" or "bg40"
 end
 
+-- A battleground Highground doesn't know yet falls back to the game's
+-- player limit for the instance.
 function Core.TeamSize()
   local ui = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
-  local _, _, _, _, _, _, _, inst = GetInstanceInfo()
+  local _, _, _, _, maxPlayers, _, _, inst = GetInstanceInfo()
   local blitz = ns.Caps.blitz and C_PvP and C_PvP.IsSoloRBG and C_PvP.IsSoloRBG() or false
   local rated = not blitz and Core.IsRatedBG and Core.IsRatedBG() or false
   local bg = ns.ResolveBattleground(ui, inst, ns.CLIENT, blitz and "blitz" or rated and "rated" or "standard")
-  return bg and bg.size
+  if bg then return bg.size end
+  return type(maxPlayers) == "number" and Core.plain(maxPlayers) and maxPlayers > 0 and maxPlayers or nil
+end
+
+-- The size of the battleground you are in, or nil outside one.
+function Core.CurrentBracket()
+  if select(2, IsInInstance()) ~= "pvp" then return nil end
+  return Core.SizeBracket(Core.TeamSize())
+end
+
+-- Run switches per battleground size, saved per character
+-- (HighgroundCharDB.battlegroundSizes) and never part of profiles.
+function Core.SizeEnabled(bracket)
+  local sizes = Core.pos and Core.pos.battlegroundSizes
+  return not (type(sizes) == "table" and sizes[bracket] == false)
+end
+
+function Core.SetSizeEnabled(bracket, on)
+  if not Core.SIZE_KEYS_SET[bracket] or not Core.pos then return false end
+  ns.Saved.Table(Core.pos, "battlegroundSizes")[bracket] = on and true or false
+  Core.CheckZone()
+  if ns.PvPEvents then ns.PvPEvents.Refresh() end
+  if ns.Options and ns.Options.RefreshFeatures then ns.Options.RefreshFeatures() end
+  return true
 end
 
 function Core.SizeOn()
   local bracket = Core.SizeBracket(Core.TeamSize())
-  return not bracket or Core.On(bracket)
+  return not bracket or Core.SizeEnabled(bracket)
 end
 
 function Core.InRatedBG()

@@ -46,6 +46,16 @@ local function SeedPositions(db, pos)
   pos.seeded = true
 end
 
+-- Battleground size switches were account-wide profile settings. Each
+-- character starts from them once; the old values stay as the seed for
+-- characters that haven't logged in since.
+local function SeedSizes(db, pos)
+  if type(pos.battlegroundSizes) == "table" then return end
+  local sizes = {}
+  for _, key in ipairs(Core.SIZE_KEYS) do sizes[key] = db[key] ~= false end
+  pos.battlegroundSizes = sizes
+end
+
 local ACCOUNT = ns.SAVED_VARIABLE or "HighgroundDB"
 local CHARACTER = ACCOUNT:gsub("DB$", "CharDB")
 
@@ -167,6 +177,7 @@ function Core.LoadSaved()
   Core.pos = type(_G[CHARACTER]) == "table" and _G[CHARACTER] or {}
   _G[CHARACTER] = Core.pos
   SeedPositions(db, Core.pos)
+  SeedSizes(db, Core.pos)
   if ns.Localization then ns.Localization.Initialize(db) end
   return db
 end

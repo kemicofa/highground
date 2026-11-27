@@ -59,6 +59,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg why` | Print why the kill target was chosen. | Explain target choice |
 | `/hg live` | Toggle live-priority row sorting. | Live sorting controls → `behavior` |
 | `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
+| `/hg sizes [10\|15\|40] [on\|off]` | Show or switch the battleground sizes Highground runs in for this character. | Battleground sizes → `battlegrounds-settings` |
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
 | `/hg exec PCT` | Set the execute health threshold. | Execute threshold → `behavior` |
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |

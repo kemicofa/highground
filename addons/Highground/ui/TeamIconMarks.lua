@@ -6,7 +6,8 @@ local Core, Kit, Theme, Read = ns.Core, ns.Kit, ns.Theme, ns.Util.read
 -- our own UIParent child anchored to a plate or frame, and ignores the
 -- mouse. Above a plate it sits left of a healer cross; on a raid frame it
 -- takes the left side and the cross the right. Badges follow events and a
--- one-second check, which runs only while someone has an icon.
+-- one-second check of raid frames, which runs only while someone has an
+-- icon (core/TeamIconRules.lua says who).
 Core.teamIconPlates = {} -- [nameplate token] = badge
 Core.teamIconFrames = {} -- [raid frame name] = badge
 local SIZE, LIFT, GAP = 28, 6, 3
@@ -97,10 +98,16 @@ local function UpdatePlate(unit, marks)
   b:Show()
 end
 
+-- Each raid frame's unit and visibility at its last update: the
+-- one-second check redraws only frames that changed.
+local lastUnit, lastShown = {}, {}
+
 local function UpdateFrame(name, marks)
   local frame = _G[name]
   local unit = frame and frame.unit
-  local key = unit and frame:IsVisible() and Core.CanonUnit(unit)
+  local shown = frame and frame:IsVisible() or false
+  lastUnit[name], lastShown[name] = unit, shown
+  local key = unit and shown and Core.CanonUnit(unit)
   local mark = key and marks[key]
   local b = Core.teamIconFrames[name]
   if not mark then return HideBadge(b) end
@@ -119,10 +126,10 @@ local function UpdateFrame(name, marks)
 end
 
 local NAMEPLATES = ns.Util.UnitTokens("nameplate", 40)
-local ticker
+local ticker, platesWere, framesWere
 
 function Core.UpdateTeamIconMarks()
-  local marks = Core.TeamIconMarks()
+  local marks = Core.TeamIconsResolved()
   local any = next(marks) ~= nil
   local plates = any and PlatesOn() and C_NamePlate and C_NamePlate.GetNamePlateForUnit
   for _, unit in ipairs(NAMEPLATES) do
@@ -132,6 +139,7 @@ function Core.UpdateTeamIconMarks()
   for _, name in ipairs(Core.GROUP_FRAMES) do
     if frames then UpdateFrame(name, marks) else HideBadge(Core.teamIconFrames[name]) end
   end
+  platesWere, framesWere = PlatesOn() and true or false, FramesOn() and true or false
   if ticker then
     if plates or frames then
       if not ticker.on then ticker.on = true; ticker.Start() end
@@ -148,12 +156,25 @@ function Core.PlaceTeamIcons()
   end
 end
 
-ticker = ns.Util.Every(1, Core.UpdateTeamIconMarks, "team icons", "battlegrounds")
+-- Plates follow their events; raid frames move between units without one.
+local function Check()
+  local marks = Core.TeamIconsResolved()
+  local plates, frames = PlatesOn() and true or false, FramesOn() and true or false
+  if next(marks) == nil or plates ~= platesWere or frames ~= framesWere then return Core.UpdateTeamIconMarks() end
+  if not frames then return end
+  for _, name in ipairs(Core.GROUP_FRAMES) do
+    local frame = _G[name]
+    local unit = frame and frame.unit
+    if unit ~= lastUnit[name] or (frame and frame:IsVisible() or false) ~= lastShown[name] then UpdateFrame(name, marks) end
+  end
+end
+
+ticker = ns.Util.Every(1, Check, "team icons", "battlegrounds")
 ticker.Stop()
 
 ns.Util.Events({
   NAME_PLATE_UNIT_ADDED = function(_, unit)
-    local marks = Core.TeamIconMarks()
+    local marks = Core.TeamIconsResolved()
     if next(marks) ~= nil and PlatesOn() and Core.teamIconPlates and C_NamePlate then UpdatePlate(unit, marks) end
   end,
   NAME_PLATE_UNIT_REMOVED = function(_, unit) HideBadge(Core.teamIconPlates[unit]) end,

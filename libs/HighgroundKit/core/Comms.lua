@@ -6,6 +6,7 @@ local _, ns = ...
 -- Prefixes in use (wire formats live with their modules):
 --   HighgroundC  capture probes   core/CapShare.lua
 --   HighgroundS  spec tags        core/SpecTags.lua
+--   HighgroundG  team icons       core/TeamIconShare.lua (Highground)
 --   HighgroundT  timers           timers/Sharing.lua
 --   HighgroundI  map intel        map/Sharing.lua
 --   HighgroundB  guild bounties   bounty/Sync.lua

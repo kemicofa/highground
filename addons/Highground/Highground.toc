@@ -161,6 +161,8 @@ ui/Sniper.lua
 features/battlegrounds/ui/CapPlates.lua
 core/HealerTags.lua
 core/TeamIcons.lua
+core/TeamIconRules.lua
+core/TeamIconShare.lua
 ui/HealerMarks.lua
 ui/TeamIconMarks.lua
 ui/BurstMarks.lua
@@ -169,6 +171,7 @@ ui/Tooltip.lua
 ui/Rows.lua
 ui/SpecPicker.lua
 ui/TeamHealers.lua
+ui/TeamIconPicker.lua
 ui/TeamIcons.lua
 ui/Health.lua
 ui/Layout.lua
@@ -225,6 +228,7 @@ commands/Sizes.lua
 commands/EnemyAppearance.lua
 libs/bounty/Commands.lua
 commands/Display.lua
+commands/TeamIcons.lua
 commands/Previews.lua
 commands/Dispatch.lua
 features/battlegrounds/core/Exports.lua

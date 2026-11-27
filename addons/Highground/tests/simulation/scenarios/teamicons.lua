@@ -59,6 +59,9 @@ test("The group leader gives teammates icons; the same icon gets its own outline
   assert(C.SetTeamIcon("party2", "PRIEST"), "a class icon")
   equal(marks[C.CanonUnit("party2")].color, 1, "the only priest icon: the first colour again")
   assert(C.teamIconPlates.nameplate6.icon.texture ~= C.TEAM_ICON_SHEET, "class icons come from the game")
+  frame.unit = "party2"; sim:advance(1.1)
+  equal(C.teamIconFrames.CompactPartyFrameMember2.iconID, "PRIEST", "a frame moved to another member follows within a second")
+  frame.unit = "party1"; sim:advance(1.1)
 
   equal(select(2, C.SetTeamIcon("party1", "nothing")), "icon", "an unknown icon is refused")
   sim.units.stranger = { name = "Stranger", classID = 4 }
@@ -135,7 +138,7 @@ test("/hg icon, the picker and the Team icons window set the same icons", functi
   sim.env.Highground_TeamIcon()
   assert(W.PickerShown(), "the key opens the picker for the member under the mouse")
   local mage
-  for _, b in ipairs(W.picker.buttons) do if b.icon == "MAGE" then mage = b end end
+  for _, b in ipairs(sim.ns.TeamIconPicker.frame.buttons) do if b.icon == "MAGE" then mage = b end end
   assert(mage, "class icons are offered")
   mage:Click()
   equal(C.TeamIconMarks()[C.CanonUnit("party1")].icon, "MAGE", "a click sets it")
@@ -149,7 +152,7 @@ test("/hg icon, the picker and the Team icons window set the same icons", functi
   assert(brann.badge:IsShown(), "a member's icon shows in their row")
   brann:Click()
   assert(W.PickerShown(), "a row opens the picker")
-  W.picker.none:Click()
+  sim.ns.TeamIconPicker.frame.none:Click()
   equal(C.TeamIconMarks()[C.CanonUnit("party1")], nil, "No icon clears it")
   assert(not brann.badge:IsShown(), "the open window follows")
 
@@ -171,7 +174,7 @@ test("/hg icons test shows sample teammates without saving their icons", functio
   equal(#W.items, 6, "six sample teammates")
   local rows = shown(W.win.list.rows)
   rows[6]:Click()
-  W.picker.buttons[1]:Click()
+  sim.ns.TeamIconPicker.frame.buttons[1]:Click()
   assert(W.sampleMarks[rows[6].item.key], "a sample row takes an icon")
   equal(W.sampleMarks["sample:Thornik"].color, 2, "the second healer has the second colour")
   equal(next(sim.ns.Scope.Saved("teamIcons", "social").marks or {}), nil, "nothing is saved")

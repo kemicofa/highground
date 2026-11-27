@@ -127,6 +127,8 @@ local function Changed()
   healersAt = nil
   if Core.UpdateHealerMarks then Core.UpdateHealerMarks() end
   if Core.RefreshTeamHealers then Core.RefreshTeamHealers() end
+  -- Healers get the Healer icon under the "role" rule (core/TeamIconRules.lua).
+  if Core.TeamIconRule and Core.TeamIconRule() == "role" then Core.TeamIconsChanged() end
 end
 
 -- Mark (true), unmark (false) or flip (nil) a teammate by hand. Returns the

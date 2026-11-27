@@ -45,6 +45,9 @@ GENERATED = {
     "libs/HighgroundKit/media/ProgressCircle.tga": ("tools/progress_circle.py", 64, 64),
     "libs/HighgroundKit/media/MapRing.tga": ("tools/map_ring.py", 128, 128),
     "libs/HighgroundKit/media/HeatBlob.tga": ("tools/heat_blob.py", 64, 64),
+    # 4x4 sheet of 64 px cells; drawn at 28 on nameplates (ui/TeamIconMarks.lua).
+    "addons/Highground/assets/teamicons/TeamIcons.tga": ("tools/team_icons.py", 256, 256),
+    "addons/Highground/assets/teamicons/TeamIconRing.tga": ("tools/team_icons.py", 64, 64),
 }
 
 

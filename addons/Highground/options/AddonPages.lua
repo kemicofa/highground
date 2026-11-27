@@ -44,6 +44,7 @@ local tools = {
   reputation = { label = "tools.open.reputation", open = function() ns.Reputation.Open() end },
   macros = { label = "tools.open.macros", open = function() ns.Macros.Window.Open() end },
   healers = { label = "tools.open.healers", open = function() ns.TeamHealers.Open() end },
+  teamIcons = { label = "tools.open.teamicons", open = function() ns.TeamIcons.Open() end },
 }
 function O.ToolLabel(key) return ns.Locale:Get(tools[key].label) end
 function O.BindToolLabel(button, key) ns.Localization.Bind(button, tools[key].label) end
@@ -110,6 +111,16 @@ function O.AddTeamHealerControls(page)
   O.Section(page, ns.Locale:Get(K.title), ns.Locale:Get(K.hint), K.title, K.hint)
   local main = page.openTool
   page.teamHealers = O.ToolLink(page, "healers")
+  page.openTool = main
+end
+
+-- Icons the group leader gives teammates: the Team icons window.
+function O.AddTeamIconControls(page)
+  local K = { title = "highground.teamicons.team_icons.c632c4",
+    hint = "highground.addonpages.your_group_leader_gives_teammates_icons_to.da4005" }
+  O.Section(page, ns.Locale:Get(K.title), ns.Locale:Get(K.hint), K.title, K.hint)
+  local main = page.openTool
+  page.teamIcons = O.ToolLink(page, "teamIcons")
   page.openTool = main
 end
 

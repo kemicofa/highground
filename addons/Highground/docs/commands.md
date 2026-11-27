@@ -126,6 +126,11 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg healer [NAME]` | Mark or unmark a teammate as a healer: the named one, else the one under your mouse, else your target | Mark team healer |
 | `/hg healers` | Open Team healers to see and change which teammates get the green healer cross | Open Team healers (separate window) |
 | `/hg healers test` | Start or stop the Team healers sample | Team healers preview controls → `battlegrounds-previews` |
+| `/hg icon [NAME] [ICON\|none\|clear]` | Give a group member a team icon: the one named, else under your mouse, else your target. none hides their icon; clear gives back the automatic icon, or none without a rule. Without an icon, opens the icon picker. Group leader only, outside matches. | Set a team icon |
+| `/hg icons` | Open Team icons to see every group member's icon; the group leader changes them there. | Open Team icons (separate window) |
+| `/hg icons auto off\|class\|role` | Give every teammate without an icon from the leader their class or role icon automatically, or turn it off. Group leader only, outside matches. | Choose automatic team icons |
+| `/hg icons clear` | Clear every team icon in your group. Group leader only, outside matches. | Clear team icons |
+| `/hg icons test` | Start or stop the Team icons sample. | Team icons preview controls → `battlegrounds-previews` |
 | `/hg points` | Print overridden scoring values in chat. | Show scoring overrides |
 | `/hg points NAME VALUE\|reset` | Set or reset any scoring value. | Edit a scoring value |
 | `/hg weights` | Inspect all score multipliers. | Inspect score multipliers → `multipliers` |

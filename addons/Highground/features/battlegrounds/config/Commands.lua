@@ -102,6 +102,24 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
   A("healer", "battlegrounds.commands.mark_or_unmark_a_teammate_as_a.806ec5", "battlegrounds.commands.mark_team_healer.b7993e", { usage = "[NAME]" }),
   C.Tool("healers", "battlegrounds.commands.open_team_healers_to_see_and_change.edf611", "healers", "battlegrounds.commands.open_team_healers.bb1b00"),
   L("healers test", "battlegrounds.commands.start_or_stop_the_team_healers_sample.db7fe3", "battlegrounds-previews", "battlegrounds.commands.team_healers_preview_controls.72f9b7"),
+  A("icon", "battlegrounds.commands.give_a_group_member_a_team_icon.06f3b7", "battlegrounds.commands.set_a_team_icon.ac2a0f", { usage = "[NAME] [ICON|none|clear]", fields = {
+    ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.group_member_blank_under_your_mouse_else.617e63"), optional = true }, { label = "battlegrounds.commands.group_member_blank_under_your_mouse_else.617e63" }),
+    ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.icon.716f63"), choices = function()
+      local choices = {}
+      for _, code in ipairs(ns.Core.TeamIconChoices()) do
+        choices[#choices + 1] = { key = code, label = ns.Core.TeamIconName(ns.Core.TeamIconFromText(code)) or code }
+      end
+      choices[#choices + 1] = { key = "clear", label = ns.Locale:Get("battlegrounds.commands.automatic_icon_clear.d9c189") }
+      return choices
+    end }, { label = "battlegrounds.commands.icon.716f63" }) } }),
+  C.Tool("icons", "battlegrounds.commands.open_team_icons_to_see_every_group.966421", "teamIcons", "battlegrounds.commands.open_team_icons.b1710e"),
+  A("icons auto", "battlegrounds.commands.give_every_teammate_without_an_icon_from.26d2ad", "battlegrounds.commands.choose_automatic_team_icons.9b5d42", { usage = "off|class|role", fields = {
+    ns.Localization.Define({ label = ns.Locale:Get("highground.teamicons.automatic_icons.8850b6"), choices = {
+      ns.Localization.Define({ key = "off", label = ns.Locale:Get("highground.teamicons.off.e3de5a") }, { label = "highground.teamicons.off.e3de5a" }),
+      ns.Localization.Define({ key = "class", label = ns.Locale:Get("highground.teamicons.class.41ff35") }, { label = "highground.teamicons.class.41ff35" }),
+      ns.Localization.Define({ key = "role", label = ns.Locale:Get("highground.teamicons.role.c3f104") }, { label = "highground.teamicons.role.c3f104" }) } }, { label = "highground.teamicons.automatic_icons.8850b6" }) } }),
+  A("icons clear", "battlegrounds.commands.clear_every_team_icon_in_your_group.48f0c1", "battlegrounds.commands.clear_team_icons.d52437", ns.Localization.Define({ confirm = ns.Locale:Get("battlegrounds.commands.clear_every_team_icon.7b3333") }, { confirm = "battlegrounds.commands.clear_every_team_icon.7b3333" })),
+  L("icons test", "battlegrounds.commands.start_or_stop_the_team_icons_sample.4b7bfa", "battlegrounds-previews", "battlegrounds.commands.team_icons_preview_controls.b8ce64"),
   A("points", "battlegrounds.commands.print_overridden_scoring_values_in_chat.0e1bcb", "battlegrounds.commands.show_scoring_overrides.a2ad25"),
   A("points", "battlegrounds.commands.set_or_reset_any_scoring_value.2bca3b", "battlegrounds.commands.edit_a_scoring_value.a5222e", { id = "points-value", usage = "NAME VALUE|reset", fields = {
     ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.scoring_value.827354"), choices = function()

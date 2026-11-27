@@ -128,6 +128,7 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       activity = function() return s.ns.WorldActivity.win end,
       history = function() return s.ns.MatchHistory.win end,
       healers = function() return s.ns.TeamHealers.win end,
+      teamIcons = function() return s.ns.TeamIcons.win end,
     }
     s.env.SlashCmdList.HIGHGROUND = function(message) recorded[#recorded + 1] = message end
     H.Open("tools"); t.equal(#recorded, 0, "browsing cannot execute an action")

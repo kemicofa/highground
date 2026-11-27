@@ -73,6 +73,10 @@ ns.Themes = {
       scopeCharacter = C("cbb8ef"),
       healer = C("83e8a2"),
       healerEnemy = C("f26b6b"),
+      -- Team icon outlines, in the order teammates with the same icon get
+      -- them (core/TeamIcons.lua). No green or red: those are healer crosses.
+      teamIcon1 = C("ffffff"), teamIcon2 = C("ffcc33"), teamIcon3 = C("4dc2ff"), teamIcon4 = C("ff66cc"),
+      teamIcon5 = C("ff8c1a"), teamIcon6 = C("a98cff"), teamIcon7 = C("33e6c7"), teamIcon8 = C("c7f533"),
       chipImmune = C("ff9a9f"),
       chipDef = C("ffd978"),
       chipCc = C("82b8f4"),

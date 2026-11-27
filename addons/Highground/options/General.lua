@@ -184,7 +184,7 @@ for _, owner in ipairs({ "battlegrounds", "arena", "macros" }) do
   if pages then
     Options.FeaturePage(pages.settings, owner, function(page)
       Options.ToolLink(page, owner == "macros" and "macros" or "history")
-      if owner == "battlegrounds" then Options.AddTeamHealerControls(page); Options.AddNameplateControls(page) end
+      if owner == "battlegrounds" then Options.AddTeamHealerControls(page); Options.AddTeamIconControls(page); Options.AddNameplateControls(page) end
       Options.AddAlertControls(page, owner)
       if owner == "battlegrounds" then
         page.review = Options.Link(page, ns.Locale:Get("highground.general.use_these_features.f07edd"), function()

@@ -93,6 +93,39 @@ local function Markers()
   end)
 end
 
+-- Team icons: friendly sample plates with the badges the live markers
+-- draw (ui/TeamIconMarks.lua). Two healers share an icon, each with their
+-- own outline colour.
+local function TeamIcons()
+  return E.Page("targeting:teamicons", ns.Locale:Get("highground.teamicons.team_icons.c632c4"), function(p)
+    E.Text(p, "intro", ns.Locale:Get("highground.coachtargeting.brann_carries_the_flag_lunara_and_thornik.d2957b"))
+    E.Panel(p, "scene", 150, function(f)
+      local marks = {}
+      f.plates = {}
+      for i, sample in ipairs({ { "Brann", "WARRIOR", "flag" }, { "Lunara", "PRIEST", "healer" }, { "Thornik", "SHAMAN", "healer" } }) do
+        local key = "sample:" .. sample[1]
+        Core.MarkTeamIcon(marks, key, sample[3])
+        local plate = CreateFrame("Frame", nil, f, "BackdropTemplate")
+        Theme.Backdrop(plate)
+        plate.fill = Theme.Fill(plate, "ARTWORK", ns.Util.ClassColor(sample[2]), 0.5)
+        plate.fill:SetPoint("TOPLEFT", 2, -2); plate.fill:SetPoint("BOTTOMRIGHT", -2, 2)
+        plate.name = Theme.Text(plate, "heading", "text"); plate.name:SetPoint("CENTER"); plate.name:SetText(sample[1])
+        plate.badge = Core.MakeTeamIcon(f)
+        plate.badge:SetPoint("BOTTOM", plate, "TOP", 0, 6)
+        Core.PaintTeamIcon(plate.badge, marks[key].icon, marks[key].color)
+        plate.badge:Show()
+        f.plates[i] = plate
+      end
+    end)
+    function p:Refresh()
+      for i, plate in ipairs(self.scene.plates) do
+        plate:SetSize(140, 32 * math.max(1, Core.FontScale()))
+        plate:ClearAllPoints(); plate:SetPoint("BOTTOM", self.scene, "BOTTOM", (i - 2) * 160, 24)
+      end
+    end
+  end)
+end
+
 local function Setting(step, key, label)
   step.feature, step.settingLabel = key, label
   return step
@@ -120,6 +153,7 @@ E.Register("markers", {
       Markers, "crosshair", ns.Locale:Get("highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a")), { title = "highground.coachtargeting.the_sniper_marker_shows_the_suggestion.d28836", text = "highground.coachtargeting.it_points_to_lunara_your_selected_target.7e9f71", hint = "highground.coachtargeting.try_hg_sniper_test_on_a_target.72718a" }), "sniper", ns.Locale:Get("highground.coachtargeting.enable_sniper_marker_in_game.53767b")), "lockon"),
     Setting(ns.Localization.Define(MarkerStep("healer", ns.Locale:Get("highground.coachtargeting.this_cross_marks_a_healer.3e70f2"), ns.Locale:Get("highground.coachtargeting.the_red_cross_identifies_a_known_enemy.f8294e"), Markers, "healer"), { title = "highground.coachtargeting.this_cross_marks_a_healer.3e70f2", text = "highground.coachtargeting.the_red_cross_identifies_a_known_enemy.f8294e" }), "healerMarks", ns.Locale:Get("highground.coachtargeting.enable_healer_marks_in_game.8c2663")),
     Setting(ns.Localization.Define(MarkerStep("teamhealers", ns.Locale:Get("highground.coachtargeting.mark_your_team_s_healers.c6dd22"), ns.Locale:Get("highground.coachtargeting.when_the_game_doesn_t_name_a.3443fe"), Markers, "healer", ns.Locale:Get("highground.coachtargeting.hover_over_a_teammate_and_press_your.717813")), { title = "highground.coachtargeting.mark_your_team_s_healers.c6dd22", text = "highground.coachtargeting.when_the_game_doesn_t_name_a.3443fe", hint = "highground.coachtargeting.hover_over_a_teammate_and_press_your.717813" }), "healerMarks", ns.Locale:Get("highground.coachtargeting.enable_healer_marks_in_game.8c2663")),
+    Setting(ns.Localization.Define(MarkerStep("teamicons", ns.Locale:Get("highground.coachtargeting.give_teammates_icons.eab669"), ns.Locale:Get("highground.coachtargeting.your_group_leader_can_give_teammates_a.246520"), TeamIcons, "scene", ns.Locale:Get("highground.coachtargeting.group_leader_open_hg_icons_to_choose.0bed17")), { title = "highground.coachtargeting.give_teammates_icons.eab669", text = "highground.coachtargeting.your_group_leader_can_give_teammates_a.246520", hint = "highground.coachtargeting.group_leader_open_hg_icons_to_choose.0bed17" }), "teamIcons", ns.Locale:Get("highground.coachtargeting.enable_team_icons_in_game.a3fbc6")),
     Setting(ns.Localization.Define(MarkerStep("nameplates", ns.Locale:Get("highground.coachtargeting.keep_enemy_nameplates_visible.183b52"), ns.Locale:Get("highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4"), Markers, "nameplates", ns.Locale:Get("highground.coachtargeting.in_game_battlegrounds_settings_nameplates_sets_their.9d5201")), { title = "highground.coachtargeting.keep_enemy_nameplates_visible.183b52", text = "highground.coachtargeting.turn_sample_nameplates_off_then_on_in.61ded4", hint = "highground.coachtargeting.in_game_battlegrounds_settings_nameplates_sets_their.9d5201" }), "sniper", ns.Locale:Get("highground.coachtargeting.enable_sniper_marker_in_game.53767b")),
     Setting(ns.Localization.Define(MarkerStep("recommend", ns.Locale:Get("highground.coachtargeting.try_following_your_own_target.acd537"), ns.Locale:Get("highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850"), Markers, "recommend"), { title = "highground.coachtargeting.try_following_your_own_target.acd537", text = "highground.coachtargeting.turn_sample_recommendations_off_the_sniper_marker.02c850" }), "killorder"),
   } end,

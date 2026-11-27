@@ -112,7 +112,12 @@ end
 -- Called by P.Automatic before profile assignments. true while a layout
 -- is applied, so assignments leave the battleground alone.
 function Layouts.Update()
-  if not (Core.db and Core.pos) or Core.testMode then return Layouts.Active() ~= nil end
+  if not (Core.db and Core.pos) then return false end
+  if Core.pos.layoutEdit then
+    -- An edit that a crash or disconnect left open puts the setup back.
+    if not (ns.Setup and ns.Setup.placement) then Layouts.EndEdit(false) else return true end
+  end
+  if Core.testMode then return Layouts.Active() ~= nil end
   local state = type(Core.pos.sizeLayout) == "table" and Core.pos.sizeLayout or nil
   local bracket = Core.CurrentBracket and Core.CurrentBracket()
   local target = bracket and Core.SizeEnabled(bracket) and Layouts.Get(bracket) and bracket or nil
@@ -149,6 +154,63 @@ function Layouts.Create(bracket)
   if not Layouts.Save(bracket) then return false end
   P.Automatic()
   return true
+end
+
+-- Copy into this character's layout for bracket. source: { character =
+-- key, all = true for every size it has } or { profile = name }. A copy
+-- into the layout in use applies at once. Returns the number copied.
+function Layouts.Copy(bracket, source)
+  local copies, count = {}, 0
+  if source.profile then
+    local snap = Core.db.profiles and Core.db.profiles[source.profile]
+    if type(snap) == "table" then copies[bracket] = snap end
+  elseif source.character and source.character ~= Layouts.Key() then
+    for _, key in ipairs(source.all and Core.SIZE_KEYS or { bracket }) do
+      local layout = Layouts.Get(key, source.character)
+      if layout then copies[key] = layout.snap end
+    end
+  end
+  for key, snap in pairs(copies) do
+    if Layouts.Save(key, ns.Saved.Copy(snap)) then count = count + 1 end
+  end
+  local active = Layouts.Active()
+  if active and copies[active] then Load(Layouts.Get(active).snap, { sizeLayout = active }) end
+  if count > 0 then P.Automatic() end
+  return count
+end
+
+-- The sample team for each size while arranging a layout.
+local TEAM = { bg10 = 10, bg15 = 15, bg40 = 40 }
+
+-- Arrange a layout outside a match: load it, show sample panels for its
+-- size, and on Done save it and put the setup back (Cancel only puts it
+-- back). The setup to restore is saved per character for a reload.
+function Layouts.Edit(bracket)
+  local layout = Layouts.Get(bracket)
+  if not layout then return false end
+  local allowed, problem = ns.Setup.CanArrange()
+  if not allowed then return false, problem end
+  if Core.pos.layoutEdit then return false end
+  Core.pos.layoutEdit = { bracket = bracket, stash = { snap = P.Snapshot(), activeProfile = Core.db.activeProfile,
+    importedProfileName = Core.db.importedProfileName } }
+  Load(layout.snap)
+  local label = bracket
+  for _, def in ipairs(ns.Options.BATTLEGROUND_SIZES) do if def.key == bracket then label = ns.Locale:Get(def.label) end end
+  local ok, err = ns.Setup.BeginPlacement(false, "bg", nil, { only = "bg", count = TEAM[bracket],
+    title = ns.Locale:Format("battlegrounds.layouts.edit_title", { size = label }),
+    hint = ns.Locale:Format("battlegrounds.layouts.edit_hint", { count = TEAM[bracket] }),
+    onEnd = Layouts.EndEdit })
+  if not ok then Layouts.EndEdit(false) end
+  return ok, err
+end
+
+function Layouts.EndEdit(done)
+  local edit = Core.pos.layoutEdit
+  if type(edit) ~= "table" then return end
+  Core.pos.layoutEdit = nil
+  if done then Layouts.Save(edit.bracket) end
+  Restore(edit.stash)
+  if ns.Options.RefreshFeatures then ns.Options.RefreshFeatures() end
 end
 
 -- Changes made in a match survive a reload or logout.

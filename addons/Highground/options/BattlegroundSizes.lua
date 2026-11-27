@@ -52,7 +52,21 @@ Options.featureWidgets.battlegroundSizes = function(parent, page)
       onConfirm = function() Profiles().Layouts.Remove(def.key); card:Refresh(); Relayout(page) end })
     Kit.Tooltip(row.remove, function() return { { L:Get("battlegrounds.layouts.remove"), "text", true },
       { L:Get("battlegrounds.layouts.remove_hint"), "textMuted", true } } end)
-    row:SetActions({ row.remove, row.create })
+    row.copy = Kit.Button(row, L:Get("battlegrounds.layouts.copy"), nil, nil, {
+      onClick = function() Options.OpenLayoutCopy(def.key) end })
+    Kit.Tooltip(row.copy, function() return { { L:Get("battlegrounds.layouts.copy"), "text", true },
+      { L:Get("battlegrounds.layouts.copy_hint"), "textMuted", true } } end)
+    row.edit = Kit.Button(row, L:Get("battlegrounds.layouts.edit"), nil, nil, { tone = "accent", onClick = function()
+      local ok, problem = Profiles().Layouts.Edit(def.key)
+      if not ok and problem then ns.Util.Say(problem) end
+    end })
+    Kit.Tooltip(row.edit, function()
+      local allowed, problem = ns.Setup.CanArrange()
+      return { { L:Get("battlegrounds.layouts.edit"), "text", true },
+        { allowed and L:Get("battlegrounds.layouts.edit_tip") or problem, allowed and "textMuted" or "warning", true } }
+    end)
+    -- Right to left: the primary action reads first.
+    row:SetActions({ row.remove, row.create, row.copy, row.edit })
     row:SetDivider(true)
     card.rows[i] = row
   end
@@ -94,6 +108,9 @@ Options.featureWidgets.battlegroundSizes = function(parent, page)
       row.create:SetShown(not saved); row.create:SetEnabled(usable)
       row.create:SetText(L:Get("battlegrounds.layouts.create"))
       row.remove:SetShown(saved); row.remove:SetEnabled(usable)
+      row.copy:SetText(L:Get("battlegrounds.layouts.copy")); row.copy:SetEnabled(usable)
+      row.edit:SetShown(saved); row.edit:SetEnabled(usable and ns.Setup ~= nil and ns.Setup.CanArrange() == true)
+      row.edit:SetText(L:Get("battlegrounds.layouts.edit"))
     end
     self.remember:SetLabel(L:Get("battlegrounds.layouts.remember"))
     self.remember:SetDetail(L:Get("battlegrounds.layouts.remember_desc"))
@@ -106,7 +123,7 @@ Options.featureWidgets.battlegroundSizes = function(parent, page)
     local inner = math.max(1, width - ns.Theme.Space("lg") * 2)
     local y = 0
     for _, row in ipairs(self.rows) do
-      for _, button in ipairs({ row.create, row.remove }) do
+      for _, button in ipairs({ row.create, row.remove, row.copy, row.edit }) do
         button:SetHeight(Kit.Scale(ns.Theme.Size("control"))); Kit.FitButton(button)
       end
       Kit.Place(row, "TOPLEFT", self.body, "TOPLEFT", 0, -y)
@@ -121,7 +138,8 @@ Options.featureWidgets.battlegroundSizes = function(parent, page)
   local function Visible()
     if card:IsVisible() then card:Refresh(); page.LayoutFeatures() end
   end
-  ns.Util.Events({ PLAYER_ENTERING_WORLD = Visible, ZONE_CHANGED_NEW_AREA = Visible, PVP_MATCH_STATE_CHANGED = Visible },
+  ns.Util.Events({ PLAYER_ENTERING_WORLD = Visible, ZONE_CHANGED_NEW_AREA = Visible, PVP_MATCH_STATE_CHANGED = Visible,
+    PLAYER_REGEN_DISABLED = Visible, PLAYER_REGEN_ENABLED = Visible },
     "battleground size controls", "battlegrounds")
   Kit.OnLocale(card, function() card:Refresh(); if card:IsVisible() then page.LayoutFeatures() end end)
   card:Refresh()

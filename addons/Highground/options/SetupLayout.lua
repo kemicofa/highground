@@ -54,7 +54,7 @@ function S.PreviewContext(context, enemies)
   StopPreviews()
   S.placement.context = context
   if context == "bg" then
-    if Core.On("killorder") then Core.StartTest(S.guided) end
+    if Core.On("killorder") then Core.StartTest(S.guided, nil, S.placement.count) end
     ns.BattlegroundsPreview.Start()
   elseif context == "enemies" then Core.StartTest(S.guided, enemies)
   elseif context == "objectives" then ns.BattlegroundsPreview.Start(true)
@@ -90,22 +90,30 @@ local function BuildBar()
     if state.hub then ns.Hub.Open() end
   end }), "highground.coach.done.e9b450")
   w.finish:SetPoint("BOTTOMRIGHT", -20, 16)
-  w.back = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 80, 26, { onClick = function()
+  w.back = Kit.Button(w, ns.Locale:Get("highground.coachview.back.b52b36"), 80, 26, { onClick = function()
     local state = S.placement
     if not state then return end
+    -- Editing a battleground layout cancels back to the page that started it.
+    if state.onEnd then
+      S.EndPlacement(false)
+      if state.hub then ns.Hub.Open() end
+      return
+    end
     S.EndPlacement(false, true)
     -- Back leaves placement for the Highground page that started it.
     if state.hub and not state.inHub then return ns.Hub.Open() end
     S.ShowStage("role", state.inHub)
-  end }), "highground.coachview.back.b52b36")
+  end })
   w.back:SetPoint("BOTTOMLEFT", 20, 16)
   ns.Options.Profiles.AttachContext(w, { w.finish, w.back })
   return w
 end
 
 -- context: the preview to start with (default: the first the bar offers);
--- enemies: sample enemies for the "enemies" context.
-function S.BeginPlacement(guided, context, enemies)
+-- enemies: sample enemies for the "enemies" context. opts (Edit layout):
+-- title, hint, only (the one context offered), count (sample team size),
+-- onEnd(done) after placement ends; Back becomes Cancel.
+function S.BeginPlacement(guided, context, enemies, opts)
   local allowed, problem = S.CanArrange()
   if not allowed then return false, problem end
   if S.placement then
@@ -124,17 +132,24 @@ function S.BeginPlacement(guided, context, enemies)
   if ns.Hub then ns.Hub.Suspend(); ns.Hub.Release(w) end
   if w then w:Hide() end
   S.transitioning = nil
+  opts = opts or {}
+  state.count, state.onEnd = opts.count, opts.onEnd
   S.placement, S.stage, S.guided = state, "place", guided == true
   Core.db.locked, style.frameless = false, false
   -- Unlocked headers and frames. A full ApplyStyle would repaint every
   -- themed region in the addon.
   Core.ApplyStyle("frameless")
   local bar, choices = BuildBar(), Contexts()
+  if opts.only then
+    for i = #choices, 1, -1 do if choices[i].key ~= opts.only then table.remove(choices, i) end end
+  end
+  bar:SetTitle(opts.title or ns.Locale:Get("highground.setuplayout.place_your_panels.4330ba"))
+  bar.back:SetText(ns.Locale:Get(opts.onEnd and "battlegrounds.layouts.cancel" or "highground.coachview.back.b52b36"))
   bar.context:SetChoices(choices)
   bar.context:SetShown(#choices > 1)
   context = context or choices[1] and choices[1].key
   bar.context:SetValue(context, true)
-  bar.hint:SetText(choices[1] and (#choices > 1
+  bar.hint:SetText(opts.hint or choices[1] and (#choices > 1
     and ns.Locale:Get("highground.setuplayout.these_panels_show_example_data_drag_their.73c66c")
     or ns.Locale:Get("highground.setuplayout.these_panels_show_example_data_drag_their.7326d1"))
     or ns.Locale:Get("highground.setuplayout.your_panels_are_switched_off_finish_setup.501a91"))
@@ -154,6 +169,7 @@ function S.EndPlacement(done, keepBackup)
   StopPreviews()
   Core.ApplyStyle("frameless"); Core.ApplyKillOrder()
   S.layoutBar:Hide()
+  if state.onEnd then state.onEnd(done) end
 end
 
 ns.Util.Events({

@@ -31,7 +31,9 @@ local function SeedCooldowns(e, n)
 end
 
 local SAMPLE_NAMES = { "Lunara", "Stormcall", "Dawnshield", "Wildleaf", "Ashveil", "Thorn", "Vexa", "Duskveil", "Frostbane", "Ironclaw" }
-local function SeedEnemies(guided)
+-- count: sample team size (default 10). The first ten show the varied
+-- states below; more fill a larger battleground's list.
+local function SeedEnemies(guided, count)
   -- Borrow names from visible nameplates (NPCs are fine) so row clicks
   -- actually target something; pad with fake names.
   local nearby, seenName = {}, {}
@@ -59,11 +61,12 @@ local function SeedEnemies(guided)
   -- seen health (muted until Keep last seen health runs out).
   local HP = { 0.92, 0.64, 0.28, 0.45, 1, 0.73, 0.55, 0.12, 0, 0.85 }
   local MANA = { 0.81, 0.04, 0.47, 0.66, 0.95, 0.3, 0.58, 0.22, 0, 0.74 }
-  for n = 1, 10 do
-    local id = pool[n]
+  for n = 1, count or 10 do
+    local m = (n - 1) % 10 + 1
+    local id = pool[m]
     local si = Core.specInfo[id]
     if si then
-      local key = guided and (SAMPLE_NAMES[n] .. "-Sample") or nearby[n] and Core.Canon(nearby[n]) or ("Enemy" .. n .. "-Test")
+      local key = guided and (SAMPLE_NAMES[m] .. (n > 10 and n or "") .. "-Sample") or nearby[n] and Core.Canon(nearby[n]) or ("Enemy" .. n .. "-Test")
       Core.enemies[key] = {
         key = key, display = key, class = si.class,
         specID = (n ~= 7) and id or nil, specSrc = (n % 3 == 0) and "hist" or "live",
@@ -80,8 +83,8 @@ local function SeedEnemies(guided)
         marker = ns.Caps.enemyMarks and ((n == 1) and 8 or (n == 5) and 7) or nil,
         -- In view (clickable, live distance); health and mana are fixed.
         unit = (n == 1 or n == 3 or n == 4) and "player" or nil,
-        testHp = n ~= 10 and HP[n] or nil, hpPct = n ~= 10 and HP[n] or nil,
-        hpSeen = n == 10 and HP[n] * 100 or nil, lastSeen = n == 10 and GetTime() or nil,
+        testHp = n ~= 10 and HP[m] or nil, hpPct = n ~= 10 and HP[m] or nil,
+        hpSeen = n == 10 and HP[m] * 100 or nil, lastSeen = n == 10 and GetTime() or nil,
       }
       -- WoW Forever's sample druid shows a spec estimated from its forms.
       if si.class == "DRUID" and ns.Caps.classicSpecs and not ns.Caps.enemyAuras then
@@ -89,16 +92,17 @@ local function SeedEnemies(guided)
         Core.enemies[key].specReason = ns.Locale:Get("battlegrounds.specs.much_time_in_cat_or_bear_form.fb8b7a")
       end
       if Core.TestUsesMana(si.class) then
-        Core.enemies[key].manaPct, Core.enemies[key].manaAt = MANA[n], math.huge
+        Core.enemies[key].manaPct, Core.enemies[key].manaAt = MANA[m], math.huge
       end
-      SeedCooldowns(Core.enemies[key], n)
+      SeedCooldowns(Core.enemies[key], m)
     end
   end
 end
 
 -- Guides supply observations to the normal panel, layout and renderer.
 -- Secure actions stay empty while the panel contains invented identities.
-function Core.StartTest(guided, enemies)
+-- count: sample team size when no enemies are given (Edit layout).
+function Core.StartTest(guided, enemies, count)
   if ns.Modules and not ns.Modules.Require("battlegrounds") then return false end
   -- Samples already shown are replaced in place: turning the panel off and
   -- on would hide it and restart every ticker that follows test mode.
@@ -110,7 +114,7 @@ function Core.StartTest(guided, enemies)
   if enemies then
     for key, enemy in pairs(enemies) do Core.enemies[key] = enemy end
   else
-    SeedEnemies(guided)
+    SeedEnemies(guided, count)
   end
   if swap then return Core.Tick() end
   Core.SetActive(false)

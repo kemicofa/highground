@@ -185,11 +185,44 @@ function P.ApplySetup(setup)
   if ns.PanelControls then ns.PanelControls.Refresh() end
 end
 
+-- Assignments belong to the character: one profile per activity.
+-- Battlegrounds use size layouts instead (options/ProfileLayouts.lua).
 function P.Context(activity)
-  U.call(Core.UpdateMe)
   local kind = select(2, IsInInstance())
   local who = ns.Scope.Character() or "player"
-  return who, tostring(Core.me.specID or Core.me.class or "unknown") .. ":" .. (activity or (kind == "arena" and "arena" or kind == "pvp" and "bg" or "world"))
+  return who, activity or (kind == "arena" and "arena" or kind == "pvp" and "bg" or "world")
+end
+P.ACTIVITIES = { arena = true, world = true }
+
+-- Assignments used to be per specialization ("SPEC:activity"). The current
+-- specialization's choice wins. A Battlegrounds choice in use becomes the
+-- layout of every size that has none.
+function P.MigrateAssignments()
+  local db, who = Core.db, ns.Scope.Character()
+  local assignments = who and type(db.profileAssignments) == "table" and db.profileAssignments[who]
+  if type(assignments) ~= "table" then return end
+  local keys = {}
+  for key in pairs(assignments) do if type(key) == "string" and key:find(":", 1, true) then keys[#keys + 1] = key end end
+  if #keys == 0 then return end
+  U.call(Core.UpdateMe)
+  local current = tostring(Core.me.specID or Core.me.class or "unknown") .. ":"
+  table.sort(keys, function(a, b)
+    local ca, cb = a:sub(1, #current) == current, b:sub(1, #current) == current
+    if ca ~= cb then return ca end
+    return a < b
+  end)
+  for _, key in ipairs(keys) do
+    local activity, name = key:match(":(%a+)$"), assignments[key]
+    assignments[key] = nil
+    local profile = type(name) == "string" and db.profiles and db.profiles[name]
+    if P.ACTIVITIES[activity] then
+      if assignments[activity] == nil then assignments[activity] = name end
+    elseif activity == "bg" and profile and Core.pos.autoProfiles and P.Layouts then
+      for _, bracket in ipairs(Core.SIZE_KEYS) do
+        if not P.Layouts.Get(bracket) then P.Layouts.Save(bracket, ns.Saved.Copy(profile)) end
+      end
+    end
+  end
 end
 
 ns.Scope.Listen(function() P.pending, P.lastAssignment = nil, nil end)
@@ -198,15 +231,17 @@ function P.Assign(name, activity)
   -- Keep the old clearing argument for callers unless it names a real profile.
   if name == "none" and not (Core.db.profiles and Core.db.profiles[name]) then name = nil end
   if name ~= nil and not (Core.db.profiles and Core.db.profiles[name]) then return false, ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b") end
-  if not ({ bg = true, arena = true, world = true })[activity] then return false, ns.Locale:Get("highground.profilesetup.choose_an_activity.609d3d") end
+  if not P.ACTIVITIES[activity] then return false, ns.Locale:Get("highground.profilesetup.choose_an_activity.609d3d") end
   local who, context = P.Context(activity)
   ns.Saved.Table(ns.Saved.Table(Core.db, "profileAssignments"), who)[context] = name
-  return true, ns.Locale:Get("highground.profilesetup.assignment_saved_for_this_character_and_specialization.c4e1b1")
+  return true, ns.Locale:Get("profiles.switching.saved")
 end
 
 function P.Automatic()
   P.MigrateDefault()
   if not Core.db or not Core.pos then return end
+  P.MigrateAssignments()
+  if P.Layouts and P.Layouts.Update() then return end
   if not Core.pos.autoProfiles then
     if P.pending and P.pending.automaticAssignment then P.pending = nil end
     return
@@ -229,6 +264,7 @@ U.Events({
     if P.pending then local setup = P.pending; P.pending = nil; P.Apply(setup) end
     P.Automatic()
   end,
-  PLAYER_ENTERING_WORLD = P.Automatic, PLAYER_SPECIALIZATION_CHANGED = P.Automatic,
-  ACTIVE_TALENT_GROUP_CHANGED = P.Automatic, PLAYER_TALENT_UPDATE = P.Automatic,
+  PLAYER_ENTERING_WORLD = P.Automatic, ZONE_CHANGED_NEW_AREA = P.Automatic,
+  -- Rated and Blitz flags can arrive late and change the battleground size.
+  PVP_MATCH_STATE_CHANGED = P.Automatic, PVP_MATCH_ACTIVE = P.Automatic,
 }, "profile switching")

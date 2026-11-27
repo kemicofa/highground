@@ -41,6 +41,7 @@ The runner prints each scenario's result and exits unsuccessfully if any asserti
 | --- | --- |
 | `match` | Both manifests, match entry and exit, filtered scoreboard, consecutive matches, saved settings, isolated addon instances |
 | `battlegroundsizes` | Per-character size switches: seeding from old account values, profiles that neither save nor load them, unknown maps and late rated flags, the Battleground sizes card and `/hg sizes` |
+| `battlegroundlayouts` | Size layouts: loading, remembered changes and restoring the setup from before the match; reloads, late rated flags, Open world assignments, switched-off sizes, removal, combat, per-character assignment migration, the card, Profiles and context bar, `/hg layout` |
 | `targeting` | Range changes in combat, deferred secure macros and scaling, defensive casts and fades, tracking controls, Retail health, teammate focus markers |
 | `sniper` | New/legacy style switching and skull toggle, health-based pulse and kill windows, unknown/restricted health, reduced motion, placement controls and size-independent gaps, unusable nameplates, saved heights, profiles and reloads on Cata, Retail and WoW Forever |
 | `snipercolors` | Modern/legacy colour pickers, live component colours and mini preview, cancellation and individual resets, Legacy dot colour, GO/theme/profile/reload persistence, the theme-coloured default ring and its overrides, the gold-to-theme upgrade, malformed values and cached RGB reuse |

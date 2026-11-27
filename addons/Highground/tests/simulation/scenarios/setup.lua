@@ -173,8 +173,9 @@ test("setup controls and instructions stay separate at large text sizes", functi
       assert(S.layoutBar:GetHeight() - P.CONTEXT_HEIGHT < 220, "placement leaves room for panels")
       click(S.layoutBar.finish)
       local w = P.OpenAssignments()
-      below(w.enabled, w.scope); below(w.scope, w.activities.bg)
-      assert(w.activities.bg:IsVisible() and w.activities.world:IsVisible())
+      below(w.enabled, w.scope); below(w.scope, w.activities.arena)
+      below(w.activities.world, w.sizes)
+      assert(w.activities.arena:IsVisible() and w.activities.world:IsVisible() and w.sizes:IsVisible())
       sim.ns.Hub.win:Hide()
       P.SaveProfile("Readability"); P.LoadProfile("Readability")
       sim:command("setup"); markerLayout()
@@ -240,7 +241,7 @@ test("automatic switching is available from Profiles with saved activity choices
   local P = O.Profiles
   sim.ns.Hub.Open("profiles")
   local w = O.panel.assignments
-  assert(w:IsVisible()); equal(w.activities.bg:IsEnabled(), true)
+  assert(w:IsVisible() and w.sizes:IsShown(), "battlegrounds point to Battleground sizes"); equal(w.activities.bg, nil)
   assert(w.scope:GetText():find(sim.env.UnitName("player"), 1, true), "assignment scope names this character")
   C.db.sniper = false; P.SaveProfile("Arena healer")
   sim.ns.Hub.win:Hide(); P.OpenAssignments()

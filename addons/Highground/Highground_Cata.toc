@@ -198,6 +198,7 @@ options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua
 options/ProfileSetup.lua
+options/ProfileLayouts.lua
 options/ProfileSummary.lua
 options/ProfileComparison.lua
 options/Profiles.lua

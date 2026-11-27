@@ -300,6 +300,8 @@ test("Edit arranges a layout with sample panels for its size and puts the setup 
   assert(same(L.Get("bg40").snap.setup.positions.point, { "CENTER", "CENTER", 9, 9 }), "Cancel keeps the layout")
   assert(same(C.pos.point, { "TOPLEFT", "TOPLEFT", 40, -40 }))
 
+  assert(S.BeginPlacement(false))
+  equal(L.Edit("bg40"), false, "not while panels are already being placed"); S.EndPlacement(false)
   card.rows[3].edit:Click(); sim:setCombat(true)
   assert(not S.placement, "combat ends editing"); sim:setCombat(false)
   assert(same(C.pos.point, { "TOPLEFT", "TOPLEFT", 40, -40 }), "without saving")

@@ -190,7 +190,7 @@ function Layouts.Edit(bracket)
   if not layout then return false end
   local allowed, problem = ns.Setup.CanArrange()
   if not allowed then return false, problem end
-  if Core.pos.layoutEdit then return false end
+  if Core.pos.layoutEdit or ns.Setup.placement then return false end
   Core.pos.layoutEdit = { bracket = bracket, stash = { snap = P.Snapshot(), activeProfile = Core.db.activeProfile,
     importedProfileName = Core.db.importedProfileName } }
   Load(layout.snap)

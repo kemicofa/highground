@@ -64,6 +64,8 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg layout create 10\|15\|40` | Save your current setup as a battleground size's layout. | Create layout → `battlegrounds-settings` |
 | `/hg layout remove 10\|15\|40` | Delete a battleground size's layout; its matches use your usual setup again. | Remove layout → `battlegrounds-settings` |
 | `/hg layout remember on\|off` | Remember or discard changes made during a match with a layout. | Remember changes made during a match → `battlegrounds-settings` |
+| `/hg layout edit 10\|15\|40` | Arrange a battleground size's layout with sample panels outside a match. | Edit → `battlegrounds-settings` |
+| `/hg layout copy 10\|15\|40\|all NAME \| 10\|15\|40 profile NAME` | Copy another character's layout (all: every size it has) or a saved profile into a battleground size. | Copy from… → `battlegrounds-settings` |
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
 | `/hg exec PCT` | Set the execute health threshold. | Execute threshold → `behavior` |
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |

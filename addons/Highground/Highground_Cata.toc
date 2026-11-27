@@ -199,6 +199,7 @@ options/Refresh.lua
 options/ProfileData.lua
 options/ProfileSetup.lua
 options/ProfileLayouts.lua
+options/LayoutCopy.lua
 options/ProfileSummary.lua
 options/ProfileComparison.lua
 options/Profiles.lua

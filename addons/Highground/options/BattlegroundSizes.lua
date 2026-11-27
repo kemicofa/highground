@@ -66,7 +66,7 @@ Options.featureWidgets.battlegroundSizes = function(parent, page)
   end
   ns.Util.Events({ PLAYER_ENTERING_WORLD = Visible, ZONE_CHANGED_NEW_AREA = Visible, PVP_MATCH_STATE_CHANGED = Visible },
     "battleground size controls", "battlegrounds")
-  Kit.OnLocale(card, function() card:Refresh() end)
+  Kit.OnLocale(card, function() card:Refresh(); if card:IsVisible() then page.LayoutFeatures() end end)
   card:Refresh()
   return card
 end

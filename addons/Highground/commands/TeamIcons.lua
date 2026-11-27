@@ -41,7 +41,8 @@ end
 local RULES = { off = true, class = true, role = true }
 
 -- /hg icons: the Team icons window; test: its sample; clear: every icon;
--- auto off|class|role: the automatic rule.
+-- auto off|class|role: the automatic rule; panel: show or hide the quick
+-- panel (ui/TeamIconPanel.lua).
 function Commands.icons(arg, msg, say)
   if arg == "test" then
     if ns.TeamIcons.IsSample() then
@@ -53,6 +54,9 @@ function Commands.icons(arg, msg, say)
   elseif arg == "clear" then
     local ok, why = Core.ClearTeamIcons()
     return say(ok and ns.Locale:Get("highground.display.team_icons_cleared.7f5c5a") or ns.TeamIcons.WhyText(why))
+  elseif arg == "panel" then
+    local shown = ns.TeamIconPanel.Toggle()
+    return say(ns.Locale:Get(shown and "highground.display.team_icons_quick_panel_shown.8bddaf" or "highground.display.team_icons_quick_panel_hidden.18714a"))
   elseif arg:match("^auto") then
     local rule = arg:match("^auto%s+(%S+)$") or ""
     if not RULES[rule] then return say(ns.Locale:Get("highground.display.use_hg_icons_auto_off_class_or.b77ca6")) end

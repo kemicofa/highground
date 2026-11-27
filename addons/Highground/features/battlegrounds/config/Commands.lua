@@ -114,6 +114,7 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
       ns.Localization.Define({ key = "off", label = ns.Locale:Get("highground.teamicons.off.e3de5a") }, { label = "highground.teamicons.off.e3de5a" }),
       ns.Localization.Define({ key = "class", label = ns.Locale:Get("highground.teamicons.class.41ff35") }, { label = "highground.teamicons.class.41ff35" }),
       ns.Localization.Define({ key = "role", label = ns.Locale:Get("highground.teamicons.role.c3f104") }, { label = "highground.teamicons.role.c3f104" }) } }, { label = "highground.teamicons.automatic_icons.8850b6" }) } }),
+  A("icons panel", "battlegrounds.commands.show_or_hide_the_team_icons_quick.0c8ce9", "battlegrounds.commands.toggle_the_quick_panel.e014d6"),
   A("icons clear", "battlegrounds.commands.clear_every_team_icon_in_your_group.48f0c1", "battlegrounds.commands.clear_team_icons.d52437", ns.Localization.Define({ confirm = ns.Locale:Get("battlegrounds.commands.clear_every_team_icon.7b3333") }, { confirm = "battlegrounds.commands.clear_every_team_icon.7b3333" })),
   L("icons test", "battlegrounds.commands.start_or_stop_the_team_icons_sample.4b7bfa", "battlegrounds-previews", "battlegrounds.commands.team_icons_preview_controls.b8ce64"),
   A("points", "battlegrounds.commands.print_overridden_scoring_values_in_chat.0e1bcb", "battlegrounds.commands.show_scoring_overrides.a2ad25"),

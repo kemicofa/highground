@@ -127,6 +127,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg icon [NAME] [ICON\|none\|clear]` | Give a group member a team icon: the one named, else under your mouse, else your target. none hides their icon; clear gives back the automatic icon, or none without a rule. Without an icon, opens the icon picker. Group leader only, outside matches. | Set a team icon |
 | `/hg icons` | Open Team icons to see every group member's icon; the group leader changes them there. | Open Team icons (separate window) |
 | `/hg icons auto off\|class\|role` | Give every teammate without an icon from the leader their class or role icon automatically, or turn it off. Group leader only, outside matches. | Choose automatic team icons |
+| `/hg icons panel` | Show or hide the Team icons quick panel: class icons, role icons or remove all, in one click. | Toggle the quick panel |
 | `/hg icons clear` | Clear every team icon in your group. Group leader only, outside matches. | Clear team icons |
 | `/hg icons test` | Start or stop the Team icons sample. | Team icons preview controls → `battlegrounds-previews` |
 | `/hg points` | Print overridden scoring values in chat. | Show scoring overrides |

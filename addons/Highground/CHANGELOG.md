@@ -2,7 +2,7 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
-## Unreleased
+## [3.3.2] - 2026-11-27
 
 - Nearby: on WoW Forever and Retail, your killing blows on enemy players now count in your Nearby history, the enemy journal, World activity and the enemy heatmap's **Kills here**. They counted only when an honor message named the enemy, and WoW Forever's honor message ("You have been awarded 8 Honor.") names no one, so kills there stayed at 0. Your pet's killing blows count too, and a killing blow with its honor message counts once.
 

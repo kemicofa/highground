@@ -35,10 +35,8 @@ end
 -- the default spot.
 Timers.ValidPoint = ns.Kit.ValidPoint
 
--- UI scale times the window's own Appearance scale (ns.PanelScale includes
--- the overall battleground scale).
-local PANEL = { timersPoint = "timers", basesPoint = "bases", forecastPoint = "forecast", flagsPoint = "flags",
-  quickCallsPoint = "quickCalls", arenaPoint = "arena", nearbyPoint = "nearby" }
+-- UI scale times the window's own Appearance scale (ns.PanelScale: with the overall battleground scale).
+local PANEL = { timersPoint = "timers", basesPoint = "bases", forecastPoint = "forecast", flagsPoint = "flags", quickCallsPoint = "quickCalls", arenaPoint = "arena", nearbyPoint = "nearby" }
 function Timers.WinScale(w)
   local db = Timers.DB()
   local base = db and db.scale or Timers.THEME.scale.default

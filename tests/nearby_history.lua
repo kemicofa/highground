@@ -134,6 +134,65 @@ return function(addon)
     sim:assertHealthy()
   end)
 
+  for _, build in ipairs({ 120100, 16001 }) do
+    t.test(build .. ": PARTY_KILL counts your and your pet's killing blows once, with or without an honor line", function()
+      local sim = setup("retail", build)
+      sim.regionalNames = build < 100000
+      sim.units.player.guid = "Player-me"
+      local key = target(sim, "Bitter Plot", "Realm")
+      sim.units.target.guid = "Player-victim"
+      local H, F = sim.ns.NearbyHistory, sim.ns.WorldFeed
+      local h = H.Get(key)
+      local w = sim.ns.EnemyJournal.Open()
+      local function kill(attacker, victim) sim:event("PARTY_KILL", attacker, victim or "Player-victim") end
+      kill("Player-me")
+      equal(h.killedThem, 1, "your killing blow counts")
+      equal(w.profile.metrics[2].value:GetText(), "1", "the open profile refreshes")
+      equal(F.list[1] and F.list[1].victim, sim.ns.Core.Canon(key), "the kill reaches the kill feed and heatmap")
+      honor(sim, "Bitter Plot dies (Honorable Kill).")
+      equal(h.killedThem, 1, "its honor line is the same kill")
+      sim:advance(30)
+      honor(sim, "Bitter Plot dies (Honorable Kill).")
+      kill("Player-me")
+      equal(h.killedThem, 2, "an honor line first, then PARTY_KILL, is one kill too")
+      sim:advance(30)
+      sim.units.pet = { name = "Wolf", guid = "Pet-mine" }
+      kill("Pet-mine")
+      equal(h.killedThem, 3, "your pet's killing blow is yours")
+      sim:advance(30)
+      kill("Player-friend")
+      kill("Player-me", "Creature-0-1-2")
+      kill({ secret = true })
+      kill("Player-me", { secret = true })
+      equal(h.killedThem, 3, "group kills, creatures and secret GUIDs add nothing")
+      sim.units.target = { name = "Ally", realm = "Realm", guid = "Player-ally", classID = 2 }
+      kill("Player-me", "Player-ally")
+      equal(H.Get("Ally-Realm"), nil, "a player you never met as an enemy is not invented")
+      sim:assertHealthy()
+    end)
+
+    t.test(build .. ": PARTY_KILL names a victim no unit shows from its GUID", function()
+      local sim = setup("retail", build)
+      local forever = build < 100000
+      sim.regionalNames = forever
+      sim.units.player.guid = "Player-me"
+      local key = target(sim, "Bitter Plot", "Realm")
+      sim.units.target = nil
+      sim.env.GetPlayerInfoByGUID = function(guid)
+        if guid ~= "Player-victim" then return end
+        if forever then return "Rogue", "ROGUE", "Human", "Human", 2, "Bitter", "Plot" end
+        return "Rogue", "ROGUE", "Human", "Human", 2, "Bitter Plot", "Realm"
+      end
+      sim:event("PARTY_KILL", "Player-me", "Player-victim")
+      equal(sim.ns.NearbyHistory.Get(key).killedThem, 1, "the GUID's name and surname or realm find the enemy")
+      sim:join()
+      sim:advance(30)
+      sim:event("PARTY_KILL", "Player-me", "Player-victim")
+      equal(sim.ns.NearbyHistory.Get(key).killedThem, 1, "instances count no kills")
+      sim:assertHealthy()
+    end)
+  end
+
   t.test("saved mute preferences work without the journal UI or history recording", function()
     local sim = new("retail", { nearbyHistory = false, enemyHistory = {
       ["Muted-Realm"] = { muted = true }, ["Foreign-Other"] = { muted = true },

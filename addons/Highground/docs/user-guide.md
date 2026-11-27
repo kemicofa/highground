@@ -46,7 +46,7 @@ Open **Settings** in the addon’s own sidebar section. All available switches a
 
 New installations include unrated battlegrounds, show the whole enemy team, enable the target crosshair and Nearby enemies, and turn on every alert's text and sound. Nearby starts with five rows. Burst markers, pressure shields, objective overview, sap calls and low-health resurrection reminders start off. The quest tracker stays visible. Upgrades enable unrated battlegrounds once for the account and saved setups, preserving other preferences. Later scope choices are kept. Shared-bounty receiving and publishing remain separate opt-ins.
 
-**Include unrated battlegrounds** controls ordinary matches. **10v10 battlegrounds**, **15v15 battlegrounds** and **Epic battlegrounds** filter team sizes; rated battlegrounds and Blitz use the 10v10 switch, Ashran the epic switch. **Sounds** mutes every Highground sound. Unsupported controls are hidden for your client.
+**Include unrated battlegrounds** controls ordinary matches. The **Battleground sizes** card below it (`/hg sizes [10|15|40] [on|off]`) chooses where Highground runs: **10v10 battlegrounds** (also every rated battleground and Blitz), **15v15 battlegrounds** and **Epic battlegrounds** (Ashran included). A battleground Highground doesn't know yet uses the game's player limit. These switches are saved per character and profiles never change them; each character starts from the account's earlier choice. 15v15 and epic matches are never rated, so their switches wait for **Include unrated battlegrounds**. **This match** marks the size you are in. **Sounds** mutes every Highground sound. Unsupported controls are hidden for your client.
 
 ### Set up for your role
 

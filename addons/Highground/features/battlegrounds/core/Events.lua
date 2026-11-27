@@ -121,6 +121,9 @@ local handlers = {
   PLAYER_ENTERING_WORLD = OnZone,
   ZONE_CHANGED_NEW_AREA = OnZone,
   UPDATE_BATTLEFIELD_SCORE = OnScore,
+  -- Rated and Blitz flags can arrive after entering: the size may change.
+  PVP_MATCH_STATE_CHANGED = function() Core.CheckZone() end,
+  PVP_MATCH_ACTIVE = function() Core.CheckZone() end,
   PVP_MATCH_COMPLETE = function()
     -- The winning capture respawns no flag.
     ns.flagRespawnAt, Core.flagCapturedAt = nil, nil

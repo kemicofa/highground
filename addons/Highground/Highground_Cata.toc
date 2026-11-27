@@ -132,6 +132,7 @@ libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
 libs/ui/kit/Blocks.lua
+libs/ui/kit/SettingRow.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua
@@ -182,6 +183,7 @@ options/State.lua
 options/Controls.lua
 options/AddonPages.lua
 options/General.lua
+options/BattlegroundSizes.lua
 options/SniperColors.lua
 options/AppearancePreview.lua
 options/Appearance.lua
@@ -216,6 +218,7 @@ core/Profiler.lua
 core/ProfilerProbes.lua
 commands/Diagnostics.lua
 commands/Settings.lua
+commands/Sizes.lua
 commands/EnemyAppearance.lua
 libs/bounty/Commands.lua
 commands/Display.lua

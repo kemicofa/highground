@@ -2,6 +2,9 @@ local _, ns = ...
 local Core, Theme, Kit, Options = ns.Core, ns.Theme, ns.Kit, ns.Options
 local pages, byKey = {}, {}
 Options.featureBoxes, Options.featurePages = {}, {}
+-- Catalog rows with a widget field instead of a key: builder(parent, page)
+-- returns a frame with :Layout(width) -> height and an optional :Refresh().
+Options.featureWidgets = {}
 for _, def in ipairs(ns.OptionsConfig.features) do if def.key then byKey[def.key] = def end end
 
 -- Each switch has one real control in its addon's page. The following body
@@ -34,6 +37,10 @@ function Options.FeaturePage(key, owner, fill)
           group.heading = heading; page.featureGroups[#page.featureGroups + 1] = group
           items[#items + 1] = { frame = heading, group = group }
         end
+      elseif def.widget then
+        local build = def.module == owner and ns.OptionAvailable(def) and Options.featureWidgets[def.widget]
+        local frame = build and build(list, page)
+        if frame then items[#items + 1] = { frame = frame, widget = true } end
       elseif def.module == owner and def.key ~= "bountyMarks" and ns.OptionAvailable(def) then
         local cb = ns.Localization.BindWidget(Kit.Toggle(list, def.label, { desc = def.desc, onChange = function(_, on)
           Core.SetFeature(def.key, on)
@@ -65,9 +72,14 @@ function Options.FeaturePage(key, owner, fill)
       for _, item in ipairs(items) do
         local f, def = item.frame, item.option
         f:ClearAllPoints(); f:SetPoint("TOPLEFT", def and def.parent and 18 or 0, -y)
-        f:SetPoint("RIGHT", -12, 0)
-        local height = def and math.max(52, f.label:GetStringHeight() + f.desc:GetStringHeight() + 18) or 32
-        f:SetHeight(height)
+        local height
+        if item.widget then
+          height = f:Layout(math.max(1, list:GetWidth() - 12))
+        else
+          f:SetPoint("RIGHT", -12, 0)
+          height = def and math.max(52, f.label:GetStringHeight() + f.desc:GetStringHeight() + 18) or 32
+          f:SetHeight(height)
+        end
         if item.group then item.group.offset = y end
         y = y + height + 8
       end
@@ -77,6 +89,7 @@ function Options.FeaturePage(key, owner, fill)
     page.RefreshGeneral = function()
       for _, item in ipairs(items) do
         local cb, def = item.frame, item.option
+        if item.widget and cb.Refresh then cb:Refresh() end
         if def then
           cb:SetChecked(Core.db[def.key] ~= false, true)
           local parent, enabled = def.parent, ns.Modules.FeatureEnabled(def.key)

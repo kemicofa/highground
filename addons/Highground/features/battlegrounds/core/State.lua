@@ -133,6 +133,10 @@ Core.DEFAULTS = {
 -- used to live in the account-wide HighgroundDB.
 Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "forecastPoint", "flagsPoint", "arenaPoint", "nearbyPoint", "quickCallsPoint" }
 
+-- Battleground sizes with their own run switch (Core.SizeEnabled).
+Core.SIZE_KEYS = { "bg10", "bg15", "bg40" }
+Core.SIZE_KEYS_SET = { bg10 = true, bg15 = true, bg40 = true }
+
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 
 -- Target recommendations switch: off removes every priority-driven output

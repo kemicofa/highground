@@ -50,7 +50,7 @@ Named rule groups merge, lists replace lists, and `false` can disable an inherit
 
 | Field | Meaning |
 | --- | --- |
-| `size` | Players per team (10, 15, 35 or 40). Picks the 10v10, 15v15 or epic switch; rated play counts as 10 and Blitz as 8 |
+| `size` | Players per team (10, 15, 35 or 40). Picks the 10v10, 15v15 or epic size switch (Battleground sizes); rated play counts as 10 and Blitz as 8 |
 | `games.retail`, `games.forever`, `games.cata` | A game the battleground exists in and its `ui`/`inst` IDs; absence means unsupported there |
 | `games.<game>.rules` | This game's rule overrides, such as Forever's 300-second Alterac Valley captures |
 | `games.<game>.variants[instanceID]` | Named instance variant and its overrides |

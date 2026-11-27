@@ -106,6 +106,11 @@ test("the Battleground sizes card shows this character's switches, the current m
   sim:leave(); sim:event("ZONE_CHANGED_NEW_AREA")
   assert(not card.rows[2].badge:IsShown(), "badge clears outside battlegrounds")
 
+  sim.ns.Localization.SetPreference("deDE")
+  equal(card.title:GetText(), "Schlachtfeldgrößen", "follows a language change")
+  assert(card.rows[1].toggle.label:GetText():find("Schlachtfelder", 1, true), "rows too")
+  sim.ns.Localization.SetPreference("enUS")
+  equal(card.title:GetText(), "Battleground sizes", "and back")
   sim.ns.Core.SetFontScale(1.5)
   local height = card:Layout(320)
   assert(height > 0 and card.rows[1]:GetHeight() > 0, "lays out at a narrow width with large text")

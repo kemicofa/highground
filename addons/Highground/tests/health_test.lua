@@ -152,6 +152,28 @@ t.test("Cata health text rounds, clamps and colours execute, live and stale read
   assert(not rr.hpText:IsShown(), "no text without a reading")
 end)
 
+t.test("rows lay out again after showing secret health, in every layout and health style", function()
+  local sim = new("retail", {})
+  local Core = sim.ns.Core
+  sim:enemy("Text")
+  sim:join()
+  local r = rowFor(sim, "Text")
+  r.entry.hpPct, r.entry.hpSeen, r.entry.unit = nil, { secret = true }, "nameplate1"
+  Core.UpdateHealthText(r, r.entry)
+  assert(r.hpText.secretText, "the label has shown a secret value")
+  for _, compact in ipairs({ false, true }) do
+    for _, style in ipairs({ "bar", "fill", "line" }) do
+      local label = (compact and "compact " or "normal ") .. style
+      Core.db.compact = compact
+      Core.SetStyleChoice("healthStyle", style)
+      Core.SetElement("hero", true)
+      Core.SetElement("hero", false)
+      assert(r.hpText:GetWidth() > 1, label .. ": room for 100%")
+      equal(r.hpText.text, "<secret>%", label .. ": the secret reading stays drawn")
+    end
+  end
+end)
+
 t.test("Retail execute marks read the alpha curve, with the colour curve as the fallback", function()
   local sim = new("retail", {}, function(s, env)
     curves(s, env)

@@ -139,11 +139,12 @@ return function(sim)
   end
   -- The client measures a single-line string as drawn: cut to its width.
   methods.GetStringWidth = function(f)
+    if f.secretText then return { secret = true } end
     local width = textWidth(f)
     if f.wordWrap == false and not f.multiLine then width = math.min(width, f:GetWidth()) end
     return width
   end
-  methods.GetUnboundedStringWidth = textWidth
+  methods.GetUnboundedStringWidth = function(f) return f.secretText and { secret = true } or textWidth(f) end
   methods.GetStringHeight = function(f) return textHeight(f, f:GetWidth()) end
   env.UIParent:SetSize(1280, 820)
 end

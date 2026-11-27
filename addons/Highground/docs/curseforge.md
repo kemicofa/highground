@@ -34,6 +34,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **Enemy team:** clickable opponents with spec icons, casts and crowd control.
 - **PvP trinkets:** see when each opponent's trinket is back.
+- **Opt in:** Arena starts off; switch it on in the Highground window's Addons page.
 
 ### 🌍 Open world
 

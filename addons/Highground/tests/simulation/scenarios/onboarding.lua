@@ -96,7 +96,10 @@ test("battleground scope upgrade includes automatic profiles and runs only once"
   old.ns.Core.SetFeature("allBGs", false)
   old.ns.Core.SetFeature("sniper", false)
   old.ns.Options.Profiles.SaveProfile("Battleground")
-  assert(old.ns.Options.Profiles.Assign("Battleground", "bg"))
+  -- A Battlegrounds assignment saved per specialization, before size layouts.
+  old.ns.Core.UpdateMe()
+  local spec = tostring(old.ns.Core.me.specID or old.ns.Core.me.class or "unknown")
+  old.ns.Core.db.profileAssignments = { [old.ns.Scope.Character()] = { [spec .. ":bg"] = "Battleground" } }
   old.ns.Core.db.battlegroundScopeVersion = nil -- settings saved before the upgrade
   local sim = new("retail", old.env.HighgroundDB, function(s, env)
     s.rated, s.blitz = false, false
@@ -105,7 +108,7 @@ test("battleground scope upgrade includes automatic profiles and runs only once"
   equal(sim.ns.Core.db.allBGs, true, "account includes unrated matches")
   sim:enemy("Enemy")
   sim:join(907, 1803, "Seething Shore")
-  equal(sim.ns.Core.db.activeProfile, "Battleground", "assigned profile loads on entry")
+  equal(sim.ns.Options.Profiles.Layouts.Active(), "bg10", "the assigned profile became the size layout that loads on entry")
   assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible(), "old profile keeps Seething Shore enabled")
   equal(sim.ns.Core.db.sniper, false, "other profile choices survive")
 

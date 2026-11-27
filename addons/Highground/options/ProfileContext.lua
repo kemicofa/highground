@@ -135,7 +135,8 @@ local function LayoutState()
   local remember = P.Layouts.Remember()
   return { layout = bracket, revision = P.revision or 0,
     label = ns.Locale:Format("battlegrounds.layouts.context", { size = label or bracket }),
-    status = ns.Locale:Get(remember and "battlegrounds.layouts.context_saving" or "battlegrounds.layouts.context_kept"),
+    status = ns.Locale:Get(P.pending and P.pending.sizeLayout and "profiles.context.pending"
+      or remember and "battlegrounds.layouts.context_saving" or "battlegrounds.layouts.context_kept"),
     pending = P.pending and P.pending.sizeLayout and (label or bracket) or nil }
 end
 
@@ -217,15 +218,13 @@ local function Create(owner, controls, onLayout)
   bar.label:SetPoint("LEFT", 16, 0); bar.label:SetPoint("RIGHT", bar.state, "LEFT", -20, 0)
   bar.label:SetJustifyH("LEFT"); bar.label:SetWordWrap(false)
   bar:SetScript("OnClick", function()
-    if Current().layout and ns.Options.ShowBattlegroundSizes then
-      if owner ~= (ns.Hub and ns.Hub.win) then owner:Hide() end
-      return ns.Options.ShowBattlegroundSizes()
-    end
     if ns.Hub then
       if owner ~= ns.Hub.win then
         owner:Hide()
         if HideUIPanel and SettingsPanel then pcall(HideUIPanel, SettingsPanel) end
       end
+      -- A size layout in use is managed on the Battleground sizes card.
+      if Current().layout then return ns.Options.ShowBattlegroundSizes() end
       ns.Hub.Open("profiles")
       local name = P.ActiveState().name
       if name then

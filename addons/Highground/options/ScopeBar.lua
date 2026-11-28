@@ -3,10 +3,10 @@ local Core, Kit, Theme, Options, L = ns.Core, ns.Kit, ns.Theme, ns.Options, ns.L
 local S = Theme.Space
 
 ---------------------------------------------------------------------------
--- The size bar at the top of every Battlegrounds settings page: 10v10,
+-- The size tabs at the top of every Battlegrounds settings page: 10v10,
 -- 15v15, Epic and Open world. The page below edits the selected size only
 -- (options/CharacterSettings.lua); a match or world fight selects its own.
--- It also holds where Highground runs for that size, Preview and Copy to
+-- Under the tabs: where Highground runs for that size, Preview and Copy to
 -- other sizes.
 ---------------------------------------------------------------------------
 local bars = {}
@@ -18,13 +18,17 @@ function Options.ScopedPage(key, config)
   return config.module == "battlegrounds" and not key:match("%-previews$") and not key:match("%-commands$")
 end
 
-local function Run(scope) return scope == "world" and "sizes.run.world" or "sizes.run." .. scope end
+-- 10v10 names the rated play this game has.
+local function Run(scope)
+  if scope ~= "bg10" then return "sizes.run." .. scope end
+  return ns.Caps.blitz and "sizes.run.bg10" or ns.Caps.rated and "sizes.run.bg10_rated" or "sizes.run.bg10_all"
+end
 
 function Options.ScopeBar(page)
   local bar = CreateFrame("Frame", nil, page.frame)
-  local choices = {}
-  for _, scope in ipairs(TABS) do choices[#choices + 1] = { key = scope, label = { key = "sizes.tab." .. scope } } end
-  bar.tabs = Kit.Segmented(bar, { choices = choices, onChange = function(_, scope) CS().Select(scope) end })
+  local items = {}
+  for _, scope in ipairs(TABS) do items[#items + 1] = { key = scope, label = { key = "sizes.tab." .. scope } } end
+  bar.tabs = Kit.TabGroup(bar, { items = items, onSelect = function(_, scope) return CS().Select(scope) end })
   bar.badge = Kit.Badge(bar, "", "accent"); bar.badge:Hide()
   bar.preview = Kit.Button(bar, L:Get("sizes.preview.start"), nil, nil, { tone = "accent", onClick = function()
     local ok, problem = CS().TogglePreview()
@@ -48,13 +52,13 @@ function Options.ScopeBar(page)
     local cs = CS()
     if not (cs and Core.pos) then return end
     local editing, locked = cs.Editing(), cs.Locked()
-    self.tabs:SetValue(editing, true)
-    for _, scope in ipairs(TABS) do self.tabs:SetEnabled(scope, not locked or scope == locked) end
+    self.tabs:SetSelected(editing)
+    for _, scope in ipairs(TABS) do self.tabs:SetItemEnabled(scope, not locked or scope == locked) end
     self.badge:SetShown(locked ~= nil)
     if locked then self.badge:Set(L:Get(locked == "world" and "sizes.badge.fight" or "sizes.badge.match")) end
     self.run.label:SetText(L:Get(Run(editing)))
     self.run:SetChecked(Core.SizeEnabled(editing), true)
-    self.unrated:SetShown(editing == "bg10")
+    self.unrated:SetShown(editing == "bg10" and ns.Caps.rated == true)
     self.unrated.label:SetText(L:Get("sizes.unrated"))
     self.unrated:SetChecked(Core.SizeEnabled("unrated"), true)
     local note
@@ -69,36 +73,42 @@ function Options.ScopeBar(page)
     self.copy:SetEnabled(not InCombatLockdown())
   end
 
-  -- Tabs first, Preview and Copy beside them when they fit, otherwise on a
-  -- row of their own; run switches and the note take the full width.
+  -- Tabs across the top (the badge at their end during a match or fight).
+  -- Below them the selected size: run switches, with Preview and Copy on
+  -- their right when both fit, otherwise above them; then the note.
   function bar:Layout(width)
     width = math.max(1, width)
     local gap = S("md")
-    for _, b in ipairs({ self.preview, self.copy }) do b:SetHeight(Kit.Scale(Theme.Size("control"))); Kit.FitButton(b) end
     local badge = self.badge:IsShown() and self.badge:Layout() + gap or 0
-    local actions = self.preview:GetWidth() + gap + self.copy:GetWidth()
-    local beside = width - actions - gap - badge >= Kit.Scale(320)
-    local tabsWidth = math.max(1, beside and width - actions - gap - badge or width - badge)
-    local h = self.tabs:Layout(tabsWidth)
+    self.tabs:SetWidth(math.max(1, width - badge)); self.tabs:Layout()
     Kit.Place(self.tabs, "TOPLEFT", self, "TOPLEFT", 0, 0)
     if badge > 0 then Kit.Place(self.badge, "LEFT", self.tabs, "RIGHT", gap, 0) end
-    local y = beside and 0 or h + S("sm")
+    local y = self.tabs:GetHeight() + S("md")
+    for _, b in ipairs({ self.preview, self.copy }) do b:SetHeight(Kit.Scale(Theme.Size("control"))); Kit.FitButton(b) end
+    local actions = self.preview:GetWidth() + gap + self.copy:GetWidth()
+    local beside = width - actions - gap >= Kit.Scale(320)
     Kit.Place(self.copy, "TOPRIGHT", self, "TOPRIGHT", 0, -y)
     Kit.Place(self.preview, "TOPRIGHT", self, "TOPRIGHT", -(self.copy:GetWidth() + gap), -y)
-    y = (beside and h or y + self.copy:GetHeight()) + S("sm")
-    local box = Theme.Size("toggle") + S("md")
+    local actionsBottom = y + self.copy:GetHeight()
+    if not beside then y = actionsBottom + S("sm") end
+    local toggleWidth = beside and width - actions - gap * 2 or width
+    local box, first = Theme.Size("toggle") + S("md"), true
     for _, toggle in ipairs({ self.run, self.unrated }) do
       if toggle:IsShown() then
         -- An explicit width, so the height is measured at this width.
         local label = toggle.label
         label:SetWordWrap(true); label:ClearAllPoints(); label:SetPoint("TOPLEFT", toggle.box, "TOPRIGHT", S("md"), 0)
-        label:SetWidth(math.max(1, width - box))
+        label:SetWidth(math.max(1, toggleWidth - box))
         local height = math.max(Theme.Size("toggle") + S("sm"), math.ceil(label:GetStringHeight()) + S("xs"))
-        toggle:SetSize(width, height)
+        -- The first switch lines up with the buttons beside it.
+        if beside and first then y = y + math.max(0, math.floor((self.copy:GetHeight() - height) / 2)) end
+        first = false
+        toggle:SetSize(toggleWidth, height)
         Kit.Place(toggle, "TOPLEFT", self, "TOPLEFT", 0, -y)
         y = y + height + S("xs")
       end
     end
+    if beside then y = math.max(y, actionsBottom + S("sm")) end
     self.note:SetWidth(width)
     Kit.Place(self.note, "TOPLEFT", self, "TOPLEFT", 0, -y)
     y = y + math.ceil(self.note:GetStringHeight()) + S("md")

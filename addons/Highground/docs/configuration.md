@@ -39,7 +39,7 @@ Some controls depend on what they can affect:
 Settings are kept per character and per addon (`options/SettingsParts.lua` says
 which setting belongs to which addon); Battlegrounds settings are kept per size
 (10v10, 15v15, epic, open world). Every way of changing a battleground setting
-edits the one size shown by the size bar: pages, commands, guide switches,
+edits the one size selected in the size tabs: pages, commands, guide switches,
 presets and panel menus. Only Copy to other sizes changes several at once.
 
 The Macros and Reputation sections open their full tools for editing macros,

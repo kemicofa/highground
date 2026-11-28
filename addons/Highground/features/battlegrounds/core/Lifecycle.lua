@@ -197,8 +197,9 @@ function Core.InRatedBG()
   if instanceType ~= "pvp" or not Core.SizeOn() then
     return false
   end
-  -- 15v15 and epic matches are never rated; unrated 10v10 has its switch.
-  if Core.SizeBracket(Core.TeamSize()) ~= "bg10" or Core.SizeEnabled("unrated") then
+  -- 15v15 and epic matches are never rated; unrated 10v10 has its switch
+  -- where rated play exists.
+  if Core.SizeBracket(Core.TeamSize()) ~= "bg10" or not ns.Caps.rated or Core.SizeEnabled("unrated") then
     return true
   end
   if not C_PvP then return false end

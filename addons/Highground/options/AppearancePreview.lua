@@ -91,7 +91,7 @@ local scenes = {
     stop = function() ns.Arena.preview = false; ns.Arena.Update() end },
   { key = "nearby", module = "nearby", labelKey = "appearance.preview.scene.nearby",
     start = function() ns.NearbyPreview(); return ns.Nearby.win end,
-    stop = function() ns.Nearby.preview = false; ns.Nearby.Update() end },
+    stop = function() ns.Nearby.SetPreview(false) end },
   { key = "poster", module = "bounties", labelKey = "appearance.preview.scene.poster",
     start = function() ns.Bounty.Preview.Command("poster"); return ns.Bounty.Poster.previewWin end,
     stop = function() ns.Bounty.Preview.Stop() end },

@@ -4914,7 +4914,7 @@ assert((ns.Locale or HighgroundLocale):Register("deDE", {
   ["activity.preview.off"] = "Weltaktivität-Beispiel aus.",
   ["tools.open.activity"] = "Weltaktivität öffnen",
   ["guide.nearby.fights.title"] = "Tötungsreihenfolge in Weltkämpfen",
-  ["guide.nearby.fights.text"] = "In einer Gruppe oder einem Schlachtzug in der offenen Welt laufen Highgrounds Tötungsreihenfolge, Lebensbalken und Team-Anzeigen auch für die Feinde, die du und deine Gruppe seht. Die Tafel erscheint, sobald ein Feind in deiner Zone gesehen wird, und bleibt während des Kampfes; im Kampf kann sie nicht erscheinen, also wartet sie bis zum Kampfende, wenn der erste Feind mitten im Kampf auftaucht.",
+  ["guide.nearby.fights.text"] = "In einer Gruppe oder einem Schlachtzug in der offenen Welt wird diese Liste zu deiner Tötungsreihenfolge, sobald ein Feind in deiner Zone gesehen wird. Die Zeilen folgen ihrem Rang, das Tötungsziel ist hervorgehoben, und Leben sowie ein Auge für Feinde, die dich anvisieren, erscheinen. Außerhalb des Kampfes werden die Zeilen neu sortiert; im Kampf behalten sie ihren Platz und aktualisieren sich weiter.",
   ["fights.label"] = "Tötungsreihenfolge in Weltkämpfen",
   ["fights.desc"] = "In einer Gruppe oder einem Schlachtzug in der offenen Welt die Schlachtfeld-Tötungsreihenfolge, Lebensbalken und Heilermarkierungen für die Feinde nutzen, die du und deine Gruppe seht. Braucht das Schlachtfeld-Modul.",
   ["fights.commands.switch"] = "Die Tötungsreihenfolge in Gruppenkämpfen der offenen Welt nutzen oder aufhören.",

@@ -153,10 +153,16 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     assert(C.running, "the walkthrough runs")
     equal(C.steps[1].id, "nearby")
     local seen = {}
+    local N = sim.ns.Nearby
     for i, step in ipairs(C.steps) do
       C.Go(i); sim:advance(0.3)
       equal(C.steps[C.index].id, step.id, "step " .. step.id .. " opens")
       seen[step.id] = true
+      if step.id == "fights" then
+        assert(N.Fighting() and C.target == N.rows[1] and N.rows[1].who == "Frostbyte", "the kill order leads, in fight mode")
+      elseif step.id == "nearby" or step.id == "memory" then
+        assert(not N.Fighting(), step.id .. " shows the plain list")
+      end
     end
     for _, id in ipairs({ "shared", "fights", "marks", "activity", "track" }) do assert(seen[id], "has the " .. id .. " step") end
     sim.ns.Onboarding.Return()

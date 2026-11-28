@@ -28,6 +28,7 @@ Core.TICK_STAGES = {
   { "score", "Recompute" }, -- core/Scoring.lua
   { "targetbtn", "UpdateTargetButton" }, -- ui/Actions.lua
   { "render", "Render" }, -- ui/Render.lua
+  { "nearby", "PaintNearbyFight" }, -- core/World.lua
 }
 
 -- Capture nameplate bars sit under Battleground timers on the General page:
@@ -115,7 +116,7 @@ function Core.SetActive(on)
     if InCombatLockdown() then
       Core.layoutPending = true
     else
-      ShowPanel(Core.guidedTest or Core.PriorityOn())
+      ShowPanel(Core.PanelWanted())
     end
     ticker = C_Timer.NewTicker(0.25, Core.TimedTick)
     if bg then
@@ -215,7 +216,7 @@ function Core.ApplyKillOrder()
     Core.layoutPending = true -- applied when combat ends
     return
   end
-  ShowPanel(Core.active and (Core.guidedTest or Core.PriorityOn()))
+  ShowPanel(Core.PanelWanted())
   if Core.UpdateTargetButton then Core.UpdateTargetButton() end
 end
 

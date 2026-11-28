@@ -26,6 +26,7 @@ local Nearby = ns.Nearby
 -- while tracking; a one-second poll notices switches (NearbyEvents.lua).
 -- Shared sightings (world/Share.lua) add enemies your group or guild saw:
 -- rows say who saw them, and only your own zone's are listed.
+-- Open-world group fights rank the list by kill order (world/NearbyFight.lua).
 ---------------------------------------------------------------------------
 Nearby.MAX = 20 -- rows built; the setting picks how many show
 Nearby.ROW_H = 44
@@ -267,7 +268,7 @@ function Nearby.Layout()
     r:SetHeight(Nearby.ROW_H)
     r.icon:SetSize(32, 32); r.icon:SetPoint("TOPLEFT", 6, -6)
     r.name:ClearAllPoints(); r.name:SetPoint("TOPLEFT", 46, -4); r.name:SetPoint("TOPRIGHT", -52 * scale, -4)
-    r.sub:ClearAllPoints(); r.sub:SetPoint("BOTTOMLEFT", 46, 5); r.sub:SetPoint("BOTTOMRIGHT", -6, 5)
+    r.sub:ClearAllPoints(); r.sub:SetPoint("BOTTOMLEFT", 46, 5); r.sub:SetPoint("BOTTOMRIGHT", -10 - Nearby.LayoutFight(r, scale), 5)
     r.right:ClearAllPoints(); r.right:SetPoint("TOPRIGHT", -6, -6); r.right:SetWidth(42 * scale)
   end
   w:SetHeight(top + (Nearby.shownCount or 0) * (Nearby.ROW_H + gap) + Nearby.ACTION_H + pad)
@@ -288,7 +289,7 @@ local function Bind(r, name)
 end
 
 local LEVEL, TITLE = {}, {}
-local function Fill(r, e, now, fade, zone)
+local function Fill(r, e, now, fade, zone, fighting)
   local ago = now - e.last
   local cc = ns.Util.ClassColor(e.class)
   Hud.PaintEnemy(r.classBg, cc)
@@ -310,7 +311,7 @@ local function Fill(r, e, now, fade, zone)
   if tag then sub = sub and (sub .. " · " .. tag) or tag end
   if tracked then sub = ns.Locale:Get("tracking.row") .. (sub and (" · " .. sub) or "") end
   r.sub:SetText(sub or "")
-  r.right:SetText(ago < 2 and ns.Locale:Get("shared.nearby.now.e3b820") or Util.Ago(math.floor(ago)))
+  Nearby.PaintFight(r, e, now, fighting)
   r:SetAlpha(ago > fade and 0.45 or 1)
   if ns.Bounty then
     if Nearby.test then ns.Bounty.PaintRowMark(r, Nearby.test.bounty)
@@ -356,6 +357,7 @@ function Nearby.Update()
     Nearby.titleCount, Nearby.titleLocale, TITLE.value2 = counted, locale, counted
     Nearby.win.title:SetText(ns.Locale:Format("shared.nearby.nearby_value2.2f321f", TITLE))
   end
+  local fighting = Nearby.Rank(list, Newer)
   local count = math.min(#list, O("nearbyRows"))
   local fade, zone = O("nearbyFade"), Util.ZoneName()
   if InCombatLockdown() then
@@ -365,7 +367,7 @@ function Nearby.Update()
     for i = 1, Nearby.shownCount or 0 do
       local r = Nearby.rows[i]
       local e = r.who and Nearby.seen[r.who]
-      if e then Fill(r, e, now, fade, zone) else r:SetAlpha(0.25) end
+      if e then Fill(r, e, now, fade, zone, fighting) else r:SetAlpha(0.25) end
       if r.who then shown[r.who] = true end
     end
     for i = 1, #list do
@@ -378,7 +380,7 @@ function Nearby.Update()
       if e then
         r.who = e.name
         Bind(r, not Nearby.preview and not Nearby.guide and not Nearby.test and e.name or nil)
-        Fill(r, e, now, fade, zone)
+        Fill(r, e, now, fade, zone, fighting)
         r:Show()
       else
         r.who = nil

@@ -111,7 +111,7 @@ function CS.Select(scope)
   CS.Update()
   if CS.preview and CS.preview.scope ~= scope then
     CS.preview.scope = scope
-    ns.PreviewTests.StartBattlegrounds(CS.TEAM[scope])
+    CS.Samples(scope)
   end
   Changed()
   return true
@@ -122,6 +122,19 @@ end
 -- and unlocked, so they can be dragged while its settings change.
 ---------------------------------------------------------------------------
 function CS.Previewing() return CS.preview ~= nil end
+
+-- Battleground sizes show their panels; Open world shows Nearby's list in
+-- fight mode, its only panel in a world fight (world/Nearby.lua).
+function CS.Samples(scope)
+  local Nearby = ns.Nearby
+  if scope == "world" then
+    ns.PreviewTests.StopBattlegrounds()
+    if Nearby and Nearby.SetPreview then Nearby.SetPreview(true, true) end
+  else
+    if Nearby and Nearby.previewFight and Nearby.SetPreview then Nearby.SetPreview(false) end
+    ns.PreviewTests.StartBattlegrounds(CS.TEAM[scope])
+  end
+end
 function CS.CanPreview()
   if CS.Locked() or not ns.PreviewTests then return false end
   return ns.PreviewTests.CanStart() == true
@@ -132,6 +145,7 @@ function CS.StopPreview()
   if not state then return true end
   CS.preview = nil
   ns.PreviewTests.StopBattlegrounds()
+  if ns.Nearby and ns.Nearby.previewFight and ns.Nearby.SetPreview then ns.Nearby.SetPreview(false) end
   Core.db.locked = state.locked
   if Core.StyleDB() == state.style then state.style.frameless = state.frameless end
   Core.ApplyStyle("frameless")
@@ -148,7 +162,7 @@ function CS.TogglePreview()
   CS.preview = { scope = scope, locked = Core.db.locked, style = style, frameless = style.frameless }
   Core.db.locked, style.frameless = false, false
   Core.ApplyStyle("frameless")
-  ns.PreviewTests.StartBattlegrounds(CS.TEAM[scope])
+  CS.Samples(scope)
   -- Samples belong to the settings window: closing it ends them.
   local hub = ns.Hub and ns.Hub.win
   if hub and not CS.hubHooked then CS.hubHooked = true; hub:HookScript("OnHide", function() CS.StopPreview() end) end

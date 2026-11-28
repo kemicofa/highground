@@ -121,11 +121,13 @@ function C.NearbySteps()
     return w
   end
   local function History() return Journal() end
-  local function Panel()
+  -- fight: the samples in fight mode (the world-fight step).
+  local function Panel(fight)
     if data.win then ns.Kit.Windows.Close(data.win) end
     Nearby.guide = { history = History }
     ns.Setup.BeginPlacement(true, "world")
-    Nearby.preview = true; Nearby.Update()
+    Nearby.preview, Nearby.previewFight = true, fight == true or nil
+    Nearby.Update()
   end
   local function Context() return data.win end
   -- Sample rows by name: their order follows the samples' ages.
@@ -155,7 +157,7 @@ function C.NearbySteps()
       enter = Panel, target = function() return Nearby.win end, context = function() return Nearby.win end,
       feature = "nearbyMarks", settingLabel = ns.Locale:Get("marks.label") },
     { id = "fights", title = ns.Locale:Get("guide.nearby.fights.title"), text = ns.Locale:Get("guide.nearby.fights.text"),
-      enter = Panel, target = function() return Nearby.win end, context = function() return Nearby.win end,
+      enter = function() Panel(true) end, target = function() return Row("Frostbyte") end, context = function() return Nearby.win end,
       feature = "worldFights", settingLabel = ns.Locale:Get("fights.label") },
     { id = "sound", sound = "nearby", title = ns.Locale:Get("highground.coachsamples.choose_whether_nearby_makes_a_sound.01f030"), text = ns.Locale:Get("nearby.sound.tooltip"),
       enter = Panel, target = function() return Nearby.win.sound end, context = function() return Nearby.win end,

@@ -136,6 +136,28 @@ test("each game's 10v10 switch names only the rated play it has", function()
   end
 end)
 
+test("Open world's Preview shows Nearby's list in fight mode, not the board", function()
+  local sim, C, CS = setup()
+  local bar, N = Settings(sim).scopeBar, sim.ns.Nearby
+  bar.tabs.buttons.world:Click()
+  bar.preview:Click()
+  assert(CS.Previewing() and N.preview and N.Fighting(), "Nearby's samples in fight mode")
+  assert(not C.testMode and not C.frame:IsShown(), "no board samples")
+  local first = N.rows[1]
+  equal(first.who, "Frostbyte", "the kill target leads")
+  assert(first.killTint:IsShown() and first.rankBox:IsShown() and first.hp:IsShown(), "highlighted, ranked, with health")
+  bar.tabs.buttons.bg15:Click()
+  assert(C.testMode and not N.preview, "a battleground size swaps to its panels")
+  bar.tabs.buttons.world:Click()
+  assert(N.preview and N.Fighting() and not C.testMode, "and back")
+  bar.preview:Click()
+  assert(not CS.Previewing() and not N.preview and not N.previewFight, "Stop preview ends the samples")
+  sim:command("nearby test")
+  assert(N.preview and not N.Fighting(), "/hg nearby test stays the plain list")
+  sim:command("nearby test")
+  sim:assertHealthy()
+end)
+
 test("Copy to other sizes overwrites only the ticked sizes", function()
   local sim, C, CS = setup()
   Settings(sim)

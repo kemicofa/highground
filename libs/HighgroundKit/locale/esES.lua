@@ -4914,7 +4914,7 @@ assert((ns.Locale or HighgroundLocale):Register("esES", {
   ["activity.preview.off"] = "Ejemplo de Actividad del mundo desactivado.",
   ["tools.open.activity"] = "Abrir actividad del mundo",
   ["guide.nearby.fights.title"] = "Orden de muerte en combates del mundo",
-  ["guide.nearby.fights.text"] = "En un grupo o banda en el mundo abierto, el orden de muerte, las barras de salud y los paneles de equipo de Highground también funcionan con los enemigos que ves tú y tu grupo. El panel aparece cuando se ve un enemigo en tu zona y se queda mientras dura el combate; no puede aparecer en combate, así que espera a que termine si el primer enemigo llega en plena pelea.",
+  ["guide.nearby.fights.text"] = "En un grupo o banda en el mundo abierto, esta lista se convierte en tu orden de muerte en cuanto se ve un enemigo en tu zona. Las filas siguen su rango, el objetivo a matar se resalta y aparecen la salud y un ojo para los enemigos que te tienen como objetivo. Las filas se reordenan fuera de combate; en combate mantienen su lugar y se siguen actualizando.",
   ["fights.label"] = "Orden de muerte en combates del mundo",
   ["fights.desc"] = "En un grupo o banda en el mundo abierto, usa el orden de muerte de campo de batalla, las barras de salud y los marcadores de sanadores con los enemigos que ves tú y tu grupo. Necesita el módulo de Campos de batalla.",
   ["fights.commands.switch"] = "Usa el orden de muerte en combates de grupo del mundo abierto, o deja de hacerlo.",

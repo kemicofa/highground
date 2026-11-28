@@ -102,11 +102,13 @@ function Commands.live(arg, msg, say)
   Options.PointsChanged()
 end
 
--- /hg all: unrated 10v10 matches (the 10v10 size's run switches).
+-- /hg all: unrated 10v10 matches (the 10v10 size's run switches). Without
+-- rated play every 10v10 match follows the 10v10 switch.
 function Commands.all(arg, msg, say)
+  if not ns.Caps.rated then return say(ns.Locale:Get("sizes.unrated.none")) end
   local on = not Core.SizeEnabled("unrated")
   Core.SetSizeEnabled("unrated", on)
-  say(ns.Locale:Get(on and "sizes.unrated.on" or "sizes.unrated.off"))
+  say(ns.Locale:Get(on and "sizes.unrated.on" or ns.Caps.blitz and "sizes.unrated.off" or "sizes.unrated.off_rated"))
 end
 
 function Commands.rows(arg, msg, say)

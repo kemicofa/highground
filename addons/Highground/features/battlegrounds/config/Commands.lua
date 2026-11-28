@@ -24,7 +24,7 @@ C.Register("battlegrounds", "highground.modules.battlegrounds.2de13e", {
     fields = { ns.Localization.Define({ label = ns.Locale:Get("battlegrounds.commands.ping.6b68e9"), choices = { "attack", "warning", "assist", "onmyway" } }, { label = "battlegrounds.commands.ping.6b68e9" }) } }),
   A("why", "battlegrounds.commands.print_why_the_kill_target_was_chosen.179446", "battlegrounds.commands.explain_target_choice.8f6c23"),
   L("live", "battlegrounds.commands.toggle_live_priority_row_sorting.f7637b", "behavior", "battlegrounds.commands.live_sorting_controls.909ed6"),
-  L("all", "battlegrounds.commands.toggle_participation_in_unrated_battlegrounds.4bff63", "battlegrounds-settings", "battlegrounds.commands.battleground_scope_controls.ca4a01"),
+  L("all", "battlegrounds.commands.toggle_participation_in_unrated_battlegrounds.4bff63", "battlegrounds-settings", "battlegrounds.commands.battleground_scope_controls.ca4a01", { caps = "rated" }),
   L("sizes", "sizes.command", "battlegrounds-settings", "sizes.command_label", { usage = "[10|15|40|world] [on|off]" }),
   L("sizes copy", "sizes.command_copy", "battlegrounds-settings", "sizes.copy.open", { usage = "SIZE [SIZE...]" }),
   L("sizes preview", "sizes.command_preview", "battlegrounds-settings", "sizes.preview.start"),

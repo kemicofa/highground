@@ -158,11 +158,13 @@ test("new callout options are opt-in, saved in profiles and disabled in previews
       assert(toggle and not toggle.option.advanced and toggle.option.parent == "quickCalls")
       click(toggle); equal(C.db[key], true)
     end
-    local P, Q = sim.ns.Options.Profiles, sim.ns.QuickCalls
-    P.SaveProfile("Routes")
+    local CS, Q = sim.ns.CharacterSettings, sim.ns.QuickCalls
+    local code = CS.Export("battlegrounds")
     C.SetFeature("quickCallsDestinations", false); C.SetFeature("quickCallsRoutes", false)
-    sim:command("profile load Routes")
-    equal(C.db.quickCallsDestinations, true); equal(C.db.quickCallsRoutes, true)
+    local ok, _, index = CS.Import(code, "Routes")
+    assert(ok and CS.Copy({ import = index }, "battlegrounds"))
+    equal(C.db.quickCallsDestinations, true, "copying the export restores destinations")
+    equal(C.db.quickCallsRoutes, true, "and routes")
     assert(sim.ns.BattlegroundsPreview.Start())
     local w = assert(Q.win)
     assert(w.destinationGroup:IsShown() and w.routeGroup:IsShown())
@@ -174,6 +176,7 @@ test("new callout options are opt-in, saved in profiles and disabled in previews
     for _, button in ipairs(w.routeButtons) do equal(button.fire.attrs.macrotext, "") end
     equal(#sim.chat, 0, "previews never send")
     sim.ns.BattlegroundsPreview.Stop(); assert(not w:IsShown())
+    sim:event("PLAYER_LOGOUT")
     local reload = new("cata", sim.env.HighgroundDB)
     equal(reload.ns.Core.db.quickCallsDestinations, true); equal(reload.ns.Core.db.quickCallsRoutes, true)
     sim:assertHealthy(); reload:assertHealthy()

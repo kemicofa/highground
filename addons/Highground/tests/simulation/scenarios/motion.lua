@@ -8,11 +8,16 @@ for _, client in ipairs({ "cata", "retail" }) do
 test(client .. " alpha transitions retarget continuously and stop their driver when idle", function()
   local sim = new(client)
   local M, T = sim.ns.Motion, sim.ns.Theme
+  sim:advance(1) -- panels shown at login finish their transitions
   local region = T.Fill(sim.env.UIParent, "ARTWORK", "accent")
   region:SetAlpha(0)
+  local updating = {}
+  for _, f in ipairs(sim.frames) do if f.GetScript and f:GetScript("OnUpdate") then updating[f] = true end end
   M.Alpha(region, 1, "page")
-  local driver = sim.frames[#sim.frames]
-  assert(driver:GetScript("OnUpdate"), "transition starts the shared driver")
+  -- The shared driver: the frame this transition woke.
+  local driver
+  for _, f in ipairs(sim.frames) do if f.GetScript and f:GetScript("OnUpdate") and not updating[f] then driver = f end end
+  assert(driver and driver:GetScript("OnUpdate"), "transition starts the shared driver")
   sim:advance(0.05)
   near(region:GetAlpha(), 1 - 0.75 ^ 3, "eased quarter-time value")
   M.Alpha(region, 1, "page")

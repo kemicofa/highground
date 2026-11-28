@@ -84,7 +84,6 @@ local function Changed(event)
   parts[#parts + 1] = (ns.Games[ns.GAME] or ns.Games.retail).label
   parts[#parts + 1] = ns.Text.Upper(event.to.meta and event.to.meta.label or key)
   w:SetSub(table.concat(parts, "  ·  "))
-  ns.Options.Profiles.RefreshContext()
 end
 
 function Hub.BuildRoutes(w)

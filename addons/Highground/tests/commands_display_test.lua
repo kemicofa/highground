@@ -5,6 +5,11 @@ local t = dofile("../../tools/harness.lua")("display commands")
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
 local C = dofile("tests/support/commands.lua")
 local equal, run, has = t.equal, C.run, C.has
+-- A /reload: settings are saved on logout; the character keeps its own.
+local function reload(sim)
+  sim:event("PLAYER_LOGOUT")
+  return new(sim.client, sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
+end
 
 t.test("/hg timers on, off and reset change the switch and restore window positions", function()
   local sim = new("cata", {})
@@ -40,7 +45,7 @@ t.test("/hg call chooses the chat channel, keeps it on bad input and uses it for
   sim:join()
   run(sim, "call")
   assert(sim.chatDraft:find("^/raid {rt8} KILL Caller"), "call drafted in the chosen channel: " .. tostring(sim.chatDraft))
-  equal(new("cata", db).ns.Core.db.callChannel, "raid", "channel survives reload")
+  equal(reload(sim).ns.Core.db.callChannel, "raid", "channel survives reload")
 end)
 
 t.test("/hg mark sets the raid icon, ignores out-of-range icons and explains the button", function()

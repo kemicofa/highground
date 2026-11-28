@@ -71,7 +71,8 @@ test(client .. " class rows persist independently of board health and switch saf
   row.entry.dead = true
   Core.Render()
   near(row.classBg:GetAlpha(), 0.4 * 0.6, "dead row dims with its content")
-  local again = new(client, sim.env.HighgroundDB)
+  sim:event("PLAYER_LOGOUT")
+  local again = new(client, sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
   equal(again.ns.Theme.Current(), "classcolors", "selection survives reload")
   equal(again.ns.Core.StyleChoice("healthStyle").key, "line", "health preference preserved")
 end)

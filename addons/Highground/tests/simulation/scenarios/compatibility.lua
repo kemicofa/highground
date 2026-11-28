@@ -154,19 +154,21 @@ end
 
 test("damaged battleground, profile, match and macro records load without errors", function()
   local saved = { rowsVersion = "two", battlegroundScopeVersion = {}, history = {}, profiles = "damaged",
-    profileAssignments = { Someone = "damaged" }, capLog = { "junk", 5 }, disabledCooldowns = "damaged" }
+    profileAssignments = { Someone = "damaged" }, capLog = { "junk", 5 }, disabledCooldowns = "damaged",
+    profileImports = { "junk", { name = "Broken", snap = "damaged" }, { name = 5 } }, characters = { Someone = "damaged", Other = { addons = "x" } } }
   local sim = new("cata", saved)
   local db = sim.env.HighgroundDB
   equal(db.rowsVersion, 3, "damaged upgrade marker repaired")
   equal(db.battlegroundScopeVersion, 2, "every damaged marker repaired")
   equal(db.history, nil, "the empty legacy history stub is not recreated")
-  equal(type(db.profiles), "table", "profiles repaired")
-  assert(db.profiles.Default, "Default installed")
+  equal(db.profiles, nil, "damaged old profiles go"); equal(db.profileAssignments, nil, "with their assignments")
   equal(#db.capLog, 0, "damaged capture log entries dropped")
-  sim:command("profile save Mine")
-  assert(sim.ns.Options.Profiles.DeleteProfile("Mine"), "profiles with damaged assignments can be deleted")
-  local P = sim.ns.Options.Profiles
-  if P.Assign then assert(P.Assign("Default", "world")) end
+  local CS = sim.ns.CharacterSettings
+  equal(#CS.Profiles("battlegrounds"), 1, "damaged imports and characters are not listed")
+  local ok, _, index = CS.Import(CS.Export("battlegrounds"), "Mine")
+  assert(ok and CS.Copy({ import = index }, "battlegrounds"), "imports work beside damaged ones")
+  assert(CS.Delete({ import = index }), "and can be deleted")
+  sim.ns.Hub.Open("profiles"); sim.ns.Hub.win:Hide()
   local character = sim.ns.Scope.Store("character")
   character.matchInProgress = { map = "Arathi Basin", scope = sim.ns.Scope.Character(), game = sim.ns.GAME,
     updated = sim.env.time(), events = "damaged", started = "soon" }

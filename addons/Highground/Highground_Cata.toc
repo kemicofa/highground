@@ -132,7 +132,6 @@ libs/ui/kit/Lists.lua
 libs/ui/kit/Layout.lua
 libs/ui/kit/ActionRow.lua
 libs/ui/kit/Blocks.lua
-libs/ui/kit/SettingRow.lua
 libs/ui/kit/Tabs.lua
 libs/ui/Locale.lua
 libs/ui/kit/ProgressStepper.lua
@@ -187,9 +186,9 @@ features/battlegrounds/core/Features.lua
 core/Preview.lua
 options/State.lua
 options/Controls.lua
+options/ScopeBar.lua
 options/AddonPages.lua
 options/General.lua
-options/BattlegroundSizes.lua
 options/SniperColors.lua
 options/AppearancePreview.lua
 options/Appearance.lua
@@ -204,16 +203,12 @@ options/Overrides.lua
 options/Refresh.lua
 options/ProfileData.lua
 options/ProfileSetup.lua
-options/ProfileLayouts.lua
-options/LayoutCopy.lua
-options/ProfileSummary.lua
-options/ProfileComparison.lua
+options/SettingsParts.lua
+options/CharacterSettings.lua
+options/ProfileList.lua
 options/Profiles.lua
-options/ProfileAssignments.lua
 options/Root.lua
-options/ProfileContext.lua
 options/ProfileSharing.lua
-options/ProfileReview.lua
 options/Setup.lua
 options/SetupLayout.lua
 options/PanelControls.lua
@@ -227,6 +222,7 @@ core/ProfilerProbes.lua
 commands/Diagnostics.lua
 commands/Settings.lua
 commands/Sizes.lua
+commands/Profiles.lua
 commands/EnemyAppearance.lua
 libs/bounty/Commands.lua
 commands/Display.lua

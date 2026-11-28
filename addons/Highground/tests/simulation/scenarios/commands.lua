@@ -4,15 +4,26 @@ local function new(client, saved, configure) return newClient(client, saved or {
 
 test("command dispatch preserves profile names, import case and settings aliases", function()
   local sim = new("cata")
-  local db = sim.env.HighgroundDB
+  local db, CS, P = sim.env.HighgroundDB, sim.ns.CharacterSettings, sim.ns.Options.Profiles
+  local function find(name)
+    for _, item in ipairs(CS.Profiles("battlegrounds")) do if item.name == name then return item end end
+  end
   sim:command("points killPer 9")
-  sim:command("profile save Assault Setup")
+  local code = P.ExportString(P.Snapshot(), "Assault Setup")
   sim:command("points killPer 2")
-  sim:command("profile load Assault Setup")
-  equal(db.points.killPer, 9, "profile restores scoring")
-  equal(db.activeProfile, "Assault Setup", "profile name keeps original case")
+  sim:command("import " .. code)
+  assert(find("Assault Setup"), "profile name keeps original case")
+  equal(db.points.killPer, 2, "importing applies nothing")
+  sim:command("profile copy battlegrounds assault setup")
+  equal(db.points.killPer, 9, "copying the import restores scoring")
   sim:command("import WB1;f=cata;p.killPer=7;s.MAGE.1.k=8")
-  equal(db.points.killPer, 7, "import applies numeric values")
+  local plain
+  for _, item in ipairs(CS.Profiles("battlegrounds")) do
+    if item.kind == "import" and item.name ~= "Assault Setup" then plain = item end
+  end
+  assert(plain, "a plain old code imports")
+  sim:command("profile copy battlegrounds " .. plain.name)
+  equal(db.points.killPer, 7, "import keeps numeric values")
   equal(db.specRatings[8001].k, 8, "class token case survives command parser")
   sim:command("options")
   assert(sim.env.HighgroundHub:IsShown(), "options alias opens the Highground window")
@@ -29,7 +40,7 @@ test("command dispatch preserves profile names, import case and settings aliases
   sim:command("scale invalid")
   equal(db.scale, 0.8, "invalid scale preserves settings")
   sim:command("profile delete Assault Setup")
-  equal(db.profiles["Assault Setup"], nil, "named profile deletion dispatches")
+  equal(find("Assault Setup"), nil, "named profile deletion dispatches")
 end)
 
 test("diagnostic and display commands operate on the running addon", function()

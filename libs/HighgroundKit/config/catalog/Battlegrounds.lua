@@ -4,7 +4,7 @@ local _, ns = ...
 -- and Highground Battlegrounds. See config/Options.lua.
 ns.OptionsAdd({
   module = "battlegrounds",
-  firstRun = { allBGs = true, sniper = true, pressure = false, burstMarks = false,
+  firstRun = { sniper = true, pressure = false, burstMarks = false,
     dieAlert = false, sapCall = false, hideTracker = false, objectiveOverview = false },
   pointAliases = { kit42292 = "trinketDown" },
   pages = {
@@ -49,10 +49,6 @@ ns.OptionsAdd({
     {
       ns.Localization.Define({ group = "Battleground", order = 3 }, { groupLabel = "highground.home.battleground.19d4bd" }),
       ns.Localization.Define({ key = "compact", label = ns.Locale:Get("highground.appearance.compact_layout.755c0b"), desc = ns.Locale:Get("shared.battlegrounds.slim_one_line_rows_battleground_panels_dock.a35a2e") }, { label = "highground.appearance.compact_layout.755c0b", desc = "shared.battlegrounds.slim_one_line_rows_battleground_panels_dock.a35a2e" }),
-      ns.Localization.Define({ key = "allBGs", label = ns.Locale:Get("shared.battlegrounds.include_unrated_battlegrounds.c9e060"), desc = ns.Locale:Get("shared.battlegrounds.show_panels_in_ordinary_battlegrounds_too_when.4d8a6b") }, { label = "shared.battlegrounds.include_unrated_battlegrounds.c9e060", desc = "shared.battlegrounds.show_panels_in_ordinary_battlegrounds_too_when.4d8a6b" }),
-      -- Run switches per battleground size: a card of their own, saved per
-      -- character and outside profiles (options/BattlegroundSizes.lua).
-      { widget = "battlegroundSizes" },
       ns.Localization.Define({ key = "timers", label = ns.Locale:Get("shared.battlegrounds.battleground_timers.eeca0a"), desc = ns.Locale:Get("shared.battlegrounds.show_when_players_return_from_a_graveyard.c60684") }, { label = "shared.battlegrounds.battleground_timers.eeca0a", desc = "shared.battlegrounds.show_when_players_return_from_a_graveyard.c60684" }),
       ns.Localization.Define({ key = "quickCalls", label = ns.Locale:Get("shared.battlegrounds.quick_callout_panel.b8c456"), desc = ns.Locale:Get("shared.battlegrounds.movable_help_1_2_3_and_all.6c5bb6") }, { label = "shared.battlegrounds.quick_callout_panel.b8c456", desc = "shared.battlegrounds.movable_help_1_2_3_and_all.6c5bb6" }),
       ns.Localization.Define({ key = "quickCallsDestinations", label = ns.Locale:Get("shared.battlegrounds.enemy_destination_callouts.87b0d8"), parent = "quickCalls", desc = ns.Locale:Get("shared.battlegrounds.choose_another_area_then_click_1_2.49df77") }, { label = "shared.battlegrounds.enemy_destination_callouts.87b0d8", desc = "shared.battlegrounds.choose_another_area_then_click_1_2.49df77" }),

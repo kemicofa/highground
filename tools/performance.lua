@@ -40,10 +40,11 @@ end)
 measure("panel scale x10", function()
   for i = 1, 10 do sim.ns.Core.SetPanelScale("main", i % 2 == 0 and 1 or 1.1) end
 end)
-measure("named profile status x20", function()
-  local P, C = sim.ns.Options.Profiles, sim.ns.Core
-  P.SaveProfile("Benchmark"); C.db.activeProfile = "Benchmark"
-  for _ = 1, 20 do assert(not P.ActiveState().modified) end
+measure("battleground size switch x20", function()
+  for i = 1, 20 do assert(sim.ns.CharacterSettings.Select(i % 2 == 0 and "bg10" or "bg15")) end
+end)
+measure("profile export x20", function()
+  for _ = 1, 20 do assert(sim.ns.CharacterSettings.Export("battlegrounds")) end
 end)
 measure("palette changes x5", function()
   for i = 1, 5 do sim.ns.Theme.Use(i % 2 == 0 and "highground" or "ember") end

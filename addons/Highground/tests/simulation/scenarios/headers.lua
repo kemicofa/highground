@@ -111,12 +111,16 @@ end)
 test("profile settings title and Open Highground use the same header layout", function()
   local sim = new("cata", nil, geometry)
   local O = sim.ns.Options
-  O.panel:SetSize(760, 600); O.panel:Show()
+  -- Blizzard's settings canvas: any parent but the Highground window.
+  O.panel:SetParent(sim.env.UIParent); O.panel:SetSize(760, 600); O.panel:Show()
+  equal(O.panel.header.title:GetText(), "Profiles", "the page title")
+  assert(O.openHub:IsShown(), "Open Highground shows outside the Highground window")
   for _, scale in ipairs({ 1, 1.5 }) do
     sim.ns.Core.SetFontScale(scale)
     centered(sim, O.panel.header.title, O.openHub, "profile action aligns with its heading")
     inside(sim, O.openHub, O.panel.header)
   end
+  O.panel:Hide() -- Open Highground closes Blizzard's settings first
   sim.ns.Hub.Open("profiles")
   assert(not O.openHub:IsShown(), "embedded settings keep their existing action visibility")
   centered(sim, O.panel.header.title, O.panel.header, "header remains centered without its action")

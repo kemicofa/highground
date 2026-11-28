@@ -92,10 +92,12 @@ C.Register("shared", "Highground", {
   L("opacity", "highground.commands.set_the_background_opacity_of_hud_panels.410456", "appearance", "highground.commands.adjust_background_opacity.e90a2c", { usage = "PCT" }),
   L("sound", "highground.commands.toggle_the_master_highground_sound_preference.28df20", "general", "highground.commands.master_sound_control.3d795e"),
   L("theme", "highground.commands.list_themes_or_select_a_theme_by.cefae5", "appearance", "highground.commands.choose_a_theme.3fdb3a", { usage = "[NAME]" }),
-  L("profile", "commands.profile.manage", "profiles", "highground.commands.manage_saved_profiles.34ea7c", { usage = "[save|load|delete|share NAME]" }),
-  A("profile share", "highground.commands.prepare_a_chat_link_for_your_current.bda6ce", "highground.commands.share_a_setup.a721f2", { usage = "[NAME]", fields = { ns.Localization.Define({ label = ns.Locale:Get("highground.commands.profile_name_blank_current_setup.3a0818"), optional = true }, { label = "highground.commands.profile_name_blank_current_setup.3a0818" }) } }),
-  A("export", "highground.commands.choose_current_settings_or_a_saved_copy.fc617e", "highground.commands.export_settings.d18ef7", { usage = "[NAME]", fields = { ns.Localization.Define({ label = ns.Locale:Get("highground.commands.profile_name_blank_current_setup.3a0818"), optional = true }, { label = "highground.commands.profile_name_blank_current_setup.3a0818" }) } }),
-  L("import", "highground.commands.review_or_import_a_settings_code_preserving.1aa9fe", "profiles", "highground.commands.import_a_profile.c5e591", { usage = "[CODE]" }),
+  L("profile", "profiles.commands.manage", "profiles", "profiles.page.title", { usage = "[ADDON]" }),
+  L("profile copy", "profiles.commands.copy", "profiles", "profiles.commands.copy_label", { usage = "ADDON NAME" }),
+  L("profile delete", "profiles.commands.delete", "profiles", "profiles.commands.delete_label", { usage = "NAME" }),
+  L("profile share", "profiles.commands.share", "profiles", "profiles.share.chat", { usage = "[ADDON]" }),
+  L("export", "profiles.commands.export", "profiles", "profiles.page.export", { usage = "[ADDON]" }),
+  L("import", "profiles.commands.import", "profiles", "profiles.page.import", { usage = "[CODE]" }),
   A("err", "highground.commands.print_recorded_errors_and_diagnostic_counters_in.7e7664", "highground.commands.show_errors_in_chat.49dd1c"),
   A("clearerr", "highground.commands.clear_recorded_errors.dc03e0", "highground.commands.clear_recorded_errors.12b928", ns.Localization.Define({ confirm = ns.Locale:Get("highground.commands.clear_all_recorded_errors.92b34e") }, { confirm = "highground.commands.clear_all_recorded_errors.92b34e" })),
   A("perf", "highground.commands.print_the_latest_performance_capture_in_chat.11de69", "highground.commands.show_performance_report.27a0b2"),
@@ -110,6 +112,14 @@ function C.Owner(message)
   local path = (message or ""):lower():match("^%s*(.-)%s*$"):gsub("%s+", " ")
   while path ~= "" do
     if C.owners[path] or C.byCommand[path] then return C.owners[path] end
+    path = path:match("^(.*) %S+$") or ""
+  end
+end
+-- The catalog row a typed command runs (longest matching command).
+function C.Row(message)
+  local path = (message or ""):lower():match("^%s*(.-)%s*$"):gsub("%s+", " ")
+  while path ~= "" do
+    if C.byCommand[path] then return C.byCommand[path] end
     path = path:match("^(.*) %S+$") or ""
   end
 end

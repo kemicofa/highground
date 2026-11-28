@@ -28,7 +28,7 @@ Join a battleground and the panels appear automatically; no setup window or save
 
 Choose a display language under **Shared preferences → General → Language** (`/hg config general`). English is the default; ten other WoW locales and **Use game language** are available. See the [localization notes](../../docs/localization.md) for coverage and review status.
 
-Save and share setups through **Profiles**, including chat links with `/hg profile share [NAME]`. See [profiles](docs/user-guide.md#profiles) for saving, importing and automatic switching.
+Each character keeps its own settings, and each battleground size its own Battlegrounds settings. **Profiles** copies another character's or a friend's, including chat links with `/hg profile share [ADDON]`. See [profiles](docs/user-guide.md#profiles).
 
 ## Documentation
 

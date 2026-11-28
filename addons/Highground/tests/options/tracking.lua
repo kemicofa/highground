@@ -46,11 +46,15 @@ local saved = client("cata", nil, { [5277] = true })
 local savedBox
 for _, cb in ipairs(saved:tracking().trackingBoxes) do if cb.spellID == 5277 then savedBox = cb end end
 equal(savedBox:GetChecked(), false, "existing tracking preferences appear on first opening settings")
-saved.ui.profiles.SaveProfile("Tuning")
+local CS, P = saved.ns.CharacterSettings, saved.ui.profiles
+-- Tuning-only profiles (older codes without a setup).
+local _, _, tuning = CS.Import(P.ExportString(P.Snapshot(), "Tuning"))
 saved:track(31884, false)
-saved.ui.profiles.LoadProfile("Tuning")
-equal(saved.db.disabledCooldowns[31884], true, "loading a tuning profile preserves feature choices")
-saved.ui.profiles.ImportText("WB1;f=cata;p.defDown=9")
+equal(CS.Copy({ import = tuning }, "battlegrounds"), true, "a tuning profile copies")
+equal(saved.db.disabledCooldowns[31884], true, "copying a tuning profile preserves feature choices")
+local _, _, older = CS.Import("WB1;f=cata;p.defDown=9")
+equal(CS.Copy({ import = older }, "battlegrounds"), true, "old tuning copies")
+equal(saved.db.points.defDown, 9, "old tuning applies when copied")
 equal(saved.db.disabledCooldowns[5277], true, "importing old tuning preserves tracking preferences")
 saved:find("Button", "Reset target tuning").scripts.OnClick()
 equal(saved.db.disabledCooldowns[5277], true, "reset tuning preserves tracking preferences")

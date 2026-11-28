@@ -1,5 +1,5 @@
 local _, ns = ...
-local Core, P, Kit, Theme = ns.Core, ns.Options.Profiles, ns.Kit, ns.Theme
+local Core, Kit, Theme = ns.Core, ns.Kit, ns.Theme
 local Setup = {}
 ns.Setup = Setup
 Setup.presets = {
@@ -31,31 +31,23 @@ local function RoleValue(preset, key, choices)
   return value
 end
 
--- Build a candidate without touching the current setup or starting placement.
-function Setup.ProfileSnapshot(role)
-  local preset = Setup.presets[role]
-  if not preset then return nil, ns.Locale:Get("highground.setup.unknown_playstyle_preset.c73b09") end
-  local snap = P.Snapshot()
-  for key in pairs(roleDefaults) do
-    if snap.setup.features[key] ~= nil then snap.setup.features[key] = RoleValue(preset, key) end
-  end
-  ns.Alerts.ApplyPreset(snap.setup.alerts, preset.alert)
-  return snap
-end
-
 function Setup.Apply(role, keepBackup, choices)
   local preset = Setup.presets[role]
   if not preset then return false, ns.Locale:Get("highground.setup.unknown_role.2e02d6") end
   if InCombatLockdown() then return false, ns.Locale:Get("highground.setup.apply_the_preset_after_combat.e171a2") end
-  P.EnsureDefault()
-  -- A battleground playstyle does not change open-world tools, arena choices,
-  -- layout, sharing or unrelated preferences.
+  -- A battleground playstyle changes the battleground size being edited only:
+  -- not open-world tools, arena choices, layout, sharing or other alerts.
   for _, def in ipairs(ns.OptionsConfig.features) do
     if roleDefaults[def.key] ~= nil and ns.OptionAvailable(def) then
       Core.db[def.key] = RoleValue(preset, def.key, choices)
     end
   end
+  local alerts, kept = ns.Alerts.Settings(), {}
+  for _, def in ipairs(ns.Alerts.categories) do
+    if def.module ~= "battlegrounds" then kept[def.key] = alerts.channels[def.key] end
+  end
   ns.Alerts.SetMode(preset.alert)
+  for key, channel in pairs(kept) do alerts.channels[key] = channel end
   Core.db.setupRole = role
   Core.ApplyStyle(); Core.CheckZone(); Core.ApplyKillOrder()
   if ns.MinimapButton then ns.MinimapButton.Apply() end
@@ -78,7 +70,7 @@ end
 
 function Setup.Open(embedded)
   if not Setup.win then
-    local w = ns.Localization.BindWidget(Kit.Dialog("HighgroundSetup", { title = ns.Locale:Get("highground.setup.playstyle_presets.a5e5cb"), titleRole = "title", width = 640, height = 560 + P.CONTEXT_HEIGHT,
+    local w = ns.Localization.BindWidget(Kit.Dialog("HighgroundSetup", { title = ns.Locale:Get("highground.setup.playstyle_presets.a5e5cb"), titleRole = "title", width = 640, height = 560,
       sub = ns.Locale:Get("highground.setup.choose_then_apply.48dedd"), savedKey = "setup" }), { title = "highground.setup.playstyle_presets.a5e5cb", sub = "highground.setup.choose_then_apply.48dedd" })
     Setup.win = w
     local choose = CreateFrame("Frame", nil, w); choose:SetAllPoints(); w.choose = choose
@@ -142,13 +134,13 @@ function Setup.Open(embedded)
       self:SetSub(ns.Locale:Get("highground.setup.choose_then_apply.48dedd"))
       self.primary:SetText(ns.Locale:Format("highground.setup.use_preset_label_setup.7ed80e", { preset_label = preset.label }))
       ns.Localization.Bind(self.secondary, "highground.setup.move_current_panels.953145")
-      Message(self, ns.Locale:Get("profiles.preset.hint"))
+      local CS = ns.CharacterSettings
+      Message(self, ns.Locale:Get("profiles.preset.hint") .. (CS and " " .. ns.Locale:Format("sizes.applies_to", { size = CS.Label(CS.Editing()) }) or ""))
     end
     w:HookScript("OnShow", function() w:Refresh() end)
     w:HookScript("OnHide", function()
       if not Setup.transitioning then w.didApply, w.markerChoices = nil, nil end
     end)
-    P.AttachContext(w, { w.primary, w.secondary, w.status })
   end
   local w = Setup.win
   if Setup.placement then

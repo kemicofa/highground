@@ -70,18 +70,19 @@ if arg[3] == "config" then sim.ns.Hub.Open(arg[4] ~= "" and arg[4] or "macros-se
 -- --step names a switch group on a settings page: --chapter battlegrounds-settings --step Battleground
 local settingsPage = arg[3] == "config" and sim.ns.Options.byKey[arg[4]]
 if settingsPage and settingsPage.SelectGroup and arg[5] ~= "" then settingsPage.SelectGroup(arg[5]) end
+-- --chapter profiles --step list|copy|nearby|export|import: another character
+-- and a friend's import in the list; copy arms the other character's Copy into.
 if arg[3] == "config" and arg[4] == "profiles" and arg[5] ~= "" then
-  local profiles, panel, core = sim.ns.Options.Profiles, sim.ns.Options.panel, sim.ns.Core
-  local candidate = profiles.ParseString(profiles.ExportString(profiles.EnsureDefault()))
-  candidate.setup.features.sniper = false
-  sim.ns.Alerts.ApplyPreset(candidate.setup.alerts, "objectives")
-  candidate.setup.positions.point = { "TOPLEFT", "TOPLEFT", 44, -184 }
-  profiles.SaveProfile("Battlegrounds", candidate)
-  panel.SelectProfile("Battlegrounds")
-  if arg[5] == "create" then panel.NewProfile(true)
-  elseif arg[5] == "update" then panel.profileButtons.Update:Click()
-  elseif arg[5] == "default" then panel.SelectProfile("Default")
-  elseif arg[5] == "all" then panel.profileButtons.Details:Click() end
+  local profiles, panel, CS = sim.ns.Options.Profiles, sim.ns.Options.panel, sim.ns.CharacterSettings
+  local alt = CS.Entry("Player-preview-alt", true)
+  alt.name, alt.class, alt.addons = "Brightblade", "PALADIN", sim.ns.Saved.Copy(CS.Entry().addons)
+  assert(CS.Import(CS.Export("battlegrounds"), "Moonwhisper"))
+  sim.ns.Options.ShowProfiles(arg[5] == "nearby" and "nearby" or "battlegrounds")
+  for _, row in ipairs(panel.rows) do
+    if arg[5] == "copy" and row:IsShown() and row.item.kind == "character" then row.copy:Click(); break end
+  end
+  if arg[5] == "export" then profiles.ShowExport(panel.addon)
+  elseif arg[5] == "import" then profiles.ShowImport() end
 end
 if arg[3] == "home" then w:Hide(); sim.ns.Hub.Open("home") end
 if arg[3] == "addons" or arg[3] == "module" then

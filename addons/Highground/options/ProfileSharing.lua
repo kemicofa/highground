@@ -4,9 +4,10 @@ local Chat, Comms = ns.Chat, ns.Comms
 local Share = { PREFIX = "HighgroundP", receiving = ns.Async.New(), sending = ns.Async.New() }
 P.Chat = Share
 
--- A short chat token identifies an immutable snapshot held by the sender.
--- Clicking requests that snapshot by whisper; only the requested sender/id
--- can complete it. Receipt opens a review, never applies settings.
+-- A short chat token identifies an immutable export held by the sender.
+-- Clicking requests it by whisper; only the requested sender/id can complete
+-- it. Receipt adds it to the profile list under the sender's character name,
+-- never applies settings.
 local LINK, MAX, CHUNK, TTL = "addon:HighgroundP:", 32768, 200, 1800
 local cache, serial, nextReply = {}, 0, 0
 
@@ -30,19 +31,15 @@ local function Prune()
   for id, item in pairs(cache) do if GetTime() - item.at >= TTL then cache[id] = nil end end
 end
 
-function Share.ToChat(name)
-  local snap = name and Core.db.profiles and Core.db.profiles[name]
-  if name and not snap then return false, ns.Locale:Get("highground.profilesharing.choose_a_saved_profile_first.5b80e2") end
+-- Put a link to this character's settings for addon in the chat box.
+function Share.ToChat(addon)
   if not Comms.CanSend() then return false, ns.Locale:Get("highground.profilesharing.chat_sharing_is_unavailable_use_export_to.2cef83") end
   local source = Name(Core.CanonUnit("player"))
   if not source then return false, ns.Locale:Get("highground.profilesharing.your_character_name_is_not_available_yet.7536f7") end
-  snap = snap or P.Snapshot()
-  local prepared, err = P.Prepare(snap)
-  if not prepared then return false, err end
-  local label = P.CleanName(name or ns.Locale:Get("highground.profilesharing.current_setup.1b0dd3"))
+  local text = ns.CharacterSettings.Export(addon or "battlegrounds")
+  if not text then return false, ns.Locale:Get("highground.profilesharing.this_saved_profile_could_not_be_shared.7a864f") end
+  local label = P.CleanName(ns.Locale:Format("profiles.share.link", { name = ns.CharacterSettings.Name(), addon = P.AddonLabel(addon or "battlegrounds") }))
   if not label or label:find("%c") then return false, ns.Locale:Get("highground.profilesharing.give_the_profile_a_name_without_line.1a98ba") end
-  local encoded, text = pcall(P.ExportString, snap, label)
-  if not encoded then return false, ns.Locale:Get("highground.profilesharing.this_saved_profile_could_not_be_shared.7a864f") end
   if #text > MAX then return false, ns.Locale:Get("highground.profilesharing.this_profile_is_too_large_for_chat.7bb31c") end
   Prune()
   local count, existing = 0, nil
@@ -177,3 +174,13 @@ local function Install()
 end
 Comms.Listen(Share.PREFIX, Share.Receive, "profile sharing")
 ns.Util.Events({ PLAYER_LOGIN = Install }, "profile links")
+
+-- A received profile joins the list under the sender's character name;
+-- nothing changes until it is copied. Without text the transfer has started.
+function Share.Review(text, source, label)
+  if not text then return Share.Progress(ns.Locale:Format("profiles.share.receiving", { name = label })) end
+  local ok, message, _, addon = ns.CharacterSettings.Import(text, source and source:match("^([^-]+)") or label)
+  Share.Progress(message, not ok)
+  if ok and ns.Options.ShowProfiles then ns.Options.ShowProfiles(addon) end
+end
+function Share.Progress(message) ns.Util.Say(message) end

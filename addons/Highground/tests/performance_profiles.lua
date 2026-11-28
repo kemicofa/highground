@@ -1,46 +1,39 @@
 return function(t, new, client)
-  t.test(client .. " Profiles reuses its review and bounded list while idle", function()
+  t.test(client .. " Profiles reuses its rows and does no work while idle", function()
     local sim = new(client, {})
-    local P, C, panel = sim.ns.Options.Profiles, sim.ns.Core, sim.ns.Options.panel
-    P.EnsureDefault()
-    local saved = P.Snapshot()
-    for i = 1, 80 do C.db.profiles["Setup " .. i] = saved end
-    sim.ns.Hub.Open("profiles"); panel.SelectProfile("Setup 1"); panel.showAll = true; panel.RefreshProfiles(); sim:advance(2)
-    local reviews, snapshots, review, snapshot = 0, 0, P.Review, P.Snapshot
-    P.Review = function(...) reviews = reviews + 1; return review(...) end
+    local P, CS, panel = sim.ns.Options.Profiles, sim.ns.CharacterSettings, sim.ns.Options.panel
+    local code = CS.Export("battlegrounds")
+    for i = 1, 80 do assert(CS.Import(code, "Friend " .. i)) end
+    sim.ns.Hub.Open("profiles"); sim:advance(2)
+    t.equal(#panel.items, 81, "this character and every import are listed")
+    local lists, snapshots, list, snapshot = 0, 0, CS.Profiles, P.Snapshot
+    CS.Profiles = function(...) lists = lists + 1; return list(...) end
     P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
     collectgarbage("collect")
     local baseline = collectgarbage("count")
     collectgarbage("stop")
-    for _ = 1, 120 do panel.scripts.OnUpdate(panel, 0.5) end
+    sim:advance(60)
     local allocated = collectgarbage("count") - baseline
     collectgarbage("restart")
-    t.equal(reviews, 0, "unchanged visible contents are not rebuilt")
-    t.equal(snapshots, 0, "a workspace without an active named profile does not copy settings every poll")
-    assert(allocated < 256, "one minute of workspace polling stays below 256 KiB")
+    t.equal(lists, 0, "unchanged visible contents are not rebuilt")
+    t.equal(snapshots, 0, "an open Profiles page does not copy settings")
+    assert(allocated < 256, "one minute of an open Profiles page stays below 256 KiB")
+    local function browse()
+      panel.list:Scroll(panel.list.range)
+      panel.list:Scroll(0)
+      panel.addons.byKey.nearby:Click(); panel.addons.byKey.battlegrounds:Click()
+    end
+    browse() -- each choice builds its selected glow on first selection
     local frames = #sim.frames
-    for _ = 1, 10 do
-      panel.listScroll:Scroll(panel.listScroll.range)
-      panel.listScroll:Scroll(0)
-    end
-    t.equal(#sim.frames, frames, "scrolling many saved profiles reuses its button pool")
-    assert(#panel.profileRows <= 24, "saved-list frame count is bounded")
-    assert(#panel.reviewRows > 100 and #panel.profileScroll.pool < 32, "full contents allocate only visible comparison rows")
-    for i = 0, 20 do panel.profileScroll:Scroll(panel.profileScroll.range * i / 20) end
-    local warmed = #sim.frames
-    for _ = 1, 3 do
-      for i = 0, 20 do panel.profileScroll:Scroll(panel.profileScroll.range * i / 20) end
-    end
-    t.equal(#sim.frames, warmed, "repeated comparison scrolling reuses its row pool")
-    local style = C.StyleDB()
-    style.scales = style.scales or {}; style.scales.main = 1.2
-    sim:advance(0.6)
-    assert(reviews > 0, "a nested edit rebuilds the visible review")
+    for _ = 1, 10 do browse() end
+    t.equal(#sim.frames, frames, "scrolling and switching addons reuse the rows")
+    assert(CS.Delete({ import = 1 }) and lists > 0, "a change refreshes the list")
+    t.equal(#sim.frames, frames, "a shorter list hides rows instead of making new ones")
     sim.ns.Hub.win:Hide()
-    reviews, snapshots = 0, 0
+    lists, snapshots = 0, 0
     sim:advance(2)
-    t.equal(reviews, 0, "closed workspace does no review work")
-    t.equal(snapshots, 0, "closed workspace does not snapshot settings")
+    t.equal(lists, 0, "a closed Profiles page does no list work")
+    t.equal(snapshots, 0, "a closed Profiles page does not snapshot settings")
     sim:assertHealthy()
   end)
 end

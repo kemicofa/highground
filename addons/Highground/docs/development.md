@@ -49,7 +49,7 @@ Unless marked as repository-root paths, paths below are relative to `addons/High
 | [libs/ui/Hud.lua](../../../libs/HighgroundKit/ui/Hud.lua) | Battleground panel rows (`Hud.UnitRow`) and the secure target/focus macros (`Core.SetTargetFocus`) |
 | `ui/Sniper.lua`, `ui/HealerMarks.lua`, `ui/BurstMarks.lua`, `features/battlegrounds/ui/CapPlates.lua`, `ui/Focus.lua` | World overlays: target marker, healer crosses, burst markers, capture bars, pressure shields |
 | [ui/Minimap.lua](../ui/Minimap.lua) | Minimap button and menu |
-| `options/` | Settings pages, role setup (`Setup`, `SetupLayout`), named profiles and validation (`Profiles`, `ProfileData`, `ProfileSetup`), activity assignments (`ProfileAssignments`), sharing and review (`ProfileSharing`, `ProfileReview`) |
+| `options/` | Settings pages, role setup (`Setup`, `SetupLayout`), per-character and per-size settings (`SettingsParts`, `CharacterSettings`, `ScopeBar`), profiles, export/import and validation (`ProfileList`, `Profiles`, `ProfileData`, `ProfileSetup`), chat sharing (`ProfileSharing`) |
 | `commands/` | `/hg` dispatch and handlers |
 | `features/battlegrounds/map/` | Enemy map positions (`ns.Intel`), sharing, pins (`ns.MapPins`, `features/battlegrounds/map/Pins.xml`) |
 | `features/battlegrounds/timers/` | Graveyards, captures, resurrection estimates, resource predictions, objective overview, observed mechanics and map layer (`ns.Timers`) |
@@ -275,8 +275,8 @@ Motion, its lifecycle rules and HUD window placement are described in the [desig
 
 | Variable | Scope | Holds |
 | --- | --- | --- |
-| `HighgroundDB` | Account | Settings, tuning, profiles and assignments, setup progress, appearance, alerts, personal/guild bounties, match and enemy histories, macro preferences/backups, learned battleground data and errors |
-| `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`) |
+| `HighgroundDB` | Account | Live settings, every character's per-addon copies (`characters`) and imported profiles (`profileImports`), setup progress, appearance, alerts, personal/guild bounties, match and enemy histories, macro preferences/backups, learned battleground data and errors |
+| `HighgroundCharDB` | Character | Panel positions (`Core.POSITION_KEYS`), where Highground runs (`battlegroundSizes`), the battleground size picked (`scope`) and the one in the live settings (`liveScope`) |
 | `HighgroundBountyNetworkDB` | Account | Shared bounty identity, contributions, funding reports and claims; declared only by HighgroundBountyData |
 | `HighgroundReputationNetworkDB` | Account | Native organization opt-ins, reports and moderation history; declared only by HighgroundReputationData |
 | `HighgroundMatchArchiveDB` | Account | Archived match timelines, per character like `HighgroundDB`'s match history; declared only by the load-on-demand HighgroundMatchData ([saved data](saved-data.md#match-history-archive)) |

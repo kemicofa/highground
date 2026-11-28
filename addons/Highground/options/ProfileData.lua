@@ -79,27 +79,6 @@ function Profiles.Prepare(snap)
   return prepared, nil, count, skipped
 end
 
--- The only write of a whole tuning set into HighgroundDB. prepared comes from
--- Profiles.Prepare, so every value is already valid.
-local function WriteTuning(prepared)
-  local db = Core.db
-  db.points, db.weights, db.specRatings = prepared.points, prepared.weights, prepared.specRatings
-  for key in pairs(Core.SettingDefs.option) do db[key] = prepared[key] end
-  wipe(Core.profileCache)
-  Core.BuildCurve()
-end
-
-function Profiles.Apply(prepared)
-  if prepared.setup and InCombatLockdown() then Profiles.pending = prepared; return end
-  Profiles.pending = nil
-  WriteTuning(prepared)
-  if Profiles.ApplySetup then Profiles.ApplySetup(prepared.setup) end
-  Core.db.activeProfile, Core.db.importedProfileName = prepared.profileName, prepared.importedProfileName
-  Options.PointsChanged()
-  Options.panel.RefreshAll()
-  if Profiles.RefreshContext then Profiles.RefreshContext() end
-end
-
 function Profiles.SortedPairs(t)
   local keys = {}
   for key in pairs(t) do keys[#keys + 1] = key end

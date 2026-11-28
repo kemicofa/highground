@@ -2,7 +2,7 @@ local _, ns = ...
 local Core = ns.Core
 
 ---------------------------------------------------------------------------
--- World fights (`worldFights`): the battleground engine in open-world group
+-- World fights (Battlegrounds → Open world → Use Highground in open-world fights): the battleground engine in open-world group
 -- fights. With a home party or raid, Nearby tracking (world/Nearby.lua) and
 -- an enemy seen in your zone in the last minute, by you or shared by your
 -- group or guild (world/Share.lua), the kill order runs in the "world"
@@ -29,7 +29,7 @@ end
 function Core.WorldFight()
   if ns.Modules and not (ns.Modules.Active("battlegrounds") and ns.Modules.Active("nearby")) then return false end
   local N = ns.Nearby
-  if not (N and Core.db and Core.On("worldFights") and N.State() == "tracking" and Grouped()) then return false end
+  if not (N and Core.db and Core.SizeEnabled("world") and N.State() == "tracking" and Grouped()) then return false end
   local now, zone = GetTime(), ns.WorldShare and ns.WorldShare.Here()
   for _, e in pairs(N.seen) do
     if now - e.last <= Core.WORLD_RECENT and Here(e, zone) then return true end

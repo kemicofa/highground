@@ -208,26 +208,33 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     C.SetMetric("nearbyWidth", 380, true)
     equal(s.ns.Nearby.win:GetWidth(), 380)
     arenaWidth(440)
-    s:command("profile save Separate")
-    local P = O.Profiles
+    local CS, P = s.ns.CharacterSettings, O.Profiles
+    local function Copy(code, addon)
+      local ok, _, index = CS.Import(code, "Separate")
+      assert(ok and CS.Copy({ import = index }, addon), "copies into " .. addon)
+    end
+    local separate = { nearby = CS.Export("nearby"), battlegrounds = CS.Export("battlegrounds") }
     local old = P.Snapshot()
     old.setup.style = { scales = { timers = 1.2 }, normal = { timerWidth = 400 }, compact = { width = 420 } }
     old.setup.features.compact = true
-    P.Apply(assert(P.Prepare(old)))
+    assert(P.Prepare(old))
+    local legacy = P.ExportString(old, "Legacy")
+    Copy(legacy, "nearby"); Copy(legacy, "battlegrounds")
     equal(C.PanelScale("nearby"), 1.2, "legacy profile migrates its own scale")
     equal(C.PanelScale("bases"), 1.2, "legacy profile keeps the Timers window at its timer scale")
-    equal(C.PanelScale("quickCalls"), 1.2)
-    equal(C.Metric("nearbyWidth", false), 400)
-    equal(C.Metric("nearbyWidth", true), 420)
-    s:command("profile load Separate")
-    equal(C.PanelScale("nearby"), 1.8)
-    equal(C.Metric("nearbyWidth", true), 380)
+    equal(C.PanelScale("quickCalls"), 1.2, "and Quick callouts")
+    equal(C.Metric("nearbyWidth", false), 400, "legacy normal width")
+    equal(C.Metric("nearbyWidth", true), 420, "legacy compact width")
+    Copy(separate.nearby, "nearby"); Copy(separate.battlegrounds, "battlegrounds")
+    equal(C.PanelScale("nearby"), 1.8, "the earlier export restores Nearby's scale")
+    equal(C.Metric("nearbyWidth", true), 380, "and its width")
     s.ns.Hub.Open("nearby-appearance")
     local page = O.byKey["nearby-appearance"]
     click(page.reset)
     equal(C.PanelScale("nearby"), 1)
     equal(C.PanelScale("timers"), 0.75, "local reset preserves other addons")
     equal(C.Metric("arenaWidth", true), 440)
+    s:event("PLAYER_LOGOUT")
     local again = make(s.env.HighgroundDB)
     equal(again.ns.Core.PanelScale("timers"), 0.75)
     equal(again.ns.Core.PanelScale("nearby"), 1)
@@ -292,7 +299,6 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
         and b[2] + b[4] <= p[2] + p[4], "alert control fits without scrolling")
     end
     s.env.UIParent:SetSize(1280, 720)
-    s:command("profile save Alerts")
     for _, scale in ipairs({ 1, 1.5 }) do
       s.ns.Core.SetFontScale(scale)
       for _, embedded in ipairs({ false, true }) do

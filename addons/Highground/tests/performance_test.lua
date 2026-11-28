@@ -12,7 +12,8 @@ for _, client in ipairs({ "cata", "retail" }) do
     -- About 2,600 at this change; 2,000 are the secure enemy rows.
     assert(#sim.frames < 3000, "startup widget budget includes frames, textures and font strings")
     for _, page in ipairs(O.pages) do assert(page.build and not page.rows, page.key .. " builds on first open") end
-    assert(not O.panel.built and not O.Profiles.share, "profile workspace and share window wait for first use")
+    assert(not O.panel.built and not sim.env.HighgroundProfileExport and not sim.env.HighgroundProfileImport,
+      "Profiles and its export and import windows wait for first use")
     C.SetTuning("point", "killPer", 9)
     local page = O.pointPages.priority
     sim.ns.Hub.Open("priority")
@@ -118,117 +119,26 @@ for _, client in ipairs({ "cata", "retail" }) do
     sim:assertHealthy()
   end)
 
-  t.test(client .. " profile indicators do not serialize settings while polling", function()
-    local sim = new(client)
-    local P, C = sim.ns.Options.Profiles, sim.ns.Core
-    P.SaveProfile("Saved")
-    C.db.activeProfile = "Saved"
-    sim.ns.Hub.Open("general")
-    sim.ns.Codec.Pack = function() error("profile status must not encode a wire payload") end
-    for _ = 1, 10 do assert(not P.ActiveState().modified) end
-    C.SetFeature("sniper", false)
-    assert(P.ActiveState().modified)
-    local checks, active = 0, P.ActiveState
-    P.ActiveState = function(...) checks = checks + 1; return active(...) end
-    sim:advance(1.1)
-    assert(checks > 0 and checks <= 3, "visible profile polling is throttled")
-    sim.ns.Hub.win:Hide()
-    checks = 0
-    sim:advance(1.1)
-    t.equal(checks, 0, "hidden profile indicators do no polling work")
-  end)
-
-  t.test(client .. " the Profiles page shares the footer's throttled profile status", function()
-    local sim = new(client, {})
-    local P, C, p = sim.ns.Options.Profiles, sim.ns.Core, sim.ns.Options.panel
-    P.SaveProfile("Saved"); C.db.activeProfile = "Saved"
-    sim.ns.Hub.Open("profiles"); sim:advance(1)
-    local checks, active = 0, P.ActiveState
-    P.ActiveState = function(...) checks = checks + 1; return active(...) end
-    sim:advance(5)
-    assert(checks <= 11, "one status check per half second for the page and footer: " .. checks)
-    C.SetFeature("sniper", false); sim:advance(1.1)
-    t.equal(p.lastRevision, P.revision, "the page still notices a live edit")
-    assert(p.activeState.modified, "and shows the profile as modified")
-    sim:assertHealthy()
-  end)
-
-  t.test(client .. " Home with a named profile does not copy unchanged settings every poll", function()
+  t.test(client .. " idle and edited settings never copy or encode every setting", function()
     local sim = new(client, {})
     local P, C = sim.ns.Options.Profiles, sim.ns.Core
-    P.SaveProfile("Saved"); C.db.activeProfile = "Saved"
-    sim.ns.Hub.Open("home"); sim:advance(3)
-    local snapshots, preparations, snapshot, prepare = 0, 0, P.Snapshot, P.Prepare
+    local snapshots, snapshot = 0, P.Snapshot
     P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
-    P.Prepare = function(...) preparations = preparations + 1; return prepare(...) end
-    collectgarbage("collect")
-    local baseline = collectgarbage("count")
-    collectgarbage("stop")
-    for _ = 1, 120 do P.ActiveState() end
-    local allocated = collectgarbage("count") - baseline
-    collectgarbage("restart")
-    t.equal(snapshots, 0, "unchanged profile status does not snapshot the live setup")
-    t.equal(preparations, 0, "unchanged profile status does not revalidate two setup copies")
-    assert(allocated < 256, "one minute of profile status checks stays below 256 KiB")
-    local objects = #sim.frames
-    sim:advance(3)
-    t.equal(snapshots, 0, "the visible footer also reuses the unchanged comparison")
-    t.equal(#sim.frames, objects, "idle Home creates no new UI objects")
-    C.SetFeature("sniper", false)
-    assert(P.ActiveState().modified, "a live edit is detected immediately")
-    assert(snapshots > 0, "changed inputs rebuild the comparison")
-    C.SetFeature("sniper", true)
-    assert(not P.ActiveState().modified, "restoring settings clears Modified")
+    local pack = sim.ns.Codec.Pack
+    sim.ns.Codec.Pack = function() error("open settings must not encode a wire payload") end
+    for _, key in ipairs({ "home", "general", "profiles", "priority" }) do sim.ns.Hub.Open(key); sim:advance(3) end
+    t.equal(snapshots, 0, "open pages do not snapshot the live settings")
+    C.SetFeature("sniper", false); C.SetTuning("point", "killPer", 9); sim:advance(1.1)
+    t.equal(snapshots, 0, "edits change the live settings only; copies are kept on logout and size changes")
+    sim.ns.Hub.win:Hide(); sim:advance(3)
+    t.equal(snapshots, 0, "closed settings do no work")
+    sim.ns.Codec.Pack = pack
+    assert(sim.ns.CharacterSettings.Select("bg15") and snapshots > 0, "switching size keeps the edited size's copy")
     sim:assertHealthy()
   end)
 
   dofile("tests/performance_profiles.lua")(t, new, client)
 end
-
-t.test("profile comparison cache follows nested edits, saved copies and profile transitions", function()
-  local sim = new("cata", {})
-  local P, C = sim.ns.Options.Profiles, sim.ns.Core
-  P.SaveProfile("Saved"); C.db.activeProfile = "Saved"
-  assert(not P.ActiveState().modified)
-  local function Edit(object, key, value, why)
-    local old = object[key]
-    object[key] = value
-    assert(P.ActiveState().modified, why .. " is detected")
-    object[key] = old
-    assert(not P.ActiveState().modified, why .. " can be restored")
-  end
-  Edit(C.db.points, "killPer", 9, "tuning edit")
-  Edit(C.StyleDB(), "fontScale", 1.2, "appearance edit")
-  Edit(C.db, "bgAlpha", 0.3, "saved preference edit")
-  Edit(C.pos, "point", { "CENTER", "CENTER", 20, 40 }, "character position edit")
-  C.db.disabledCooldowns = C.db.disabledCooldowns or {}
-  Edit(C.db.disabledCooldowns, 2139, true, "cooldown edit")
-  C.db.burstModes = C.db.burstModes or {}
-  Edit(C.db.burstModes, 2139, "off", "burst mode edit")
-  Edit(sim.ns.Alerts.Settings().channels, "go", { sound = false }, "nested alert edit")
-  Edit(C.db.profiles.Saved.points, "killPer", 12, "in-place saved profile edit")
-  local style = C.db.profiles.Saved.setup.style
-  Edit(style, "loop", style, "invalid cyclic saved setup")
-
-  local snapshot, snapshots = P.Snapshot, 0
-  P.Snapshot = function(...) snapshots = snapshots + 1; return snapshot(...) end
-  C.db.liveStats = { seen = 42 }; C.db.hubSection = "appearance"
-  C.pos.autoProfiles = true
-  assert(not P.ActiveState().modified)
-  t.equal(snapshots, 0, "unrelated runtime data, navigation and automatic switching do not rebuild settings")
-  P.pending = assert(P.Prepare(P.Snapshot())); P.pending.profileName = "Waiting"
-  t.equal(P.ActiveState().status, "Applies after combat", "pending profile is shown immediately")
-  P.pending = nil
-  t.equal(P.ActiveState().status, "Matches saved profile", "pending status can be cleared")
-  C.db.profiles.Legacy = P.Snapshot(); C.db.profiles.Legacy.setup = nil
-  C.db.activeProfile = "Legacy"
-  C.SetFontScale(1.2)
-  assert(not P.ActiveState().modified, "legacy tuning-only profile still ignores appearance")
-  Edit(C.db.points, "killPer", 9, "legacy tuning edit")
-  C.db.activeProfile = nil; C.db.importedProfileName = "Imported"
-  t.equal(P.ActiveState().status, "Not saved as a profile", "switching away from a named profile updates status")
-  sim:assertHealthy()
-end)
 
 t.test("profile copies are isolated and reject unsupported or cyclic data", function()
   local sim = new("cata")
@@ -240,12 +150,13 @@ t.test("profile copies are isolated and reject unsupported or cyclic data", func
   local prepared = assert(P.PrepareSetup(snapshot))
   prepared.style.scales.main = 1.2
   t.equal(snapshot.style.scales.main, 1.4, "validation owns a separate copy")
+  local CS = sim.ns.CharacterSettings
   C.SetFontScale(1.2)
-  local code = P.ExportString(P.Snapshot(), "Fractional")
-  assert(P.SaveImported(code, "Fractional")); assert(P.LoadProfile("Fractional"))
-  assert(not P.ActiveState().modified, "stepper rounding does not mark an imported profile modified")
+  local fractional, code = C.FontScale(), CS.Export("shared")
   C.SetFontScale(1.3)
-  assert(P.ActiveState().modified, "a real numeric change still marks the profile modified")
+  local ok, _, index = CS.Import(code, "Fractional")
+  assert(ok and CS.Copy({ import = index }, "shared"))
+  t.equal(C.FontScale(), fractional, "a stepped fractional value survives export, import and copy")
   local cyclic = P.SnapshotSetup()
   cyclic.style.loop = cyclic
   local result, problem = P.PrepareSetup(cyclic)

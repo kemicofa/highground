@@ -106,8 +106,7 @@ end)
 t.test("profile links immediately explain known incompatibility and keep unknown peers working", function()
   local a, b = New("Alice", "Highground"), New("Bob", "Highground")
   local profile = a.ns.Options.Profiles
-  profile.SaveProfile("Shared setup")
-  assert(profile.Chat.ToChat("Shared setup"))
+  assert(profile.Chat.ToChat("battlegrounds"))
   local payload = assert(a.chatDraft:match("%[HGP:([^%]]+)%]"))
   local share = b.ns.Options.Profiles.Chat
   Caps(b, "Alice-Realm", "profiles=2")

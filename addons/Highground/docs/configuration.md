@@ -17,7 +17,7 @@ a reload. Profiles do not change which addons are loaded.
 | Enemy targeting rules and scoring | Battlegrounds → Target behavior and its tuning pages |
 | Which enemy cooldowns are tracked | Battlegrounds → Cooldown tracking |
 | Panel placement | Home → Preview and move panels, or a panel's cogwheel |
-| A reusable collection of settings | Saved setups → Profiles |
+| Another character's or a friend's settings | Saved setups → Profiles |
 | A starting configuration for a battleground role | Saved setups → Playstyle presets |
 | Examples with your current settings | That addon's Previews and guide |
 
@@ -36,11 +36,11 @@ Some controls depend on what they can affect:
   The decorative font selector is unavailable while this fallback is active;
   its saved choice returns when the fallback is no longer needed.
 
-Profiles compare effective settings, including inherited appearance and sound
-defaults. Returning a setting to its default should clear its contribution to
-the Edited status. Older profiles preserve feature switches they did not include
-and do not count those switches as edits. Profile names are separate from the
-activity editor's Keep current settings choice, including a profile named `none`.
+Settings are kept per character and per addon (`options/SettingsParts.lua` says
+which setting belongs to which addon); Battlegrounds settings are kept per size
+(10v10, 15v15, epic, open world). Every way of changing a battleground setting
+edits the one size shown by the size bar: pages, commands, guide switches,
+presets and panel menus. Only Copy to other sizes changes several at once.
 
 The Macros and Reputation sections open their full tools for editing macros,
 reports and organizations. Their settings pages configure preferences; they do

@@ -170,16 +170,16 @@ function Core.CurrentBracket()
   return Core.SizeBracket(Core.TeamSize())
 end
 
--- Run switches per battleground size, saved per character
--- (HighgroundCharDB.battlegroundSizes) and never part of profiles.
-function Core.SizeEnabled(bracket)
+-- Where Highground runs, per character (HighgroundCharDB.battlegroundSizes):
+-- each battleground size, unrated 10v10 matches and open-world fights.
+function Core.SizeEnabled(key)
   local sizes = Core.pos and Core.pos.battlegroundSizes
-  return not (type(sizes) == "table" and sizes[bracket] == false)
+  return not (type(sizes) == "table" and sizes[key] == false)
 end
 
-function Core.SetSizeEnabled(bracket, on)
-  if not Core.SIZE_KEYS_SET[bracket] or not Core.pos then return false end
-  ns.Saved.Table(Core.pos, "battlegroundSizes")[bracket] = on and true or false
+function Core.SetSizeEnabled(key, on)
+  if not Core.RUN_KEYS[key] or not Core.pos then return false end
+  ns.Saved.Table(Core.pos, "battlegroundSizes")[key] = on and true or false
   Core.CheckZone()
   if ns.PvPEvents then ns.PvPEvents.Refresh() end
   if ns.Options and ns.Options.RefreshFeatures then ns.Options.RefreshFeatures() end
@@ -197,7 +197,8 @@ function Core.InRatedBG()
   if instanceType ~= "pvp" or not Core.SizeOn() then
     return false
   end
-  if Core.On("allBGs") then
+  -- 15v15 and epic matches are never rated; unrated 10v10 has its switch.
+  if Core.SizeBracket(Core.TeamSize()) ~= "bg10" or Core.SizeEnabled("unrated") then
     return true
   end
   if not C_PvP then return false end
@@ -240,4 +241,6 @@ function Core.CheckZone()
   if Core.context == "world" and not world then wipe(Core.enemies); wipe(Core.order); wipe(Core.displayOrder) end
   Core.context = on and "bg" or world and "world" or nil
   Core.SetActive(on or world or false)
+  -- A world fight edits and shows the Open world size's settings.
+  if ns.CharacterSettings then ns.CharacterSettings.Update() end
 end

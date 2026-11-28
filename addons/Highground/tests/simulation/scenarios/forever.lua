@@ -19,10 +19,12 @@ test("WoW Forever starts with nearby enemies enabled and keeps later choices", f
   assert(N.win:IsVisible() and N.rows[1]:IsVisible(), "nearby works without opting in")
   sim:click(N.rows[1])
   equal(sim.units.target, enemy, "the fresh-install row targets its enemy")
-  local again = new("retail", C.db, forever)
+  -- A reload: the same character saves on logout.
+  local function reload(from) from:event("PLAYER_LOGOUT"); return new("retail", from.env.HighgroundDB, function(s, env) forever(s); env.HighgroundCharDB = from.env.HighgroundCharDB end) end
+  local again = reload(sim)
   equal(again.ns.Core.On("nearby"), true, "enabled default survives reload")
   again:command("nearby off")
-  local off = new("retail", again.ns.Core.db, forever)
+  local off = reload(again)
   equal(off.ns.Core.On("nearby"), false, "explicit opt-out survives reload")
   equal(new("retail", { nearby = false }, forever).ns.Core.On("nearby"), false, "existing opt-out is preserved")
 end)
@@ -160,8 +162,7 @@ test("WoW Forever loads the retail rules with classic classes and talent trees",
   assert(Core.IsHealer({ specID = 105 }), "Restoration druids are healers")
   equal(Core.classSpecs.WARRIOR[1], 71, "Arms first")
   assert(ns.Specs[71] and ns.Specs[71].short == "ARMS", "tree profile from the Forever table")
-
-  equal(sim.env.HighgroundDB.allBGs, true, "every battleground by default: Forever has no rated play")
+  equal(Core.SizeEnabled("unrated"), true, "every battleground by default: Forever has no rated play")
   sim.rated = false
   sim:enemy("Healer", { classID = 11 })
   sim:join(93, 529, "Arathi Basin")

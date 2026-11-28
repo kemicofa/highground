@@ -1,9 +1,9 @@
 ---------------------------------------------------------------------------
 -- Options fixture: the real options and profile handlers (config and
--- options/*.lua) built against stub frames. client(flavor, points,
--- disabledCooldowns) returns a settings window with find, row, edit,
--- feature, tracking and track helpers; input, visible and set work on its
--- frames.
+-- options/*.lua) built against stub frames, logged in as one character.
+-- client(flavor, points, disabledCooldowns) returns a settings window with
+-- find, row, edit, feature, tracking and track helpers; input, visible and
+-- set work on its frames.
 ---------------------------------------------------------------------------
 local loadClient = assert(loadfile("tests/load_config.lua"))()
 -- The EditBox somewhere under frame f (a row's stepper box).
@@ -94,7 +94,12 @@ local function client(flavor, points, disabledCooldowns)
       local override = s.db.specRatings[spec] or {}
       return { k = override.k or defaults[spec].k, i = override.i or defaults[spec].i }
     end,
-    me = { melee = true }, order = {}, obj = { mode = "flag" }, enemies = {}, active = true,
+    me = { melee = true, name = "Tester", class = "WARRIOR" }, order = {}, obj = { mode = "flag" }, enemies = {}, active = true,
+    -- Per-character settings (options/CharacterSettings.lua) outside a match.
+    pos = {}, UnitGUID = function() return "Player-1-A" end, UnitName = function() return "Tester" end,
+    UnitClass = function() return "Warrior", "WARRIOR" end, IsInInstance = function() return false, "none" end,
+    CurrentBracket = noop, ApplyStyle = noop, SetFontScale = noop, FontScale = function() return 1 end,
+    CheckZone = noop, PlaceDockHead = noop, time = os.time,
     GetTime = function() return 100 end,
     BuildCurve = noop, UpdateTargetButton = noop, ApplyKillOrder = function() s.killOrderApplied = true end, Tick = function() s.ticks = (s.ticks or 0) + 1 end, GameTooltip_Hide = noop,
     Text = function(parent) return frame("FontString", nil, parent) end,
@@ -130,7 +135,7 @@ local function client(flavor, points, disabledCooldowns)
   for _, path in ipairs({ "libs/core/Util.lua", "libs/core/Text.lua", "libs/core/Events.lua", "libs/core/Router.lua", "libs/core/RouterNavigation.lua", "libs/core/Codec.lua", "libs/ui/Theme.lua", "libs/ui/Motion.lua", "libs/ui/Contrast.lua", "libs/ui/kit/Controls.lua", "libs/ui/kit/Feedback.lua", "libs/ui/kit/Effects.lua", "libs/ui/kit/Fields.lua", "libs/ui/kit/Layout.lua", "libs/ui/kit/Blocks.lua", "libs/ui/Locale.lua", "libs/ui/kit/Workspace.lua", "libs/ui/kit/Ornament.lua", "libs/ui/kit/Header.lua", "libs/ui/kit/Navigation.lua", "libs/ui/kit/Windows.lua", "libs/ui/kit/Dialog.lua",
     "features/battlegrounds/ui/Appearance.lua", "features/battlegrounds/core/ScoreSettings.lua", "features/battlegrounds/core/Settings.lua", "features/battlegrounds/core/Cooldowns.lua", "core/Targeting.lua", "features/battlegrounds/core/Features.lua", "options/State.lua",
     "ui/SniperColors.lua", "options/Controls.lua", "options/AddonPages.lua", "options/General.lua", "options/SniperColors.lua", "options/Appearance.lua", "options/Scoring.lua", "options/Targeting.lua", "options/Tracking.lua",
-    "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/ProfileSummary.lua", "options/ProfileComparison.lua", "options/Profiles.lua", "options/ProfileAssignments.lua", "options/Root.lua" }) do
+    "options/Overrides.lua", "options/Refresh.lua", "options/ProfileData.lua", "options/SettingsParts.lua", "options/CharacterSettings.lua", "options/ProfileList.lua", "options/Profiles.lua", "options/Root.lua" }) do
     if path == "options/Appearance.lua" then
       -- Preview sessions need the full addon and are covered in simulations.
       ns.Options.AddAppearancePreview = function(page) page.RefreshPreview = noop end
@@ -138,6 +143,8 @@ local function client(flavor, points, disabledCooldowns)
     setfenv(assert(loadfile(path)), env)("Highground", ns)
   end
   ns.NormalizePointSettings(s.db.points)
+  ns.CharacterSettings.Login() -- PLAYER_LOGIN
+  s.ticks, s.killOrderApplied = nil, nil -- count refreshes from here on
   s.ui = { panel = ns.Options.panel, pages = ns.Options.pages, profiles = ns.Options.Profiles,
     cooldown = env.CooldownBonus, kit = env.KitFor, cdLeft = env.CdLeft }
   s.ns = ns

@@ -1,5 +1,5 @@
 -- Run from addons/Highground: luajit ../../tools/performance_hub.lua [cata|retail] [minutes]
--- Compare an idle Home screen with/without a named profile. Simulator heap
+-- Compare idle Home and Profiles with and without kept profiles. Simulator heap
 -- includes widget stubs; it is not WoW's addon memory counter or process RAM.
 jit.off()
 local new = dofile("../../tools/wowsim/battleground/runtime.lua")
@@ -10,7 +10,7 @@ local sim = new(client, {}, function(s)
   dofile("../../tools/wowsim/geometry.lua")(s)
   s.env.WorldMapFrame:Hide(); s.env.BattlefieldMapFrame:Hide()
 end)
-local P, C = sim.ns.Options.Profiles, sim.ns.Core
+local P, CS = sim.ns.Options.Profiles, sim.ns.CharacterSettings
 
 local function Measure(label)
   sim:advance(3)
@@ -22,16 +22,18 @@ local function Measure(label)
   sim:advance(60)
   local allocated = collectgarbage("count") - before
   collectgarbage("restart"); collectgarbage("collect")
-  print(string.format("%s: %.1f KiB allocated; %+.1f KiB retained; %+d objects; %d profile snapshots / 60s",
+  print(string.format("%s: %.1f KiB allocated; %+.1f KiB retained; %+d objects; %d settings snapshots / 60s",
     label, allocated, collectgarbage("count") - before, #sim.frames - count, snapshots))
   P.Snapshot = snapshot
   sim:assertHealthy()
 end
 
-sim.ns.Hub.Open("home"); Measure("Home without named profile")
-P.SaveProfile("Benchmark"); C.db.activeProfile = "Benchmark"; P.RefreshContext()
-Measure("Home with named profile")
-sim.ns.Hub.win:Hide(); Measure("Closed with named profile")
+sim.ns.Hub.Open("home"); Measure("Home without kept profiles")
+local code = CS.Export("battlegrounds")
+for i = 1, 20 do assert(CS.Import(code, "Friend " .. i)) end
+Measure("Home with 20 kept profiles")
+sim.ns.Hub.Open("profiles"); Measure("Profiles with 20 kept profiles")
+sim.ns.Hub.win:Hide(); Measure("Closed with 20 kept profiles")
 sim.ns.Hub.Open("home"); sim:advance(3)
 collectgarbage("collect")
 local baseline, objects = collectgarbage("count"), #sim.frames

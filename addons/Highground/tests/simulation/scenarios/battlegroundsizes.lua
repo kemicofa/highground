@@ -82,21 +82,23 @@ test("the size bar on every Battlegrounds page picks the size, says what it edit
   end
   equal(sim.ns.Options.byKey[sim.ns.Options.addonPages.battlegrounds.previews].scopeBar, nil, "not on Previews")
   sim.ns.Hub.Open(sim.ns.Options.addonPages.battlegrounds.settings)
-  bar.tabs.byKey.bg15:Click()
+  bar.tabs.buttons.bg15:Click()
   equal(CS.Editing(), "bg15", "a tab selects the size")
+  assert(bar.tabs.buttons.bg15.selected and not bar.tabs.buttons.bg10.selected, "the tab strip marks it")
+  assert(bar.run.label:GetText():find("rated too", 1, true) == nil, "15v15 is never rated")
   assert(bar.note:GetText():find("15v15 battlegrounds only", 1, true), "says which size the page edits")
   assert(bar.run.label:GetText():find("15v15", 1, true) and not bar.unrated:IsShown(), "15v15's run switch")
-  bar.tabs.byKey.bg10:Click(); assert(bar.unrated:IsShown(), "10v10 adds unrated matches")
+  bar.tabs.buttons.bg10:Click(); assert(bar.unrated:IsShown(), "10v10 adds unrated matches")
   bar.run:Click(); equal(C.SizeEnabled("bg10"), false, "the run switch")
   bar.run:Click()
-  bar.tabs.byKey.bg40:Click()
+  bar.tabs.buttons.bg40:Click()
   local locked = C.db.locked
   bar.preview:Click()
   assert(CS.Previewing() and C.testMode, "Preview starts samples")
   local n = 0; for _ in pairs(C.enemies) do n = n + 1 end
   equal(n, 40, "for 40 enemies"); equal(C.db.locked, false, "panels can be dragged")
   C.pos.point = { "CENTER", "CENTER", 3, 3 } -- dragged in the preview
-  bar.tabs.byKey.bg15:Click()
+  bar.tabs.buttons.bg15:Click()
   n = 0; for _ in pairs(C.enemies) do n = n + 1 end
   equal(n, 15, "switching size refreshes the samples")
   bar.preview:Click()
@@ -105,10 +107,33 @@ test("the size bar on every Battlegrounds page picks the size, says what it edit
   bar.preview:Click(); sim.ns.Hub.win:Hide()
   assert(not CS.Previewing(), "closing the window ends the preview")
   sim:enemy("Enemy"); sim:join(); Settings(sim)
-  assert(bar.badge:IsShown() and not bar.tabs.byKey.bg40:IsEnabled() and not bar.preview:IsEnabled(), "a match locks the bar")
+  assert(bar.badge:IsShown() and not bar.tabs.buttons.bg40:IsEnabled() and not bar.preview:IsEnabled(), "a match locks the bar")
   sim:leave()
   C.SetFontScale(1.5); page.LayoutHeader(); assert(bar:GetHeight() > 0, "large text")
   sim:assertHealthy()
+end)
+
+test("each game's 10v10 switch names only the rated play it has", function()
+  local function forever(_, env) env.GetBuildInfo = function() return "1.60.1", "70532", "Oct 22 2026", 16001 end end
+  for _, case in ipairs({ { "cata", nil, "(rated too)" }, { "retail", nil, "(rated and Blitz too)" }, { "retail", forever } }) do
+    local sim, C = setup(case[1], nil, case[2])
+    local name = sim.ns.GAME
+    local bar = Settings(sim).scopeBar
+    local label = bar.run.label:GetText()
+    if case[3] then
+      assert(label:find(case[3], 1, true) and bar.unrated:IsShown(), name .. " names rated play and offers unrated matches")
+    else
+      equal(name, "forever")
+      assert(not label:lower():find("rated", 1, true) and not label:find("Blitz", 1, true), "Forever: " .. label)
+      assert(not bar.unrated:IsShown(), "no unrated switch without rated play")
+      C.SetSizeEnabled("unrated", false); sim:enemy("Enemy"); sim:join(1460, 489, "Warsong Gulch")
+      equal(C.CurrentBracket(), "bg10"); assert(C.active, "a saved unrated choice never stops 10v10 there"); sim:leave()
+      sim:command("all")
+      assert(sim.messages[#sim.messages]:find("/hg sizes 10 on", 1, true), "/hg all points to the 10v10 switch")
+      equal(C.SizeEnabled("unrated"), false, "and changes nothing")
+    end
+    sim:assertHealthy()
+  end
 end)
 
 test("Copy to other sizes overwrites only the ticked sizes", function()

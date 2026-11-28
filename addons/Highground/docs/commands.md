@@ -60,7 +60,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg mark ping TYPE` | Choose the ping used by the mark key. (requires pings) | Choose ping type |
 | `/hg why` | Print why the kill target was chosen. | Explain target choice |
 | `/hg live` | Toggle live-priority row sorting. | Live sorting controls → `behavior` |
-| `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
+| `/hg all` | Toggle participation in unrated battlegrounds. (not WoW Forever) | Battleground scope controls → `battlegrounds-settings` |
 | `/hg sizes [10\|15\|40\|world] [on\|off]` | Show which size the Battlegrounds settings edit, pick one, or switch where Highground runs. | Battleground sizes → `battlegrounds-settings` |
 | `/hg sizes copy SIZE [SIZE...]` | Copy the edited size's settings over other sizes. | Copy to other sizes… → `battlegrounds-settings` |
 | `/hg sizes preview` | Start or stop sample panels for the size you edit. | Preview → `battlegrounds-settings` |

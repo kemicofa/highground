@@ -172,6 +172,8 @@ ui/SpecPicker.lua
 ui/TeamHealers.lua
 ui/TeamIconPicker.lua
 ui/TeamIcons.lua
+ui/TeamIconPanel.lua
+ui/TeamIconMenu.lua
 ui/Health.lua
 ui/Layout.lua
 core/Targeting.lua

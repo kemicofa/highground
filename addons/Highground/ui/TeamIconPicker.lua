@@ -54,7 +54,7 @@ end
 
 local function Build()
   if P then return P end
-  P = CreateFrame("Frame", "HighgroundTeamIconPicker", UIParent)
+  P = CreateFrame("Frame", "HighgroundTeamIconPicker", UIParent, "BackdropTemplate")
   Picker.frame = P
   P:SetFrameStrata("DIALOG")
   P:SetClampedToScreen(true)

@@ -112,7 +112,7 @@ end
 ---------------------------------------------------------------------------
 -- Saved icons
 --   teamIcons = { marks = { [key] = { icon, color, t } }, rule = "class"|"role"|nil,
---     rev = n, from = leader key, t = time() }
+--     rev = n, from = leader key, t = time(), offered = true once the quick panel appeared }
 -- marks are the leader's hand marks; rule gives everyone else an icon.
 -- rev counts the leader's changes; from is whoever set them last.
 ---------------------------------------------------------------------------
@@ -272,11 +272,15 @@ function Core.ClearTeamIcons()
   return true
 end
 
+-- Whether the quick panel (ui/TeamIconPanel.lua) appeared for this group.
+function Core.TeamIconOffered() return Core.db ~= nil and Store().offered == true end
+function Core.SetTeamIconOffered() Store().offered = true end
+
 local function Forget()
   local s = Store()
   local had = next(s.marks) ~= nil or s.rule ~= nil
   wipe(s.marks)
-  s.rule, s.from, s.t = nil, nil, nil
+  s.rule, s.from, s.t, s.offered = nil, nil, nil, nil
   if had then Changed() end
 end
 

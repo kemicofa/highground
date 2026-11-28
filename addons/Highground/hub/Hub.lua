@@ -231,7 +231,6 @@ function Hub.Build()
 
   Hub.sections = Hub.Sections()
   Hub.BuildNav(w)
-  ns.Options.Profiles.AttachContext(w, { Hub.content, w.navScroll, w.navFill })
   if Hub.BuildHome then Hub.BuildHome(Hub.content) end
   Hub.BuildRoutes(w)
   return w

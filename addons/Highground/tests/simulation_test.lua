@@ -1,10 +1,10 @@
 -- Full-addon simulations (docs/simulations.md). Run from addons/Highground:
 -- luajit tests/simulation_test.lua [group | --list-groups]
 -- One group per file in tests/simulation/scenarios/.
-local groups = { "enemyappearance", "appearancepreview", "profileworkspace", "addonsettings", "configuration", "addonwindows", "match", "battlegroundsizes", "battlegroundlayouts", "targeting", "sniper", "snipercolors", "priority", "roworder", "settings", "hero", "objectives", "graveyards", "rezclock", "intel", "spectags", "talentspecs", "teamhealers", "teamicons", "teamiconshare", "druidforms",
+local groups = { "enemyappearance", "appearancepreview", "profileworkspace", "addonsettings", "configuration", "addonwindows", "match", "battlegroundsizes", "characterprofiles", "targeting", "sniper", "snipercolors", "priority", "roworder", "settings", "hero", "objectives", "graveyards", "rezclock", "intel", "spectags", "talentspecs", "teamhealers", "teamicons", "teamiconshare", "druidforms",
   "commands", "previews", "compatibility", "arena", "capping", "layout", "headers", "windows", "panelcontrols", "panelcogs", "quickcalls", "quickroutes", "bursts", "forever", "nearby", "nearbycount", "bounty",
   "bountyboard", "bountysuggestions", "bountyshare", "bountypublic", "bountypreview", "macros", "macrobuild", "macroranks", "macroui", "helpers", "hub", "navigation", "theme", "themes",
-  "macrowindow", "macromerge", "macroscripts", "macroeditor", "macrocode", "macroforever", "macroedges", "macroblocks", "tooltips", "comms", "accessibility", "classrows", "motion", "motioncues", "effects", "playerfeatures", "playerflows", "setup", "onboarding", "community", "tour", "coach", "guides", "guidenext", "profileshare", "choicepreview", "profilecontext", "usability", "router", "profiler" }
+  "macrowindow", "macromerge", "macroscripts", "macroeditor", "macrocode", "macroforever", "macroedges", "macroblocks", "tooltips", "comms", "accessibility", "classrows", "motion", "motioncues", "effects", "playerfeatures", "playerflows", "setup", "onboarding", "community", "tour", "coach", "guides", "guidenext", "profileshare", "choicepreview", "usability", "router", "profiler" }
 if arg[1] == "--list-groups" then
   for _, suite in ipairs(groups) do print(suite) end
   return

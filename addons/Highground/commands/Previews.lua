@@ -51,12 +51,14 @@ local function StopBattlegrounds()
   end
 end
 
-local function StartBattlegrounds()
+-- count: sample team size (a battleground size's Preview).
+local function StartBattlegrounds(count)
   StopAppearance()
-  if not Core.testMode then Core.StartTest() end
+  if count or not Core.testMode then Core.StartTest(nil, nil, count) end
   if not ns.Timers.previewing then ns.BattlegroundsPreview.Start() end
   P.managed = true
 end
+P.StartBattlegrounds, P.StopBattlegrounds = StartBattlegrounds, StopBattlegrounds
 
 local function Silent() end
 local function SetPreview(command, on)

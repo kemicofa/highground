@@ -7,7 +7,6 @@ local Core = ns.Core
 -- Side effects of turning a feature on or off (runtime lookups: these live in ui/).
 local EFFECTS = {
   compact = function(on) if ns.SetCompact then ns.SetCompact(on) end end,
-  allBGs = function() Core.CheckZone() end,
   minimap = function() if ns.MinimapButton then ns.MinimapButton.Apply() end end,
   killorder = function() Core.ApplyKillOrder() end,
   quickCalls = function() if ns.QuickCalls then ns.QuickCalls.Update() end end,

@@ -90,6 +90,7 @@ test("quick callouts remain opt-in on upgrades and are exposed in the main setti
     assert(toggle:IsVisible())
     click(toggle)
     equal(sim.ns.Core.db.quickCalls, true)
+    sim:event("PLAYER_LOGOUT")
     local reloaded = new("cata", sim.env.HighgroundDB)
     equal(reloaded.ns.Core.db.quickCalls, true, "enabled choice survives reload")
     click(toggle)
@@ -99,7 +100,7 @@ end)
 
 test("quick callout previews move independently and save positions in profiles and reloads", function()
   local sim = new("cata", { quickCalls = true, timers = false, flags = false, killorder = false, arena = false })
-  local C, Q, S, P = sim.ns.Core, sim.ns.QuickCalls, sim.ns.Setup, sim.ns.Options.Profiles
+  local C, Q, S, CS = sim.ns.Core, sim.ns.QuickCalls, sim.ns.Setup, sim.ns.CharacterSettings
   assert(S.BeginPlacement())
   local w = assert(Q.win)
   assert(w:IsShown() and w.preview, "preview available with other battleground panels off")
@@ -118,10 +119,12 @@ test("quick callout previews move independently and save positions in profiles a
   S.EndPlacement(true)
   assert(not w:IsShown(), "finishing placement closes the preview immediately")
   w.scripts.OnDragStart(w); equal(moved, 1, "panel lock is respected")
-  P.SaveProfile("Callouts")
+  local code = CS.Export("battlegrounds")
   C.pos.quickCallsPoint = nil; C.db.quickCalls = false
-  sim:command("profile load Callouts")
-  equal(C.pos.quickCallsPoint[3], 75); equal(C.db.quickCalls, true)
+  local ok, _, index = CS.Import(code, "Callouts")
+  assert(ok and CS.Copy({ import = index }, "battlegrounds"))
+  equal(C.pos.quickCallsPoint[3], 75, "copying the export restores the position"); equal(C.db.quickCalls, true, "and the switch")
+  sim:event("PLAYER_LOGOUT")
   local reloaded = new("cata", sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
   reloaded.ns.BattlegroundsPreview.Start()
   equal(select(4, reloaded.ns.QuickCalls.win:GetPoint()), 75, "per-character position survives reload")

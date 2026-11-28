@@ -103,7 +103,6 @@ Core.DEFAULTS = {
   quickCalls = false,
   quickCallsDestinations = false,
   quickCallsRoutes = false,
-  allBGs = ns.Caps.allBattlegrounds, -- every battleground on every client
   sound = true,
   sniper = true,
   sniperStyle = "layered",
@@ -136,6 +135,8 @@ Core.POSITION_KEYS = { "point", "timersPoint", "basesPoint", "forecastPoint", "f
 -- Battleground sizes with their own run switch (Core.SizeEnabled).
 Core.SIZE_KEYS = { "bg10", "bg15", "bg40" }
 Core.SIZE_KEYS_SET = { bg10 = true, bg15 = true, bg40 = true }
+-- Run switches: sizes, unrated 10v10 matches and open-world fights.
+Core.RUN_KEYS = { bg10 = true, bg15 = true, bg40 = true, unrated = true, world = true }
 
 for _, option in ipairs(ns.OptionsConfig.behavior) do Core.DEFAULTS[option.key] = option.def end
 

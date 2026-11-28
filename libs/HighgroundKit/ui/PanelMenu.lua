@@ -28,6 +28,12 @@ function Panels.Items(key)
   local items = { Panels.MenuItem(), { text = ns.Locale:Get("highground.home.arrange_panels.e82274"), run = function() Panels.Arrange(context) end,
     hint = InCombatLockdown() and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or nil } }
   local function Add(text, run) items[#items + 1] = { text = text, run = run } end
+  -- Battleground panels show, and their changes go to, one size.
+  local CS = ns.CharacterSettings
+  if CS and owner == "battlegrounds" and pages then
+    table.insert(items, 1, { text = ns.Locale:Format("sizes.menu", { size = CS.Label(CS.Editing()) }),
+      run = function() Settings(pages.settings) end })
+  end
   local function EndPreview(run)
     items[#items + 1] = { text = ns.Locale:Get("shared.panelmenu.end_preview.8df98c"), hint = InCombatLockdown() and ns.Locale:Get("highground.profilecontext.after_combat.09bba6") or nil,
       run = function()

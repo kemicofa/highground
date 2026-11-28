@@ -114,14 +114,9 @@ local function Features()
     appearanceKey, function() return Appearance().preview end, ns.Locale:Get("appearance.preview.guide_hint"))
   local enemy = bg and Step("enemy-style", ns.Locale:Get("enemy.appearance.title"),
     ns.Locale:Get("enemy.appearance.guide"), appearanceKey, function() return Appearance().enemyPreset end)
-  -- Where Highground runs: the Battleground sizes card on the same page.
-  local sizes = bg and Step("sizes", ns.Locale:Get("battlegrounds.sizes.guide_title"), ns.Locale:Get("battlegrounds.sizes.guide_text"),
-    settingsKey, function() return ns.Options.featurePages.battlegrounds.sizes end)
-  if sizes then sizes.enter = function()
-    N.Page(settingsKey)
-    local page = ns.Options.featurePages.battlegrounds
-    N.Reveal(page.scroll, page.content, page.sizes, 24)
-  end end
+  -- The size bar at the top of every Battlegrounds page.
+  local sizes = bg and ns.Localization.Define(Step("sizes", ns.Locale:Get("sizes.guide_title"), ns.Locale:Get("sizes.guide_text"),
+    settingsKey, function() return ns.Options.byKey[settingsKey].scopeBar end), { title = "sizes.guide_title", text = "sizes.guide_text" })
   if enemy then enemy.enter = function()
     N.Page(appearanceKey)
     local page = Appearance(); N.Reveal(page.scroll, page.child, page.enemyPreset, 24)
@@ -153,11 +148,15 @@ local function Alerts()
     N.changing = nil
   end
   local function Context() return ns.Alerts.win end
-  local function Settings()
+  local function Settings(control)
     N.changing = true
     ns.Hub.Open({ name = "battlegrounds-settings", params = { section = "alerts" } })
     N.Track(ns.Hub.win)
     N.changing = nil
+    -- The size bar and large text can push the first alert below the fold.
+    local page = ns.Options.featurePages.battlegrounds
+    local row = control and page and page.alertRows and page.alertRows[1]
+    if row and row[control] then N.Reveal(page.scroll, page.content, row[control], 24) end
   end
   local steps = {
     { id = "level", title = ns.Locale:Get("highground.coachpreferences.choose_the_warnings_you_want.2794f4"), text = ns.Locale:Get("alerts.guide.level"),
@@ -171,7 +170,7 @@ local function Alerts()
     { id = "channels", title = ns.Locale:Get("highground.coachpreferences.choose_text_sound_or_both.306e9e"), text = bg
         and ns.Locale:Get("alerts.guide.channels_bg")
         or ns.Locale:Get("alerts.guide.channels_shared"),
-      enter = function() if bg then Settings() else Open() end end,
+      enter = function() if bg then Settings("sound") else Open() end end,
       target = function()
         if bg then return ns.Options.featurePages.battlegrounds.alertRows[1].sound end
         for _, row in ipairs(ns.Alerts.win.rows) do if row.key == "stealth" then return row.sound end end
@@ -184,35 +183,30 @@ local function Alerts()
   }
   if bg then
     table.insert(steps, 4, { id = "choose", title = ns.Locale:Get("alerts.sound.guide_title"), text = ns.Locale:Get("alerts.sound.guide_text"),
-      enter = Settings, target = function() return ns.Options.featurePages.battlegrounds.alertRows[1].cue end,
+      enter = function() Settings("cue") end, target = function() return ns.Options.featurePages.battlegrounds.alertRows[1].cue end,
       context = function() return ns.Hub.win end, hint = ns.Locale:Get("highground.coachpreferences.changes_here_save_immediately.a4d86e") })
   end
   return steps
 end
 local function Profiles()
-  local function P() return ns.Options.panel end
-  local function Open() N.Page("profiles"); P().EndReviewExample() end
-  local function Create() Open(); if P().mode ~= "create" then P().NewProfile() end end
-  local function ProfileStep(id, title, text, target, enter, hint)
-    local step = ns.Localization.Define(Step(id, ns.Locale:Get(title), ns.Locale:Get(text), "profiles", target, hint and ns.Locale:Get(hint)),
-      { title = title, text = text, hint = hint })
+  local function P() return ns.Options.BuildProfiles() end
+  local function Open() N.Page("profiles") end
+  local function ProfileStep(id, target, enter)
+    local title, text = "profiles.guide." .. id .. "_title", "profiles.guide." .. id .. "_text"
+    local step = ns.Localization.Define(Step(id, ns.Locale:Get(title), ns.Locale:Get(text), "profiles", target), { title = title, text = text })
     step.enter = enter or Open
     return step
   end
-  local function L(key) return "profiles.guide." .. key end
+  -- The first row another character or import offers, else the list.
+  local function Copy()
+    for _, row in ipairs(P().rows) do if row:IsVisible() and row.copy:IsShown() then return row.copy end end
+    return P().list
+  end
   return {
-    ProfileStep("default", L("default_title"), L("default_text"), function() return P().defaultInfo end,
-      function() Open(); P().SelectProfile("Default") end),
-    ProfileStep("name", L("name_title"), L("name_text"), function() return P().profileName end, Create),
-    ProfileStep("source", L("source_title"), L("source_text"), function() return P().source end, Create),
-    ProfileStep("contents", L("contents_title"), L("contents_text"), function() return P().profileScroll end, Create),
-    ProfileStep("save", L("save_title"), L("save_text"), function() return P().profileButtons.Save end, Create, L("save_hint")),
-    ProfileStep("changes", L("diff_title"), L("diff"), function() return P().profileScroll end,
-      function() Open(); P().BeginReviewExample() end, L("diff_hint")),
-    ProfileStep("load", L("load_title"), L("load_text"), function() return P().listScroll end,
-      function() Open(); P().SelectProfile(ns.Core.db.activeProfile or "Default") end),
-    ProfileStep("switching", L("switching_title"), L("switching_text"), function() return P().assignmentScroll end, Open, L("switching_hint")),
-    ProfileStep("sharing", L("sharing_title"), L("sharing_text"), function() return P().footer end),
+    ProfileStep("own", function() return P().hint end),
+    ProfileStep("addons", function() return P().addons end),
+    ProfileStep("copy", Copy),
+    ProfileStep("share", function() return P().footer end),
   }
 end
 local function Addons()

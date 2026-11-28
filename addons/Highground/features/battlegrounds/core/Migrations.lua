@@ -49,11 +49,19 @@ end
 -- Battleground size switches were account-wide profile settings. Each
 -- character starts from them once; the old values stay as the seed for
 -- characters that haven't logged in since.
+-- Include unrated battlegrounds and world fights were account-wide switches
+-- too: unrated now belongs to 10v10 (15v15 and epic are never rated, so off
+-- kept them off) and world fights to the Open world size.
 local function SeedSizes(db, pos)
-  if type(pos.battlegroundSizes) == "table" then return end
-  local sizes = {}
-  for _, key in ipairs(Core.SIZE_KEYS) do sizes[key] = db[key] ~= false end
-  pos.battlegroundSizes = sizes
+  local sizes = pos.battlegroundSizes
+  if type(sizes) ~= "table" then
+    sizes = {}
+    for _, key in ipairs(Core.SIZE_KEYS) do sizes[key] = db[key] ~= false end
+    pos.battlegroundSizes = sizes
+  end
+  if sizes.unrated ~= nil then return end
+  sizes.unrated, sizes.world = db.allBGs ~= false, db.worldFights ~= false
+  if not sizes.unrated then sizes.bg15, sizes.bg40 = false, false end
 end
 
 local ACCOUNT = ns.SAVED_VARIABLE or "HighgroundDB"

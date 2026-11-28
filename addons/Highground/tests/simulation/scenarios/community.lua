@@ -25,9 +25,11 @@ test("Forever Discord offer survives " .. way .. ", reloads and profile changes"
   sim:advance(3)
   assert(O.win:IsVisible(), "the first-install feature guide is still offered")
   O.Dismiss()
-  local profiles = sim.ns.Options.Profiles
-  profiles.SaveProfile("Saved")
-  profiles.LoadProfile("Saved")
+  local CS = sim.ns.CharacterSettings
+  for _, addon in ipairs({ "shared", "battlegrounds" }) do
+    local ok, _, index = CS.Import(CS.Export(addon), "Saved")
+    assert(ok and CS.Copy({ import = index }, addon), "copying " .. addon .. " settings back")
+  end
   local again = create(sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
   again:advance(3)
   assert(not again.ns.Community.win, "the same character gets no repeat")

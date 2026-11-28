@@ -60,6 +60,7 @@ function Options.RefreshAllRows()
     if page.RefreshTracking then page.RefreshTracking() end
     if page.RefreshBehavior then page.RefreshBehavior() end
     if page.RefreshGeneral then page.RefreshGeneral() end
+    if page.scopeBar then page.scopeBar:Refresh() end
     if page.RefreshAppearance then page.RefreshAppearance() end
   end
 end
@@ -72,6 +73,7 @@ function Options.RefreshPage(page)
   if page.RefreshTracking then page.RefreshTracking() end
   if page.RefreshBehavior then page.RefreshBehavior() end
   if page.RefreshGeneral then page.RefreshGeneral() end
+  if page.scopeBar then page.scopeBar:Refresh() end
   if page.RefreshAppearance then page.RefreshAppearance() end
   if page.RefreshPreviews then page.RefreshPreviews() end
 end
@@ -178,6 +180,17 @@ function Options.MakePage(key)
   page.title = t
   local h = Theme.Text(f, "body", "textMuted")
   h:SetPoint("TOPLEFT", t, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
+  -- Battlegrounds pages edit one size: the size bar sits above the hint,
+  -- built when the page is first shown.
+  local scoped = Options.ScopedPage and Options.ScopedPage(key, config)
+  function page.EnsureScopeBar()
+    if page.scopeBar or not scoped or not Options.ScopeBar then return page.scopeBar end
+    page.scopeBar = Options.ScopeBar(page)
+    page.scopeBar:SetPoint("TOPLEFT", t, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
+    h:ClearAllPoints(); h:SetPoint("TOPLEFT", page.scopeBar, "BOTTOMLEFT", 0, -(S("sm") + S("xs")))
+    h:SetPoint("RIGHT", -S("xl"), 0)
+    return page.scopeBar
+  end
   h:SetPoint("RIGHT", -S("xl"), 0)
   h:SetJustifyH("LEFT"); h:SetWordWrap(true)
   h:SetText(text .. (config.stepper == false and "" or ns.Locale:Get("highground.controls.applies_instantly_shift_click_for_bigger_steps.9fc66c")))
@@ -206,8 +219,9 @@ function Options.MakePage(key)
   function page.LayoutHeader()
     t:SetHeight(t:GetStringHeight())
     h:SetHeight(h:GetStringHeight())
+    local bar = page.scopeBar and page.scopeBar:Layout(math.max(1, f:GetWidth() - S("xl") * 2)) + S("sm") + S("xs") or 0
     scroll:SetPoint("TOPLEFT", S("md"), -(S("xl") + t:GetHeight() + S("sm") + S("xs")
-      + h:GetHeight() + 18 + (page.toolbarHeight or 0)))
+      + h:GetHeight() + 18 + bar + (page.toolbarHeight or 0)))
     scroll:Refresh() -- the viewport moved: resize the body before pages lay out
     -- Reparenting and wrapped text can settle after OnShow. Finish once on
     -- the next visible frame; repeated size events share this same callback.
@@ -223,6 +237,7 @@ function Options.MakePage(key)
       return
     end
     Options.BuildPage(page)
+    page.EnsureScopeBar()
     page.LayoutHeader()
     Options.RefreshPage(page)
   end)

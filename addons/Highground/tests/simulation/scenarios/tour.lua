@@ -22,8 +22,6 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
     local sim = make()
     local O = sim.ns.Onboarding
     local before = snapshot(sim)
-    local P = sim.ns.Options.Profiles
-    local default = P.ExportString(P.EnsureDefault())
     sim:advance(3)
     if game == "forever" then click(sim.ns.Community.win.later); sim:advance(3) end
     assert(O.win:IsVisible() and not O.Coach.running)
@@ -45,9 +43,8 @@ for _, game in ipairs({ "cata", "retail", "forever" }) do
     click(O.win.cards.macros.start); equal(O.Coach.index, 1)
     O.Coach.Go(2); O.Return(); equal(O.win.cards.macros.start.text, "Resume")
     click(O.win.cards.macros.start); equal(O.Coach.index, 2); O.Return()
-    equal(snapshot(sim), before)
-    equal(P.ExportString(P.EnsureDefault()), default, "tour preserves the built-in Default")
-    for name in pairs(sim.ns.Core.db.profiles) do equal(name, "Default", "tour creates no saved profiles") end
+    equal(snapshot(sim), before, "the tour leaves settings unchanged")
+    equal(#sim.ns.CharacterSettings.Profiles("battlegrounds"), 1, "tour creates no profiles")
     click(O.win.later)
     local again = make(sim.env.HighgroundDB)
     again:advance(3); assert(not again.ns.Onboarding.win)

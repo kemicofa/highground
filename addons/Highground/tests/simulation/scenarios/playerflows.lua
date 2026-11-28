@@ -142,18 +142,6 @@ test("localized node messages resolve declined names through client area identif
   equal(sim.ns.Timers.chatTaken["Ферма"], sim.now, "localized objective reaches the timer parser")
 end)
 
-test("a newer tuning-only profile cancels a queued full profile", function()
-  local sim = new("cata", {})
-  local P, C = sim.ns.Options.Profiles, sim.ns.Core
-  C.db.sniper = false; P.SaveProfile("Queued")
-  C.db.sniper = true
-  sim:setCombat(true); assert(P.LoadProfile("Queued")); assert(P.pending)
-  assert(P.ImportText("WB1;o.executePct=0.15"))
-  sim:setCombat(false)
-  equal(C.db.sniper, true, "the older queued setup cannot overwrite a newer choice")
-  equal(C.db.executePct, 0.15)
-end)
-
 test("base overview distinguishes fresh sightings and warns once for an urgent friendly base", function()
   local sim = new("cata", {})
   sim:join()

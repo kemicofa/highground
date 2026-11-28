@@ -32,10 +32,12 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg opacity PCT` | Set the background opacity of HUD panels, in percent. | Adjust background opacity → `appearance` |
 | `/hg sound` | Toggle the master Highground sound preference. | Master sound control → `general` |
 | `/hg theme [NAME]` | List themes or select a theme by name. | Choose a theme → `appearance` |
-| `/hg profile [save\|load\|delete\|share NAME]` | List, save, update, apply or share profiles; compare saved copies with Default. Default is read-only. | Manage saved profiles → `profiles` |
-| `/hg profile share [NAME]` | Prepare a chat link for your current setup or a named profile. | Share a setup |
-| `/hg export [NAME]` | Choose current settings or a saved copy to export or share in chat. | Export settings |
-| `/hg import [CODE]` | Review or import a settings code, preserving its case. | Import a profile → `profiles` |
+| `/hg profile [ADDON]` | Open Profiles and list the profiles for an addon: battlegrounds, arena, nearby, bounties, macros or general. | Profiles → `profiles` |
+| `/hg profile copy ADDON NAME` | Copy another character's or an import's settings for an addon into this character. | Copy a profile → `profiles` |
+| `/hg profile delete NAME` | Delete another character's settings or an import. | Delete a profile → `profiles` |
+| `/hg profile share [ADDON]` | Prepare a chat link to this character's settings for an addon. | Share in chat → `profiles` |
+| `/hg export [ADDON]` | Show this character's settings for an addon as a code. | Export → `profiles` |
+| `/hg import [CODE]` | Keep a profile code in Profiles without applying it. | Import → `profiles` |
 | `/hg err` | Print recorded errors and diagnostic counters in chat. | Show errors in chat |
 | `/hg clearerr` | Clear recorded errors. | Clear recorded errors |
 | `/hg perf` | Print the latest performance capture in chat. | Show performance report |
@@ -59,13 +61,9 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg why` | Print why the kill target was chosen. | Explain target choice |
 | `/hg live` | Toggle live-priority row sorting. | Live sorting controls → `behavior` |
 | `/hg all` | Toggle participation in unrated battlegrounds. | Battleground scope controls → `battlegrounds-settings` |
-| `/hg sizes [10\|15\|40] [on\|off]` | Show or switch the battleground sizes Highground runs in for this character. | Battleground sizes → `battlegrounds-settings` |
-| `/hg layout` | Show which battleground sizes have their own layout for this character. | Battleground sizes → `battlegrounds-settings` |
-| `/hg layout create 10\|15\|40` | Save your current setup as a battleground size's layout. | Create layout → `battlegrounds-settings` |
-| `/hg layout remove 10\|15\|40` | Delete a battleground size's layout; its matches use your usual setup again. | Remove layout → `battlegrounds-settings` |
-| `/hg layout remember on\|off` | Remember or discard changes made during a match with a layout. | Remember changes made during a match → `battlegrounds-settings` |
-| `/hg layout edit 10\|15\|40` | Arrange a battleground size's layout with sample panels outside a match. | Edit → `battlegrounds-settings` |
-| `/hg layout copy 10\|15\|40\|all NAME \| 10\|15\|40 profile NAME` | Copy another character's layout (all: every size it has) or a saved profile into a battleground size. | Copy from… → `battlegrounds-settings` |
+| `/hg sizes [10\|15\|40\|world] [on\|off]` | Show which size the Battlegrounds settings edit, pick one, or switch where Highground runs. | Battleground sizes → `battlegrounds-settings` |
+| `/hg sizes copy SIZE [SIZE...]` | Copy the edited size's settings over other sizes. | Copy to other sizes… → `battlegrounds-settings` |
+| `/hg sizes preview` | Start or stop sample panels for the size you edit. | Preview → `battlegrounds-settings` |
 | `/hg kit` | Print tracked cooldowns for your target or kill target. (Cata) | Show target cooldowns |
 | `/hg exec PCT` | Set the execute health threshold. | Execute threshold → `behavior` |
 | `/hg history` | Review saved PvP results and observed objective timelines. | Open match history (separate window) |
@@ -171,7 +169,7 @@ Words in capitals are values; `a|b` means a choice. UI links open the relevant s
 | `/hg nearby marks on` · `/hg nearby marks off` | Show and share map marks, or turn them off. | Map marks switch → `nearby` |
 | `/hg nearby marks world on` · `/hg nearby marks world off` | Share map marks with every Highground user of your faction on this realm. | Marks with everyone switch → `nearby` |
 | `/hg nearby calls on` · `/hg nearby calls off` | Turn World PvP calls on or off: known gankers, enemy raids and others' map marks. | World PvP calls switch → `nearby` |
-| `/hg nearby fights on` · `/hg nearby fights off` | Run the kill order in open-world group fights, or stop. | World fights switch → `nearby` |
+| `/hg nearby fights on` · `/hg nearby fights off` | Run the kill order in open-world group fights, or stop. | World fights switch → `battlegrounds-settings` |
 | `/hg guide nearby` · `/hg nearby guide` · `/hg checklist nearby` | Start or resume the Nearby walkthrough: sightings, sharing, marks, tracking and the journal, with sample data. | Start Nearby guide |
 | `/hg nearby test` | Start or stop the nearby enemy sample list. | Nearby preview controls → `nearby-previews` |
 | `/hg nearby clear` | Clear current nearby sightings. | Clear nearby sightings |

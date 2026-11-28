@@ -35,7 +35,7 @@ function ns.OptionsAdd(part)
   for k, v in pairs(part.pages or {}) do v.module = part.module; C.pages[k] = v end
   for k, v in pairs(part.pointAliases or {}) do C.pointAliases[k] = v end
   for _, list in ipairs({ "behavior", "weights", "points" }) do
-    for _, row in ipairs(part[list] or {}) do C[list][#C[list] + 1] = row end
+    for _, row in ipairs(part[list] or {}) do row.module = part.module; C[list][#C[list] + 1] = row end
   end
   for _, block in ipairs(part.features or {}) do
     local at = #C.features + 1

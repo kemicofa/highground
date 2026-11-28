@@ -18,9 +18,9 @@ These rules apply to Highground through the shared HighgroundKit library. Legacy
 | Gold balances and outstanding account commitments | Account within the current realm/ruleset economy, across factions | Account gold deliberately includes alts and prevents pledging the same recorded funds twice. Turning it off uses the current character's balance. |
 | Previously observed enemy specializations | Game/region; Forever also separates rulesets | An exact enemy identity can help any character in the same environment. Unscoped external spec history is not used on Forever. |
 | Learned capture times, graveyards, scoring rates and spec-inference samples | Game; Forever also separates rulesets, with map/mode keys where applicable | These describe game mechanics shared by characters and factions. |
-| Character macro backups and automatic profile assignments | Character + faction + realm/ruleset | Undo and automatic switching must not use another character's changes. |
+| Character macro backups | Character + faction + realm/ruleset | Undo must not use another character's changes. |
 | General macro backups | Account + game/region, across rulesets | General macros use shared game storage. Their backups remain available to other characters. |
-| Saved profiles, appearance, feature switches and alert preferences | Account, across rulesets | These are reusable user preferences. They exclude personal records. Existing per-character panel positions remain per character. |
+| Settings per addon (feature switches, tuning, appearance, panel positions, alerts) and imported profiles | Character (GUID), stored account-wide in `HighgroundDB.characters`; imports in `HighgroundDB.profileImports` | Each character keeps its own; storing them account-wide lets another character copy them. They exclude personal records. Battlegrounds settings are kept per battleground size. |
 | Highground Discord invitation | Same invite across clients, regions, factions and rulesets | Home copies the Discord invite. Forever's automatic-offer dismissal stays per character. Joining Discord does not change the scope of in-game Reputation or bounty data. |
 | Live enemies, arena state, peer detections and queued alerts | Current session/context | These are observations, not account history. Relevant caches and pending actions retire when context changes. |
 

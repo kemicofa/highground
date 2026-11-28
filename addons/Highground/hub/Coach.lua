@@ -27,7 +27,12 @@ end
 
 -- A child switch only works under its parents, so the guide reads and
 -- enables the whole chain.
+-- The Nearby guide's world-fights step offers the Open world size's run
+-- switch, which needs Nearby on.
+local RUN = { worldFights = "world" }
+
 function C.FeatureOn(key)
+  if RUN[key] then return Core.SizeEnabled(RUN[key]) and Core.On("nearby") end
   while key do
     if not Core.On(key) then return false end
     key = Feature(key) and Feature(key).parent
@@ -37,6 +42,11 @@ end
 
 function C.SetFeature(key, on)
   if InCombatLockdown() then return end
+  if RUN[key] then
+    Core.SetSizeEnabled(RUN[key], on)
+    if on and not Core.On("nearby") then Core.SetFeature("nearby", true) end
+    return
+  end
   Core.SetFeature(key, on)
   local parent = on and Feature(key) and Feature(key).parent
   while parent do
@@ -214,7 +224,11 @@ function C.Refresh()
   if feature and Feature(feature) and not ns.OptionAvailable(Feature(feature)) then feature = nil end
   C.feature = feature
   if feature then
-    w.enable.label:SetText(label or C.FeatureLabel(feature))
+    -- A Battlegrounds switch changes the size being edited; say which.
+    local CS = ns.CharacterSettings
+    local sized = CS and ns.Modules and ns.Modules.featureOwners[feature] == "battlegrounds"
+    w.enable.label:SetText(sized and ns.Locale:Format("sizes.applies", { label = label or C.FeatureLabel(feature),
+      size = CS.Label(CS.Editing()) }) or label or C.FeatureLabel(feature))
     w.enable:SetChecked(C.FeatureOn(feature), true)
     w.enable:SetEnabled(not InCombatLockdown() and (not ns.Modules or ns.Modules.FeatureEnabled(feature)))
   end

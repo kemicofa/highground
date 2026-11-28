@@ -170,7 +170,8 @@ test("/hg theme lists, switches, rejects and persists across a reload", function
   sim:command("THEME PARCHMENT")
   equal(sim.ns.Theme.Current(), "parchment", "command is case-insensitive")
 
-  local again = new("cata", sim.env.HighgroundDB)
+  sim:event("PLAYER_LOGOUT")
+  local again = new("cata", sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
   equal(again.ns.Theme.Current(), "parchment", "restored after a reload")
   same(again.ns.Core.head.title.textColor, again.ns.Themes.parchment.color.text, "panel drawn in it")
   again.ns.Hub.Open("appearance")

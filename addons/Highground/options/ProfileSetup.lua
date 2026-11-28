@@ -1,5 +1,5 @@
 local _, ns = ...
-local Core, P, U = ns.Core, ns.Options.Profiles, ns.Util
+local Core, P = ns.Core, ns.Options.Profiles
 local A = ns.UIConfig.appearance
 -- Copy data directly. Snapshot/status checks run while settings are open;
 -- encoding and decoding every table here creates avoidable strings and sorts.
@@ -66,7 +66,9 @@ function P.SnapshotSetup()
   end
   setup.preferences.reducedMotion = Core.db.reducedMotion == true
   setup.preferences.locked = Core.db.locked == true
-  local placement = ns.Setup and ns.Setup.placement
+  -- Placement and a size's Preview unlock panels for a while: keep the
+  -- settings from before them.
+  local placement = ns.Setup and ns.Setup.placement or ns.CharacterSettings and ns.CharacterSettings.preview
   if placement then
     setup.preferences.locked = placement.locked == true
     if Core.StyleDB() == placement.style then setup.style.frameless = placement.frameless end
@@ -167,104 +169,3 @@ function P.PrepareSetup(source)
   end)
   return ok and result or nil, not ok and tostring(result) or nil
 end
-
-function P.ApplySetup(setup)
-  if not setup then return end
-  if ns.Setup and ns.Setup.placement then ns.Setup.EndPlacement(false) end
-  for key in pairs(Core.SavedDefs) do if key ~= "hubSection" then Core.db[key] = setup.preferences[key] or Core.DEFAULTS[key] end end
-  for key, value in pairs(setup.preferences) do Core.db[key] = value end
-  for key, value in pairs(setup.features) do Core.db[key] = value end
-  for _, key in ipairs(Core.POSITION_KEYS) do Core.pos[key] = setup.positions[key] and Copy(setup.positions[key]) end
-  for _, key in ipairs({ "style", "alerts", "disabledCooldowns", "burstModes" }) do Core.db[key] = Copy(setup[key]) end
-  Core.ApplyStyle()
-  Core.SetFontScale(Core.FontScale())
-  if Core.frame then Core.PlaceDockHead(Core.frame) end
-  for _, win in ipairs(ns.Timers and ns.Timers.windows or {}) do ns.Timers.PlaceWin(win) end
-  if ns.MinimapButton then ns.MinimapButton.Apply() end
-  Core.CheckZone(); Core.ApplyKillOrder()
-  if ns.PanelControls then ns.PanelControls.Refresh() end
-end
-
--- Assignments belong to the character: one profile per activity.
--- Battlegrounds use size layouts instead (options/ProfileLayouts.lua).
-function P.Context(activity)
-  local kind = select(2, IsInInstance())
-  local who = ns.Scope.Character() or "player"
-  return who, activity or (kind == "arena" and "arena" or kind == "pvp" and "bg" or "world")
-end
-P.ACTIVITIES = { arena = true, world = true }
-
--- Assignments used to be per specialization ("SPEC:activity"). The current
--- specialization's choice wins. A Battlegrounds choice in use becomes the
--- layout of every size that has none.
-function P.MigrateAssignments()
-  local db, who = Core.db, ns.Scope.Character()
-  local assignments = who and type(db.profileAssignments) == "table" and db.profileAssignments[who]
-  if type(assignments) ~= "table" then return end
-  local keys = {}
-  for key in pairs(assignments) do if type(key) == "string" and key:find(":", 1, true) then keys[#keys + 1] = key end end
-  if #keys == 0 then return end
-  U.call(Core.UpdateMe)
-  local current = tostring(Core.me.specID or Core.me.class or "unknown") .. ":"
-  table.sort(keys, function(a, b)
-    local ca, cb = a:sub(1, #current) == current, b:sub(1, #current) == current
-    if ca ~= cb then return ca end
-    return a < b
-  end)
-  for _, key in ipairs(keys) do
-    local activity, name = key:match(":(%a+)$"), assignments[key]
-    assignments[key] = nil
-    local profile = type(name) == "string" and db.profiles and db.profiles[name]
-    if P.ACTIVITIES[activity] then
-      if assignments[activity] == nil then assignments[activity] = name end
-    elseif activity == "bg" and profile and Core.pos.autoProfiles and P.Layouts then
-      for _, bracket in ipairs(Core.SIZE_KEYS) do
-        if not P.Layouts.Get(bracket) then P.Layouts.Save(bracket, ns.Saved.Copy(profile)) end
-      end
-    end
-  end
-end
-
-ns.Scope.Listen(function() P.pending, P.lastAssignment = nil, nil end)
-
-function P.Assign(name, activity)
-  -- Keep the old clearing argument for callers unless it names a real profile.
-  if name == "none" and not (Core.db.profiles and Core.db.profiles[name]) then name = nil end
-  if name ~= nil and not (Core.db.profiles and Core.db.profiles[name]) then return false, ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b") end
-  if not P.ACTIVITIES[activity] then return false, ns.Locale:Get("highground.profilesetup.choose_an_activity.609d3d") end
-  local who, context = P.Context(activity)
-  ns.Saved.Table(ns.Saved.Table(Core.db, "profileAssignments"), who)[context] = name
-  return true, ns.Locale:Get("profiles.switching.saved")
-end
-
-function P.Automatic()
-  P.MigrateDefault()
-  if not Core.db or not Core.pos then return end
-  P.MigrateAssignments()
-  if P.Layouts and P.Layouts.Update() then return end
-  if not Core.pos.autoProfiles then
-    if P.pending and P.pending.automaticAssignment then P.pending = nil end
-    return
-  end
-  local who, context = P.Context()
-  local name = Core.db.profileAssignments and Core.db.profileAssignments[who] and Core.db.profileAssignments[who][context]
-  local signature = who .. context .. tostring(name)
-  if P.pending and P.pending.automaticAssignment and P.pending.automaticAssignment ~= signature then P.pending = nil end
-  if name and P.lastAssignment ~= signature then
-    if P.LoadProfile(name) then
-      P.lastAssignment = signature
-      if P.pending then P.pending.automaticAssignment = signature end
-      U.Say(ns.Locale:Format("highground.profilesetup.profile_name_value3.ed3d26", { name = name, value3 = (InCombatLockdown() and ns.Locale:Get("highground.profilesetup.after_combat.5a00b1") or "") }))
-    end
-  elseif not name then P.lastAssignment = nil end
-end
-
-U.Events({
-  PLAYER_REGEN_ENABLED = function()
-    if P.pending then local setup = P.pending; P.pending = nil; P.Apply(setup) end
-    P.Automatic()
-  end,
-  PLAYER_ENTERING_WORLD = P.Automatic, ZONE_CHANGED_NEW_AREA = P.Automatic,
-  -- Rated and Blitz flags can arrive late and change the battleground size.
-  PVP_MATCH_STATE_CHANGED = P.Automatic, PVP_MATCH_ACTIVE = P.Automatic,
-}, "profile switching")

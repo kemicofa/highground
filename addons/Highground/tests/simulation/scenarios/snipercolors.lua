@@ -93,9 +93,12 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
     assert(not page.sniperColors.skull.button:IsEnabled(), "legacy has no skull to colour")
     sim:command("sniper style layered"); AssertColors()
     sim.ns.Theme.Use("parchment"); AssertColors()
-    sim:command("profile save My colours")
+    local CS = sim.ns.CharacterSettings
+    local code = CS.Export("battlegrounds")
     sim:command("sniper color skull default")
-    sim:command("profile load My colours"); sim:advance(0.2); AssertColors()
+    local ok, _, index = CS.Import(code, "My colours")
+    assert(ok and CS.Copy({ import = index }, "battlegrounds")); sim:advance(0.2); AssertColors()
+    sim:event("PLAYER_LOGOUT")
     local again = make(sim.env.HighgroundDB)
     equal(again.ns.Core.db.sniperRingColor, "a040ff", "ring persists on reload")
     equal(again.ns.Core.db.sniperSkullColor, "33bb77", "skull persists on reload")
@@ -145,9 +148,15 @@ for _, client in ipairs({ "cata", "retail", "forever" }) do
       Cyan = { setup = { preferences = { sniperColor = "cyan" } } } } })
     local db = sim.ns.Core.db
     equal(db.sniperColor, "theme", "untouched gold default follows the theme")
-    equal(db.profiles.Old.setup.preferences.sniperColor, "theme", "saved profiles upgrade too")
-    equal(db.profiles.Cyan.setup.preferences.sniperColor, "cyan", "other presets stay")
+    local imported = {}
+    for _, item in ipairs(sim.ns.CharacterSettings.Profiles("battlegrounds")) do
+      if item.kind == "import" then imported[item.name] = db.profileImports[item.source.import].snap end
+    end
+    assert(imported.Old and imported.Cyan, "saved profiles are kept as imports")
+    equal(imported.Old.setup.preferences.sniperColor, "theme", "saved profiles upgrade too")
+    equal(imported.Cyan.setup.preferences.sniperColor, "cyan", "other presets stay")
     sim:command("sniper color gold")
+    sim:event("PLAYER_LOGOUT")
     equal(make(sim.env.HighgroundDB).ns.Core.db.sniperColor, "gold", "gold chosen later survives reloads")
     equal(make({ sniperColor = "magenta" }).ns.Core.db.sniperColor, "magenta", "other saved presets stay")
   end)

@@ -11,7 +11,8 @@ test(client .. " fresh install offers the feature guide once without changing de
   assert(C.firstInstall and O.win:IsVisible() and not sim.ns.Hub.win)
   equal(O.Current().key, "welcome"); assert(O.win.cards.macros.start:IsVisible())
   click(O.win.later)
-  equal(C.db.rows, C.MAX_ROWS, "the whole enemy team by default"); equal(C.db.allBGs, true); equal(C.db.locked, true)
+  equal(C.db.rows, C.MAX_ROWS, "the whole enemy team by default"); equal(C.SizeEnabled("unrated"), true, "unrated 10v10 runs")
+  equal(C.db.locked, true)
   equal(sim.ns.Theme.Current(), "highground", "branded class colours on first install")
   equal(C.ShowsElement("hero"), false, "suggested-target card is opt-in")
   equal(C.O("prioritySort"), false, "rows stay in place by default")
@@ -68,20 +69,25 @@ test("the old five- and ten-row defaults upgrade once to the whole team, profile
     Old = { setup = { preferences = { rows = 5 } } },
     Ten = { setup = { preferences = { rows = 10 } } },
     Seven = { setup = { preferences = { rows = 7 } } } } })
-  local C = sim.ns.Core
+  local C, CS = sim.ns.Core, sim.ns.CharacterSettings
   equal(C.db.rows, C.MAX_ROWS, "the untouched five-row default shows everyone")
-  equal(C.db.profiles.Old.setup.preferences.rows, C.MAX_ROWS, "saved profiles upgrade too")
-  equal(C.db.profiles.Ten.setup.preferences.rows, C.MAX_ROWS, "the older ten-row default too")
-  equal(C.db.profiles.Seven.setup.preferences.rows, 7, "other choices stay")
-  C.SetRows(5)
-  equal(new("cata", sim.env.HighgroundDB).ns.Core.db.rows, 5, "five chosen later survives reloads")
+  local imported = {}
+  for _, item in ipairs(CS.Profiles("battlegrounds")) do
+    if item.kind == "import" then imported[item.name] = CS.ProfileData(item.source, "battlegrounds").bg10 end
+  end
+  equal(imported.Old.setup.preferences.rows, C.MAX_ROWS, "saved profiles upgrade too, then become imports")
+  equal(imported.Ten.setup.preferences.rows, C.MAX_ROWS, "the older ten-row default too")
+  equal(imported.Seven.setup.preferences.rows, 7, "other choices stay")
+  C.SetRows(5); sim:event("PLAYER_LOGOUT")
+  local again = new("cata", sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
+  equal(again.ns.Core.db.rows, 5, "five chosen later survives reloads")
 end)
 
 test("upgrades enable unrated battlegrounds and preserve other preferences", function()
   local sim = new("retail", { rows = 24, allBGs = false, sniper = true, locked = false,
     nearby = true, alerts = { mode = "everything" }, onboarding = { pending = true, steps = { features = true } } })
   sim:advance(2)
-  equal(sim.ns.Core.db.rows, 24); equal(sim.ns.Core.db.allBGs, true)
+  equal(sim.ns.Core.db.rows, 24); equal(sim.ns.Core.SizeEnabled("unrated"), true, "unrated 10v10 runs after the upgrade")
   equal(sim.ns.Core.db.sniper, true); equal(sim.ns.Core.db.nearby, true)
   equal(sim.ns.Core.db.locked, false); equal(sim.ns.Alerts.Preset(sim.ns.Alerts.Settings()), "everything")
   equal(sim.ns.Alerts.Settings().mode, nil, "the old level folds into the switches")
@@ -91,32 +97,40 @@ test("upgrades enable unrated battlegrounds and preserve other preferences", fun
   equal(implicit.ns.Alerts.Allowed("lockon", "sound"), true)
 end)
 
-test("battleground scope upgrade includes automatic profiles and runs only once", function()
+test("battleground scope upgrade enables unrated play, keeps old profiles and runs only once", function()
   local old = new("retail", {})
-  old.ns.Core.SetFeature("allBGs", false)
   old.ns.Core.SetFeature("sniper", false)
-  old.ns.Options.Profiles.SaveProfile("Battleground")
-  -- A Battlegrounds assignment saved per specialization, before size layouts.
-  old.ns.Core.UpdateMe()
-  local spec = tostring(old.ns.Core.me.specID or old.ns.Core.me.class or "unknown")
-  old.ns.Core.db.profileAssignments = { [old.ns.Scope.Character()] = { [spec .. ":bg"] = "Battleground" } }
-  old.ns.Core.db.battlegroundScopeVersion = nil -- settings saved before the upgrade
-  local sim = new("retail", old.env.HighgroundDB, function(s, env)
+  local db = old.env.HighgroundDB
+  -- Settings saved before the upgrade, with a named profile and an assignment.
+  db.profiles = { Battleground = old.ns.Options.Profiles.Snapshot() }
+  db.profileAssignments = { [old.ns.Scope.Character()] = { ["1:bg"] = "Battleground" } }
+  db.allBGs, db.battlegroundScopeVersion, db.characterSettingsVersion = false, nil, nil
+  local sim = new("retail", db, function(s, env)
     s.rated, s.blitz = false, false
     env.HighgroundCharDB = { autoProfiles = true }
   end)
-  equal(sim.ns.Core.db.allBGs, true, "account includes unrated matches")
+  local C, CS = sim.ns.Core, sim.ns.CharacterSettings
+  local sizes = sim.env.HighgroundCharDB.battlegroundSizes
+  equal(sizes.unrated, true, "the upgrade includes unrated matches")
+  equal(sizes.bg15, true, "and keeps 15v15 on"); equal(sizes.bg40, true, "and epic")
   sim:enemy("Enemy")
   sim:join(907, 1803, "Seething Shore")
-  equal(sim.ns.Options.Profiles.Layouts.Active(), "bg10", "the assigned profile became the size layout that loads on entry")
-  assert(sim.ns.Core.active and sim.ns.Core.frame:IsVisible(), "old profile keeps Seething Shore enabled")
-  equal(sim.ns.Core.db.sniper, false, "other profile choices survive")
+  assert(C.active and C.frame:IsVisible(), "Seething Shore runs")
+  sim:leave()
+  local imports = {}
+  for _, item in ipairs(CS.Profiles("battlegrounds")) do if item.kind == "import" then imports[#imports + 1] = item end end
+  equal(#imports, 1, "the named profile became an import"); equal(imports[1].name, "Battleground", "under its name")
+  equal(sim.env.HighgroundDB.profileAssignments, nil, "assignments are gone")
+  C.SetFeature("sniper", true)
+  assert(CS.Copy(imports[1].source, "battlegrounds"))
+  equal(C.On("sniper"), false, "other profile choices survive")
 
-  sim.ns.Core.SetFeature("allBGs", false)
-  sim.ns.Options.Profiles.SaveProfile("Battleground")
-  local again = new("retail", sim.env.HighgroundDB)
-  equal(again.ns.Core.db.allBGs, false, "a later scope choice survives reload")
-  equal(again.ns.Core.db.profiles.Battleground.setup.features.allBGs, false, "later profile choices survive reload")
+  C.SetSizeEnabled("unrated", false)
+  local again = new("retail", sim.env.HighgroundDB, function(_, env) env.HighgroundCharDB = sim.env.HighgroundCharDB end)
+  equal(again.ns.Core.SizeEnabled("unrated"), false, "a later choice survives reload")
+  local count = 0
+  for _, item in ipairs(again.ns.CharacterSettings.Profiles("battlegrounds")) do if item.kind == "import" then count = count + 1 end end
+  equal(count, 1, "the upgrade runs only once")
 end)
 
 test("first-install detection waits for saved variables supplied at addon load", function()
@@ -185,24 +199,22 @@ test("addon settings preserve hidden choices and parent dependencies", function(
   equal(boxes.timers:GetChecked(), false); equal(sim.ns.Core.db.arena, false)
 end)
 
-test("profiles keep saving separate from selecting a saved setup", function()
+test("profiles list every import, share directly and copy only when confirmed", function()
   local sim = new("cata", {})
-  local p, C = sim.ns.Options.panel, sim.ns.Core
+  local p, C, CS = sim.ns.Options.panel, sim.ns.Core, sim.ns.CharacterSettings
+  C.SetFeature("sniper", false)
+  local code = CS.Export("battlegrounds")
+  C.SetFeature("sniper", true)
+  for i = 1, 12 do assert(CS.Import(code, "Extra " .. i)) end
   sim.ns.Hub.Open("profiles")
-  assert(p.assignments:IsVisible(), "switching needs no disclosure")
-  p.NewProfile()
-  click(p.profileButtons.Save)
-  assert(p.profileStatus.text:find("Enter a name", 1, true))
-  p.profileName:SetText("First"); C.SetFeature("sniper", false); sim:advance(0.6); click(p.profileButtons.Save)
-  C.SetFeature("sniper", true); p.NewProfile(); p.profileName:SetText("Second"); click(p.profileButtons.Save)
-  equal(p.savedProfiles:GetValue(), "Second")
-  p.savedProfiles:SetValue("First")
-  equal(C.db.sniper, true, "selecting never applies a profile by itself")
-  click(p.profileButtons.Load); equal(C.db.sniper, false)
-  equal(p.profileButtons.Update.label.text, "Update profile")
-  assert(p.footer:IsVisible(), "sharing is directly available")
-  for i = 1, 10 do sim.ns.Options.Profiles.SaveProfile("Extra " .. i) end
-  p.RefreshProfiles(); equal(#p.savedProfiles.choices, 13, "all profiles remain reachable")
+  assert(p.footer:IsVisible() and p.export:IsVisible() and p.import:IsVisible(), "sharing is directly available")
+  local shown = 0
+  for _, row in ipairs(p.rows) do if row:IsShown() then shown = shown + 1 end end
+  equal(shown, 13, "this character and every import remain reachable")
+  local row = p.rows[2]
+  row.copy:Click(); equal(C.On("sniper"), true, "listing or a first click never applies a profile")
+  row.copy:Click(); equal(C.On("sniper"), false, "confirming copies it")
+  sim:assertHealthy()
 end)
 
 test("advanced navigation stays collapsed until requested and commands reveal it", function()

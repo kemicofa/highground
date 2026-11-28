@@ -36,7 +36,6 @@ local selected = ns.Kit.Select(ns.Hub.win, { choices = {
 local private = "Open · player-authored {name} 100%"
 local input = ns.Kit.Input(ns.Hub.win, 200, "")
 input:SetText(private)
-local profileRows = ns.Options.Profiles.Review(ns.Options.Profiles.Snapshot())
 ns.Hub.Open("bounties-previews")
 local previews = ns.Options.byKey["bounties-previews"].previews
 local sceneCommands = {}
@@ -80,8 +79,8 @@ for _, def in ipairs(ns.LocaleDefinitions) do
   assert(header:GetText() == l:Get("preferences.title"), "existing page title follows the language: " .. def.key .. ": " .. tostring(header:GetText()))
   assert(label:GetText() == private and input:GetText() == private, "reused labels and player input are never retranslated")
   assert(selected:GetValue() == "kept" and selected:GetText() == l:Get("locale.title"), "menu labels refresh without changing the choice")
-  assert(l:Format("profiles.workspace.profile_title", { name = private }) == private,
-    "a profile title preserves the author's exact name")
+  assert(l:Format("profiles.list.deleted", { name = private }):find(private, 1, true),
+    "a profile name keeps the author's exact text")
   assert(macroBodies() == bodies, "translated labels must never alter executable macros: " .. def.key)
   assert(ns.Protocols.Encode(nil, 200) == protocol, "capability payload is language-independent")
   assert(B.Kills.Pack(nil) == evidence, "default kill evidence is a stable wire value")
@@ -95,15 +94,6 @@ for _, def in ipairs(ns.LocaleDefinitions) do
     end
   end
   assert(advertised == #B.Preview.scenes, "every bounty scene advertises its command")
-  for _, row in ipairs(profileRows) do
-    local key = "profiles.group." .. row.group:lower():gsub(" ", "_")
-    local _, _, _, group = ns.Options.Profiles.ReviewFields(row)
-    assert(group == l:Get(key) and group ~= key, "retained profile groups resolve through stable identifiers")
-    if row.id == "preferences.scale" then
-      assert(ns.Options.Profiles.ReviewFields(row) == l:Get("highground.profilesummary.interface_scale.0e06dc"),
-        "retained profile labels follow the language without changing values")
-    end
-  end
   for _, profiles in pairs(ns.SpecsByIndex or {}) do
     for _, profile in ipairs(profiles) do
       assert(({ phys = true, magic = true, mixed = true })[profile.dmg], "damage type remains gameplay data")
@@ -127,12 +117,14 @@ for _, def in ipairs(ns.LocaleDefinitions) do
   for i = 1, 4 do assert(type(geom[i]) == "number", "layout metric keys are never translated") end
   ns.Hub.Open("battlegrounds-commands")
   ns.Hub.Open("profiles")
-  ns.Options.panel.SelectProfile("Default")
   local panel = ns.Options.panel
-  assert(panel.listScroll:GetHeight() > 0, "profile choices remain reachable with translated controls")
-  for _, key in ipairs({ "Import", "Export", "Chat" }) do
-    local button, area = sim.bounds(panel.profileButtons[key]), sim.bounds(panel.footer)
-    assert(button[1] >= area[1] and button[1] + button[3] <= area[1] + area[3] + 1,
+  assert(panel.list:GetHeight() > 0, "profile choices remain reachable with translated controls")
+  assert(panel.rows[1].detail:GetText() == l:Get("profiles.list.this_character"), "profile rows follow the language")
+  assert(panel.export:GetText() == l:Format("profiles.page.export_addon", { addon = l:Get("profiles.addon." .. panel.addon) }),
+    "profile actions follow the language")
+  for _, button in ipairs({ panel.export, panel.import, panel.chat }) do
+    local bounds, area = sim.bounds(button), sim.bounds(panel.footer)
+    assert(bounds[1] >= area[1] and bounds[1] + bounds[3] <= area[1] + area[3] + 1,
       "translated profile actions fit inside the footer")
   end
   ns.Hub.Open("general")
@@ -162,12 +154,9 @@ assert(ns.PreviewTests.AllActive(), "translated preview starts through its origi
 sim:command("test stop")
 assert(not ns.PreviewTests.AnyActive() and not B.Preview.state, "preview cleanup preserves live state")
 ns.Hub.Open("profiles")
-ns.Options.panel.SelectProfile("Default")
-local body = ns.Options.panel.defaultInfo.body
-local view, footer = sim.bounds(body.view), sim.bounds(ns.Options.panel.footer)
-assert(view[2] + view[4] <= footer[2], "long translated Default help stays above the profile actions")
-assert(body.range > 0, "long Default help remains available by scrolling at large text size")
-body:Scroll(body.range)
-assert(body.offset == body.range, "the last translated paragraph is reachable")
+local panel = ns.Options.panel
+local hint, list, footer = sim.bounds(panel.hint), sim.bounds(panel.list), sim.bounds(panel.footer)
+assert(hint[2] + hint[4] <= list[2] and list[2] + list[4] <= footer[2],
+  "long translated Profiles help and its list stay above the profile actions at large text size")
 sim:assertHealthy()
 print(build .. ": all locale catalogs preserve commands, macros, data, bindings, guide and preview state")

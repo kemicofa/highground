@@ -16,7 +16,15 @@ SlashCmdList.HIGHGROUND = function(msg)
   local module = ns.CommandCatalog.Owner(msg)
   if module and not ns.Modules.Require(module) then return end
   local handler = Commands[cmd] or Commands.help
-  handler(arg, msg, ns.Util.Say)
+  -- A Battlegrounds setting changes the size being edited: replies say which.
+  local row, CS = ns.CommandCatalog.Row(msg), ns.CharacterSettings
+  local page = row and row.ui and row.ui.page
+  local config = page and ns.OptionsConfig.pages[page]
+  local say = ns.Util.Say
+  if CS and module == "battlegrounds" and config and ns.Options.ScopedPage(page, config) and cmd ~= "sizes" and cmd ~= "all" then
+    say = function(text) ns.Util.Say(ns.Locale:Format("sizes.say", { text = text, size = CS.Label(CS.Editing()) })) end
+  end
+  handler(arg, msg, say)
   if ns.Options.RefreshVisible then ns.Options.RefreshVisible() end
   if ns.Options.RefreshPreviews then ns.Options.RefreshPreviews() end
 end

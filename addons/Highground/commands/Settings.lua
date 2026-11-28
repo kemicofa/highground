@@ -20,59 +20,6 @@ local function ScoringPages()
   return table.concat(names, ", ")
 end
 
--- /hg export [NAME]: a saved profile, or your current settings.
-function Commands.export(arg, msg, say)
-  Options.Profiles.ShowExport((msg or ""):match("^%S+%s+(.+)$") or false)
-end
-
-function Commands.import(arg, msg, say)
-  if arg ~= "" then
-    -- /hg import WB1;... (lowercased by the slash parser: re-read raw)
-    local raw = (msg or ""):match("^%S+%s+(.+)$")
-    local _, res = Options.Profiles.ImportText(raw)
-    say(res)
-  else
-    Options.Profiles.ShowImport()
-  end
-end
-
-function Commands.profile(arg, msg, say)
-  local sub = arg:match("^(%S*)")
-  local rawName = (msg or ""):match("^%S+%s+%S+%s+(.+)$") -- keep the name's case
-  if sub == "save" and rawName then
-    rawName = Options.Profiles.CleanName(rawName)
-    if not rawName then return say(ns.Locale:Get("highground.settings.enter_a_profile_name.2b23a6")) end
-    local P = Options.Profiles
-    P.EnsureDefault()
-    local ok, err = P.SaveProfile(rawName)
-    if not ok then return say(err) end
-    Core.db.activeProfile = rawName
-    Core.db.importedProfileName = nil
-    say(ns.Locale:Format("highground.settings.saved_profile_rawname.78e96f", { rawName = rawName }))
-    if ns.Hub then ns.Hub.Open("profiles") else Options.Open() end
-    local panel = Options.panel
-    panel.SelectProfile(rawName)
-  elseif sub == "load" and rawName then
-    local ok, err = Options.Profiles.LoadProfile(rawName)
-    say(ok and ns.Locale:Format(Options.Profiles.pending and "highground.settings.loaded_profile_rawname_applies_after_combat.eeb6f7"
-      or "highground.settings.loaded_profile_rawname.bc00e8", { rawName = rawName }) or err or (ns.Locale:Format("highground.settings.no_profile_named_rawname.754bf3", { rawName = rawName })))
-  elseif sub == "delete" and rawName and Core.db.profiles and Core.db.profiles[rawName] then
-    local ok, problem = Options.Profiles.DeleteProfile(rawName)
-    say(ok and (ns.Locale:Format("highground.settings.deleted_profile_rawname.3d3a8f", { rawName = rawName })) or problem or ns.Locale:Get("highground.settings.choose_a_saved_profile.5c404b"))
-    if Options.panel.RefreshProfiles then Options.panel.RefreshProfiles() end
-  elseif sub == "share" then
-    local _, message = Options.Profiles.Chat.ToChat(rawName)
-    say(message)
-  else
-    local names = {}
-    for n in Options.Profiles.SortedPairs(Core.db.profiles or {}) do
-      names[#names + 1] = n
-    end
-    say(#names > 0 and (ns.Locale:Format("highground.settings.profiles_value2.8d2cc0", { value2 = table.concat(names, ", ") })) or ns.Locale:Get("highground.settings.no_saved_profiles.69bd31"))
-    say("/hg profile save||load||delete||share NAME, /hg export, /hg import")
-  end
-end
-
 -- /hg config: the Highground window (/hg config blizzard: the Options panel).
 function Commands.config(arg, msg, say)
   if arg == "blizzard" or not ns.Hub then return Options.Open() end
@@ -155,9 +102,11 @@ function Commands.live(arg, msg, say)
   Options.PointsChanged()
 end
 
+-- /hg all: unrated 10v10 matches (the 10v10 size's run switches).
 function Commands.all(arg, msg, say)
-  local on = Core.SetFeature("allBGs", not Core.db.allBGs)
-  say(ns.Locale:Format("highground.settings.all_battlegrounds_value2.92ec6c", { value2 = (on and "on" or ns.Locale:Get("highground.settings.off_rated_only.3ae026")) }))
+  local on = not Core.SizeEnabled("unrated")
+  Core.SetSizeEnabled("unrated", on)
+  say(ns.Locale:Get(on and "sizes.unrated.on" or "sizes.unrated.off"))
 end
 
 function Commands.rows(arg, msg, say)
@@ -242,7 +191,6 @@ local NEARBY_SWITCHES = {
   ["marks on"] = "nearbyMarks", ["marks off"] = "nearbyMarks",
   ["calls on"] = "nearbyCalls", ["calls off"] = "nearbyCalls",
   ["feed on"] = "nearbyFeed", ["feed off"] = "nearbyFeed",
-  ["fights on"] = "worldFights", ["fights off"] = "worldFights",
 }
 
 -- /hg nearby mark enemies|ganker|help: at your position; mark clear: yours.
@@ -292,6 +240,9 @@ function Commands.nearby(arg, msg, say)
     if not ns.WorldLayer.SetAll(arg == "layers all") then return say(ns.Locale:Get("layers.unsupported")) end
   elseif verb == "mark" then
     return Mark(arg:match("^mark%s+(%S+)") or "", say)
+  elseif arg == "fights on" or arg == "fights off" then
+    -- The Open world size's run switch (Battlegrounds settings).
+    Core.SetSizeEnabled("world", arg == "fights on")
   elseif NEARBY_SWITCHES[arg] then
     Core.SetFeature(NEARBY_SWITCHES[arg], arg:match("on$") ~= nil)
   elseif arg == "test" and ns.NearbyPreview then

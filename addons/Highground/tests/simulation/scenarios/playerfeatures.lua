@@ -22,41 +22,45 @@ end)
 
 test("full profiles restore appearance, toggles, tracking and positions after combat", function()
   local sim = new("cata")
-  local P, C = sim.ns.Options.Profiles, sim.ns.Core
+  local P, C, CS = sim.ns.Options.Profiles, sim.ns.Core, sim.ns.CharacterSettings
   C.db.sniper, C.db.theme = false, "parchment"
   C.db.style = { fontScale = 1.1, hide = { mana = true } }
   C.db.disabledCooldowns = { [45438] = true }
   C.pos.arenaPoint = { "LEFT", "LEFT", 20, 40 }
   sim.ns.Alerts.SetMode("quiet")
-  P.SaveProfile("Healer alt")
-  local exported = P.ExportString(P.Snapshot())
+  local exported = P.ExportString(P.Snapshot(), "Healer alt")
   C.db.sniper, C.db.theme, C.db.style = true, "ember", {}
   C.db.disabledCooldowns, C.pos.arenaPoint = {}, nil
+  local ok, _, index = CS.Import(exported)
+  assert(ok, "a full profile imports")
   sim:setCombat(true)
-  assert(P.ImportText(exported))
-  equal(C.db.sniper, true, "secure layout waits for combat")
+  equal(select(1, CS.Copy({ import = index }, "battlegrounds")), false, "no copying in combat")
+  equal(C.db.sniper, true, "nothing changes in combat")
   sim:setCombat(false)
-  equal(C.db.sniper, false); equal(C.db.theme, "parchment")
-  equal(C.db.style.fontScale, 1.1); equal(C.pos.arenaPoint[3], 20)
-  assert(C.db.disabledCooldowns[45438]); equal(sim.ns.Alerts.Preset(C.db.alerts), "quiet")
+  for _, addon in ipairs(sim.ns.SettingsParts.ADDONS) do
+    assert(CS.Copy({ import = index }, addon), "copies " .. addon)
+  end
+  equal(C.db.sniper, false, "switches restored"); equal(C.db.theme, "parchment", "theme restored")
+  equal(C.db.style.fontScale, 1.1, "text size restored"); equal(C.pos.arenaPoint[3], 20, "position restored")
+  assert(C.db.disabledCooldowns[45438], "tracking restored")
+  equal(sim.ns.Alerts.Preset(C.db.alerts), "quiet", "alerts restored")
   local bad = P.Snapshot(); bad.setup.positions.arenaPoint[3] = math.huge
   local before = C.db.style
-  equal(P.Prepare(bad), nil); equal(C.db.style, before, "invalid setup is atomic")
+  equal(P.Prepare(bad), nil, "an invalid position is rejected"); equal(C.db.style, before, "invalid setup is atomic")
 end)
 
-test("role presets keep a backup and activity assignments switch full profiles", function()
+test("role presets change the battleground size being edited only", function()
   local sim = new("cata")
-  local C, P = sim.ns.Core, sim.ns.Options.Profiles
+  local C, CS = sim.ns.Core, sim.ns.CharacterSettings
   C.db.highestRank = false
+  assert(CS.Select("bg15"))
   assert(sim.ns.Setup.Apply("carrier"))
-  equal(C.db.dieAlert, false); equal(C.db.highestRank, false)
-  assert(C.db.profiles["Default"])
-  C.db.sniper = false; P.SaveProfile("Arena setup")
-  assert(P.Assign("Arena setup", "arena")); C.pos.autoProfiles = true
-  C.db.sniper = true
-  sim:joinArena()
-  equal(C.db.sniper, false, "arena assignment loaded")
-  equal(C.db.activeProfile, "Arena setup")
+  equal(C.db.dieAlert, false, "the preset applies"); equal(C.On("sniper"), false, "to 15v15")
+  equal(C.db.highestRank, false, "and leaves Macros alone")
+  assert(CS.Select("bg10"))
+  equal(C.On("sniper"), true, "10v10 keeps its own settings")
+  equal(C.db.highestRank, false, "Macros is not per size")
+  sim:assertHealthy()
 end)
 
 for _, game in ipairs({ "cata", "retail", "forever" }) do

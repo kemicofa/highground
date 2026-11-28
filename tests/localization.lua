@@ -139,8 +139,16 @@ if addon == "Highground" then
     and snapshot.setup.preferences.locale == nil, "language is not shared in profiles")
   snapshot.options.locale = "deDE"
   snapshot.setup.preferences.locale = "deDE"
-  profiles.Apply(assert(profiles.Prepare(snapshot)))
-  assert(saved.locale == "auto" and ns.Locale:GetLocale() == "frFR", "import cannot replace the language preference")
+  -- A General profile code carrying a language, as a damaged or edited export might.
+  local CS, Codec = ns.CharacterSettings, ns.Codec
+  local general = ns.SettingsParts.Filter(snapshot, "shared")
+  general.options.locale, general.setup.preferences.locale = "deDE", "deDE"
+  local code = Codec.Encode64(table.concat({ "WB2", "n=Sender", "f=" .. ns.CLIENT, "a=shared",
+    "x=" .. Codec.Encode64(Codec.Pack(general)) }, ";"))
+  local imported, problem, index = CS.Import(code)
+  assert(imported, problem)
+  assert(CS.Copy({ import = index }, "shared"))
+  assert(saved.locale == "auto" and ns.Locale:GetLocale() == "frFR", "a copied import cannot replace the language preference")
   local o, c = ns.Onboarding, ns.Onboarding.Coach
   s.env.UIParent:SetSize(1280, 720)
   ns.Core.SetFontScale(1.5)

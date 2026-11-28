@@ -44,7 +44,7 @@ function View.Refresh(w, force)
     w.rows[i] = row
     row:SetText(ns.Core.DisplayName(data.name) .. (data.current and ns.Locale:Get("shared.goldview.current_character.647a43") or "")
       .. "\n" .. G.Format(not sample and data.current and G.Current() or data.balance)
-      .. (data.current and ns.Locale:Get("shared.goldview.live_balance.a2c8ee") or ns.Locale:Format("shared.goldview.last_recorded_value2.a604e0", { value2 = date("%Y-%m-%d %H:%M", data.seenAt) })))
+      .. (data.current and ns.Locale:Get("shared.goldview.live_balance.a2c8ee") or ns.Locale:Format("shared.goldview.last_recorded_value2.a604e0", { value2 = ns.Util.When(data.seenAt) })))
     row:Show()
   end
   for i = #rows + 1, #w.rows do w.rows[i]:Hide() end

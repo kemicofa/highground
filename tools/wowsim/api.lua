@@ -26,7 +26,11 @@ return function(sim, env)
   end
   env.wipe = function(t) for key in pairs(t) do t[key] = nil end end
   env.tinsert, env.time = table.insert, function() return math.floor(sim.now) end
-  env.date = function() return "12:00:00" end
+  -- UTC, so results never depend on the machine's time zone.
+  env.date = function(fmt, t)
+    fmt = fmt or "%c"
+    return os.date(fmt:sub(1, 1) == "!" and fmt or "!" .. fmt, t or env.time())
+  end
   env.GetTime = function() return sim.now end
   env.GetNormalizedRealmName = function() return "Realm" end
   -- Addons: this one (its TOC fields in sim.metadata), sim.otherAddons

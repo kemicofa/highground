@@ -206,7 +206,7 @@ return function(addon)
       local w = assert(B.Poster.win)
       assert(w:IsShown(), "combined reward passes threshold")
       t.equal(w.reward:GetText(), "550g", "poster uses the funded aggregate")
-      assert(w.owner:GetText():find("2 contributors", 1, true), "poster describes shared funding")
+      t.equal(w.from:GetText(), "From Hunter and 1 other", "names the other contributor and counts your own pledge")
       click(w.details)
       assert(B.Details.win:IsVisible() and B.Details.win.cards[2]:IsShown(), "shared details show both contributions")
       s:assertHealthy()
@@ -294,12 +294,16 @@ return function(addon)
     local action = s.bounds(w.details)
     local outer = s.bounds(w)
     assert(action[2] >= outer[2] and action[2] + action[4] <= outer[2] + outer[4], "main action fits the popup")
-    B.Wanted.Fill(w, w.item.bounty, { status = w.status:GetText(), owner = w.owner:GetText(), location = w.location:GetText() })
+    B.Wanted.Fill(w, w.item.bounty, { status = w.status:GetText(), from = w.from:GetText(), location = w.location:GetText() })
     t.close(s.bounds(w.details)[2], action[2], "refresh preserves the compact layout")
     click(w.details)
     local details = B.Details.win
     t.equal(details.cards[1].note:GetText(), bounty.note, "full note is retained in details")
-    assert(details.cards[1].detail:GetText():find(B.Terms.Methods(bounty), 1, true), "every requested finish remains available")
+    local finish
+    for _, row in ipairs(details.cards[1].factRows) do
+      if row.label:GetText() == "FINISH" and row.value:IsShown() then finish = row.value:GetText() end
+    end
+    t.equal(finish, B.Terms.Methods(bounty), "every requested finish remains available")
     details.scroll.scripts.OnMouseWheel(details.scroll, -1000)
     t.close(details.area.offset, details.area.range, "all long details remain reachable")
     assert(not w:IsShown(), "opening details dismisses the popup")

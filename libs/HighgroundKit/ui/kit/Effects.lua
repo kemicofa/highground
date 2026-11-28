@@ -287,14 +287,17 @@ local function RefreshFinish(self, immediate)
   local primary = self.tone == "accent" or self.tone == "gold" or self.tone == "danger"
   local selected = self.tone == "selected"
   local enabled = not self.wbDisabled and self.enabled ~= false
-  local token = primary and self.tone or selected and "accent" or "focus"
+  local own = Kit.TONES[self.tone] -- tones with their own edge (posters) glow only on hover
+  own = own and own.edge and own
+  local token = own and own.hover or primary and self.tone or selected and "accent" or "focus"
   local lit = enabled and (primary or selected or self.wbHovered)
   if lit and not self.glow then self.glow = Kit.Glow(self, "accent", 4) end
   if self.glow then
     self.glow:SetColor(token)
     self.glow:SetActive(lit, false, immediate)
   end
-  self.edge:SetColor(primary and self.tone or selected and "accent" or enabled and self.wbHovered and "focus" or "controlBorder")
+  if own then self.edge:SetColor(enabled and self.wbHovered and own.hover or own.edge)
+  else self.edge:SetColor(primary and self.tone or selected and "accent" or enabled and self.wbHovered and "focus" or "controlBorder") end
   if selected and not self.wbWasSelected then Glint(self) end
   self.wbWasSelected = selected
   if self.sweep and (not enabled or immediate) then self.sweep:Stop() end

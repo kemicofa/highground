@@ -254,7 +254,10 @@ test("shared publishing is explicit, validates before opt-in, and keeps one targ
   prefs.threshold:SetFocus(); prefs.threshold:SetText("800"); prefs.threshold:ClearFocus()
   equal(s.ns.Core.O("bountyMinGold"), 800, "alert minimum saved")
   P(s).OpenDetails("Enemy-Other")
-  assert(B.Details.win.cards[1].detail.text:find("Funds reported available", 1, true))
+  local facts = {}
+  for _, row in ipairs(B.Details.win.cards[1].factRows) do facts[row.label.text] = row.value.text end
+  equal(facts.FUNDS, "Reported available", "funding is a labelled row")
+  assert(facts.EXPIRES:find(" left", 1, true), "expiry with time left: " .. facts.EXPIRES)
   assert(B.Details.win.terms.text:find("reported automatically", 1, true))
   assert(P(s).Post("Enemy-Other", 800, "4h", "flight master"))
   P(s).Fill(personal.name, personal)

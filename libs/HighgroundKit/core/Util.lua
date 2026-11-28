@@ -147,6 +147,67 @@ function Util.Ago(seconds)
 end
 
 ---------------------------------------------------------------------------
+-- Dates in the selected language and the game's 12/24-hour clock setting:
+-- "Today, 18:40", "Wed, 6:40 PM", "2 Dec, 18:40", "2 Dec 2025, 18:40".
+---------------------------------------------------------------------------
+local MONTHS = { "date.month.jan", "date.month.feb", "date.month.mar", "date.month.apr", "date.month.may", "date.month.jun",
+  "date.month.jul", "date.month.aug", "date.month.sep", "date.month.oct", "date.month.nov", "date.month.dec" }
+local WEEKDAYS = { "date.weekday.sun", "date.weekday.mon", "date.weekday.tue", "date.weekday.wed",
+  "date.weekday.thu", "date.weekday.fri", "date.weekday.sat" } -- date("*t").wday: 1 is Sunday
+
+-- Calendar days since a fixed epoch, so DST and year ends never skew a count.
+local function DayNumber(d)
+  local y = d.year - 1
+  return 365 * d.year + math.floor(y / 4) - math.floor(y / 100) + math.floor(y / 400) + d.yday
+end
+
+local function Calendar(d, year)
+  return ns.Locale:Format(year and "date.day_month_year" or "date.day_month",
+    { day = d.day, month = ns.Locale:Get(MONTHS[d.month]), year = d.year })
+end
+
+-- "18:40" or "6:40 PM"; seconds for evidence.
+function Util.TimeOfDay(t, seconds)
+  local d = date("*t", t)
+  if ns.Api and ns.Api.GetCVar("timeMgrUseMilitaryTime") == "0" then
+    local hour = d.hour % 12
+    return ns.Locale:Format("date.time_12h", { period = ns.Locale:Get(d.hour < 12 and "date.am" or "date.pm"),
+      time = string.format(seconds and "%d:%02d:%02d" or "%d:%02d", hour == 0 and 12 or hour, d.min, d.sec) })
+  end
+  return string.format(seconds and "%02d:%02d:%02d" or "%02d:%02d", d.hour, d.min, d.sec)
+end
+
+-- "Today", "Yesterday", "Tomorrow", a weekday within six days, else the
+-- date, with the year only when it is not the current one.
+function Util.Day(t, now)
+  local d, today = date("*t", t), date("*t", now or time())
+  local days = DayNumber(d) - DayNumber(today)
+  if days == 0 then return ns.Locale:Get("date.today") end
+  if days == -1 then return ns.Locale:Get("date.yesterday") end
+  if days == 1 then return ns.Locale:Get("date.tomorrow") end
+  if math.abs(days) <= 6 then return ns.Locale:Get(WEEKDAYS[d.wday]) end
+  return Calendar(d, d.year ~= today.year)
+end
+
+function Util.When(t, now)
+  return ns.Locale:Format("date.at", { day = Util.Day(t, now), time = Util.TimeOfDay(t) })
+end
+
+-- The full date and time to the second, for kill evidence and payments.
+function Util.Exact(t)
+  return ns.Locale:Format("date.at", { day = Calendar(date("*t", t), true), time = Util.TimeOfDay(t, true) })
+end
+
+-- "just now", "5m ago", "3h ago", "2d ago".
+function Util.TimeAgo(seconds)
+  seconds = math.max(0, math.floor(seconds))
+  if seconds < 60 then return ns.Locale:Get("date.ago.now") end
+  if seconds < 3600 then return ns.Locale:Format("date.ago.minutes", { count = math.floor(seconds / 60) }) end
+  if seconds < 86400 then return ns.Locale:Format("date.ago.hours", { count = math.floor(seconds / 3600) }) end
+  return ns.Locale:Format("date.ago.days", { count = math.floor(seconds / 86400) })
+end
+
+---------------------------------------------------------------------------
 -- Game data, the same on every client (C_Spell where it exists, else the
 -- old globals). nil when the game doesn't answer or the value is secret.
 ---------------------------------------------------------------------------

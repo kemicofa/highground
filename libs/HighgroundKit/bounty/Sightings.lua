@@ -65,8 +65,9 @@ function S.Place(a)
   return a.area ~= "" and a.area ~= a.zone and (a.area .. " · " .. a.zone) or a.zone
 end
 
+-- "The Twin Colossals · Feralas · Name · 2d ago", for chat and alerts.
 function S.Describe(a)
-  return S.Place(a) .. " · " .. Core.DisplayName(a.by) .. " · " .. B.Widgets.Ago(math.max(0, P.Now() - a.at)):lower()
+  return S.Place(a) .. " · " .. Core.DisplayName(a.by) .. " · " .. U.TimeAgo(P.Now() - a.at)
 end
 
 function S.Combined(b)
@@ -79,23 +80,60 @@ function S.Combined(b)
   return out.intel or {}
 end
 
-function S.Location(b, compact)
+-- Board rows: where the target was first and last reported.
+function S.Location(b)
   local intel, lines = S.Combined(b), {}
-  if intel.origin then lines[#lines + 1] = ns.Locale:Format("shared.sightings.first_spotted_value2.8403c4", { value2 = (compact and S.Place(intel.origin) or S.Describe(intel.origin)) }) end
+  if intel.origin then lines[#lines + 1] = ns.Locale:Format("shared.sightings.first_spotted_value2.8403c4", { value2 = S.Place(intel.origin) }) end
   if intel.latest then
     local a = intel.latest
     lines[#lines + 1] = (S.Near(a) and ns.Locale:Get("shared.sightings.in_your_zone.37159c") or "")
-      .. (a.by == B.Me() and ns.Locale:Get("shared.sightings.last_seen_by_you.1d337e") or ns.Locale:Get("shared.sightings.latest_report.0595ed")) .. (compact and S.Place(a) or S.Describe(a))
+      .. (a.by == B.Me() and ns.Locale:Get("shared.sightings.last_seen_by_you.1d337e") or ns.Locale:Get("shared.sightings.latest_report.0595ed")) .. S.Place(a)
   elseif b.seenAt then
     lines[#lines + 1] = (b.seenBy == B.Me() and ns.Locale:Get("shared.sightings.last_seen_by_you.1d337e")
       or b.seenBy and (ns.Locale:Format("shared.sightings.reported_by_value2.0ed337", { value2 = Core.DisplayName(b.seenBy) })) or ns.Locale:Get("shared.sightings.last_recorded_sighting.01cb7f"))
-      .. (b.seenZone or ns.Locale:Get("shared.sightings.unknown_location.4f20e4")) .. " · " .. B.Widgets.Ago(math.max(0, time() - b.seenAt)):lower()
-  end
-  local own = not compact and S.Validate(b.localSighting)
-  if own and own.by == B.Me() and intel.latest and own.at < intel.latest.at and intel.latest.by ~= B.Me() then
-    lines[#lines + 1] = ns.Locale:Format("shared.sightings.last_seen_by_you_value2.286b1f", { value2 = S.Describe(own) })
+      .. (b.seenZone or ns.Locale:Get("shared.sightings.unknown_location.4f20e4")) .. " · " .. U.TimeAgo(time() - b.seenAt)
   end
   return table.concat(lines, "\n")
+end
+
+-- A sighting as a fact value: the place, then who reported it and when.
+local function Report(place, by, age, near)
+  return ns.Locale:Format("bounty.seen.report", { place = near and ns.Locale:Format("bounty.seen.near", { place = place }) or place,
+    who = by == B.Me() and ns.Locale:Get("bounty.seen.you") or by and Core.DisplayName(by) or ns.Locale:Get("bounty.seen.someone"),
+    ago = U.TimeAgo(age) })
+end
+
+-- A received report for alerts: the place, then who and when.
+function S.Report(a)
+  return Report(S.Place(a), a.by, P.Now() - a.at)
+end
+
+-- Detail rows: the last sighting, an earlier first one, and your own when
+-- someone else reported since.
+function S.Facts(b, out)
+  local intel, now = S.Combined(b), P.Now()
+  local latest, origin = intel.latest or intel.origin, intel.origin
+  local function Add(label, a) out[#out + 1] = { ns.Locale:Get(label), Report(S.Place(a), a.by, now - a.at, S.Near(a)) } end
+  if latest then
+    Add("bounty.fact.last_seen", latest)
+    if origin and origin.at < latest.at then Add("bounty.fact.first_seen", origin) end
+    local own = S.Validate(b.localSighting)
+    if own and own.by == B.Me() and latest.by ~= B.Me() and own.at < latest.at and not (origin and origin.at == own.at) then
+      Add("bounty.fact.you_saw", own)
+    end
+  elseif b.seenAt then
+    out[#out + 1] = { ns.Locale:Get("bounty.fact.last_seen"),
+      Report(b.seenZone or ns.Locale:Get("shared.sightings.unknown_location.4f20e4"), b.seenBy, time() - b.seenAt) }
+  end
+  return out
+end
+
+-- One line for popups: "Last seen The Twin Colossals · Feralas · 2d ago".
+function S.Brief(b)
+  local intel = S.Combined(b)
+  local a = intel.latest or intel.origin
+  local place, age = a and S.Place(a) or b.seenZone, a and P.Now() - a.at or b.seenAt and time() - b.seenAt
+  if place and age then return ns.Locale:Format("bounty.seen.brief", { place = place, ago = U.TimeAgo(age) }) end
 end
 
 local function Sources(name)

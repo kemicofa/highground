@@ -103,7 +103,7 @@ function Model.Rows(scope, query, pending, organization)
     end
     local interest = B.Matches.State(r.name)
     local intel = B.Sightings.Combined(r)
-    r.location = B.Sightings.Location(r, true)
+    r.location = B.Sightings.Location(r)
     r.nearby = interest ~= "ignored" and B.Sightings.Near(intel.latest)
     if interest == "tracking" then r.status = ns.Locale:Format("shared.boardmodel.tracking_r_status.0c8d9b", { r_status = r.status })
     elseif interest == "ignored" then r.status = ns.Locale:Get("shared.boardmodel.ignored_alerts_off.190bb0"); r.muted = true end

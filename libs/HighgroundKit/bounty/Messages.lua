@@ -30,6 +30,37 @@ function M.Contributions(count, detail)
 end
 Bounty.Contributions = M.Contributions
 
+-- The guild or community behind a reward; nil for shared and private ones.
+local function Group(b)
+  if b.state == "personal" or b.id and b.audience ~= "guild" and b.audience ~= "community" then return nil end
+  local org = Bounty.Organizations.Get(b)
+  if org and org.kind == "community" then return org.name end
+  if org or b.audience ~= "community" then return ns.Locale:Get("bounty.audience.guild") end
+end
+
+-- Who posted a reward, for wanted posters: "From Name", "From Name · Group",
+-- "From Name and 2 others" or "Your bounty". The largest live pledge from
+-- another player is named; your own pledges count among the others.
+function M.From(b)
+  if b.state == "personal" then return ns.Locale:Get("shared.boardmodel.your_bounty.2ec6d8") end
+  local top, count = nil, 0
+  for _, p in ipairs(b.contributions or b.pot and b.pot.contributions or { b }) do
+    if p.by and not (p.id and not Bounty.Public.Active(p)) then
+      count = count + 1
+      local mine = p.by == Bounty.Me() or p.id and Bounty.Public.Mine(p)
+      if not mine and (not top or (p.gold or 0) > (top.gold or 0)) then top = p end
+    end
+  end
+  if not top then return count > 0 and ns.Locale:Get("shared.boardmodel.your_bounty.2ec6d8") or nil end
+  local name = Core.DisplayName(top.by)
+  if count > 1 then return ns.Locale:Plural("bounty.from.others", count - 1, { name = name, count = count - 1 }) end
+  if top.imported then return ns.Locale:Format("bounty.from.imported", { name = name }) end
+  local group = Group(top)
+  return group and ns.Locale:Format("bounty.from.group", { name = name, group = group })
+    or ns.Locale:Format("bounty.from.one", { name = name })
+end
+Bounty.From = M.From
+
 M.done = {
   submit = function(b)
     return b.state == "approved" and (ns.Locale:Format("shared.messages.posted_value2_to_value4.525352", { value2 = Name(b), value4 = Bounty.Organizations.Label(b) }))

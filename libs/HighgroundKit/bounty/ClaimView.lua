@@ -59,9 +59,9 @@ function V.Render(entry, w, width)
   p.hero:SetHeight(y); y = y + 16
   local values = {
     ns.Util.Gold(c.gold), tostring(B.Terms.Count(c)), ns.Core.DisplayName(c.by), B.Kills.CauseText(c.cause),
-    B.Kills.EvidenceText(c.evidence, B.Kills.Confirmed(c)), date("%d %b %Y · %H:%M:%S", c.killedAt or c.claimedAt),
+    B.Kills.EvidenceText(c.evidence, B.Kills.Confirmed(c)), ns.Util.Exact(c.killedAt or c.claimedAt),
     B.Terms.Methods(c) ~= "" and B.Terms.Methods(c) or ns.Locale:Get("shared.claimview.any_finish.36e00e"),
-    c.paidAt and date("%d %b %Y · %H:%M", c.paidAt) or c.reviewedBy and ns.Core.DisplayName(c.reviewedBy)
+    c.paidAt and ns.Util.When(c.paidAt) or c.reviewedBy and ns.Core.DisplayName(c.reviewedBy)
       or ns.Locale:Get("shared.claimview.not_reviewed_yet.4e21ff"),
   }
   ns.Localization.Bind(p.facts[8].label, c.paidAt and "shared.claimview.payment_recorded.35a84c" or "shared.claimview.reviewed_by.056b5c")

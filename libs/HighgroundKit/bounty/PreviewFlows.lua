@@ -127,13 +127,20 @@ function Demo.Guild(state)
   Demo.Notice(row.status)
 end
 
-function Demo.Progress(b)
+-- bare: without "Sample progress:", for a labelled row.
+function Demo.Progress(b, bare)
   local state, count = Demo.state or {}, B.Terms.Count(b)
   local relevant = state.coachRole ~= nil or Demo.scene and (Demo.scene.key == "kill" or Demo.scene.key == "claims")
   local done = relevant and (state.approved or 0) or 0
   local pending = relevant and math.max(0, (state.kills or 1) - done) or 0
   if state.coachRole then pending = state.coachPending or 0 end
-  return ns.Locale:Format("shared.previewflows.sample_progress_done_count_kills_approved_value6.ea08b4", { done = done, count = count, value6 = (pending > 0 and (ns.Locale:Format("shared.previewflows.pending_pending_review.5d459c", { pending = pending })) or ""), value7 = (done >= count and ns.Locale:Get("shared.previewflows.complete.938ad0") or "") })
+  local waiting = pending > 0 and ns.Locale:Format("shared.previewflows.pending_pending_review.5d459c", { pending = pending }) or ""
+  local complete = done >= count and ns.Locale:Get("shared.previewflows.complete.938ad0") or ""
+  if bare then
+    return ns.Locale:Format("bounty.progress.value", { done = done, count = count,
+      kills = ns.Locale:Get("shared.terms.kills_approved.8c44fb"), pending = waiting, complete = complete })
+  end
+  return ns.Locale:Format("shared.previewflows.sample_progress_done_count_kills_approved_value6.ea08b4", { done = done, count = count, value6 = waiting, value7 = complete })
 end
 
 function Demo.ProofItem()

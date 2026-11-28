@@ -129,6 +129,14 @@ WoW Forever runs several copies (layers) of a zone; players on different layers 
 
 Highground judges each shared sighting's layer from these signals (`world/Layer.lua`).
 
+### Map canvas
+
+From WoW Forever's interface code (`Blizzard_WorldMap`, `Blizzard_BattlefieldMap` and `Blizzard_MapCanvas`, Gethe/wow-ui-source branch `forever`, 2026-11-28); not measured live.
+
+- The world map and the zone map (Shift+M) zoom instantly (`SetShouldZoomInstantly(true)`), one zoom level per mouse-wheel notch. Each step calls `OnCanvasScaleChanged` on data providers, then on pins. The same call also comes when a map opens or changes (its zoom resets before `OnMapChanged`), on the frame after new pins (`MarkCanvasDirty`), and every frame while zooming with a gamepad.
+- The zone map's global pin scale is 0.6 (`BATTLEFIELD_MAP_POI_SCALE`). Pins without scaling limits take it unless they call `SetIgnoreGlobalPinScale(true)`, so map-unit circles drawn without it are 60% of the ground they cover.
+- `C_Map.GetMapWorldSize` is documented; Highground reads map widths from it (`WorldMap.Width`), and the heatmap uses them for its 100-yard squares (`world/Heat.lua`). Which maps return a width live is unverified; without one, squares follow the screen only.
+
 ## Leads to try
 
 Each needs a match, an enemy player as target and `/console scriptErrors 1`. Every line fits the 255-character chat limit.

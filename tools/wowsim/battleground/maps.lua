@@ -5,9 +5,19 @@ return function(sim, env)
     for i = 1, select("#", ...) do for key, value in pairs(select(i, ...) or {}) do result[key] = value end end
     return result
   end
+  -- Like the game, a pin takes the map's global pin scale unless it ignores
+  -- it; one with scaling limits also keeps its screen size at any zoom.
   env.MapCanvasPinMixin = {
     GetMap = function(pin) return pin:GetParent() end,
     OnReleased = function() end,
+    SetScalingLimits = function(pin, factor) pin.scaleFactor = factor end,
+    SetIgnoreGlobalPinScale = function(pin, ignore) pin.ignoreGlobalPinScale = ignore end,
+    ApplyCurrentScale = function(pin)
+      local map = pin:GetParent()
+      if pin.ignoreGlobalPinScale and not pin.scaleFactor then return end
+      local scale = pin.scaleFactor and 1 / map:GetCanvasScale() or 1
+      pin:SetScale(pin.ignoreGlobalPinScale and scale or scale * map:GetGlobalPinScale())
+    end,
     SetPosition = function(pin, x, y)
       pin.x, pin.y = x, y
       local map = pin:GetParent()
@@ -24,6 +34,12 @@ return function(sim, env)
       local unit = sim.units[token]; return unit and unit.position
     end,
     GetWorldPosFromMapPos = function() end,
+    -- Yards across a map: only those a scenario sets in sim.mapSizes.
+    GetMapWorldSize = function(id)
+      local size = sim.mapSizes and sim.mapSizes[id]
+      if size then return size[1], size[2] end
+      return 0, 0
+    end,
   }
   -- The game's UnitPositionFrame draws units where Lua never sees them: the
   -- simulated one records the units it was given and each one's alpha.
@@ -49,11 +65,22 @@ return function(sim, env)
     map:SetPoint("TOPLEFT", env.UIParent, "TOPLEFT", 20, -60)
     function map:GetCanvas() return self end
     function map:GetCanvasScale() return self.canvasScale or 1 end
-    function map:GetGlobalPinScale() return 1 end
+    -- The zone map (Shift+M) shrinks pins, as BATTLEFIELD_MAP_POI_SCALE does.
+    function map:GetGlobalPinScale() return name == "WorldMapFrame" and 1 or 0.6 end
+    -- A zoom step: data providers hear it first, then every pin rescales.
+    function map:SetCanvasScale(scale)
+      self.canvasScale = scale
+      for _, provider in ipairs(self.providers) do
+        if provider.OnCanvasScaleChanged then provider:OnCanvasScaleChanged() end
+      end
+      for _, pin in ipairs(self.pins) do pin:ApplyCurrentScale() end
+    end
     map.providers, map.pins, map.pool = {}, {}, {}
     function map:GetMapID() return self.mapID or sim.mapID end
+    -- As the game does: the new map's zoom resets first, then providers hear of the map.
     function map:SetMapID(id)
       self.mapID = id
+      self:SetCanvasScale(1)
       for _, provider in ipairs(self.providers) do provider:OnMapChanged() end
     end
     function map:AddDataProvider(provider)
@@ -94,6 +121,8 @@ return function(sim, env)
         pin:SetScript("OnEnter", pin.OnMouseEnter); pin:SetScript("OnLeave", pin.OnMouseLeave)
       end
       pin:Show(); pin:OnAcquired(item)
+      -- The game rescales new pins on the next frame (MarkCanvasDirty).
+      pin:ApplyCurrentScale()
       self.pins[#self.pins + 1] = pin
       return pin
     end

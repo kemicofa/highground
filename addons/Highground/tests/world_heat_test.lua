@@ -16,6 +16,8 @@ local function setup(client, build)
       return s.grouped or s.inBG
     end
     s.mapID, s.mapName, s.area = HILLSBRAD, "Hillsbrad Foothills", "Tarren Mill"
+    -- Yards across: Hillsbrad's squares stop at 100 yards (32 across).
+    s.mapSizes = { [HILLSBRAD] = { 3200, 2133 }, [ARATHI] = { 3600, 2400 }, [KINGDOMS] = { 37650, 25100 } }
     s.units.player.position = { x = 0.5, y = 0.4 }
     s.grouped = true
   end)
@@ -43,6 +45,10 @@ local function heat(sim, map)
   return out
 end
 
+local function near(actual, expected, why)
+  assert(math.abs(actual - expected) < 0.001, (why or "close") .. ": expected " .. expected .. ", got " .. actual)
+end
+
 local function tip(item)
   local lines = {}
   item.tooltip({ AddLine = function(_, line) lines[#lines + 1] = line end })
@@ -59,11 +65,11 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     group(sim, "Apart", 0.2, 0.7)
     local cells = heat(sim)
     equal(#cells, 2, "one cell for the two close enemies, one apart")
-    local busy = cells[1].x == 0.525 and cells[1] or cells[2]
-    equal(busy.x, 0.525); equal(busy.y, 0.425, "the cell's centre")
+    local busy = cells[1].x > 0.4 and cells[1] or cells[2]
+    near(busy.x, 0.505); near(busy.y, 0.405, "where its sightings are, not the square's centre")
     equal(tip(busy), "2 enemies seen here\nEnemies seen, no kills yet\nLatest sighting: now")
-    equal(busy.size, sim.ns.WorldHeat.BLOB / 20, "a blob wider than its cell")
-    equal(busy.hit, 1 / 20, "only the cell takes the mouse")
+    equal(busy.hit, 1 / 32, "only the square takes the mouse: 100 yards of Hillsbrad")
+    equal(busy.size, sim.ns.WorldHeat.BLOB / 32, "a blob wider than its square")
     group(sim, "Near", 0.51, 0.41)
     group(sim, "Near", 0.2, 0.7, 30)
     equal(tip(heat(sim)[1]):match("^%d+"), "2", "a repeat or an older report adds nothing")
@@ -77,9 +83,13 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     -- Close leaves sight: an enemy still in view stays fresh.
     sim.units.nameplate1 = nil
     sim:event("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+    local alpha = cells[1].alpha
     sim:advance(1800)
-    assert(heat(sim)[1].heat < fresh, "older heat is fainter")
-    sim:advance(1801)
+    assert(heat(sim)[1].heat < fresh, "older heat is weaker")
+    assert(heat(sim)[1].alpha < alpha * 0.6, "and fainter")
+    sim:advance(1650)
+    assert(heat(sim)[1].alpha < 0.05, "nearly gone by the end of the hour: " .. heat(sim)[1].alpha)
+    sim:advance(151)
     equal(#heat(sim), 0, "gone after an hour")
     sim:assertHealthy()
   end)
@@ -100,6 +110,13 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim.ns.Core.SetTuning("option", "nearbyRaidSize", 16)
     local half = heat(sim)[cells[1] == raid and 1 or 2].heat
     assert(half > 0.49 and half <= 0.5, "full strength follows Enemy raid: " .. half)
+    sim.ns.Core.SetTuning("option", "nearbyRaidSize", 8)
+    sim:command("nearby clear")
+    -- Across a square's edge (x 0.59375), within 40 yards.
+    for i = 1, 8 do group(sim, "Spread" .. i, 0.588 + 0.0015 * i, 0.3, 0) end
+    cells = heat(sim)
+    equal(#cells, 2, "two squares")
+    for _, c in ipairs(cells) do assert(c.heat > 0.99, "each is part of the same raid: " .. c.heat) end
     sim:assertHealthy()
   end)
 
@@ -111,7 +128,8 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     group(sim, "Near", 0.51, 0.41)
     local cells = heat(sim, KINGDOMS)
     equal(#cells, 1)
-    equal(cells[1].x, 0.475); equal(cells[1].y, 0.325, "Hillsbrad's spot on the continent")
+    near(cells[1].x, 0.451); near(cells[1].y, 0.341, "Hillsbrad's spot on the continent")
+    equal(cells[1].hit, 1 / 35, "squares 28 pixels wide: the yard floor is far smaller")
     equal(#heat(sim, ARATHI), 0, "another zone's map has none of it")
     sim:assertHealthy()
   end)
@@ -140,7 +158,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     local raid
     for _, c in ipairs(sample) do if not raid or c.heat > raid.heat then raid = c end end
     equal(raid.heat, 1, "the sample has a raid")
-    equal(raid.x, 0.525); equal(raid.y, 0.425, "in the square you stand in")
+    assert(math.abs(raid.x - 0.51) < 0.03 and math.abs(raid.y - 0.425) < 0.03, "around you")
     equal(#heat(sim, ARATHI), 0, "not on another zone's map")
     sim.env.C_Map.GetMapRectOnMap = function(from, to)
       if from == HILLSBRAD and to == KINGDOMS then return 0.4, 0.5, 0.3, 0.4 end
@@ -153,7 +171,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim:command("nearby test")
     local left = heat(sim, KINGDOMS)
     equal(#left, 1, "stopping clears the samples; real heat stays")
-    equal(left[1].x, 0.475); equal(left[1].y, 0.325, "the real sighting, on the continent")
+    near(left[1].x, 0.451); near(left[1].y, 0.341, "the real sighting, on the continent")
     equal(#heat(sim), 1, "real heat is untouched")
     sim:command("nearby clear")
     equal(#heat(sim), 0, "clearing sightings clears heat")
@@ -175,11 +193,11 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     equal(enemies, 1, "the enemy keeps its own pin")
     local blob = blobs[1]
     equal(blob.Blob.texture, sim.ns.Core.HEAT_BLOB)
-    local w, h = blob:GetWidth(), blob:GetHeight()
-    equal(math.floor(w + 0.5), 150); equal(math.floor(h + 0.5), 100, "three cells of a 1000 x 667 map")
+    equal(math.floor(blob:GetWidth() + 0.5), 47, "one and a half squares of a 1000-wide map")
+    equal(blob:GetHeight(), blob:GetWidth(), "round on screen")
     local left, right, top, bottom = blob:GetHitRectInsets()
-    equal(math.floor(left + 0.5), 50); equal(right, left)
-    equal(math.floor(top + 0.5), 33); equal(bottom, top)
+    equal(math.floor(left + 0.5), 8); equal(right, left); equal(top, left); equal(bottom, left)
+    equal(blob:GetScale(), 1, "map units")
     blob:OnMouseEnter()
     equal(sim.env.GameTooltip.lines and sim.env.GameTooltip.lines[1], "1 enemy seen here")
     blob:OnMouseLeave()
@@ -216,7 +234,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     sim.ns.WorldFeed.Local("Ganker-Realm", "killedThem")
     fight(sim, "Ally", "Bob", 0.51, 0.41)
     fight(sim, "Ally", "Bob", 0.51, 0.41, "GUILD")
-    fight(sim, "Evil", "Ally", 0.52, 0.42)
+    fight(sim, "Evil", "Ally", 0.515, 0.415)
     local b = badge(sim)
     assert(b, "a badge where kills happened")
     equal(b.label, "2–1", "your side's kills, then the enemy's; one fight reported twice counts once")
@@ -226,7 +244,7 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     equal(tip(b), "1 enemy seen here\nKills here: your side 2, enemy 1\nYour side is winning here\nLatest sighting: now")
     sim.ns.WorldFeed.Local("Ganker-Realm", "killedMe")
     sim:advance(11)
-    fight(sim, "Evil", "Ally", 0.52, 0.42)
+    fight(sim, "Evil", "Ally", 0.515, 0.415)
     b = badge(sim)
     equal(b.label, "2–3"); equal(b.icon, crests.H); equal(b.ring, "mapHeatHorde")
     equal(heat(sim)[1].ring, "mapHeatHorde")
@@ -241,34 +259,38 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
   test(build .. ": an open map reuses its heat until the data changes", function()
     local sim = setup(client, build)
     local H = sim.ns.WorldHeat
+    -- The world map's own builds; the zone map (Shift+M) is closed.
+    sim.env.BattlefieldMapFrame:Hide()
+    local owner = sim.env.WorldMapFrame.providers[1]
+    local function pins() return H.Pins(HILLSBRAD, nil, nil, nil, nil, owner) end
     group(sim, "Near", 0.51, 0.41)
     H.Refresh()
-    local first = H.Pins(HILLSBRAD)
+    local first = pins()
     local builds = H.stats.builds
     local item = first[1]
-    H.Pins(HILLSBRAD)
+    pins()
     equal(H.stats.builds, builds, "no rebuild while nothing changed")
     group(sim, "Apart", 0.2, 0.7)
-    equal(#H.Pins(HILLSBRAD), 1, "a change waits for the rebuild interval")
+    equal(#pins(), 1, "a change waits for the rebuild interval")
     sim:advance(2.1)
-    local second = H.Pins(HILLSBRAD)
+    local second = pins()
     equal(#second, 2, "then shows")
     assert(rawequal(second, first), "in the same list")
     local reused
     for _, it in ipairs(second) do if rawequal(it, item) then reused = true end end
     assert(reused, "a square keeps its item between builds")
     builds = H.stats.builds
-    sim:advance(5); H.Pins(HILLSBRAD)
+    sim:advance(5); pins()
     equal(H.stats.builds, builds, "unchanged data is reused")
-    sim:advance(6); H.Pins(HILLSBRAD)
+    sim:advance(6); pins()
     equal(H.stats.builds, builds + 1, "and rebuilt now and then so heat fades")
     builds = H.stats.builds
     sim:advance(60)
     assert(H.stats.builds - builds <= 7, "an idle open map rebuilds at most every 10 seconds: " .. H.stats.builds - builds)
-    sim.env.WorldMapFrame:Hide(); sim.env.BattlefieldMapFrame:Hide()
+    sim.env.WorldMapFrame:Hide()
     sim:advance(1.1)
     builds = H.stats.builds
-    H.Pins(HILLSBRAD)
+    pins()
     equal(H.stats.builds, builds + 1, "closed maps release their items: the next open rebuilds")
     sim:assertHealthy()
   end)
@@ -354,15 +376,20 @@ for _, build in ipairs({ 120100, 16001 }) do
     equal(N.seen.Far, nil, "not listed")
     local cells = heat(sim, ARATHI)
     equal(#cells, 1)
-    equal(cells[1].x, 0.225); equal(cells[1].y, 0.225)
+    near(cells[1].x, 0.225); near(cells[1].y, 0.225)
     equal(tip(cells[1]), "2 enemies seen here\nEnemies seen, no kills yet\nLatest sighting: 3s")
+    near(cells[1].size, 3 * 100 / 3600, "as wide as the square's reach")
+    hear("1:" .. ARATHI .. ":Unsized-Realm,MAGE,60,7250,2250,0,3,")
+    local unsized
+    for _, c in ipairs(heat(sim, ARATHI)) do if c.x > 0.5 then unsized = c end end
+    near(unsized.size, 3 * 3600 / 20 * 0.71 / 3600, "a square without a reach gets the square's own")
     hear("1:" .. HILLSBRAD .. ":Here-Realm,MAGE,60,5250,4250,100,3,")
     assert(N.seen.Here, "your zone's are listed as before")
     equal(#heat(sim), 1, "and add heat")
     sim:command("nearby heat off")
     hear("1:" .. ARATHI .. ":Gone-Realm,MAGE,60,7250,7250,100,3,")
     sim:command("nearby heat on")
-    equal(#heat(sim, ARATHI), 1, "other zones are skipped while heat is off")
+    equal(#heat(sim, ARATHI), 2, "other zones are skipped while heat is off")
     sim:assertHealthy()
   end)
 end

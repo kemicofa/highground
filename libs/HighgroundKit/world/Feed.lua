@@ -78,7 +78,8 @@ function Feed.Receive(text, channel, sender, ...)
   -- The sender is on your side: their kill is yours, their death theirs.
   if ns.WorldHeat then
     local layer = via == "group" and ns.WorldLayer.Of(from, map) or nil
-    ns.WorldHeat.Kill(killer, victim, map, x, y, at, killer == from, ns.WorldLayer.Stamp({}, layer))
+    ns.WorldHeat.Kill(killer, victim, map, x, y, at, killer == from, ns.WorldLayer.Stamp({}, layer),
+      via == "world" and ns.WorldShare.CoarseReach(map) or nil)
   end
   if via == "world" then return end
   -- Both sides of one fight can report it.

@@ -7,14 +7,16 @@ local Util, Theme = ns.Util, ns.Theme
 -- an XML template (Pins.xml), exactly like Blizzard's flag pins. The map
 -- canvas positions, scales and layers them, so they stay put at any zoom.
 --
--- Producers register with MapPins.Add(fn); fn(mapID, width, height, nil,
--- rings, provider) returns a list of
+-- Producers register with MapPins.Add(fn, zoomKey); fn(mapID, width,
+-- height, nil, rings, provider) returns a list of
 --   { x, y (0-1), ring = colour | nil, icon = atlas | texture, desat,
 --     alpha, label, labelColor = colour, mark, size, tooltip = fn(tooltip, item),
 --     zone = zone item it sits in }
 -- or a zone { x, y, radius (0-1 of the map width), ring, alpha, tooltip }
--- or heat { x, y, heat (0-1), size and hit (0-1 of the map's width and
--- height), ring, alpha, tooltip }.
+-- or heat { x, y, heat (0-1), size and hit (0-1 of the map's width; square
+-- on screen), ring, alpha, tooltip }.
+-- zoomKey(mapID, provider), optional: a value that changes when a zoom
+-- step changes fn's items; the map then redraws at once.
 -- desat: true or a grey amount 0-1.
 -- A colour is a theme token name or { r, g, b } (see Theme.Paint).
 -- The list is read at once. Items may be reused between refreshes, but
@@ -22,9 +24,10 @@ local Util, Theme = ns.Util, ns.Theme
 local MapPins = { stats = { draws = 0, pins = 0 } }
 ns.MapPins = MapPins
 
-local layers = {}
-function MapPins.Add(fn)
+local layers, zoomKeys = {}, {}
+function MapPins.Add(fn, zoomKey)
   layers[#layers + 1] = fn
+  if zoomKey then zoomKeys[#zoomKeys + 1] = zoomKey end
 end
 
 -- XML templates and their mixins are global: a standalone addon has its
@@ -282,10 +285,29 @@ function HighgroundDataProviderMixin:RefreshAllData()
   if owner and used[owner] then owner:OnMouseEnter() end
   Util.Guard("map rings", Rings.Draw, map, mapID, wanted, radius)
   stats.draws, stats.pins = stats.draws + 1, #items
+  self.keys = self.keys or {}
+  self.keyedMap = mapID
+  for i, key in ipairs(zoomKeys) do
+    local ok, value = Util.Guard("map zoom", key, mapID, self)
+    self.keys[i] = ok and value or nil
+  end
 end
 
 function HighgroundDataProviderMixin:OnMapChanged()
   self:RefreshAllData()
+end
+
+-- The game calls this on every zoom step, but also on map changes (before
+-- OnMapChanged) and the frame after new pins: redraw only when a zoom key
+-- changed on the same map.
+function HighgroundDataProviderMixin:OnCanvasScaleChanged()
+  local map = self:GetMap()
+  local mapID = map and map:GetMapID()
+  if not (mapID and mapID == self.keyedMap and map:IsShown() and self.keys) then return end
+  for i, key in ipairs(zoomKeys) do
+    local ok, value = Util.Guard("map zoom", key, mapID, self)
+    if ok and value ~= self.keys[i] then return self:RefreshAllData() end
+  end
 end
 
 -- Once per map frame; Nearby's world layer (world/Map.lua) attaches too.

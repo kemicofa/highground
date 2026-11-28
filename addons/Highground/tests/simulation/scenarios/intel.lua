@@ -67,7 +67,8 @@ test("approximate sightings share a faint circle that holds their enemies on bot
         for j = 1, i - 1 do
           local ox = (pin.x - enemies[j].x) * canvas:GetWidth()
           local oy = (pin.y - enemies[j].y) * canvas:GetHeight()
-          assert(math.sqrt(ox * ox + oy * oy) >= pin.item.size * 0.9, "icons are spread evenly, not piled up")
+          -- In canvas units: the zone map (Shift+M) draws pins at 0.6.
+          assert(math.sqrt(ox * ox + oy * oy) >= pin.item.size * pin:GetScale() * 0.9, "icons are spread evenly, not piled up")
         end
       end
       if #enemies > 0 then enemies[1].item.alpha = 0.4 end

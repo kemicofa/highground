@@ -10,8 +10,15 @@ local Util, Theme = ns.Util, ns.Theme
 local ZonePinMixin = CreateFromMixins(MapCanvasPinMixin)
 _G[(ns.FRAME_PREFIX or "Highground") .. "ZonePinMixin"] = ZonePinMixin
 
+-- Map units keep their size: the zone map (Shift+M) shrinks pins to 60%
+-- (its global pin scale), which would make circles smaller than the ground.
+local function KeepScale(pin)
+  if pin.SetIgnoreGlobalPinScale then pin:SetIgnoreGlobalPinScale(true) end
+end
+
 function ZonePinMixin:OnLoad()
   self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
+  KeepScale(self)
   self.Rim:SetTexture(ns.Core.MAP_RING)
   -- How many enemies were last seen here; digits only, the map's font.
   self.Count:SetFont("Fonts\\ARIALN.TTF", ns.UIConfig.map.fontSize + 4, "OUTLINE")
@@ -75,6 +82,7 @@ _G[(ns.FRAME_PREFIX or "Highground") .. "HeatPinMixin"] = HeatPinMixin
 
 function HeatPinMixin:OnLoad()
   self:UseFrameLevelType("PIN_FRAME_LEVEL_AREA_POI")
+  KeepScale(self)
   self.Blob:SetTexture(ns.Core.HEAT_BLOB)
   if self.SetMouseClickEnabled then self:SetMouseClickEnabled(false) end
 end

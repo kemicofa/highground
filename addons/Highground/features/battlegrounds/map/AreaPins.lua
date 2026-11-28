@@ -74,9 +74,9 @@ function ZonePinMixin:OnReleased()
   self.item = nil
 end
 
--- Heat pins live in map units too: a soft blob three cells wide, so
--- neighbouring cells blend, under the enemy pins. Only the cell itself
--- takes the mouse.
+-- Heat pins live in map units too: a soft round blob wider than its
+-- square, so neighbouring squares blend, under the enemy pins. Only the
+-- square itself takes the mouse.
 local HeatPinMixin = CreateFromMixins(MapCanvasPinMixin)
 _G[(ns.FRAME_PREFIX or "Highground") .. "HeatPinMixin"] = HeatPinMixin
 
@@ -89,13 +89,11 @@ end
 
 function HeatPinMixin:OnAcquired(item)
   self.item, item.pin = item, self
-  local canvas = self:GetMap():GetCanvas()
-  local w, h = canvas:GetWidth(), canvas:GetHeight()
-  local sw, sh = math.max(8, item.size * w), math.max(8, item.size * h)
-  local hit = item.hit or item.size
-  local dx, dy = math.max(0, (sw - hit * w) / 2), math.max(0, (sh - hit * h) / 2)
-  self:SetSize(sw, sh)
-  self:SetHitRectInsets(dx, dx, dy, dy)
+  local w = self:GetMap():GetCanvas():GetWidth()
+  local size = math.max(8, item.size * w)
+  local inset = math.max(0, (size - (item.hit or item.size) * w) / 2)
+  self:SetSize(size, size)
+  self:SetHitRectInsets(inset, inset, inset, inset)
   Theme.Tint(self.Blob, item.ring or "hudDanger", item.alpha or 0.5)
   self:SetPosition(item.x, item.y)
 end

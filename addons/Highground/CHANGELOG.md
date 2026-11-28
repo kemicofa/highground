@@ -2,6 +2,10 @@
 
 Release versions match both addon TOC files. The latest version is listed first.
 
+## Unreleased
+
+- Nearby: the **Enemy heatmap** no longer covers far more ground than the enemies seen. Its squares are about 100 yards on a zone map instead of a twentieth of whatever map is shown (on a continent, a whole zone), and they get finer as you zoom into a continent or the world map, at once instead of never. Each square sits where its sightings are and is as wide as how far off they can be: a nameplate's reach, or the coarse squares shared by every Highground user. Heat fades out over the hour instead of an hour-old sighting looking almost as strong as a new one, and an enemy raid is full strength at any zoom. On the zone map (Shift+M), heat and sighting circles are no longer drawn at 60% of their size.
+
 ## [3.4.0] - 2026-11-28
 
 - This is an alpha: CurseForge and Wago offer it only to players who allow alpha files for Highground. Restart the game after updating, because it adds new addon files.

@@ -39,6 +39,27 @@ function Nearby.SampleAt(sx, sy)
   return map, math.min(0.99, math.max(0.01, x)), math.min(0.99, math.max(0.01, y))
 end
 
+-- The heatmap's crowd (world/Heat.lua), placed around you like the rows:
+-- a raid around the fresh samples with a few beside it, a group by the
+-- guild's and some stragglers. Kills: your side winning by the raid, the
+-- enemy winning by the guild's group, an even fight to the south.
+Nearby.HEAT_SAMPLES = {
+  { x = 0.452, y = 0.405, ago = 1 }, { x = 0.46, y = 0.42, ago = 5 }, { x = 0.468, y = 0.41, ago = 10 },
+  { x = 0.476, y = 0.43, ago = 15 }, { x = 0.484, y = 0.415, ago = 20 }, { x = 0.492, y = 0.44, ago = 30 },
+  { x = 0.456, y = 0.445, ago = 40 }, { x = 0.472, y = 0.425, ago = 50 }, { x = 0.488, y = 0.405, ago = 60 },
+  { x = 0.464, y = 0.435, ago = 90 }, { x = 0.44, y = 0.43, ago = 35 }, { x = 0.445, y = 0.41, ago = 110 },
+  { x = 0.47, y = 0.455, ago = 75 }, { x = 0.62, y = 0.30, ago = 40 }, { x = 0.63, y = 0.31, ago = 70 },
+  { x = 0.61, y = 0.32, ago = 150 }, { x = 0.30, y = 0.66, ago = 140 }, { x = 0.70, y = 0.62, ago = 70 },
+  { x = 0.20, y = 0.25, ago = 260 },
+}
+Nearby.HEAT_KILLS = {
+  { x = 0.46, y = 0.42, ago = 30, ours = true }, { x = 0.47, y = 0.43, ago = 200, ours = true },
+  { x = 0.48, y = 0.41, ago = 600, ours = true }, { x = 0.465, y = 0.425, ago = 900, ours = false },
+  { x = 0.62, y = 0.31, ago = 120, ours = false }, { x = 0.625, y = 0.305, ago = 400, ours = false },
+  { x = 0.615, y = 0.315, ago = 1500, ours = false }, { x = 0.62, y = 0.30, ago = 2400, ours = true },
+  { x = 0.52, y = 0.72, ago = 300, ours = true }, { x = 0.525, y = 0.715, ago = 1200, ours = false },
+}
+
 -- A sample's spot on the shown map, or nil when that map doesn't show it.
 function Nearby.SampleOn(mapID, sx, sy)
   local map, x, y = Nearby.SampleAt(sx, sy)

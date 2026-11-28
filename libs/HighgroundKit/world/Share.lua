@@ -148,13 +148,15 @@ function Share.Cell(x, y)
   return (math.min(n - 1, math.floor(x * n)) + 0.5) / n, (math.min(n - 1, math.floor(y * n)) + 0.5) / n
 end
 
+-- Yards from a coarse square's centre to its corner, if the map's size is known.
+function Share.CoarseReach(mapID)
+  local width = ns.WorldMap and ns.WorldMap.Width(mapID)
+  return width and width / Share.CELLS * 0.71 or nil
+end
+
 local function Token(e, now, coarse)
   local x, y, r = e.x or 0, e.y or 0, e.r or 0
-  if coarse and e.x then
-    x, y = Share.Cell(x, y)
-    local width = ns.WorldMap and ns.WorldMap.Width(e.mapID)
-    r = width and width / Share.CELLS * 0.71 or 0
-  end
+  if coarse and e.x then x, y = Share.Cell(x, y); r = Share.CoarseReach(e.mapID) or 0 end
   return string.format("%s,%s,%d,%d,%d,%d,%d,%s", Clean(Core.Canon(e.name) or e.name), Clean(e.class),
     math.floor(tonumber(e.level) or 0), math.floor(x * 10000 + 0.5), math.floor(y * 10000 + 0.5),
     math.floor(r), math.max(0, math.floor(now - e.last)), Clean(e.guild))
@@ -350,8 +352,10 @@ function Share.Receive(text, channel, sender, ...)
       if not Valid(x, y) then x, y = nil, nil end
       local at = now - age
       local key = LocalKey(name)
+      r = math.min(tonumber(r), 500) -- everyone's squares are coarse, even unsized
+      if via == "world" and r <= 0 then r = Share.CoarseReach(map) or 0 end
       if far then
-        ns.WorldHeat.Add(key, map, x, y, at)
+        ns.WorldHeat.Add(key, map, x, y, at, nil, r)
       else
         -- Someone told this audience already: don't repeat it.
         local mine = ns.Nearby.seen[key]
@@ -362,7 +366,7 @@ function Share.Receive(text, channel, sender, ...)
         level = tonumber(level)
         guild = Clean(guild)
         if Share.Merge(name, class ~= "" and class or nil, level > 0 and level or nil, guild ~= "" and guild or nil,
-          map, x, y, math.min(tonumber(r), 500), at, from, via, layer) then
+          map, x, y, r, at, from, via, layer) then
           changed = true
           -- A report only for a tracked enemy: no table per sighting.
           if ns.Tracking and ns.Tracking.On() and ns.Tracking.Get(name) then

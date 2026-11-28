@@ -219,7 +219,11 @@ cluster cells, sort comparators and key and label strings. Layers now
 rewrite the items they returned last time, kept per map frame so a pin on
 one map never reads the other's (`MapPins.Add` passes the provider).
 Tooltips are module functions that read the hovered item; released pins
-let go of their item. Received sightings check whether the enemy is
+let go of their item. Heat keeps its builds per map window too (two maps
+each). A zoom step redraws a map only when it changes a layer's zoom key
+(the heat's squares): the game also reports a scale change on map changes
+and the frame after new pins. A heat build reuses one table per square in
+use, and squares are capped at 150 per map. Received sightings check whether the enemy is
 tracked before building a report, and map names are read once.
 Simulator allocations per minute with the world map and the zone map
 open, after a minute of the same traffic:

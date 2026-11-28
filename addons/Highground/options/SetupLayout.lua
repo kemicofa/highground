@@ -16,7 +16,7 @@ local function StopPreviews()
   ns.Timers.HideWindows()
   ns.Timers.SecureHide(ns.Flags.flagWin)
   ns.Arena.preview = false; ns.Arena.Update()
-  ns.Nearby.preview = false; ns.Nearby.Update()
+  ns.Nearby.SetPreview(false)
   if not Core.active then
     if InCombatLockdown() and Core.frame:IsShown() then S.hiddenPreview = true end
     ns.Timers.SecureHide(Core.frame)

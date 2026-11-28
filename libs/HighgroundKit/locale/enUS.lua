@@ -4914,7 +4914,7 @@ assert(ns.Locale:Register("enUS", {
   ["activity.preview.off"] = "World activity sample off.",
   ["tools.open.activity"] = "Open world activity",
   ["guide.nearby.fights.title"] = "Kill order in world fights",
-  ["guide.nearby.fights.text"] = "In a party or raid in the open world, Highground's kill order, health bars and team panels also run on the enemies you and your group see. The board appears once an enemy is seen in your zone and stays while the fight lasts; it can't appear in combat, so it waits for combat to end if the first enemy arrives mid-fight.",
+  ["guide.nearby.fights.text"] = "In a party or raid in the open world, this list turns into your kill order once an enemy is seen in your zone. Rows follow their rank, the kill target is highlighted, and health and an eye for enemies targeting you appear. Rows reorder out of combat; in combat they keep their place and keep updating.",
   ["fights.label"] = "Kill order in world fights",
   ["fights.desc"] = "In a party or raid in the open world, run the battleground kill order, health bars and healer markers on the enemies you and your group see. Needs the Battlegrounds module.",
   ["fights.commands.switch"] = "Run the kill order in open-world group fights, or stop.",

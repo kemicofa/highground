@@ -45,7 +45,14 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     assert(Core.enemies["Sneaky-Realm"], "the board lists Nearby's enemy")
     sim:advance(1)
     equal(Core.order[1] and Core.order[1].key, "Sneaky-Realm", "and scores it")
-    assert(Core.frame and Core.frame:IsShown(), "the kill-order panel shows")
+    assert(Core.frame and not Core.frame:IsShown(), "no kill-order board in the open world")
+    local N = sim.ns.Nearby
+    sim:advance(1)
+    assert(N.Fighting(), "Nearby's list is the kill order")
+    local r = N.rows[1]
+    equal(Core.Canon(r.who), "Sneaky-Realm")
+    assert(r.rankBox:IsShown() and tostring(r.rank:GetText()) == "1", "with its rank")
+    assert(r.hp:IsShown(), "and health")
     local p = prefixes(sim)
     assert(not p.HighgroundS and not p.HighgroundI and not p.HighgroundT and not p.HighgroundC,
       "no spec tags, map intel, timers or captures are sent")
@@ -65,6 +72,41 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     equal(Core.active, false, "the fight ends a minute after the last enemy")
     equal(next(Core.enemies), nil)
     assert(not Core.frame:IsShown())
+    sim:advance(1)
+    assert(not N.Fighting() and not r.rankBox:IsShown() and not r.hp:IsShown(), "Nearby goes back to its list")
+    sim:assertHealthy()
+  end)
+
+  test(build .. ": Nearby follows the kill order out of combat and keeps its rows in combat", function()
+    local sim = setup(client, build)
+    local Core, N = sim.ns.Core, sim.ns.Nearby
+    plate(sim, "Sneaky")
+    sim:advance(1)
+    plate(sim, "Holy", "nameplate2")
+    sim:advance(1.5)
+    assert(sim.ns.InWorldFight() and #Core.order == 2)
+    local function rows() return Core.Canon(N.rows[1].who), Core.Canon(N.rows[2].who) end
+    local function rank(i) return tostring(N.rows[i].rank:GetText()) end
+    local a, b = Core.order[1].key, Core.order[2].key
+    equal(table.concat({ rows() }, ","), a .. "," .. b, "rows follow the rank")
+    -- The order flips: out of combat the rows follow.
+    Core.order[1], Core.order[2] = Core.order[2], Core.order[1]
+    N.Update()
+    equal(table.concat({ rows() }, ","), b .. "," .. a, "rows reorder")
+    -- In combat the rows keep their enemies; the ranks follow.
+    sim:setCombat(true)
+    Core.order[1], Core.order[2] = Core.order[2], Core.order[1]
+    N.Update()
+    equal(table.concat({ rows() }, ","), b .. "," .. a, "bindings stay in combat")
+    equal(rank(1) .. rank(2), "21", "ranks follow")
+    sim:setCombat(false)
+    N.Update()
+    equal(table.concat({ rows() }, ","), a .. "," .. b, "and reorder after combat")
+    -- Without Target recommendations: the usual most-recent order, no ranks.
+    Core.SetFeature("killorder", false)
+    N.Update()
+    assert(not N.rows[1].rankBox:IsShown(), "no ranks")
+    assert(not Core.frame:IsShown(), "and still no board")
     sim:assertHealthy()
   end)
 
@@ -95,10 +137,18 @@ for _, case in ipairs({ { "cata", 40402 }, { "retail", 120100 }, { "retail", 160
     plate(sim, "Sneaky", "nameplate2")
     sim:advance(2)
     assert(Core.context == "world")
+    -- One zone check from a world fight to a battleground: its board shows.
+    local rated = Core.InRatedBG
+    Core.InRatedBG = function() return true end
+    Core.CheckZone()
+    assert(Core.context == "bg" and Core.frame:IsShown(), "the board, straight from a world fight")
+    Core.InRatedBG = rated; Core.CheckZone()
+    assert(Core.context == "world" and not Core.frame:IsShown(), "and gone again")
     sim:join(93, 529, "Arathi Basin")
     sim:advance(2)
     equal(Core.context, "bg", "a battleground runs as before")
     assert(sim.ns.IsActive())
+    assert(Core.frame:IsShown(), "with its board")
     sim:assertHealthy()
   end)
 end

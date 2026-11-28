@@ -146,6 +146,14 @@ function Core.PriorityOn()
   return Core.On("killorder")
 end
 
+-- The main panel: with Target recommendations, in a battleground or a
+-- preview. Open-world fights rank Nearby's list instead (world/Nearby.lua).
+function Core.PanelWanted()
+  if not Core.active then return false end
+  if Core.guidedTest then return true end
+  return Core.PriorityOn() and (Core.testMode or Core.context ~= "world") or false
+end
+
 -- Feature switches (config/Options.lua features): nil means on.
 function Core.On(key)
   return not (Core.db and Core.db[key] == false) and (not ns.Modules or ns.Modules.FeatureEnabled(key))

@@ -6,10 +6,14 @@ local Nearby = ns.Nearby
 -- the shown list while real sightings keep expiring (world/Nearby.lua).
 ---------------------------------------------------------------------------
 -- sx, sy: the sample's spot, placed around you (Nearby.SampleAt).
+-- fight: the sample in fight mode (rank, kill target, health, on you).
 local PREVIEW = {
-  ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1, sx = 0.46, sy = 0.42 }, { zone = "shared.preview.tarren_mill.f2b545" }),
-  { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25, sx = 0.465, sy = 0.425 },
-  { name = "Ironhide", class = "WARRIOR", level = 60, guild = "Night Watch", ago = 40, by = "Guildmate", via = "guild", sx = 0.62, sy = 0.3 },
+  ns.Localization.Define({ name = "Sneakypete", class = "ROGUE", level = 60, guild = "Night Watch", zone = ns.Locale:Get("shared.preview.tarren_mill.f2b545"), ago = 1, sx = 0.46, sy = 0.42,
+    fight = { rank = 2, hp = 0.8, onMe = true } }, { zone = "shared.preview.tarren_mill.f2b545" }),
+  { name = "Frostbyte", class = "MAGE", level = 58, zone = "Southshore", ago = 25, sx = 0.465, sy = 0.425,
+    fight = { rank = 1, kill = true, hp = 0.32 } },
+  { name = "Ironhide", class = "WARRIOR", level = 60, guild = "Night Watch", ago = 40, by = "Guildmate", via = "guild", sx = 0.62, sy = 0.3,
+    fight = { rank = 3, hp = 0.95 } },
   { name = "Bloodfang", class = "ROGUE", level = 60, guild = "Night Watch", zone = "Arathi Highlands", ago = 70, by = "Guildmate", via = "guild",
     tracked = true, r = 70, sx = 0.7, sy = 0.62 },
   -- A group member's, on another layer: hidden until the map's Layers button shows all.
@@ -54,13 +58,21 @@ function Nearby.Samples(now, shown)
   return list
 end
 
-function ns.NearbyPreview()
-  if ns.Modules and not ns.Modules.Require("nearby") then return false end
-  if InCombatLockdown() then return nil end
-  Nearby.preview = not Nearby.preview
+-- Show or hide the samples. fight: in fight mode, as in a world fight
+-- (Battlegrounds → Open world → Preview). Samples start out of combat
+-- only. Returns whether they show.
+function Nearby.SetPreview(on, fight)
+  if on and InCombatLockdown() then return Nearby.preview end
+  Nearby.preview, Nearby.previewFight = on and true or false, on and fight or nil
   Nearby.Update()
   if ns.MapPins then ns.MapPins.Refresh() end -- samples on an open map
   return Nearby.preview
+end
+
+function ns.NearbyPreview()
+  if ns.Modules and not ns.Modules.Require("nearby") then return false end
+  if InCombatLockdown() then return nil end
+  return Nearby.SetPreview(not Nearby.preview)
 end
 
 function ns.NearbyClear()

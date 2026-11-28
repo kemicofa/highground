@@ -4914,7 +4914,7 @@ assert((ns.Locale or HighgroundLocale):Register("ptBR", {
   ["activity.preview.off"] = "Exemplo de Atividade no mundo desativado.",
   ["tools.open.activity"] = "Abrir atividade no mundo",
   ["guide.nearby.fights.title"] = "Ordem de abate em combates no mundo",
-  ["guide.nearby.fights.text"] = "Em um grupo ou raide no mundo aberto, a ordem de abate, as barras de vida e os painéis de equipe do Highground também funcionam com os inimigos que você e seu grupo veem. O painel aparece quando um inimigo é visto na sua zona e fica enquanto a luta durar; ele não pode aparecer em combate, então espera o combate acabar se o primeiro inimigo chegar no meio da luta.",
+  ["guide.nearby.fights.text"] = "Em um grupo ou raide no mundo aberto, esta lista vira sua ordem de abate assim que um inimigo é visto na sua zona. As linhas seguem a posição, o alvo a abater fica destacado, e aparecem a vida e um olho para inimigos que estão mirando em você. As linhas se reorganizam fora de combate; em combate elas mantêm o lugar e continuam atualizando.",
   ["fights.label"] = "Ordem de abate em combates no mundo",
   ["fights.desc"] = "Em um grupo ou raide no mundo aberto, use a ordem de abate de campo de batalha, as barras de vida e os marcadores de curandeiros nos inimigos que você e seu grupo veem. Precisa do módulo de Campos de batalha.",
   ["fights.commands.switch"] = "Use a ordem de abate em combates de grupo no mundo aberto, ou pare.",

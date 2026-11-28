@@ -4914,7 +4914,7 @@ assert((ns.Locale or HighgroundLocale):Register("frFR", {
   ["activity.preview.off"] = "Exemple Activité du monde désactivé.",
   ["tools.open.activity"] = "Ouvrir l'activité du monde",
   ["guide.nearby.fights.title"] = "Ordre d'élimination en combat sauvage",
-  ["guide.nearby.fights.text"] = "En groupe ou en raid dans le monde ouvert, l'ordre d'élimination, les barres de vie et les panneaux d'équipe de Highground fonctionnent aussi sur les ennemis que vous et votre groupe voyez. Le tableau apparaît dès qu'un ennemi est vu dans votre zone et reste pendant le combat ; il ne peut pas apparaître en combat, il attend donc la fin du combat si le premier ennemi arrive en pleine bataille.",
+  ["guide.nearby.fights.text"] = "En groupe ou en raid dans le monde ouvert, cette liste devient votre ordre d'élimination dès qu'un ennemi est vu dans votre zone. Les lignes suivent leur rang, la cible à éliminer est mise en évidence, et la vie ainsi qu'un œil pour les ennemis qui vous ciblent apparaissent. Les lignes se réordonnent hors combat ; en combat, elles gardent leur place et continuent de se mettre à jour.",
   ["fights.label"] = "Ordre d'élimination en combat sauvage",
   ["fights.desc"] = "En groupe ou en raid dans le monde ouvert, utiliser l'ordre d'élimination des champs de bataille, les barres de vie et les marqueurs de soigneurs sur les ennemis que vous et votre groupe voyez. Nécessite le module Champs de bataille.",
   ["fights.commands.switch"] = "Utiliser l'ordre d'élimination dans les combats de groupe du monde ouvert, ou arrêter.",

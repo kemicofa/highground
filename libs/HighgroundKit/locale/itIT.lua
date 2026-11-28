@@ -4914,7 +4914,7 @@ assert((ns.Locale or HighgroundLocale):Register("itIT", {
   ["activity.preview.off"] = "Esempio di Attività nel mondo disattivato.",
   ["tools.open.activity"] = "Apri attività nel mondo",
   ["guide.nearby.fights.title"] = "Ordine di uccisione negli scontri nel mondo",
-  ["guide.nearby.fights.text"] = "In un gruppo o un'incursione nel mondo aperto, l'ordine di uccisione, le barre della salute e i pannelli di squadra di Highground funzionano anche sui nemici che vedete tu e il tuo gruppo. Il pannello compare quando un nemico viene visto nella tua zona e resta finché dura lo scontro; non può comparire in combattimento, quindi aspetta la fine del combattimento se il primo nemico arriva nel mezzo.",
+  ["guide.nearby.fights.text"] = "In un gruppo o un'incursione nel mondo aperto, questa lista diventa il tuo ordine di uccisione appena un nemico viene visto nella tua zona. Le righe seguono il loro grado, il bersaglio da uccidere è evidenziato e compaiono la salute e un occhio per i nemici che ti prendono di mira. Fuori dal combattimento le righe si riordinano; in combattimento restano al loro posto e continuano ad aggiornarsi.",
   ["fights.label"] = "Ordine di uccisione negli scontri nel mondo",
   ["fights.desc"] = "In un gruppo o un'incursione nel mondo aperto, usa l'ordine di uccisione dei campi di battaglia, le barre della salute e gli indicatori dei guaritori sui nemici che vedete tu e il tuo gruppo. Richiede il modulo Campi di battaglia.",
   ["fights.commands.switch"] = "Usa l'ordine di uccisione negli scontri di gruppo nel mondo aperto, o smetti.",

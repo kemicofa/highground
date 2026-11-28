@@ -4914,7 +4914,7 @@ assert((ns.Locale or HighgroundLocale):Register("zhTW", {
   ["activity.preview.off"] = "野外活動範例已關閉。",
   ["tools.open.activity"] = "開啟野外活動",
   ["guide.nearby.fights.title"] = "野外戰鬥的擊殺順序",
-  ["guide.nearby.fights.text"] = "在野外組隊或團隊時，Highground 的擊殺順序、生命條和團隊面板也會對你和隊伍看到的敵人生效。在你所在區域看到敵人後面板就會出現，並在戰鬥期間保留；戰鬥中無法出現，所以如果第一個敵人在戰鬥中途出現，會等到戰鬥結束。",
+  ["guide.nearby.fights.text"] = "在野外組隊或團隊時，一旦在你所在區域看到敵人，這個列表就會變成你的擊殺順序。各行按排名排列，擊殺目標會醒目標示，並顯示生命值和標記以你為目標的敵人的眼睛圖示。各行在戰鬥外重新排序；戰鬥中保持位置並持續更新。",
   ["fights.label"] = "野外戰鬥的擊殺順序",
   ["fights.desc"] = "在野外組隊或團隊時，對你和隊伍看到的敵人使用戰場擊殺順序、生命條和治療者標記。需要戰場模組。",
   ["fights.commands.switch"] = "在野外組隊戰鬥中使用擊殺順序，或停止使用。",

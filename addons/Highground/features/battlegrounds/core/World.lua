@@ -6,12 +6,12 @@ local Core = ns.Core
 -- fights. With a home party or raid, Nearby tracking (world/Nearby.lua) and
 -- an enemy seen in your zone in the last minute, by you or shared by your
 -- group or guild (world/Share.lua), the kill order runs in the "world"
--- context: its board, scoring, health, CC and "on you" signals, healer
--- crosses and burst marks. The roster is Nearby's recent sightings instead
--- of a scoreboard. Battleground-only parts (timers, flags, objectives, map
--- intel, spec tags, capture sharing) check ns.IsActive(), which stays false
--- here. The secure panel can't appear in combat: it shows once combat ends
--- if the first enemy arrives mid-fight.
+-- context: scoring, health, CC and "on you" signals, healer crosses and
+-- burst marks. The roster is Nearby's recent sightings instead of a
+-- scoreboard, and Nearby's list shows the ranking: the board stays hidden
+-- (Core.PanelWanted). Battleground-only parts (timers, flags, objectives,
+-- map intel, spec tags, capture sharing) check ns.IsActive(), which stays
+-- false here.
 ---------------------------------------------------------------------------
 Core.WORLD_RECENT = 60 -- seconds: an enemy this recent keeps the fight on
 Core.WORLD_ROSTER = 30 -- seconds: enemies on the board
@@ -79,6 +79,11 @@ end
 
 -- In a live world fight (not the preview).
 function ns.InWorldFight() return Core.active and not Core.testMode and Core.context == "world" end
+
+-- Each kill-order tick of a world fight repaints Nearby's ranks and health.
+function Core.PaintNearbyFight()
+  if Core.context == "world" and ns.Nearby and ns.Nearby.RefreshFight then ns.Nearby.RefreshFight() end
+end
 
 -- Start or stop as enemies come and go: battlegrounds start on zone and
 -- score events (core/Events.lua).

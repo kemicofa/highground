@@ -78,7 +78,9 @@ function T.Summary(b)
   return text .. (methods ~= "" and (ns.Locale:Format("shared.terms.preferred_finish_any_methods_proof_reviewed_manually.d4ee50", { methods = methods })) or "")
 end
 
-local function Progress(b)
+-- "Progress: 1/3 kills approved · 1 pending review"; bare drops "Progress:"
+-- for a labelled row.
+local function Progress(b, bare)
   local done, pending, personal = 0, 0, b.state == "personal"
   local tracking = personal and b.by == B.Me() and not b.potID
   if b.id then
@@ -102,8 +104,16 @@ local function Progress(b)
   end
   done = math.max(done, b.killsAwarded or 0)
   local count = T.Count(b)
-  return ns.Locale:Format("shared.terms.progress_done_count_value5_value6_value7.d15742", { done = done, count = count, value5 = (tracking and ns.Locale:Get("shared.terms.kills_recorded.bbfdd4") or ns.Locale:Get("shared.terms.kills_approved.8c44fb")), value6 = (pending > 0 and (ns.Locale:Format("shared.previewflows.pending_pending_review.5d459c", { pending = pending })) or ""), value7 = (done >= count and ns.Locale:Get("shared.previewflows.complete.938ad0") or "") })
+  local kills = tracking and ns.Locale:Get("shared.terms.kills_recorded.bbfdd4") or ns.Locale:Get("shared.terms.kills_approved.8c44fb")
+  local waiting = pending > 0 and ns.Locale:Format("shared.previewflows.pending_pending_review.5d459c", { pending = pending }) or ""
+  local complete = done >= count and ns.Locale:Get("shared.previewflows.complete.938ad0") or ""
+  if bare then
+    return ns.Locale:Format("bounty.progress.value", { done = done, count = count, kills = kills, pending = waiting, complete = complete })
+  end
+  return ns.Locale:Format("shared.terms.progress_done_count_value5_value6_value7.d15742", { done = done, count = count, value5 = kills, value6 = waiting, value7 = complete })
 end
+
+function T.ProgressValue(b) return Progress(b, true) end
 
 function T.Progress(b)
   local lines = {}

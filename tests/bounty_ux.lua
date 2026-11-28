@@ -259,7 +259,7 @@ return function(addon)
       scan(s)
       local w = assert(B.Matches.win)
       t.equal(w.bounty.name, "GuildEnemy-Realm", "approved guild arrival")
-      assert(w.owner:GetText():find("guild", 1, true))
+      assert(w.from:GetText():find("^From Poster") and w.from:GetText():find("Guild", 1, true), "names the poster and the guild")
       click(w.details)
       local row = B.BoardModel.Rows("mine")[1]
       assert(row and row.guild and row.owner:find("Poster", 1, true), "tracking does not claim ownership")

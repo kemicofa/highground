@@ -71,6 +71,9 @@ Kit.TONES = {
   gold = { fill = "gold", text = "onAccent" },
   danger = { fill = "danger", text = "onAccent" },
   selected = { fill = "surfaceRaised", text = "accent" },
+  -- Wanted posters: stamp red and paper, with an ink edge on hover.
+  posterPrimary = { fill = "posterStamp", text = "posterPaper", edge = "posterInk", hover = "posterInk" },
+  posterSecondary = { fill = "posterInset", text = "posterInk", edge = "posterEdge", hover = "posterInk" },
 }
 
 -- Recolour a Kit.Button. fill: a tone name, a colour token or a colour

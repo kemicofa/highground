@@ -8,30 +8,53 @@ local function Current()
   return D.preview or B.BoardModel.Find(D.scope, D.name, D.organization)
 end
 
+local FUNDS = { available = "bounty.funds.available", insufficient = "bounty.funds.insufficient", unknown = "bounty.funds.unknown" }
+
+local function Fact(facts, key, value)
+  if value and value ~= "" then facts[#facts + 1] = { ns.Locale:Get(key), value } end
+end
+
+-- "Wed, 18:40 · 4d 8h left"
+local function Expiry(at)
+  return ns.Locale:Format("bounty.fact.expires_value", { when = ns.Util.When(at), left = P.Remaining(at) })
+end
+
+-- One card per reward. facts: the contract's label/value rows; detail: an
+-- explanation below them.
 local function Entries(b)
   local out = {}
-  local function Entry(source, audience, detail)
+  local function Entry(source, audience, facts, detail)
+    local rows = {}
+    Fact(rows, "bounty.fact.progress", D.preview and B.Preview.Progress(source, true) or B.Terms.ProgressValue(source))
+    Fact(rows, "bounty.fact.posted_by", ns.Core.DisplayName(source.by or "?", true))
+    for _, fact in ipairs(facts or {}) do rows[#rows + 1] = fact end
+    Fact(rows, "bounty.fact.finish", B.Terms.Methods(source))
+    B.Sightings.Facts(source, rows)
     local last = not D.preview and B.Kills.Latest(source.name)
-    if last then detail = ns.Locale:Format("shared.details.detail_last_kill_value3_value5.3deed3", { detail = detail, value3 = B.Kills.CauseText(last.cause), value5 = date("%Y-%m-%d %H:%M:%S", last.killedAt) }) end
+    if last then Fact(rows, "bounty.fact.last_kill", B.Kills.CauseText(last.cause) .. " · " .. ns.Util.When(last.killedAt)) end
     out[#out + 1] = {
       source = source,
       bounty = { name = b.name, class = b.class or source.class, gold = source.gold, note = source.note, killsRequired = B.Terms.Count(source), killMethods = source.killMethods },
-      audience = audience, owner = ns.Locale:Format("highground.coachbountysamples.posted_by_value2.435384", { value2 = ns.Core.DisplayName(source.by or "?", true) }),
-      detail = detail .. (B.Terms.Methods(source) ~= "" and (ns.Locale:Format("shared.details.preferred_finish_value2.0183f7", { value2 = B.Terms.Methods(source) })) or ""),
-      progress = D.preview and B.Preview.Progress(source) or B.Terms.Progress(source),
-      location = B.Sightings.Location(source),
+      audience = audience, facts = rows, detail = detail or "",
     }
   end
   local function Offer(p)
     local guild = b.guild and b.guild.publicID == p.id and b.guild
     local audience = guild and (guild.state == "pending" and ns.Locale:Get("shared.details.shared_organization_approval_pending.0c5144") or (ns.Locale:Format("shared.details.value1_shared_approved.b4f3e1", { value1 = B.Organizations.Label(guild) })))
       or ({ private = ns.Locale:Get("shared.details.private.237dfa"), guild = "Guild", community = B.Organizations.Label(p), global = ns.Locale:Get("shared.form.shared.50d0d8") })[B.Pot.Audience(p)]
-    Entry(p, audience, ns.Locale:Format("shared.details.value1_expires_value3_value5_left_value7.10fbf2", { value1 = P.FUND_LABELS[P.Funds(p)], value3 = date("%d %b · %H:%M", p.expiresAt), value5 = P.Remaining(p.expiresAt), value7 = (p.contract and (ns.Locale:Format("shared.details.reward_reviewed_by_value2.c246a8", { value2 = ns.Core.DisplayName(p.contract.by) })) or "") }))
+    local facts = {}
+    Fact(facts, "bounty.fact.funds", ns.Locale:Get(FUNDS[P.Funds(p)]))
+    Fact(facts, "bounty.fact.expires", Expiry(p.expiresAt))
+    if p.contract then Fact(facts, "bounty.fact.reviewed_by", ns.Core.DisplayName(p.contract.by)) end
+    Entry(p, audience, facts)
   end
   if b.pot and (#b.pot.contributions > 1 or b.personal and b.pot.contributions[1] ~= b.personal) then
     for _, p in ipairs(b.pot.contributions) do
       if p.id then Offer(p)
-      else Entry(p, B.Pot.Audience(p) == "private" and ns.Locale:Get("shared.details.private.237dfa") or B.Organizations.Label(p), ns.Locale:Format("shared.details.completion_decided_by_value2_expires_value4.2e1a77", { value2 = ns.Core.DisplayName(p.by), value4 = date("%Y-%m-%d %H:%M", B.Pot.Expires(p)) })) end
+      else
+        Entry(p, B.Pot.Audience(p) == "private" and ns.Locale:Get("shared.details.private.237dfa") or B.Organizations.Label(p),
+          { { ns.Locale:Get("bounty.fact.expires"), Expiry(B.Pot.Expires(p)) } }, ns.Locale:Get("bounty.details.poster_decides"))
+      end
     end
   elseif b.shared then for _, p in ipairs(b.shared.contributions) do Offer(p) end
   elseif b.offer then Offer(b.offer)
@@ -43,7 +66,7 @@ local function Entries(b)
         .. (b.guild.approver and (ns.Locale:Format("shared.details.by_value2.242709", { value2 = ns.Core.DisplayName(b.guild.approver, true) })) or "")
         .. "\n" .. (b.guild.publicID and ns.Locale:Get("shared.details.waiting_for_contribution_details_use_refresh_on.633b51") or ns.Locale:Get("shared.details.gold_payment_is_arranged_with_the_poster.f9d406"))
     end
-    Entry(source, b.visibility, detail)
+    Entry(source, b.visibility, nil, detail)
   end
   return out
 end
@@ -139,7 +162,7 @@ local function Card(w, i)
   if w.cards[i] then return w.cards[i] end
   local r = B.Wanted.Build(w.body)
   r.fullPoster = true
-  r.addGold = ns.Localization.Bind(Kit.Button(r, ns.Locale:Get("shared.details.add_gold.f9a980"), 180, 28, { onClick = function()
+  r.addGold = ns.Localization.Bind(Kit.Button(r, ns.Locale:Get("shared.details.add_gold.f9a980"), 180, 28, { tone = "posterSecondary", onClick = function()
     if not r.source then return end
     if D.preview then
       if D.previewActions and D.previewActions.addGold then D.previewActions.addGold(r.source) end
@@ -306,7 +329,7 @@ function D.Refresh()
           and (not entry.source.id or not P.Mine(entry.source)) and B.Pot.Live(entry.source)))
     r:ClearAllPoints(); r:SetPoint("TOPLEFT", 0, -y)
     B.Wanted.Fill(r, entry.bounty, { width = width, compact = true, status = ns.Text.Upper(entry.audience),
-      owner = entry.owner, location = entry.location, detail = entry.detail, progress = entry.progress,
+      facts = entry.facts, detail = entry.detail, progress = "",
       preview = D.preview ~= nil, portraitLabel = D.preview and b.previewPortraitLabel, tracking = "" })
     r:Show(); y = y + r:GetHeight() + gap
   end

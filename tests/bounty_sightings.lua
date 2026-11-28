@@ -24,8 +24,13 @@ return function(addon)
     return out
   end
   local function deliver(a, b) F.deliver(a, b, packets(a)) end
-  local function details(s, scope)
-    return s.ns.Bounty.Details.Open(assert(s.ns.Bounty.BoardModel.Rows(scope or "public")[1])).cards[1]
+  -- The first card's sighting rows as "LABEL: value" lines.
+  local function sightings(s, scope)
+    local card, out = s.ns.Bounty.Details.Open(assert(s.ns.Bounty.BoardModel.Rows(scope or "public")[1])).cards[1], {}
+    for _, row in ipairs(card.factRows) do
+      if row.value:IsShown() and row.label:GetText():find("SEEN", 1, true) then out[#out + 1] = row.label:GetText() .. ": " .. row.value:GetText() end
+    end
+    return table.concat(out, "\n")
   end
   local function has(text, value) assert(text:find(value, 1, true), text .. " missing " .. value) end
 
@@ -38,17 +43,17 @@ return function(addon)
       t.equal(p.intel.origin.zone, "Hillsbrad", "first observed zone saved")
       P.QueueOffer(p, "Hunter-Realm"); deliver(a, h)
       h.mapName, h.area, h.sightingMap = "Elwynn", "Goldshire", 12
-      local text = details(h).location:GetText()
-      has(text, "First spotted: Southshore · Hillsbrad"); has(text, "Poster")
+      has(sightings(h), "LAST SEEN: Southshore · Hillsbrad\nPoster · ")
+      local text = sightings(h)
       assert(not text:find("Goldshire", 1, true), "recipient's current area is not assigned to the enemy")
       assert(not h.ns.Bounty.Public.Data().offers[p.id].localSighting, "report is not a personal sighting")
       local again = new("Hunter", build, { saved = P.Copy(h.ns.Core.db), network = P.Copy(h.ns.Bounty.Public.db) })
-      has(details(again).location:GetText(), "First spotted: Southshore · Hillsbrad")
+      has(sightings(again), "LAST SEEN: Southshore · Hillsbrad")
       for _, link in ipairs({ assert(B.Exchange.Encode(p, "global")), assert(B.Exchange.Link(p, "global")) }) do
         local offline = new("Offline", build)
         local packet = assert(offline.ns.Bounty.Exchange.Decode(link))
         assert(offline.ns.Bounty.Exchange.Import(packet))
-        has(details(offline).location:GetText(), "First spotted: Southshore · Hillsbrad")
+        has(sightings(offline), "LAST SEEN: Southshore · Hillsbrad")
         offline:assertHealthy()
       end
       a:assertHealthy(); h:assertHealthy(); again:assertHealthy()
@@ -104,13 +109,14 @@ return function(addon)
     assert(a.ns.Bounty.Add("Enemy-Other", 500))
     t.equal(#a.ns.Bounty.Public.outbox, 0, "private sighting sends nothing")
     assert(a.ns.Bounty.Submit("Enemy-Other")); deliver(a, h)
-    has(details(h, "guild").location:GetText(), "First spotted: Southshore · Hillsbrad")
+    has(sightings(h, "guild"), "LAST SEEN: Southshore · Hillsbrad")
     a.area, a.now = "Tarren Mill", a.now + 2
     a:event("PLAYER_TARGET_CHANGED")
     local updates = packets(a)
     for _, packet in ipairs(updates) do t.equal(packet.channel, "GUILD", "guild sighting never enters public channel") end
     F.deliver(a, h, updates)
-    has(details(h, "guild").location:GetText(), "Tarren Mill")
+    has(sightings(h, "guild"), "LAST SEEN: Tarren Mill · Hillsbrad")
+    has(sightings(h, "guild"), "FIRST SEEN: Southshore · Hillsbrad")
     a:assertHealthy(); h:assertHealthy()
   end)
 
@@ -122,12 +128,12 @@ return function(addon)
     target(a); a:event("PLAYER_TARGET_CHANGED")
     local code = assert(B.Exchange.Link(b, "private"))
     assert(h.ns.Bounty.Exchange.Import(assert(h.ns.Bounty.Exchange.Decode(code))))
-    has(details(h, "mine").location:GetText(), "First spotted: Southshore · Hillsbrad")
+    has(sightings(h, "mine"), "SEEN: Southshore · Hillsbrad")
     t.equal(#h.ns.Bounty.Public.outbox, 0, "private import does not broadcast locations")
     local chat = new("Chat", 16001, { saved = {} })
     local payload = assert(B.Share.Encode(b))
     chat.ns.Bounty.Share.ShowImport(payload); chat.ns.Bounty.Share.Import()
-    has(details(chat, "mine").location:GetText(), "First spotted: Southshore · Hillsbrad")
+    has(sightings(chat, "mine"), "SEEN: Southshore · Hillsbrad")
     chat:assertHealthy()
     a:assertHealthy(); h:assertHealthy()
   end)

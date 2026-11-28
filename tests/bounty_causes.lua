@@ -85,7 +85,11 @@ return function(addon)
     t.equal(#B.Kills.History(), 3, "later kills remain in private history")
     assert(B.Proof.win.killProgress:GetText():find("Complete", 1, true))
     B.Details.Open(B.BoardModel.Rows("mine")[1])
-    assert(B.Details.win.cards[1].detail:GetText():find("Execute", 1, true))
+    local lastKill
+    for _, row in ipairs(B.Details.win.cards[1].factRows) do
+      if row.label:GetText() == "LAST KILL" and row.value:IsShown() then lastKill = row.value:GetText() end
+    end
+    assert(lastKill and lastKill:find("Execute", 1, true), "the last kill keeps its cause")
     local reload = new("Hunter", { saved = B.Public.Copy(s.ns.Core.db) })
     t.equal(#reload.ns.Bounty.Kills.History(), 3, "history survives reload")
     t.equal(reload.ns.Bounty.Ledger.All()[1].cause.spellID, 5308, "claim retains spell identity")

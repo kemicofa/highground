@@ -59,12 +59,12 @@ local function Build(preview)
   w:SetFrameStrata("FULLSCREEN_DIALOG"); w:SetFrameLevel(105)
   w:SetClampedToScreen(true); w:EnableMouse(true)
   w:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 36, -110)
-  w.close = Kit.Button(w, "×", 24, 24, { onClick = function() w:Hide() end })
+  w.close = Kit.Button(w, "×", 24, 24, { tone = "posterSecondary", onClick = function() w:Hide() end })
   w.close:SetPoint("TOPRIGHT", -8, -8)
-  w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe"), 230, 30, { tone = "gold", onClick = function()
+  w.details = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("highground.coachbountysamples.start_tracking.9d94fe"), 230, 30, { tone = "posterPrimary", onClick = function()
     if preview then B.Preview.Interest("tracking"); w:Hide() else N.Set(w.bounty.name, "tracking") end
   end }), "highground.coachbountysamples.start_tracking.9d94fe")
-  w.ignore = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.matches.ignore_bounty.59f872"), 230, 28, { onClick = function()
+  w.ignore = ns.Localization.Bind(Kit.Button(w, ns.Locale:Get("shared.matches.ignore_bounty.59f872"), 230, 28, { tone = "posterSecondary", onClick = function()
     if preview then B.Preview.Interest("ignored"); w:Hide() else N.Set(w.bounty.name, "ignored") end
   end }), "shared.matches.ignore_bounty.59f872")
   w.secondaryAction = w.ignore
@@ -88,12 +88,11 @@ local rendered, renderAt -- B.changes and time of the open poster's last render
 local function Render(w, b, preview)
   if not preview then rendered, renderAt = B.changes, GetTime() + N.RESCAN end
   w.bounty = b
+  -- Tracking is the poster's own action, so no tracking stamp.
   B.Wanted.Fill(w, b, { status = preview and ns.Locale:Get("shared.matches.preview_new_bounty.d76662") or ns.Locale:Get("shared.matches.new_bounty_filter_match.a7b35e"),
-    owner = b.contributions and ns.Locale:Get("shared.matches.a_new_shared_reward_is_available.5b9912") or (b.organization and (ns.Locale:Format("shared.matches.a_new_reward_from_value2.91eed7", { value2 = B.Organizations.Label(b) })) or ns.Locale:Get("shared.matches.a_new_guild_reward_is_available.8d0f77")),
-    location = not preview and B.Sightings.Location(b) ~= "" and B.Sightings.Location(b)
-      or ns.Locale:Get("shared.matches.bounty_received_no_sighting_reported.097a91"),
+    from = B.From(b), tracking = "",
+    location = not preview and B.Sightings.Brief(b) or ns.Locale:Get("shared.matches.bounty_received_no_sighting_reported.097a91"),
     detail = ns.Locale:Format("shared.matches.matches_your_value2_minimum_track_to_add.173c87", { value2 = ns.Util.Gold(preview and B.Preview.Ensure().minGold or ns.Core.O("bountyMinGold") or 0) }),
-    tracking = preview and B.Preview.testing and (B.Preview.state.interest == "tracking" and ns.Locale:Get("shared.matches.tracking.9ad1ea") or ns.Locale:Get("shared.matches.not_tracking.7b1dc4")) or nil,
     preview = preview, portraitLabel = preview and b.previewPortraitLabel, progress = "", compact = true, width = Width() })
   w:Show()
 end

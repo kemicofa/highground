@@ -195,8 +195,10 @@ return function(addon)
         local card = w.cards[i]
         assert(card:IsShown(), "each contribution has a card")
         t.equal(card.reward:GetText(), amount .. "g", "individual reward")
-        assert(card.detail:GetText():find("Funds reported available", 1, true), "funding status kept")
-        assert(card.detail:GetText():find("Expires ", 1, true), "expiry kept")
+        local facts = {}
+        for _, row in ipairs(card.factRows) do if row.value:IsShown() then facts[row.label:GetText()] = row.value:GetText() end end
+        t.equal(facts.FUNDS, "Reported available", "funding status kept")
+        assert(facts.EXPIRES and facts.EXPIRES:find(" left", 1, true), "expiry kept")
         assert(not card.portraitWell:IsShown() and not card.name:IsShown(), "contributions do not repeat target identity")
       end
       assert(w.target:IsShown(), "shared target identity appears once")

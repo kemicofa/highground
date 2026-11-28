@@ -212,13 +212,13 @@ return function(addon)
       t.equal(alt.ns.Bounty.Pot.Find("Wanted-Realm"), nil, "alt does not inherit the private import")
       t.equal(#alt.ns.Bounty.BoardModel.Rows("mine"), 0, "private import is absent from the alt's board")
       local at = alt.env.time()
-      local location = alt.ns.Bounty.Sightings.Location({ name = "Wanted-Realm",
+      local facts = alt.ns.Bounty.Sightings.Facts({ name = "Wanted-Realm",
         localSighting = { by = "Main-Realm", at = at - 2, zone = "Arathi", area = "Farm", mapID = 93, world = true, guid = "" },
-        intel = { latest = { by = "Poster-Realm", at = at, zone = "Arathi", area = "Farm", mapID = 93, world = true, guid = "" } } })
-      assert(not location:find("Last seen by you", 1, true), "another character's local sighting is not attributed to you")
-      assert(location:find("Poster", 1, true), "shared sightings still credit the actual observer")
-      local legacy = alt.ns.Bounty.Sightings.Location({ seenAt = at, seenZone = "Arathi" })
-      assert(not legacy:find("by you", 1, true), "unattributed sightings remain unattributed")
+        intel = { latest = { by = "Poster-Realm", at = at, zone = "Arathi", area = "Farm", mapID = 93, world = true, guid = "" } } }, {})
+      t.equal(#facts, 1, "another character's local sighting is not attributed to you")
+      assert(facts[1][2]:find("Poster", 1, true), "shared sightings still credit the actual observer")
+      local legacy = alt.ns.Bounty.Sightings.Facts({ seenAt = at, seenZone = "Arathi" }, {})
+      assert(legacy[1][2]:find("Arathi", 1, true) and not legacy[1][2]:find("You", 1, true), "unattributed sightings remain unattributed")
       local otherGuild = { audience = "guild", contributor = B.Public.db.id, by = B.Me(), guild = "Other Guild" }
       assert(not alt.ns.Bounty.Pot.Visible(otherGuild), "an alt's guild-only contribution does not bypass membership")
       assert(B.Pot.Visible(otherGuild), "the posting character can still manage its commitment")

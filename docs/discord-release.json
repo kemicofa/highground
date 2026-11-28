@@ -1,9 +1,13 @@
 {
   "releases": {
-    "Highground": "3.3.2"
+    "Highground": "3.4.0"
   },
   "changes": [
-    "Nearby: your killing blows on enemy players now count on WoW Forever and Retail, in the enemy journal, World activity and the heatmap's Kills here. WoW Forever showed 0 kills before. Your pet's killing blows count too."
+    "Battlegrounds: your group leader can give teammates class, role or other icons above their nameplates and on raid frames, to find them among strangers. Open them with /hg icons.",
+    "Battlegrounds settings have tabs for 10v10, 15v15, Epic and Open world. Each size keeps its own settings, and Preview shows its sample panels to adjust. Also /hg sizes.",
+    "Profiles: settings now belong to each character and save on their own. Copy, export or import them on the Profiles page; your named profiles became imports.",
+    "Nearby: in open-world group fights, the Nearby list becomes your kill order, with ranks, health and an eye for enemies targeting you, instead of opening a second board.",
+    "Bounties: cleaner wanted posters that say who posted the reward, with dates in your display language and your game clock's format."
   ],
-  "notice": ""
+  "notice": "This is an alpha: on CurseForge or Wago, allow alpha files for Highground to get it. Restart the game after updating; /reload is not enough because it adds new addon files."
 }

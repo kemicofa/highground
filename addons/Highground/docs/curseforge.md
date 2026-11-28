@@ -1,4 +1,4 @@
-<!-- Highground 3.3.2 -->
+<!-- Highground 3.4.0 -->
 <!-- CurseForge project text. Update for every release; the build checks the version marker and summary length. -->
 
 # CurseForge description
@@ -25,7 +25,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 ### ⚔️ Battlegrounds
 
 - **Enemy list:** every enemy with its kill priority and spec, which you can tag when the game hides it. Left-click to target, right-click to focus.
-- **Target and healer markers:** a sight over your recommended target and crosses over enemy and friendly healers.
+- **Target, healer and team markers:** a sight over your recommended target, crosses over healers, and icons your group leader gives teammates.
 - **Objective timers:** graveyard waves, base capture countdowns and a win forecast; shift-click one to share it in chat.
 - **Flag carriers and map intel:** carrier health and debuffs, plus where enemies were last seen as circles on the map, shared with teammates.
 - **Quick callouts and history:** one-click calls to battleground chat, and saved results for every match.
@@ -41,7 +41,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 - **Nearby enemies:** hostile players seen by you, your group, your guild or other Highground users, with a live count and stealth alerts.
 - **Enemy heatmap:** the world map shades where enemies were seen and who won the fights there in the last hour.
 - **Tracking and marks:** track an enemy to hear where they turn up, and mark gankers or calls for help on the map.
-- **Kill order in world fights:** in a party or raid, kill order, health bars and healer markers cover the enemies around you.
+- **Kill order in world fights:** in a party or raid, Nearby ranks the enemies around you by kill order, with health and healer markers.
 - **Enemy journal:** who killed you and who you killed, with notes, muting and tracked and bounty filters.
 
 ### 💰 Bounties (alpha)
@@ -65,7 +65,7 @@ Highground is a PvP addon for World of Warcraft Retail, WoW Forever and Cataclys
 
 - **One window:** settings, previews and tools behind `/hg` or the minimap button.
 - **Modules:** switch Battlegrounds, Arena, Nearby, Bounties, Reputation and Macros on or off.
-- **Make it yours:** six themes, alert presets and sounds, and shareable profiles.
+- **Make it yours:** six themes, alert presets and sounds, settings for each battleground size, and shareable profiles.
 - **Languages:** English and nine other languages.
 
 ### 🔥 Extra on Cataclysm Classic
